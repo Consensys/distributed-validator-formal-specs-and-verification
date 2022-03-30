@@ -126,16 +126,17 @@ method serve_attestation_duty(slashing_db: AttestationSlashingDB, attestation_du
 
 
 datatype CONSENSUS_TYPE = ATTESTATION_CONSENSUS | BLOCK_CONSENSUS
-
+// type ConsensusID = (CONSENSUS_TYPE, Slot)
 
 datatype ProcessOutput<!T1, T2> =
-|   StartConsensus(
-        instance_id: (CONSENSUS_TYPE, Slot)
+|   NewProcessStateAndStartConsensusInstance(
+        new_process_state: ServeAttesationProcess,
+        start_consensus_with_instance_id: Slot
         // ,initial_value: T1
         // ,validity_function: T1 -> bool
     )
 // |   StopConsensus(
-//         instance_id: (CONSENSUS_TYPE, Slot)
+//         start_consensus_with_instance_id: (CONSENSUS_TYPE, Slot)
 //     )
 |   SignatureShareToBroadcastAndNewProcessState(signature_share: T2, new_process_state: ServeAttesationProcess)
 |   NewProcessState(new_process_state: ServeAttesationProcess)
@@ -179,14 +180,14 @@ predicate consensus_is_valid_attestation_data(slashing_db: AttestationSlashingDB
 }
 
 function f_serve_attestation_duty_start(
-    process: ServeAttesationProcess
+    process: ServeAttesationProcess,
+    attestation_duty: AttestationDuty
     // ,slashing_db: AttestationSlashingDB
 ): ProcessOutput<AttestationData, AttestationShare>
 {
-    var attestation_duty := process.attestation_duty;
-
-    StartConsensus(
-        instance_id := (ATTESTATION_CONSENSUS, process.attestation_duty.slot)
+    NewProcessStateAndStartConsensusInstance(
+        start_consensus_with_instance_id := attestation_duty.slot,
+        new_process_state := process.(attestation_duty := attestation_duty)
         // ,validity_function := (attestation_data: AttestationData) => 
         //     && attestation_data.slot == attestation_duty.slot
         //     && attestation_data.index == attestation_duty.committee_index
@@ -325,9 +326,10 @@ datatype Adversary = Adversary(
 
 datatype DVSAttestationConsensusData = DVSAttestationConsensusData(
     decided_value: Optional<AttestationData>,
-    slashing_dbs: set<AttestationSlashingDB>,
     honest_nodes_running: set<BLSPubkey>
 )
+
+type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
 
 datatype DSVState = DSVState(
     all_nodes: set<BLSPubkey>,
@@ -335,8 +337,11 @@ datatype DSVState = DSVState(
     adversary: Adversary,
     dv_pubkey: BLSPubkey,
     attestations_shares_sent: set<AttestationShare>,
-    consensus_on_attestation_data: map<Slot, DVSAttestationConsensusData>,
-    aggregated_attestations_sent: set<Attestation>
+    consensus_on_attestation_data: imaptotal<Slot, DVSAttestationConsensusData>,
+    slashing_dbs_used_for_validating_attestations: imaptotal<Slot, set<AttestationSlashingDB>>,
+    aggregated_attestations_sent: set<Attestation>,
+    attestation_duties_served: map<AttestationDuty, set<BLSPubkey>>,
+    construct_signed_attestation_signature: (AttestationData, set<BLSSignature>) -> Optional<BLSSignature>
 )
 
 function f(n:nat): nat
@@ -350,7 +355,6 @@ function quorum(n:nat):nat
 
 predicate DSVInit(
     s: DSVState,
-    construct_signed_attestation_signature: (AttestationData, set<BLSSignature>) -> Optional<BLSSignature>,
     initial_slashing_db: AttestationSlashingDB
 )
 {
@@ -375,7 +379,7 @@ predicate DSVInit(
                     )
             )
             <==>
-                construct_signed_attestation_signature(data, sig_shares).isPresent()
+                s.construct_signed_attestation_signature(data, sig_shares).isPresent()
     )    
     &&
         (
@@ -383,41 +387,40 @@ predicate DSVInit(
             data: AttestationData, 
             sig_shares: set<BLSSignature> 
             ::
-                var constructed_sig := construct_signed_attestation_signature(data, sig_shares);
+                var constructed_sig := s.construct_signed_attestation_signature(data, sig_shares);
                 constructed_sig.isPresent() ==> verify_bls_siganture(data, constructed_sig.get(), s.dv_pubkey)
 
     )   
     && s.attestations_shares_sent == {}
-    && no_slashing_conditions_in_the_slashing_db(initial_slashing_db)
-    && 
-    (
-        exists attestation_duty ::
-        (forall p | p in s.honest_nodes_states.Values :: 
+    && s.consensus_on_attestation_data == (imap s: Slot :: DVSAttestationConsensusData(None, {}))
+    && s.slashing_dbs_used_for_validating_attestations == (imap s: Slot :: {})
+    && s.aggregated_attestations_sent == {}
+    && s.attestation_duties_served == map[]
+    && no_slashing_conditions_in_the_slashing_db(initial_slashing_db)    
+    && (
+        forall p | p in s.honest_nodes_states.Values ::
             p == ServeAttesationProcess(
-                attestation_duty := attestation_duty,
-                construct_signed_attestation_signature := construct_signed_attestation_signature,
+                attestation_duty := p.attestation_duty,
+                construct_signed_attestation_signature := s.construct_signed_attestation_signature,
                 slashing_db := initial_slashing_db,
                 signature_shares_db := map[]
             )
-        )
     )
-    // && (forall i | 1 <= i < |s.)
 }
 
 predicate DSVNext(
     s: DSVState,
     node_taking_step: BLSPubkey,
-    slot: Slot,
+    attestation_consensus_instance: Slot,
     decided_attestation_data: AttestationData,
     slashing_db_used_to_check_attestation_data: AttestationSlashingDB,
     attestation_signature_share_received: AttestationShare,
+    attestation_duty_to_be_served: AttestationDuty,
     s': DSVState
 )
 {
     && node_taking_step in s.all_nodes
-    && s.attestations_shares_sent <= s'.attestations_shares_sent
-    && var new_attestation_shares_sent := s'.attestations_shares_sent - s.attestations_shares_sent;
-    (
+    && (
         || (
             && node_taking_step in s.honest_nodes_states.Keys
             && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
@@ -425,43 +428,47 @@ predicate DSVNext(
 
             && (
                 || (
+                    && (forall atd | atd in s.attestation_duties_served.Keys :: atd.slot == attestation_duty_to_be_served.slot ==> atd == attestation_duty_to_be_served)
                     && (
-                        ||  slot !in s.consensus_on_attestation_data.Keys 
-                        ||  node_taking_step !in s.consensus_on_attestation_data[slot].honest_nodes_running
+                        || attestation_duty_to_be_served !in s.attestation_duties_served.Keys 
+                        || node_taking_step !in s.attestation_duties_served[attestation_duty_to_be_served] 
                     )
-                    && var start_consensus_command := f_serve_attestation_duty_start(
-                        s.honest_nodes_states[node_taking_step]
+                    && var process_output := f_serve_attestation_duty_start(
+                        s.honest_nodes_states[node_taking_step],
+                        attestation_duty_to_be_served
                     );
-                    && s'.consensus_on_attestation_data.Keys == s.consensus_on_attestation_data.Keys + {slot}
-                    && s'.consensus_on_attestation_data == s.consensus_on_attestation_data[slot := s'.consensus_on_attestation_data[slot]]
-                    && var s_consensus_on_attestation := getOrDefault(s.consensus_on_attestation_data, slot, DVSAttestationConsensusData(None, {}, {}));
-                    && s'.consensus_on_attestation_data[slot].honest_nodes_running == s_consensus_on_attestation.honest_nodes_running + {node_taking_step}
-                    && s'.consensus_on_attestation_data[slot].slashing_dbs == s_consensus_on_attestation.slashing_dbs + {s.honest_nodes_states[node_taking_step].slashing_db}
-                    && s'.consensus_on_attestation_data[slot].decided_value == s_consensus_on_attestation.decided_value
+                    && s'.attestation_duties_served.Keys == s.attestation_duties_served.Keys + {attestation_duty_to_be_served}
+                    && var s_attestation_duty_to_be_served := getOrDefault(s.attestation_duties_served, attestation_duty_to_be_served, {}); 
+                    && s'.attestation_duties_served[attestation_duty_to_be_served] == s_attestation_duty_to_be_served + {node_taking_step}
+                    && var consensus_id := process_output.start_consensus_with_instance_id;
+                    && s'.consensus_on_attestation_data == s.consensus_on_attestation_data[consensus_id := s'.consensus_on_attestation_data[consensus_id]]
+                    && s'.consensus_on_attestation_data[consensus_id].honest_nodes_running == s.consensus_on_attestation_data[consensus_id].honest_nodes_running + {node_taking_step}
+                    && s'.consensus_on_attestation_data[consensus_id] == s.consensus_on_attestation_data[consensus_id].(
+                        honest_nodes_running := s'.consensus_on_attestation_data[consensus_id].honest_nodes_running
+                    )
+                    && s'.honest_nodes_states[node_taking_step] == process_output.new_process_state
                     && s' == s.(
-                        consensus_on_attestation_data := s'.consensus_on_attestation_data
+                        honest_nodes_states := s'.honest_nodes_states,
+                        consensus_on_attestation_data := s'.consensus_on_attestation_data,
+                        slashing_dbs_used_for_validating_attestations := s'.slashing_dbs_used_for_validating_attestations
                     )
                 )                
                 || (
-                    && slot in s.consensus_on_attestation_data.Keys
-                    && node_taking_step in s.consensus_on_attestation_data[slot].honest_nodes_running
-                    && s'.consensus_on_attestation_data.Keys == s.consensus_on_attestation_data.Keys
-                    && s'.consensus_on_attestation_data == s.consensus_on_attestation_data[slot := s'.consensus_on_attestation_data[slot]]
+                    && node_taking_step in s.consensus_on_attestation_data[attestation_consensus_instance].honest_nodes_running
+                    && s'.consensus_on_attestation_data == s.consensus_on_attestation_data[attestation_consensus_instance := s'.consensus_on_attestation_data[attestation_consensus_instance]]
                     && (
                         || (
-                            && s.consensus_on_attestation_data[slot].decided_value.isPresent()
-                            && s.consensus_on_attestation_data[slot].decided_value.get() == decided_attestation_data
+                            && s.consensus_on_attestation_data[attestation_consensus_instance].decided_value.isPresent()
+                            && s.consensus_on_attestation_data[attestation_consensus_instance].decided_value.get() == decided_attestation_data
                         )
                         || (
-                            && !s.consensus_on_attestation_data[slot].decided_value.isPresent()
-                            && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                            && s'.consensus_on_attestation_data[slot].decided_value.get() == decided_attestation_data
-                            && slashing_db_used_to_check_attestation_data in s.consensus_on_attestation_data[slot].slashing_dbs
+                            && !s.consensus_on_attestation_data[attestation_consensus_instance].decided_value.isPresent()
+                            && s'.consensus_on_attestation_data[attestation_consensus_instance].decided_value.isPresent()
+                            && s'.consensus_on_attestation_data[attestation_consensus_instance].decided_value.get() == decided_attestation_data
                             && consensus_is_valid_attestation_data(slashing_db_used_to_check_attestation_data, decided_attestation_data, s.honest_nodes_states[node_taking_step].attestation_duty)
                         )
                     )
-                    && s'.consensus_on_attestation_data[slot].slashing_dbs == s.consensus_on_attestation_data[slot].slashing_dbs + {s.honest_nodes_states[node_taking_step].slashing_db}
-                    && s'.consensus_on_attestation_data[slot].honest_nodes_running == s.consensus_on_attestation_data[slot].honest_nodes_running
+                    && s'.consensus_on_attestation_data[attestation_consensus_instance].honest_nodes_running == s.consensus_on_attestation_data[attestation_consensus_instance].honest_nodes_running
                     && var process_output := f_serve_attestation_duty_consensus_finished(
                         s.honest_nodes_states[node_taking_step],
                         decided_attestation_data   
@@ -470,7 +477,9 @@ predicate DSVNext(
                     && s'.attestations_shares_sent == s.attestations_shares_sent + {process_output.signature_share}
                     && s' == s.(
                         honest_nodes_states := s'.honest_nodes_states,
-                        attestations_shares_sent := s'.attestations_shares_sent
+                        attestations_shares_sent := s'.attestations_shares_sent,
+                        consensus_on_attestation_data := s'.consensus_on_attestation_data,
+                        slashing_dbs_used_for_validating_attestations := s'.slashing_dbs_used_for_validating_attestations
                     )
                 )
                 || (
@@ -483,22 +492,45 @@ predicate DSVNext(
                     && s'.aggregated_attestations_sent == s.aggregated_attestations_sent + process_output.aggregated_attestations
                     && s' == s.(
                         honest_nodes_states := s'.honest_nodes_states,
-                        aggregated_attestations_sent := s'.aggregated_attestations_sent                        
+                        aggregated_attestations_sent := s'.aggregated_attestations_sent,
+                        slashing_dbs_used_for_validating_attestations := s'.slashing_dbs_used_for_validating_attestations                     
                     )
                 )
+            )
+            && (
+                forall consensus_id
+                    ::
+                    s'.slashing_dbs_used_for_validating_attestations[consensus_id] == s.slashing_dbs_used_for_validating_attestations[consensus_id] +
+                        if node_taking_step in s'.consensus_on_attestation_data[consensus_id].honest_nodes_running then
+                            {s'.honest_nodes_states[node_taking_step].slashing_db}
+                        else
+                            {}
             )
             
         )
         || (
+            && s.attestations_shares_sent <= s'.attestations_shares_sent
+            && var new_attestation_shares_sent := s'.attestations_shares_sent - s.attestations_shares_sent;
             && node_taking_step in s.adversary.nodes
             && (
                 forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
                     verify_bls_siganture(new_attestation_share_sent.data, new_attestation_share_sent.signature, signer) ==> signer in s.adversary.nodes
             )
+            && s.aggregated_attestations_sent <= s'.aggregated_attestations_sent
+            && var new_aggregated_attestations_sent := s'.aggregated_attestations_sent - s.aggregated_attestations_sent;
+            && (forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent ::
+                    exists attestation_shares ::
+                            && attestation_shares <= s'.attestations_shares_sent
+                            && var sig_shares := set x | x in attestation_shares :: x.signature;
+                            && var constructed_sig := s.construct_signed_attestation_signature(aggregated_attestation_sent.data, sig_shares);
+                            && constructed_sig.isPresent()
+                            && constructed_sig.get() == aggregated_attestation_sent.signature
+            )
             && s' == s.(
                 honest_nodes_states := s'.honest_nodes_states,
                 attestations_shares_sent := s'.attestations_shares_sent,
-                consensus_on_attestation_data := s'.consensus_on_attestation_data
+                consensus_on_attestation_data := s'.consensus_on_attestation_data,
+                aggregated_attestations_sent := s'.aggregated_attestations_sent
             )            
         )    
     )
