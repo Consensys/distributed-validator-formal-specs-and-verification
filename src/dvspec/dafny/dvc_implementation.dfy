@@ -1,170 +1,10 @@
-module Types 
-{
-    type ValidatorIndex = nat
-    type Epoch = nat 
-    type Slot = nat
-    const SLOTS_PER_EPOCH := 32
-    type {:extern "CommitteeIndex"} CommitteeIndex(!new, 0)
-    // type Attestation 
-    type {:extern "BLSSignature"} BLSSignature(==, !new, 0)
-    type {:extern "BLSPubkey"} BLSPubkey(==, !new, 0)
-    type {:extern "Bytes32"} Bytes32(0)
-    // type SignedBeaconBlock
-    type {:extern "Root"} Root(==, 0)
-    type {:extern "SyncCommitteeSignature"} SyncCommitteeSignature
-    type {:extern "SyncCommitteeDuty"} SyncCommitteeDuty   
-    type {:extern "Version"} Version    
-    datatype Checkpoint = Checkpoint(
-        epoch: Epoch,
-        root: Root
-    )
+include "commons.dfy"
 
-    type {:extern "Domain"} Domain(==)
-    // type AttestationDuty 
-    datatype AttestationData = AttestationData(
-        slot: Slot,
-        index: CommitteeIndex,
-        // LMD GHOST vote
-        beacon_block_root: Root,
-        // FFG vote
-        source: Checkpoint,
-        target: Checkpoint
-    )
-    // type ProposerDuty
-    datatype BeaconBlock = BeaconBlock(
-        body: BeaconBlockBody
-        // ... Other fields irrelevant to this spec
-    )
-
-    datatype BeaconBlockBody = BeaconBlockBody(
-        attestations: seq<Attestation>,
-        state_root: Root
-        // ... Other fields irrelevant to this spec
-    )
-
-    datatype Attestation = Attestation(
-        aggregation_bits: seq<bool>,
-        data: AttestationData,
-        signature: BLSSignature
-    )
-
-    datatype AttestationShare = AttestationShare(
-        aggregation_bits: seq<bool>,
-        data: AttestationData,
-        signature: BLSSignature
-    )
-
-    datatype AttestationDuty = AttestationDuty(
-        pubkey: BLSPubkey,
-        validator_index: ValidatorIndex,
-        committee_index: CommitteeIndex,
-        committee_length: nat,
-        committees_at_slot: nat,
-        validator_committee_index: ValidatorIndex,
-        slot: Slot        
-    )
-
-    datatype ProposerDuty = ProposerDuty(
-        pubkey: BLSPubkey,
-        validator_index: ValidatorIndex,
-        slot: Slot        
-    )
-
-    datatype SignedBeaconBlock = SignedBeaconBlock(
-        message: BeaconBlock,
-        signature: BLSSignature
-    )
-
-    type AttestationSlashingDB = set<SlashingDBAttestation>
-    // class AttestationSlashingDB
-    // {
-
-    // }
-
-    datatype BlockSlashingDB = BlockSlashingDB
-
-    datatype  SlashingDBAttestation = SlashingDBAttestation(
-        source_epoch: Epoch,
-        target_epoch: Epoch,
-        signing_root: Root
-    )
-
-    datatype Status =
-    | Success
-    | Failure(error: string)
-    {
-        predicate method IsFailure() { this.Failure?  }
-
-        function method PropagateFailure(): Status
-            requires IsFailure()
-        {
-            Status.Failure(this.error)
-        }
-    }   
-
-    // datatype Outcome<T> =
-    // | Success(value: T)
-    // | Failure(error: string)
-    // {
-    //     predicate method IsFailure() {
-    //         this.Failure?
-    //     }
-    //     function method PropagateFailure<U>(): Outcome<U>
-    //         requires IsFailure()
-    //     {
-    //         Outcome.Failure(this.error) // this is Outcome<U>.Failure(...)
-    //     }
-    //     function method Extract(): T
-    //         requires !IsFailure()
-    //     {
-    //         this.value
-    //     }
-    // }     
-
-    datatype Optional<T(0)> = Some(v: T) | None
-    {
-        predicate method isPresent()
-        {
-            this.Some?
-        }
-
-        method get() returns (o: Status, v: T)
-        ensures isPresent() ==> o.Success? && v == safe_get()
-        ensures !isPresent() ==> o.Failure?
-        {
-            if isPresent()
-            {
-                return Success, this.v;
-            }
-            else {
-                var dummyVal;
-                return Failure(""), dummyVal;
-            }
-        }
-
-        function method safe_get(): T
-        requires isPresent()
-        {
-            this.v
-        }    
-    }         
-
-    function method getOrDefault<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
-    {
-        if key in M.Keys then
-            M[key]
-        else
-            default
-    }     
-}
-
-module CoVNode_Implementation_Helpers
+module DVCNode_Implementation_Helpers
 {
     import opened Types
 
     type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>
-
-
 
     function method compute_start_slot_at_epoch(epoch: Epoch): Slot
     {
@@ -224,10 +64,10 @@ module CoVNode_Implementation_Helpers
     ensures forall d1: T, d2: T :: hash_tree_root(d1) == hash_tree_root(d2) ==> d1 == d2
 }
 
-module CoVNode_Externs
+module DVCNode_Externs
 {
     import opened Types
-    import opened CoVNode_Implementation_Helpers  
+    import opened DVCNode_Implementation_Helpers  
 
     datatype ConsensuCommand = 
         | Start(id: Slot)
@@ -328,11 +168,11 @@ module CoVNode_Externs
 // abstract module X 
 // {
 //     import opened Types
-//     // import opened CoVNode_Externs
-//     import opened CoVNode_Implementation_Helpers    
-//     import opened CoVNode_Implementation`PublicInterface
+//     // import opened DVCNode_Externs
+//     import opened DVCNode_Implementation_Helpers    
+//     import opened DVCNode_Implementation`PublicInterface
 
-//     method test(x: CoVNode, bn: CoVNode_Externs.BeaconNode)
+//     method test(x: DVCNode, bn: DVCNode_Externs.BeaconNode)
 //     modifies x
 //     modifies x.bn
 //     {
@@ -345,24 +185,24 @@ module CoVNode_Externs
 //     }
 // }
 
-abstract module CoVNode_Implementation
+abstract module DVCNode_Implementation
 {
     import opened Types
-    import opened CoVNode_Implementation_Helpers
-    import opened CoVNode_Externs: CoVNode_Externs
+    import opened DVCNode_Implementation_Helpers
+    import opened DVCNode_Externs: DVCNode_Externs
 
     export PublicInterface
-        reveals CoVNode
+        reveals DVCNode
         provides
-                CoVNode.serve_attestation_duty, 
-                CoVNode.att_consensus_decided, 
-                CoVNode.listen_for_attestation_duty_shares,
-                CoVNode.listen_for_new_imported_blocks,
-                CoVNode.resend_attestation_share,
-                CoVNode.bn
-        provides Types, CoVNode_Implementation_Helpers, CoVNode_Externs
+                DVCNode.serve_attestation_duty, 
+                DVCNode.att_consensus_decided, 
+                DVCNode.listen_for_attestation_shares,
+                DVCNode.listen_for_new_imported_blocks,
+                DVCNode.resend_attestation_share,
+                DVCNode.bn
+        provides Types, DVCNode_Implementation_Helpers, DVCNode_Externs
 
-    class CoVNode {
+    class DVCNode {
 
         var current_attesation_duty: Optional<AttestationDuty>;
         var attestation_duties_queue: seq<AttestationDuty>;
@@ -453,6 +293,7 @@ abstract module CoVNode_Implementation
         }
 
         method att_consensus_decided(
+            id: Slot,
             decided_attestation_data: AttestationData
         ) returns (r: Status)
         modifies this
@@ -483,7 +324,7 @@ abstract module CoVNode_Implementation
             seq(index, i => if i + 1 == index then true else false)
         }        
 
-        method listen_for_attestation_duty_shares(
+        method listen_for_attestation_shares(
             attestation_share: AttestationShare
         )
         modifies this

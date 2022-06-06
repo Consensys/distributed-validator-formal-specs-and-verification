@@ -1,6 +1,7 @@
-include "dvc4.dfy"
+include "commons.dfy"
+include "dvc_implementation.dfy"
 
-module CoVNode_Externs_Proofs refines CoVNode_Externs
+module DVCNode_Externs_Proofs refines DVCNode_Externs
 {
     function {:axiom} bn_get_fork_version(slot: Slot): Version
 
@@ -74,41 +75,44 @@ module CoVNode_Externs_Proofs refines CoVNode_Externs
 
 }
 
-module CoVNode_Implementation_Proofs refines CoVNode_Implementation
+module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 {
-    import opened CoVNode_Externs = CoVNode_Externs_Proofs
+    import opened DVCNode_Externs = DVCNode_Externs_Proofs
 
     export PublicInterface...
-        provides 
-                toCoVNodeState,
-                f_resend_attestation_share,
-                toCoVNodeStateAndOuputs,
-                Outputs,
-                getEmptyOuputs,
-                f_att_consensus_decided,
-                f_serve_attestation_duty,
-                f_listen_for_new_imported_blocks,
-                f_listen_for_attestation_duty_shares
-        reveals
-                CoVNodeState,
-                CoVNodeStateAndOuputs
-        provides
-                CoVNode.network,
-                CoVNode.att_consensus, 
-                CoVNode.bn,
-                CoVNode.current_attesation_duty
+        reveals *
+        // provides 
+        //         toDVCNodeState,
+        //         f_resend_attestation_share,
+        //         toDVCNodeStateAndOuputs,
+        //         Outputs,
+        //         getEmptyOuputs,
+        //         f_att_consensus_decided,
+        //         f_serve_attestation_duty,
+        //         f_listen_for_new_imported_blocks,
+        //         f_listen_for_attestation_shares,
+        //         f_next,
+        //         Event
+        // reveals
+        //         DVCNodeState,
+        //         DVCNodeStateAndOuputs
+        // provides
+        //         DVCNode.network,
+        //         DVCNode.att_consensus, 
+        //         DVCNode.bn,
+        //         DVCNode.current_attesation_duty
     // export reveals *
     // export 
-    //     provides Types, CoVNode_Implementation_Helpers, CoVNode_Externs
-    //     reveals CoVNode, toCoVNodeState
+    //     provides Types, DVCNode_Implementation_Helpers, DVCNode_Externs
+    //     reveals DVCNode, toDVCNodeState
     //     provides 
-    //             CoVNode.serve_attestation_duty, 
-    //             CoVNode.att_consensus_decided, 
-    //             CoVNode.listen_for_attestation_duty_shares,
-    //             CoVNode.listen_for_new_imported_blocks,
-    //             CoVNode.resend_attestation_share
+    //             DVCNode.serve_attestation_duty, 
+    //             DVCNode.att_consensus_decided, 
+    //             DVCNode.listen_for_attestation_duty_shares,
+    //             DVCNode.listen_for_new_imported_blocks,
+    //             DVCNode.resend_attestation_share
 
-    datatype CoVNodeState = CoVNodeState(
+    datatype DVCNodeState = DVCNodeState(
         current_attesation_duty: Optional<AttestationDuty>,
         attestation_duties_queue: seq<AttestationDuty>,
         attestation_slashing_db: AttestationSlashingDB,
@@ -122,10 +126,10 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         bn: BNState    
     )
 
-    function toCoVNodeState(n: CoVNode): CoVNodeState
+    function toDVCNodeState(n: DVCNode): DVCNodeState
     reads n, n.bn
     {
-        CoVNodeState(
+        DVCNodeState(
             current_attesation_duty := n.current_attesation_duty,
             attestation_duties_queue := n.attestation_duties_queue,
             attestation_slashing_db := n.attestation_slashing_db,
@@ -151,9 +155,19 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         set i | |s2| <= i < |s1| :: s1[i]
     }
 
+    function seqMinusToOptional<T>(s1: seq<T>, s2: seq<T>): Optional<T>
+    requires s2 <= s1 
+    requires |s1| <= |s2| + 1
+    {
+        if s1 == s2 then
+            None 
+        else
+            Some(s1[|s2|])
+    }
+
     datatype Outputs = Outputs(
         att_shares_sent: set<AttestationShare>,
-        att_consensus_commands_sent: set<CoVNode_Externs.ConsensuCommand>,
+        att_consensus_commands_sent: set<DVCNode_Externs.ConsensuCommand>,
         attestations_submitted: set<Attestation>
     )
 
@@ -167,7 +181,14 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         )
     }
 
-    twostate function getOutputs(n: CoVNode): (o: Outputs)
+    twostate predicate onlyOneMaxConsensusCommandAndSubmittedAttestation(n: DVCNode)
+    reads n, n.att_consensus, n.bn
+    {
+        && |n.att_consensus.consensus_commands_sent| <= |old(n.att_consensus.consensus_commands_sent)| + 1
+        && |n.bn.attestations_submitted| <= |old(n.bn.attestations_submitted)| + 1
+    }
+
+    twostate function getOutputs(n: DVCNode): (o: Outputs)
     reads n, n.network, n.att_consensus, n.bn
     {
         Outputs(
@@ -177,16 +198,16 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         )
     }
 
-    datatype CoVNodeStateAndOuputs = CoVNodeStateAndOuputs(
-        state: CoVNodeState,
+    datatype DVCNodeStateAndOuputs = DVCNodeStateAndOuputs(
+        state: DVCNodeState,
         outputs: Outputs
     )
 
-    twostate function toCoVNodeStateAndOuputs(n: CoVNode): CoVNodeStateAndOuputs
+    twostate function toDVCNodeStateAndOuputs(n: DVCNode): DVCNodeStateAndOuputs
     reads n, n.network, n.att_consensus, n.bn
     {
-        CoVNodeStateAndOuputs(
-            state := toCoVNodeState(n),
+        DVCNodeStateAndOuputs(
+            state := toDVCNodeState(n),
             outputs := getOutputs(n)
         )
     }
@@ -204,10 +225,48 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         attestation_slashing_db + {slashing_db_attestation}
     }   
 
+
+    datatype Event = 
+    | ServeAttstationDuty(attestation_duty: AttestationDuty)
+    | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
+    | ReceviedAttesttionShare(attestation_share: AttestationShare)
+    | ImportedNewBlock(block: BeaconBlock)
+    | ResendAttestationShares
+    | NoEvent
+
+    predicate f_next(
+        s: DVCNodeState,
+        event: Event,
+        s': DVCNodeState,
+        outputs: Outputs
+    )
+    {
+        var newNodeStateAndOutputs := DVCNodeStateAndOuputs(
+            state := s',
+            outputs := outputs
+        );
+
+        match event 
+            case ServeAttstationDuty(attestation_duty) => 
+                f_serve_attestation_duty(s, attestation_duty) == newNodeStateAndOutputs
+            case AttConsensusDecided(id, decided_attestation_data) => 
+                && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
+                && f_att_consensus_decided(s, id,  decided_attestation_data) == newNodeStateAndOutputs
+            case ReceviedAttesttionShare(attestation_share) => 
+                f_listen_for_attestation_shares(s, attestation_share) == newNodeStateAndOutputs
+            case ImportedNewBlock(block) => 
+                f_listen_for_new_imported_blocks.requires(s, block)
+                && f_listen_for_new_imported_blocks(s, block) == newNodeStateAndOutputs
+            case ResendAttestationShares => 
+                f_resend_attestation_share(s) == newNodeStateAndOutputs
+            case NoEvent => 
+                DVCNodeStateAndOuputs(state := s, outputs := getEmptyOuputs() ) == newNodeStateAndOutputs
+    }
+
     function f_serve_attestation_duty(
-        process: CoVNodeState,
+        process: DVCNodeState,
         attestation_duty: AttestationDuty
-    ): CoVNodeStateAndOuputs
+    ): DVCNodeStateAndOuputs
     {
         f_check_for_next_queued_duty(
             process.(
@@ -216,7 +275,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         )
     }    
 
-    function f_check_for_next_queued_duty(process: CoVNodeState): CoVNodeStateAndOuputs
+    function f_check_for_next_queued_duty(process: DVCNodeState): DVCNodeStateAndOuputs
     decreases process.attestation_duties_queue
     {
         if process.attestation_duties_queue != [] then
@@ -229,16 +288,16 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
                     f_start_next_duty(process, process.attestation_duties_queue[0])
                 
         else 
-            CoVNodeStateAndOuputs(
+            DVCNodeStateAndOuputs(
                 state := process,
                 outputs := getEmptyOuputs()
             )
 
     }         
 
-    function f_start_next_duty(process: CoVNodeState, attestation_duty: AttestationDuty): CoVNodeStateAndOuputs
+    function f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty): DVCNodeStateAndOuputs
     {
-        CoVNodeStateAndOuputs(
+        DVCNodeStateAndOuputs(
             state :=  process.(
                         attestation_shares_db := map[],
                         attestation_share_to_broadcast := None,
@@ -258,9 +317,10 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
     } 
 
     function f_att_consensus_decided(
-        process: CoVNodeState,
+        process: DVCNodeState,
+        id: Slot,
         decided_attestation_data: AttestationData
-    ): CoVNodeStateAndOuputs
+    ): DVCNodeStateAndOuputs
     requires process.current_attesation_duty.isPresent()
     {
         var local_current_attestation_duty := process.current_attesation_duty.safe_get();
@@ -276,7 +336,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
                 signature :=attestation_signature_share
             ); 
 
-        CoVNodeStateAndOuputs(
+        DVCNodeStateAndOuputs(
             state := process.(
                 attestation_share_to_broadcast := Some(attestation_with_signature_share)
             ),
@@ -286,10 +346,10 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         )         
     }    
 
-    function f_listen_for_attestation_duty_shares(
-        process: CoVNodeState,
+    function f_listen_for_attestation_shares(
+        process: DVCNodeState,
         attestation_share: AttestationShare
-    ): CoVNodeStateAndOuputs
+    ): DVCNodeStateAndOuputs
     {
         var k := (attestation_share.data, attestation_share.aggregation_bits);
 
@@ -311,21 +371,21 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
                         signature := process.construct_signed_attestation_signature(newProcess.attestation_shares_db[k]).safe_get()
                     );
 
-            CoVNodeStateAndOuputs(
+            DVCNodeStateAndOuputs(
                 state := newProcess,
                 outputs := getEmptyOuputs().(
                     attestations_submitted := {aggregated_attestation} 
                 )
             ) 
         else 
-            CoVNodeStateAndOuputs(
+            DVCNodeStateAndOuputs(
                 state := newProcess,
                 outputs := getEmptyOuputs()
             ) 
     }
  
         function xxx(
-            process: CoVNodeState,
+            process: DVCNodeState,
             block: BeaconBlock,
             valIndex: Optional<ValidatorIndex>,
             i: nat
@@ -350,7 +410,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         }    
 
         // function xxxa(
-        //     process: CoVNodeState,
+        //     process: DVCNodeState,
         //     block: BeaconBlock,
         //     valIndex: Optional<ValidatorIndex>
         // ) : (new_att: set<Slot>)
@@ -372,7 +432,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         //             a.data.slot
         // }  
 
-        // lemma lxxxx(process: CoVNodeState,
+        // lemma lxxxx(process: DVCNodeState,
         //     block: BeaconBlock,
         //     valIndex: Optional<ValidatorIndex>)
         //     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
@@ -383,10 +443,11 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
 
         predicate isMyAttestation(
             a: Attestation,
-            process: CoVNodeState,
+            process: DVCNodeState,
             block: BeaconBlock,
             valIndex: Optional<ValidatorIndex>
         )
+        requires block.body.state_root in process.bn.state_roots_of_imported_blocks
         {
                 && var committee := bn_get_epoch_committees(process.bn, block.body.state_root, a.data.index);
                 && valIndex.Some?
@@ -398,9 +459,9 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         }
 
     function f_listen_for_new_imported_blocks(
-        process: CoVNodeState,
+        process: DVCNodeState,
         block: BeaconBlock
-    ): CoVNodeStateAndOuputs
+    ): DVCNodeStateAndOuputs
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     {
         var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
@@ -427,24 +488,24 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         if process.current_attesation_duty.isPresent() && process.current_attesation_duty.safe_get().slot in process.future_att_consensus_instances_already_decided then
             // Stop(current_attesation_duty.safe_get().slot);
             var r := f_check_for_next_queued_duty(newProces);
-            CoVNodeStateAndOuputs(
+            DVCNodeStateAndOuputs(
                 state := r.state,
                 outputs := r.outputs.(
                     att_consensus_commands_sent := r.outputs.att_consensus_commands_sent + {Stop(process.current_attesation_duty.safe_get().slot)}
                 )
             )
         else
-            CoVNodeStateAndOuputs(
+            DVCNodeStateAndOuputs(
                 state := newProces,
                 outputs := getEmptyOuputs()
             )
     }    
   
     function f_resend_attestation_share(
-        process: CoVNodeState
-    ): CoVNodeStateAndOuputs
+        process: DVCNodeState
+    ): DVCNodeStateAndOuputs
     {
-        CoVNodeStateAndOuputs(
+        DVCNodeStateAndOuputs(
             state := process,
             outputs := getEmptyOuputs().(
                 att_shares_sent :=
@@ -457,61 +518,61 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
 
     }    
 
-    class CoVNode...
+    class DVCNode...
     {
 
         method update_attestation_slashing_db...
-        ensures f_update_attestation_slashing_db(old(toCoVNodeState(this)).attestation_slashing_db, attestation_data, attestation_duty_pubkey) == this.attestation_slashing_db;  
+        ensures f_update_attestation_slashing_db(old(toDVCNodeState(this)).attestation_slashing_db, attestation_data, attestation_duty_pubkey) == this.attestation_slashing_db;  
 
         method serve_attestation_duty...
-        ensures f_serve_attestation_duty(old(toCoVNodeState(this)), attestation_duty) == toCoVNodeStateAndOuputs(this);
+        ensures f_serve_attestation_duty(old(toDVCNodeState(this)), attestation_duty) == toDVCNodeStateAndOuputs(this);
         {
             ...;
-            assert f_serve_attestation_duty(old(toCoVNodeState(this)), attestation_duty) == toCoVNodeStateAndOuputs(this);
+            assert f_serve_attestation_duty(old(toDVCNodeState(this)), attestation_duty) == toDVCNodeStateAndOuputs(this);
         }
 
         method check_for_next_queued_duty...
-        ensures f_check_for_next_queued_duty(old(toCoVNodeState(this))) == toCoVNodeStateAndOuputs(this);
+        ensures f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
         {
             if...
             {
                 if...
                 {
                     ...;
-                    assert f_check_for_next_queued_duty(old(toCoVNodeState(this))) == toCoVNodeStateAndOuputs(this);
+                    assert f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
                 }
                 else
                 {
                     ...;
-                    assert f_check_for_next_queued_duty(old(toCoVNodeState(this))) == toCoVNodeStateAndOuputs(this);
+                    assert f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
                 }
             }
             else
             {
-                assert f_check_for_next_queued_duty(old(toCoVNodeState(this))) == toCoVNodeStateAndOuputs(this);
+                assert f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
             }
 
         }        
 
         method start_next_duty...
-        ensures f_start_next_duty(old(toCoVNodeState(this)), attestation_duty) == toCoVNodeStateAndOuputs(this);
+        ensures f_start_next_duty(old(toDVCNodeState(this)), attestation_duty) == toDVCNodeStateAndOuputs(this);
         {
             ...;
-            assert f_start_next_duty(old(toCoVNodeState(this)), attestation_duty) == toCoVNodeStateAndOuputs(this);
+            assert f_start_next_duty(old(toDVCNodeState(this)), attestation_duty) == toDVCNodeStateAndOuputs(this);
         }
 
         method att_consensus_decided...
-        ensures old(this.current_attesation_duty).isPresent() ==> f_att_consensus_decided(old(toCoVNodeState(this)), decided_attestation_data) == toCoVNodeStateAndOuputs(this);
+        ensures old(this.current_attesation_duty).isPresent() ==> f_att_consensus_decided(old(toDVCNodeState(this)), id, decided_attestation_data) == toDVCNodeStateAndOuputs(this);
         {
             ...;
             if old(this.current_attesation_duty).isPresent()
             {
-                assert f_att_consensus_decided(old(toCoVNodeState(this)), decided_attestation_data) == toCoVNodeStateAndOuputs(this);
+                assert f_att_consensus_decided(old(toDVCNodeState(this)), id, decided_attestation_data) == toDVCNodeStateAndOuputs(this);
             }
         }
 
-        method listen_for_attestation_duty_shares...
-        ensures f_listen_for_attestation_duty_shares(old(toCoVNodeState(this)), attestation_share) == toCoVNodeStateAndOuputs(this);
+        method listen_for_attestation_shares...
+        ensures f_listen_for_attestation_shares(old(toDVCNodeState(this)), attestation_share) == toDVCNodeStateAndOuputs(this);
         {
             ...;
         }
@@ -535,7 +596,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
 
 
 
-        // lemma l2(block: BeaconBlock, old_future_att_consensus_instances_already_decided: set<Slot>, old_process: CoVNodeState)
+        // lemma l2(block: BeaconBlock, old_future_att_consensus_instances_already_decided: set<Slot>, old_process: DVCNodeState)
         // requires                 
         // var new_att := future_att_consensus_instances_already_decided - old_future_att_consensus_instances_already_decided; 
         // block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
@@ -562,39 +623,39 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         //         {
         //             assert 
         //                 var new_att := future_att_consensus_instances_already_decided - old(this.future_att_consensus_instances_already_decided); 
-        //                 var process := old(toCoVNodeState(this));
+        //                 var process := old(toDVCNodeState(this));
         //                 block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
         //                     new_att == xxx(process, block, valIndex, i);   
 
         //             assert 
         //                 var new_att := future_att_consensus_instances_already_decided - old(this.future_att_consensus_instances_already_decided); 
-        //                 var process := old(toCoVNodeState(this));
+        //                 var process := old(toDVCNodeState(this));
         //                 block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
         //                     new_att == xxx(process, block, valIndex, i + 1);                                                   
         //         }            
         // }
 
         method listen_for_new_imported_blocks...
-        ensures block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toCoVNodeState(this)), block) == toCoVNodeStateAndOuputs(this);
+        ensures block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block) == toDVCNodeStateAndOuputs(this);
         {
             ...;
             while...
                 invariant 0 <= i <= |block.body.attestations|
                 invariant  block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
                     future_att_consensus_instances_already_decided == 
-                    old(future_att_consensus_instances_already_decided) + xxx(old(toCoVNodeState(this)), block, valIndex, i); 
+                    old(future_att_consensus_instances_already_decided) + xxx(old(toDVCNodeState(this)), block, valIndex, i); 
                     
-                invariant toCoVNodeState(this) == old(toCoVNodeState(this)).(
-                    future_att_consensus_instances_already_decided := toCoVNodeState(this).future_att_consensus_instances_already_decided
+                invariant toDVCNodeState(this) == old(toDVCNodeState(this)).(
+                    future_att_consensus_instances_already_decided := toDVCNodeState(this).future_att_consensus_instances_already_decided
                 )
-                invariant toCoVNodeStateAndOuputs(this).outputs == getEmptyOuputs();            
+                invariant toDVCNodeStateAndOuputs(this).outputs == getEmptyOuputs();            
             {
 
             }
         }
 
         // method listen_for_new_imported_blocks...
-        // ensures block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toCoVNodeState(this)), block) == toCoVNodeStateAndOuputs(this);
+        // ensures block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block) == toDVCNodeStateAndOuputs(this);
         // {
         //     var valIndex :- bn.get_validator_index(block.body.state_root, dv_pubkey);
         //     var i := 0;
@@ -604,13 +665,13 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         //         invariant 
         //                         var new_att := future_att_consensus_instances_already_decided - old(this.future_att_consensus_instances_already_decided); 
         //         block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
-        //             future_att_consensus_instances_already_decided == old(future_att_consensus_instances_already_decided) + xxx(old(toCoVNodeState(this)), block, valIndex, i); 
+        //             future_att_consensus_instances_already_decided == old(future_att_consensus_instances_already_decided) + xxx(old(toDVCNodeState(this)), block, valIndex, i); 
 
-        //         invariant current_attesation_duty == old(toCoVNodeState(this)).current_attesation_duty;
-        //         invariant toCoVNodeState(this) == old(toCoVNodeState(this)).(
-        //             future_att_consensus_instances_already_decided := toCoVNodeState(this).future_att_consensus_instances_already_decided
+        //         invariant current_attesation_duty == old(toDVCNodeState(this)).current_attesation_duty;
+        //         invariant toDVCNodeState(this) == old(toDVCNodeState(this)).(
+        //             future_att_consensus_instances_already_decided := toDVCNodeState(this).future_att_consensus_instances_already_decided
         //         )
-        //         invariant toCoVNodeStateAndOuputs(this).outputs == getEmptyOuputs();
+        //         invariant toDVCNodeStateAndOuputs(this).outputs == getEmptyOuputs();
         //     {
         //         var a := block.body.attestations[i];
         //         var committee :- bn.get_epoch_committees(block.body.state_root, a.data.index);
@@ -637,11 +698,11 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         //         check_for_next_queued_duty();
         //     } 
 
-        //     assert block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toCoVNodeState(this)), block) == toCoVNodeStateAndOuputs(this);
+        //     assert block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block) == toDVCNodeStateAndOuputs(this);
         // }        
 
         // method listen_for_new_imported_blocks...
-        // // ensures block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toCoVNodeState(this)), block) == toCoVNodeStateAndOuputs(this);
+        // // ensures block.body.state_root in bn.state_roots_of_imported_blocks ==> f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block) == toDVCNodeStateAndOuputs(this);
         // {
         //     ...;
 
@@ -649,7 +710,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         //         invariant 0 <= i <= |block.body.attestations|
         //         // invariant 
         //         // var new_att := future_att_consensus_instances_already_decided - old(this.future_att_consensus_instances_already_decided); 
-        //         // var process := old(toCoVNodeState(this));
+        //         // var process := old(toDVCNodeState(this));
         //         // block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
         //         //     new_att == 
         //         //         set a |
@@ -668,7 +729,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         //     {
         //         assume                 
         //         var new_att := future_att_consensus_instances_already_decided - old(this.future_att_consensus_instances_already_decided); 
-        //         var process := old(toCoVNodeState(this));
+        //         var process := old(toDVCNodeState(this));
         //         block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
         //             new_att == 
         //                 set a |
@@ -691,7 +752,7 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
 
         //             assert                 
         //             var new_att := future_att_consensus_instances_already_decided - old(this.future_att_consensus_instances_already_decided); 
-        //             var process := old(toCoVNodeState(this));
+        //             var process := old(toDVCNodeState(this));
         //             block.body.state_root in old(bn.state_roots_of_imported_blocks) ==>
         //                 new_att == 
         //                     set a |
@@ -719,10 +780,10 @@ module CoVNode_Implementation_Proofs refines CoVNode_Implementation
         // }
 
         method resend_attestation_share...
-        ensures f_resend_attestation_share(old(toCoVNodeState(this))) == toCoVNodeStateAndOuputs(this)
+        ensures f_resend_attestation_share(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this)
         {
             ...;
-            assert  f_resend_attestation_share(old(toCoVNodeState(this))) == toCoVNodeStateAndOuputs(this);
+            assert  f_resend_attestation_share(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
         }
     }
 }
