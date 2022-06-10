@@ -65,8 +65,40 @@ module DVC
 
     }
 
+    function add_block_to_bn(
+        s: DVCNodeState,
+        block: BeaconBlock
+    ): DVCNodeState
+    {
+        s.(
+            bn := s.bn.(
+                state_roots_of_imported_blocks := s.bn.state_roots_of_imported_blocks + {block.body.state_root}
+            )
+        )
+    }
 
     predicate NextHonestNode(
+        s: DSVState,
+        node: BLSPubkey,
+        nodeEvent: DVCNode.Event,
+        nodeOutputs: DVCNode.Outputs,
+        s': DSVState        
+    ) 
+    {
+        && node in s.honest_nodes_states.Keys
+        && var s_w_honest_node_states_updated :=
+            if nodeEvent.ImportedNewBlock? then 
+                s.(
+                    honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                )
+            else 
+                s 
+            ;
+        && NextHonestNode2(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
+                
+    }
+
+    predicate NextHonestNode2(
         s: DSVState,
         node: BLSPubkey,
         nodeEvent: DVCNode.Event,

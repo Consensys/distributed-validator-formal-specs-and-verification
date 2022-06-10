@@ -160,6 +160,7 @@ module DVCNode_Externs
             fork_version: Version, 
             signing_root: Root           
         ) returns (s: BLSSignature)
+        requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
 
     }
 }

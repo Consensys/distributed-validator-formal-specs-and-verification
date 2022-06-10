@@ -15,6 +15,13 @@ module DVCNode_Externs_Proofs refines DVCNode_Externs
         state_roots_of_imported_blocks: set<Root>   
     )
 
+    function getInitialBN(): BNState
+    {
+        BNState(
+            state_roots_of_imported_blocks := {}
+        )
+    }
+
     function toBNState(bn: BeaconNode): BNState
     reads bn
     {
@@ -39,23 +46,24 @@ module DVCNode_Externs_Proofs refines DVCNode_Externs
         attestation_data: AttestationData, 
         fork_version: Version, 
         signing_root: Root,
-        pubkey: BLSPubkey
+        rs: RSState
     ): BLSSignature
     requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
 
     lemma {:axiom} rs_attestation_sign_and_verification_propetries<T>()
-    ensures forall attestation_data, fork_version, signing_root, pubkey |
-                    rs_sign_attestation.requires(attestation_data, fork_version, signing_root, pubkey) ::
+    ensures forall attestation_data, fork_version, signing_root, rs |
+                    rs_sign_attestation.requires(attestation_data, fork_version, signing_root, rs) ::
                     verify_bls_siganture(
                         signing_root,
-                        rs_sign_attestation(attestation_data, fork_version, signing_root, pubkey),
-                        pubkey
+                        rs_sign_attestation(attestation_data, fork_version, signing_root, rs),
+                        rs.pubkey
                     )
     ensures forall signing_root, signature, pubkey ::
         verify_bls_siganture(signing_root, signature, pubkey) <==>
             exists attestation_data, fork_version ::
-            && rs_sign_attestation.requires(attestation_data, fork_version, signing_root, pubkey)
-            && signature == rs_sign_attestation(attestation_data, fork_version, signing_root, pubkey)
+            var rs := RSState(pubkey);
+            && rs_sign_attestation.requires(attestation_data, fork_version, signing_root, rs)
+            && signature == rs_sign_attestation(attestation_data, fork_version, signing_root, rs)
 
     ensures forall ad1, fv1, sr1, pk1, ad2, fv2, sr2, pk2 ::
             && rs_sign_attestation.requires(ad1, fv1, sr1, pk1)
@@ -69,8 +77,30 @@ module DVCNode_Externs_Proofs refines DVCNode_Externs
     class RemoteSigner...
     {
         method sign_attestation...
-        ensures signing_root == compute_attestation_signing_root(attestation_data, fork_version)
-        ensures rs_sign_attestation(attestation_data, fork_version, signing_root, this.pubkey) == s
+        ensures rs_sign_attestation(attestation_data, fork_version, signing_root, toRSState(this)) == s
+    }
+
+    datatype RSState = RSState(
+        pubkey: BLSPubkey
+    )
+
+    function getInitialRS(
+        pubkey: BLSPubkey
+    ): RSState
+    {
+        RSState(
+            pubkey := pubkey
+        )
+    }
+
+    function toRSState(
+        rs: RemoteSigner
+    ): RSState
+    reads rs 
+    {
+        RSState(
+            pubkey := rs.pubkey
+        )
     }
 
 }
@@ -122,12 +152,12 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         // TODO: Note difference with spec.py
         dv_pubkey: BLSPubkey,
         future_att_consensus_instances_already_decided: set<Slot>,
-        cov_pubkey: BLSPubkey,
-        bn: BNState    
+        bn: BNState,
+        rs: RSState
     )
 
     function toDVCNodeState(n: DVCNode): DVCNodeState
-    reads n, n.bn
+    reads n, n.bn, n.rs
     {
         DVCNodeState(
             current_attesation_duty := n.current_attesation_duty,
@@ -138,8 +168,8 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             construct_signed_attestation_signature := n.construct_signed_attestation_signature,
             dv_pubkey := n.dv_pubkey,
             future_att_consensus_instances_already_decided := n.future_att_consensus_instances_already_decided,
-            cov_pubkey := n.rs.pubkey,
-            bn := toBNState(n.bn)
+            bn := toBNState(n.bn),
+            rs := toRSState(n.rs)
         )
     }
 
@@ -204,7 +234,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     )
 
     twostate function toDVCNodeStateAndOuputs(n: DVCNode): DVCNodeStateAndOuputs
-    reads n, n.network, n.att_consensus, n.bn
+    reads n, n.network, n.att_consensus, n.bn, n.rs
     {
         DVCNodeStateAndOuputs(
             state := toDVCNodeState(n),
@@ -233,6 +263,27 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     | ImportedNewBlock(block: BeaconBlock)
     | ResendAttestationShares
     | NoEvent
+
+
+    predicate f_init(
+        s: DVCNodeState,
+        dv_pubkey: BLSPubkey,
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
+    )
+    {
+        s == DVCNodeState(
+            current_attesation_duty := None,
+            attestation_duties_queue := [],
+            attestation_slashing_db := {},
+            attestation_shares_db := map[],
+            attestation_share_to_broadcast := None,
+            construct_signed_attestation_signature := construct_signed_attestation_signature,
+            dv_pubkey := dv_pubkey,
+            future_att_consensus_instances_already_decided := {},
+            bn := getInitialBN(),
+            rs := s.rs
+        )
+    }
 
     predicate f_next(
         s: DVCNodeState,
@@ -328,7 +379,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
         var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.cov_pubkey);
+        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
         // TODO: What is attestation_signature_share.aggregation_bits?
         var attestation_with_signature_share := AttestationShare(
                 aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
