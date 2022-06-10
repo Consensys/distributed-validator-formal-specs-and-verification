@@ -4,74 +4,16 @@ module DVCNode_Implementation_Helpers
 {
     import opened Types
 
-    type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>
-
-    function method compute_start_slot_at_epoch(epoch: Epoch): Slot
-    {
-        epoch * SLOTS_PER_EPOCH
-    }   
-
-    datatype DomainTypes = 
-        | DOMAIN_BEACON_ATTESTER
+    
 
 
-    // TDOO: What about the genesis_validator_root parameter?
-    function method {:extern} compute_domain(
-        domain_type: DomainTypes,
-        fork_version: Version
-    ): (domain: Domain)
-
-
-    lemma {:axiom} compute_domain_properties()
-    ensures forall d1, f1, d2, f2 :: compute_domain(d1, f2) == compute_domain(d2, f2) ==>
-        && d1 == d2 
-        && f1 == f2
-
-    function method {:extern} compute_signing_root<T>(
-        data: T,
-        domain: Domain
-    ): Root
-
-    lemma {:axiom} compute_signing_root_properties<T>()
-    ensures forall da1, do1, da2, do2 ::
-        compute_signing_root<T>(da1, do1) == compute_signing_root<T>(da2, do2) ==>
-            && da1 == da2 
-            && do1 == do2
-
-    // TODO: Fix Python code to match the following (Python code uses epoch)
-    function method compute_attestation_signing_root(attestation_data: AttestationData, fork_version: Version): Root
-    {
-        var domain := compute_domain(DOMAIN_BEACON_ATTESTER, fork_version);
-        compute_signing_root(attestation_data, domain)
-    }
-
-
-
-    predicate uniqueSeq<T(==)>(s: seq<T>)
-    {
-        forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
-    }
-
-    predicate {:extern} verify_bls_siganture<T>(
-        data: T,
-        signature: BLSSignature,
-        pubkey: BLSPubkey
-    )   
-
-    function method {:extern} hash_tree_root<T>(data: T): Root 
-
-    lemma {:axiom} hash_tree_root_properties<T>()
-    ensures forall d1: T, d2: T :: hash_tree_root(d1) == hash_tree_root(d2) ==> d1 == d2
 }
 
 module DVCNode_Externs
 {
     import opened Types
+    import opened CommonFunctions
     import opened DVCNode_Implementation_Helpers  
-
-    datatype ConsensuCommand = 
-        | Start(id: Slot)
-        | Stop(id: Slot)       
 
     class Consensus {
         var consensus_commands_sent: seq<ConsensuCommand>
@@ -84,12 +26,12 @@ module DVCNode_Externs
         method {:extern} start(
             id: Slot
         )
-        ensures consensus_commands_sent == old(consensus_commands_sent) + [Start(id)]
+        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensuCommand.Start(id)]
 
         method {:extern} stop(
             id: Slot
         )
-        ensures consensus_commands_sent == old(consensus_commands_sent) + [Stop(id)]        
+        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensuCommand.Stop(id)]        
     }     
 
     class Network  
@@ -189,11 +131,13 @@ module DVCNode_Externs
 abstract module DVCNode_Implementation
 {
     import opened Types
+    import opened CommonFunctions
     import opened DVCNode_Implementation_Helpers
     import opened DVCNode_Externs: DVCNode_Externs
 
     export PublicInterface
-        reveals DVCNode
+        reveals DVCNode,
+                AttestationSignatureShareDB
         provides
                 DVCNode.serve_attestation_duty, 
                 DVCNode.att_consensus_decided, 
@@ -202,6 +146,8 @@ abstract module DVCNode_Implementation
                 DVCNode.resend_attestation_share,
                 DVCNode.bn
         provides Types, DVCNode_Implementation_Helpers, DVCNode_Externs
+
+    type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
 
     class DVCNode {
 

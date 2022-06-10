@@ -1,13 +1,16 @@
 include "commons.dfy"
 include "dvc_spec.dfy"
+include "dvc_implementation_spec_proof.dfy"
 include "consensus.dfy"
 include "network.dfy"
 
-module DVC 
+abstract module DVC 
 {
     import opened Types
+    import opened CommonFunctions
     import opened NetworkM
     import opened ConsensusSpec
+    import opened DVCNode_Spec
     import opened DVCNode_Externs_Proofs
     import opened DVCNode_Implementation_Helpers
     import opened DVCNode = DVCNode_Implementation_Proofs`PublicInterface
@@ -34,7 +37,7 @@ module DVC
     datatype Event = 
     | AdeversaryTakingStep(node: BLSPubkey, new_attestation_shares_sent: set<AttestationShare>,
         messagesReceivedByTheNode: set<AttestationShare>)
-    | HonestNodeTakingStep(node: BLSPubkey, event: DVCNode.Event, nodeOutputs: DVCNode.Outputs)
+    | HonestNodeTakingStep(node: BLSPubkey, event: DVCNode_Spec.Event, nodeOutputs: DVCNode_Spec.Outputs)
 
 
     predicate is_slashable_attestation_data(slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
@@ -80,8 +83,8 @@ module DVC
     predicate NextHonestNode(
         s: DSVState,
         node: BLSPubkey,
-        nodeEvent: DVCNode.Event,
-        nodeOutputs: DVCNode.Outputs,
+        nodeEvent: DVCNode_Spec.Event,
+        nodeOutputs: DVCNode_Spec.Outputs,
         s': DSVState        
     ) 
     {
@@ -101,8 +104,8 @@ module DVC
     predicate NextHonestNode2(
         s: DSVState,
         node: BLSPubkey,
-        nodeEvent: DVCNode.Event,
-        nodeOutputs: DVCNode.Outputs,
+        nodeEvent: DVCNode_Spec.Event,
+        nodeOutputs: DVCNode_Spec.Outputs,
         s': DSVState
     )
     {
