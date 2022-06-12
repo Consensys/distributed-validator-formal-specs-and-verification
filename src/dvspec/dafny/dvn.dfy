@@ -42,6 +42,64 @@ abstract module DVC
 
     predicate is_slashable_attestation_data(slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
 
+    predicate Init(
+        s: DSVState
+    )
+    {
+        && s.honest_nodes_states.Keys !! s.adversary.nodes !! {s.dv_pubkey}
+        && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
+        && s.honest_nodes_states.Keys != {}
+        && |s.adversary.nodes| <= f(|s.all_nodes|)
+        && (
+            forall 
+                att_shares: set<AttestationShare>
+                ::
+                (
+                    && exists verifiable_att_shares: set<AttestationShare>, data: AttestationData, fork_version: Version ::
+                        && verifiable_att_shares <= att_shares
+                        && var signing_root := compute_attestation_signing_root(data, fork_version);
+                        && |verifiable_att_shares| >= quorum(|s.all_nodes|)
+                        && (forall att_share |
+                                att_share in verifiable_att_shares ::
+                                && att_share.data == data 
+                                && exists signer :: 
+                                    && signer in s.all_nodes
+                                    && verify_bls_siganture(signing_root, att_share.signature, signer)
+                        )
+                )
+                <==>
+                    s.construct_signed_attestation_signature(att_shares).isPresent()
+        )    
+        &&
+            (
+            forall 
+                att_shares: set<AttestationShare>
+                ::
+                    var constructed_sig := s.construct_signed_attestation_signature(att_shares);
+                    constructed_sig.isPresent() ==>  
+                        forall verifiable_att_shares: set<AttestationShare>, data: AttestationData, fork_version: Version |
+                            && verifiable_att_shares <= att_shares
+                            && |verifiable_att_shares| >= quorum(|s.all_nodes|)
+                            && (forall att_share |
+                                    att_share in verifiable_att_shares :: att_share.data == data)
+                            ::
+                                    && var signing_root := compute_attestation_signing_root(data, fork_version);
+                                    verify_bls_siganture(signing_root, constructed_sig.safe_get(), s.dv_pubkey)
+
+        )   
+        && s.all_attestations_created == {}
+        && s.slashing_dbs_used_for_validating_attestations == (imap s: Slot :: {})   
+        && (
+            forall n | n in s.honest_nodes_states.Keys ::
+                f_init(s.honest_nodes_states[n], s.dv_pubkey, s.construct_signed_attestation_signature)
+        )      
+        &&  NetworkInit(s.att_network, s.all_nodes)
+        &&  (
+            forall ci | ci in  s.consensus_on_attestation_data.Values ::
+                ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
+        )
+    }
+
     predicate Next(
         s: DSVState,
         s': DSVState 

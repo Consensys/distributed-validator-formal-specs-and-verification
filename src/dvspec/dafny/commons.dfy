@@ -13,7 +13,7 @@ module Types
     type {:extern "Root"} Root(==, 0, !new)
     type {:extern "SyncCommitteeSignature"} SyncCommitteeSignature
     type {:extern "SyncCommitteeDuty"} SyncCommitteeDuty   
-    type {:extern "Version"} Version    
+    type {:extern "Version"} Version(!new)   
     datatype Checkpoint = Checkpoint(
         epoch: Epoch,
         root: Root
