@@ -227,7 +227,16 @@ abstract module DVC
                     output
                 )
         )
+        && (
+            forall consensus_id: Slot ::
+                s'.slashing_dbs_used_for_validating_attestations[consensus_id] == s.slashing_dbs_used_for_validating_attestations[consensus_id] +
+                    if node in getRunningNodes(s'.consensus_on_attestation_data[consensus_id]) then
+                        {s'.honest_nodes_states[node].attestation_slashing_db}
+                    else
+                        {}
+        )        
         && s'.adversary == s.adversary
+        && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature
     }    
 
     predicate NextAdversary(
