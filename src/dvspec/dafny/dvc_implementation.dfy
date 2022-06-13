@@ -1,19 +1,9 @@
 include "commons.dfy"
 
-module DVCNode_Implementation_Helpers
-{
-    import opened Types
-
-    
-
-
-}
-
 module DVCNode_Externs
 {
     import opened Types
     import opened CommonFunctions
-    import opened DVCNode_Implementation_Helpers  
 
     class Consensus {
         var consensus_commands_sent: seq<ConsensuCommand>
@@ -37,7 +27,6 @@ module DVCNode_Externs
     class Network  
     {
         ghost const att_shares_sent: seq<AttestationShare>;
-        // ghost var atts_sent: seq<Attestation>;
 
         constructor()
         {
@@ -46,12 +35,6 @@ module DVCNode_Externs
 
         method {:extern} send_att_share(att_share: AttestationShare)
         ensures att_shares_sent == old(att_shares_sent)  + [att_share]
-
-        // function setToSeq<T(!new)>(s: set<T>): (r: seq<T>)
-        // ensures forall e :: e in s <==> e in r
-
-        // ghost method send_atts(atts: set<Attestation>)
-        // ensures atts_sent == old(atts_sent) + setToSeq(atts)
     }
 
     class BeaconNode
@@ -107,32 +90,10 @@ module DVCNode_Externs
     }
 }
 
-
-// abstract module X 
-// {
-//     import opened Types
-//     // import opened DVCNode_Externs
-//     import opened DVCNode_Implementation_Helpers    
-//     import opened DVCNode_Implementation`PublicInterface
-
-//     method test(x: DVCNode, bn: DVCNode_Externs.BeaconNode)
-//     modifies x
-//     modifies x.bn
-//     {
-//         var a: AttestationDuty :| true;
-//         // x.current_attesation_duty := None;
-//         // x.serve_attestation_duty(a);
-//         x.bn.state_roots_of_imported_blocks := {};
-        
-//         // x.check_for_next_queued_duty();
-//     }
-// }
-
 abstract module DVCNode_Implementation
 {
     import opened Types
     import opened CommonFunctions
-    import opened DVCNode_Implementation_Helpers
     import opened DVCNode_Externs: DVCNode_Externs
 
     export PublicInterface
@@ -145,7 +106,7 @@ abstract module DVCNode_Implementation
                 DVCNode.listen_for_new_imported_blocks,
                 DVCNode.resend_attestation_share,
                 DVCNode.bn
-        provides Types, DVCNode_Implementation_Helpers, DVCNode_Externs
+        provides Types, DVCNode_Externs
 
     type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
 

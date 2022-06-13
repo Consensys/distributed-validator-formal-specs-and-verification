@@ -1,6 +1,7 @@
 include "commons.dfy"
 
-module NetworkM
+// This module currently specifies an asynchronous network
+module NetworkSpec
 {
     import opened Types
     // import opened L1_SpecTypes
@@ -11,7 +12,7 @@ module NetworkM
     )
 
 
-    predicate NetworkInit<M>(
+    predicate Init<M>(
         e: Network<M>,
         all_nodes: set<BLSPubkey>
     )
@@ -20,7 +21,7 @@ module NetworkM
         && forall v | v in e.messagesSentToNodeYetToBeReceived.Values :: v == multiset{}
     }
 
-    predicate NetworkDeliverNext<M>(
+    predicate DeliverNext<M>(
         e: Network<M>,
         e': Network<M>,
         n: BLSPubkey,
@@ -46,7 +47,7 @@ module NetworkM
     //     e' == e
     // }
 
-    predicate NetworkNext<M>(
+    predicate Next<M>(
         e: Network,
         e': Network,
         n : Optional<BLSPubkey>,
@@ -56,7 +57,7 @@ module NetworkM
     {
         || (
             && n.isPresent()
-            && NetworkDeliverNext(e, e', n.safe_get(), messagesSentByTheNodes,messagesReceivedByTheNodes)
+            && DeliverNext(e, e', n.safe_get(), messagesSentByTheNodes,messagesReceivedByTheNodes)
         )
         // || (
         //     && !n.isPresent()

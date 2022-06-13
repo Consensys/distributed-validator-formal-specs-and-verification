@@ -4,29 +4,28 @@ include "dvc_implementation_spec_proof.dfy"
 include "consensus.dfy"
 include "network.dfy"
 
-abstract module DVC 
+abstract module DV 
 {
     import opened Types
     import opened CommonFunctions
-    import opened NetworkM
+    import opened NetworkSpec
     import opened ConsensusSpec
     import opened DVCNode_Spec
     import opened DVCNode_Externs_Proofs
-    import opened DVCNode_Implementation_Helpers
     import opened DVCNode = DVCNode_Implementation_Proofs`PublicInterface
 
     datatype Adversary = Adversary(
         nodes: set<BLSPubkey>
     )
 
-    datatype DSVState = DSVState(
+    datatype DVState = DVState(
         all_nodes: set<BLSPubkey>,
         honest_nodes_states: map<BLSPubkey, DVCNodeState>,
         adversary: Adversary,
         dv_pubkey: BLSPubkey,
         // attestations_shares_sent: set<AttestationShare>,
         consensus_on_attestation_data: imaptotal<Slot, ConsensusInstance<AttestationData>>,
-        att_network: NetworkM.Network<AttestationShare>,
+        att_network: NetworkSpec.Network<AttestationShare>,
         all_attestations_created: set<Attestation>,
         slashing_dbs_used_for_validating_attestations: imaptotal<Slot, set<AttestationSlashingDB>>,
         // aggregated_attestations_sent: set<Attestation>,
@@ -43,7 +42,7 @@ abstract module DVC
     predicate is_slashable_attestation_data(slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
 
     predicate Init(
-        s: DSVState
+        s: DVState
     )
     {
         && s.honest_nodes_states.Keys !! s.adversary.nodes !! {s.dv_pubkey}
@@ -91,9 +90,9 @@ abstract module DVC
         && s.slashing_dbs_used_for_validating_attestations == (imap s: Slot :: {})   
         && (
             forall n | n in s.honest_nodes_states.Keys ::
-                f_init(s.honest_nodes_states[n], s.dv_pubkey, s.construct_signed_attestation_signature)
+                DVCNode_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.construct_signed_attestation_signature)
         )      
-        &&  NetworkInit(s.att_network, s.all_nodes)
+        &&  NetworkSpec.Init(s.att_network, s.all_nodes)
         &&  (
             forall ci | ci in  s.consensus_on_attestation_data.Values ::
                 ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
@@ -101,8 +100,8 @@ abstract module DVC
     }
 
     predicate Next(
-        s: DSVState,
-        s': DSVState 
+        s: DVState,
+        s': DVState 
     )
     {
         exists e ::
@@ -110,9 +109,9 @@ abstract module DVC
     }
 
     predicate NextEvent(
-        s: DSVState,
+        s: DVState,
         event: Event,
-        s': DSVState
+        s': DVState
     )
     {
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
@@ -139,11 +138,11 @@ abstract module DVC
     }
 
     predicate NextHonestNode(
-        s: DSVState,
+        s: DVState,
         node: BLSPubkey,
         nodeEvent: DVCNode_Spec.Event,
         nodeOutputs: DVCNode_Spec.Outputs,
-        s': DSVState        
+        s': DVState        
     ) 
     {
         && node in s.honest_nodes_states.Keys
@@ -155,23 +154,23 @@ abstract module DVC
             else 
                 s 
             ;
-        && NextHonestNode2(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
+        && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
                 
     }
 
-    predicate NextHonestNode2(
-        s: DSVState,
+    predicate NextHonestAfterAddingBlockToBn(
+        s: DVState,
         node: BLSPubkey,
         nodeEvent: DVCNode_Spec.Event,
         nodeOutputs: DVCNode_Spec.Outputs,
-        s': DSVState
+        s': DVState
     )
     {
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
         && s'.dv_pubkey == s.dv_pubkey        
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
-        && f_next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
+        && DVCNode_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
         && s'.honest_nodes_states == s.honest_nodes_states[
             node := new_node_state
         ]
@@ -181,7 +180,7 @@ abstract module DVC
                 case ReceviedAttesttionShare(attestation_share) => {attestation_share}
                 case _ => {}
             ;
-        && NetworkNext(s.att_network, s'.att_network, Some(node), nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
+        && NetworkSpec.Next(s.att_network, s'.att_network, Some(node), nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
         && (
                 forall consensus_id: Slot ::
                     s'.slashing_dbs_used_for_validating_attestations[consensus_id] == s.slashing_dbs_used_for_validating_attestations[consensus_id] +
@@ -213,6 +212,9 @@ abstract module DVC
                         None
                     ;
 
+                // The consenus protocol is exepcted to decide on an attestation data such that there exists at least one slashing_db, out of 
+                // the slashing_dbs that any honest node has had while participating in the consenus, for which the attestation data does not
+                // generate any slashabe condition.
                 && var validityPredicate := 
                     (ad: AttestationData) => 
                         exists db | db in s.slashing_dbs_used_for_validating_attestations[cid] ::
@@ -228,6 +230,7 @@ abstract module DVC
                 )
         )
         && (
+            // This section collects all the slashing_dbs used by honest nodes participating in the various consensus instances
             forall consensus_id: Slot ::
                 s'.slashing_dbs_used_for_validating_attestations[consensus_id] == s.slashing_dbs_used_for_validating_attestations[consensus_id] +
                     if node in getRunningNodes(s'.consensus_on_attestation_data[consensus_id]) then
@@ -240,11 +243,11 @@ abstract module DVC
     }    
 
     predicate NextAdversary(
-        s: DSVState,
+        s: DVState,
         node: BLSPubkey,
         new_attestation_shares_sent: set<AttestationShare>,
         messagesReceivedByTheNode: set<AttestationShare>,
-        s': DSVState
+        s': DVState
     )
     {
 
@@ -254,7 +257,7 @@ abstract module DVC
                 forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
                     verify_bls_siganture(new_attestation_share_sent.data, new_attestation_share_sent.signature, signer) ==> signer in s.adversary.nodes
             )
-            && NetworkNext(s.att_network, s'.att_network, Some(node), new_attestation_shares_sent, messagesReceivedByTheNode)
+            && NetworkSpec.Next(s.att_network, s'.att_network, Some(node), new_attestation_shares_sent, messagesReceivedByTheNode)
             && s.all_attestations_created <= s'.all_attestations_created
             && var new_aggregated_attestations_sent := s'.all_attestations_created - s.all_attestations_created;
             && (forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent ::

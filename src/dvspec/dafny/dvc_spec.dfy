@@ -114,7 +114,7 @@ abstract module DVCNode_Spec {
     | NoEvent
 
 
-    predicate f_init(
+    predicate Init(
         s: DVCNodeState,
         dv_pubkey: BLSPubkey,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
@@ -134,7 +134,7 @@ abstract module DVCNode_Spec {
         )
     }
 
-    predicate f_next(
+    predicate Next(
         s: DVCNodeState,
         event: Event,
         s': DVCNodeState,
@@ -297,63 +297,6 @@ abstract module DVCNode_Spec {
             ) 
     }
  
-    function xxx(
-        process: DVCNodeState,
-        block: BeaconBlock,
-        valIndex: Optional<ValidatorIndex>,
-        i: nat
-    ) : (new_att: set<Slot>)
-    requires i <= |block.body.attestations|
-    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    {            
-        set a |
-                && a in block.body.attestations[..i]
-                && isMyAttestation(a, process, block, valIndex)
-                // && a.data.slot == process.attestation_duty.slot 
-                // && a.data.index == process.attestation_duty.committee_index
-                // && var committee := bn_get_epoch_committees(process.bn, block.body.state_root, a.data.index);
-                // && valIndex.Some?
-                // && valIndex.v in committee
-                // && var i:nat :| i < |committee| && committee[i] == valIndex.v;
-                // && i < |a.aggregation_bits|
-                // && a.aggregation_bits[i]
-                // && (process.current_attesation_duty.isPresent() ==> a.data.slot >= process.current_attesation_duty.safe_get().slot)
-            ::
-                a.data.slot
-    }    
-
-    // function xxxa(
-    //     process: DVCNodeState,
-    //     block: BeaconBlock,
-    //     valIndex: Optional<ValidatorIndex>
-    // ) : (new_att: set<Slot>)
-    // requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    // {            
-    //     set a |
-    //             && a in block.body.attestations
-    //             // && isMyAttestation(a, process, block, valIndex)
-    //             // && a.data.slot == process.attestation_duty.slot 
-    //             // && a.data.index == process.attestation_duty.committee_index
-    //             && var committee := bn_get_epoch_committees(process.bn, block.body.state_root, a.data.index);
-    //             && valIndex.Some?
-    //             && valIndex.v in committee
-    //             && var i:nat :| i < |committee| && committee[i] == valIndex.v;
-    //             && i < |a.aggregation_bits|
-    //             && a.aggregation_bits[i]
-    //             && (process.current_attesation_duty.isPresent() ==> a.data.slot >= process.current_attesation_duty.safe_get().slot)
-    //         ::
-    //             a.data.slot
-    // }  
-
-    // lemma lxxxx(process: DVCNodeState,
-    //     block: BeaconBlock,
-    //     valIndex: Optional<ValidatorIndex>)
-    //     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    // ensures xxx(process, block, valIndex, |block.body.attestations|) == xxxa(process, block, valIndex)
-    // {
-    //     assert block.body.attestations[..|block.body.attestations|] == block.body.attestations;
-    // }           
-
     predicate isMyAttestation(
         a: Attestation,
         process: DVCNodeState,
@@ -474,62 +417,3 @@ abstract module DVCNode_Externs_Proofs refines DVCNode_Externs
     }
 
 }
-
-
-
-
-// module A {
-//   method ToImplement(x: int) returns (r: int)
-//     ensures r > x
-
-//   method ToStrengthen(x: int) returns (r: int)
-
-//   method ToDeterminize(x: int) returns (r: int)
-//     ensures r >= x
-//   {
-//     var y :| y >= x;
-//     return y;
-//   }
-
-//   method ToSuperimpose(x: int) returns (r: int)
-//   {
-//     var y: int := x;
-//     if y < 0 {
-//       return -y;
-//     } else {
-//       return y;
-//     }
-//   }
-
-// }
-
-// module B refines A {
-//   method ToImplement(x: int) returns (r: int)
-//   {
-//     return x + 2;
-//   }
-
-//   method ToStrengthen...
-//     ensures r == x*2
-//   {
-//     return x*2;
-//   }
-
-//   method ToDeterminize(x: int) returns (r: int)
-//   {
-//     return x;
-//   }
-
-//   method ToSuperimpose(x: int) returns (r: int)
-//   ensures r >= 0
-//   {
-//     ...;
-//     if y < 0 {
-//       print "inverting";
-//       return -1;
-//     } else {
-//       print "not modifying";
-//       return -1;
-//     }
-//   }
-// }

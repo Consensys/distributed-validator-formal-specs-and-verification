@@ -1,5 +1,6 @@
 include "commons.dfy"
 
+// Note: Only safety properties are expressed at the moment.
 module ConsensusSpec
 {
     import opened Types 
@@ -74,7 +75,9 @@ module ConsensusSpec
     )
     {
         exists s'': ConsensusInstance ::
+            // First we let the consensus protocol and the various nodes possibly decide on a value
             && NextConsensusDecides(s, validityPredicate, s'')
+            // Then we let the node take an input/output step
             && NextNodeStep(s'', input, s', output)
 
     }
