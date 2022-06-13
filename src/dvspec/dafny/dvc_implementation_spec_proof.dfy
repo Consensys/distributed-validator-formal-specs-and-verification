@@ -158,15 +158,6 @@ abstract module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             set a |
                     && a in block.body.attestations[..i]
                     && isMyAttestation(a, process, block, valIndex)
-                    // && a.data.slot == process.attestation_duty.slot 
-                    // && a.data.index == process.attestation_duty.committee_index
-                    // && var committee := bn_get_epoch_committees(process.bn, block.body.state_root, a.data.index);
-                    // && valIndex.Some?
-                    // && valIndex.v in committee
-                    // && var i:nat :| i < |committee| && committee[i] == valIndex.v;
-                    // && i < |a.aggregation_bits|
-                    // && a.aggregation_bits[i]
-                    // && (process.current_attesation_duty.isPresent() ==> a.data.slot >= process.current_attesation_duty.safe_get().slot)
                 ::
                     a.data.slot
         }           
