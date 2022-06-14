@@ -1,4 +1,4 @@
-include "commons.dfy"
+include "../commons.dfy"
 
 module DVCNode_Externs
 {

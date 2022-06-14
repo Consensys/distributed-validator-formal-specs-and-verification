@@ -1,5 +1,5 @@
-include "commons.dfy"
-include "dvc_implementation.dfy"
+include "../commons.dfy"
+include "../implementation/dvc_implementation.dfy"
 
 
 abstract module DVCNode_Spec {

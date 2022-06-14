@@ -1,4 +1,4 @@
-include "commons.dfy"
+include "../commons.dfy"
 
 // Note: Only safety properties are expressed at the moment.
 module ConsensusSpec

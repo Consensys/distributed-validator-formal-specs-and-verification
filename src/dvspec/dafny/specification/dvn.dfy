@@ -1,6 +1,6 @@
-include "commons.dfy"
+include "../commons.dfy"
 include "dvc_spec.dfy"
-include "dvc_implementation_spec_proof.dfy"
+include "../proof/dvc_implementation_spec_proof.dfy"
 include "consensus.dfy"
 include "network.dfy"
 

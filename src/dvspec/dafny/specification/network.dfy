@@ -1,4 +1,4 @@
-include "commons.dfy"
+include "../commons.dfy"
 
 // This module currently specifies an asynchronous network
 module NetworkSpec
