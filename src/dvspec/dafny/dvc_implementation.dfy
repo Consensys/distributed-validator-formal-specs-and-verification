@@ -6,7 +6,7 @@ module DVCNode_Externs
     import opened CommonFunctions
 
     class Consensus {
-        var consensus_commands_sent: seq<ConsensuCommand>
+        ghost var consensus_commands_sent: seq<ConsensusCommand>
 
         constructor()
         {
@@ -16,25 +16,25 @@ module DVCNode_Externs
         method {:extern} start(
             id: Slot
         )
-        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensuCommand.Start(id)]
+        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensusCommand.Start(id)]
 
         method {:extern} stop(
             id: Slot
         )
-        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensuCommand.Stop(id)]        
+        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensusCommand.Stop(id)]        
     }     
 
     class Network  
     {
-        ghost const att_shares_sent: seq<AttestationShare>;
+        ghost var att_shares_sent: seq<set<MessaageWithRecipient<AttestationShare>>>;
 
         constructor()
         {
             att_shares_sent := [];
         }
 
-        method {:extern} send_att_share(att_share: AttestationShare)
-        ensures att_shares_sent == old(att_shares_sent)  + [att_share]
+        method {:extern} send_att_share(att_share: AttestationShare, receipients: set<BLSPubkey>)
+        ensures att_shares_sent == old(att_shares_sent)  + [addRecepientsToMessage(att_share, receipients)]
     }
 
     class BeaconNode
@@ -119,6 +119,7 @@ abstract module DVCNode_Implementation
         var attestation_shares_db: AttestationSignatureShareDB;
         var attestation_share_to_broadcast: Optional<AttestationShare>
         var construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>;
+        var peers: set<BLSPubkey>;
         // TODO: Note difference with spec.py
         var dv_pubkey: BLSPubkey;
         var future_att_consensus_instances_already_decided: set<Slot>
@@ -132,6 +133,7 @@ abstract module DVCNode_Implementation
             pubkey: BLSPubkey, 
             dv_pubkey: BLSPubkey,
             att_consensus: Consensus, 
+            peers: set<BLSPubkey>,
             network: Network,
             bn: BeaconNode,
             rs: RemoteSigner,
@@ -143,6 +145,7 @@ abstract module DVCNode_Implementation
 
             // this.pubkey := pubkey;
             this.att_consensus := att_consensus;
+            this.peers := peers;
             this.network := network;
             this.rs := rs;
             this.bn := bn;
@@ -220,7 +223,7 @@ abstract module DVCNode_Implementation
             ); 
 
             attestation_share_to_broadcast := Some(attestation_with_signature_share);
-            network.send_att_share(attestation_with_signature_share);           
+            network.send_att_share(attestation_with_signature_share, peers);           
         }
 
         function method get_aggregation_bits(
@@ -304,7 +307,7 @@ abstract module DVCNode_Implementation
         {
             if attestation_share_to_broadcast.isPresent()
             {
-                network.send_att_share(attestation_share_to_broadcast.safe_get());
+                network.send_att_share(attestation_share_to_broadcast.safe_get(), peers);
             }
         }        
     }    

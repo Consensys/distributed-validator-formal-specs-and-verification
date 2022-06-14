@@ -34,7 +34,7 @@ abstract module DV
     )
 
     datatype Event = 
-    | AdeversaryTakingStep(node: BLSPubkey, new_attestation_shares_sent: set<AttestationShare>,
+    | AdeversaryTakingStep(node: BLSPubkey, new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>)
     | HonestNodeTakingStep(node: BLSPubkey, event: DVCNode_Spec.Event, nodeOutputs: DVCNode_Spec.Outputs)
 
@@ -90,7 +90,7 @@ abstract module DV
         && s.slashing_dbs_used_for_validating_attestations == (imap s: Slot :: {})   
         && (
             forall n | n in s.honest_nodes_states.Keys ::
-                DVCNode_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.construct_signed_attestation_signature)
+                DVCNode_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature)
         )      
         &&  NetworkSpec.Init(s.att_network, s.all_nodes)
         &&  (
@@ -180,7 +180,7 @@ abstract module DV
                 case ReceviedAttesttionShare(attestation_share) => {attestation_share}
                 case _ => {}
             ;
-        && NetworkSpec.Next(s.att_network, s'.att_network, Some(node), nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
+        && NetworkSpec.Next(s.att_network, s'.att_network, node, nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
         && (
                 forall consensus_id: Slot ::
                     s'.slashing_dbs_used_for_validating_attestations[consensus_id] == s.slashing_dbs_used_for_validating_attestations[consensus_id] +
@@ -245,7 +245,7 @@ abstract module DV
     predicate NextAdversary(
         s: DVState,
         node: BLSPubkey,
-        new_attestation_shares_sent: set<AttestationShare>,
+        new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>,
         s': DVState
     )
@@ -255,9 +255,9 @@ abstract module DV
             && node in (s.all_nodes - s.honest_nodes_states.Keys)
             && (
                 forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
-                    verify_bls_siganture(new_attestation_share_sent.data, new_attestation_share_sent.signature, signer) ==> signer in s.adversary.nodes
+                    verify_bls_siganture(new_attestation_share_sent.message.data, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
             )
-            && NetworkSpec.Next(s.att_network, s'.att_network, Some(node), new_attestation_shares_sent, messagesReceivedByTheNode)
+            && NetworkSpec.Next(s.att_network, s'.att_network, node, new_attestation_shares_sent, messagesReceivedByTheNode)
             && s.all_attestations_created <= s'.all_attestations_created
             && var new_aggregated_attestations_sent := s'.all_attestations_created - s.all_attestations_created;
             && (forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent ::

@@ -43,7 +43,7 @@ module ConsensusSpec
         s: ConsensusInstance
     )
     {
-        quorum(|s.all_nodes|) >= |s.honest_nodes_status|
+        quorum(|s.all_nodes|) <= |s.honest_nodes_status|
     }
 
     predicate isNodeRunning<D(!new, 0)>(
@@ -149,7 +149,7 @@ module ConsensusSpec
                     if s.honest_nodes_status[n] == STARTED then 
                         s'.honest_nodes_status[n] in {STARTED, DECIDED}
                     else 
-                        s.honest_nodes_status[n] == s.honest_nodes_status[n]
+                        s'.honest_nodes_status[n] == s.honest_nodes_status[n]
                 && s'.all_nodes == s.all_nodes
             ) 
             || (

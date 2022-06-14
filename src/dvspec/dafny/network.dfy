@@ -4,10 +4,9 @@ include "commons.dfy"
 module NetworkSpec
 {
     import opened Types
-    // import opened L1_SpecTypes
-
+    import opened CommonFunctions
     datatype Network<M> = Network(
-        messagesSentToNodeYetToBeReceived: map<BLSPubkey, multiset<M>>,
+        messagesInTransit: multiset<MessaageWithRecipient>,
         allMessagesSent: set<M>
     )
 
@@ -17,53 +16,22 @@ module NetworkSpec
         all_nodes: set<BLSPubkey>
     )
     {
-        && e.messagesSentToNodeYetToBeReceived.Keys == all_nodes
-        && forall v | v in e.messagesSentToNodeYetToBeReceived.Values :: v == multiset{}
+        && e.messagesInTransit == multiset{}
+        && e.allMessagesSent == {}
     }
 
-    predicate DeliverNext<M>(
+    predicate Next<M>(
         e: Network<M>,
         e': Network<M>,
         n: BLSPubkey,
-        messagesToBeBroadcast: set<M>,
+        messagesToBeSent: set<MessaageWithRecipient<M>>,
         messagesReceived: set<M>
     )
     {
-        && e'.messagesSentToNodeYetToBeReceived.Keys == e.messagesSentToNodeYetToBeReceived.Keys
-        && n in e.messagesSentToNodeYetToBeReceived.Keys
-        && multiset(messagesReceived) <= e.messagesSentToNodeYetToBeReceived[n]
+        && var messagesReceivedWithRecipient := multiset(addReceipientToMessages(messagesReceived, n));
         && |messagesReceived| <= 1
-        && e'.messagesSentToNodeYetToBeReceived == e.messagesSentToNodeYetToBeReceived[
-            n := e.messagesSentToNodeYetToBeReceived[n] - multiset(messagesReceived) + multiset(messagesToBeBroadcast)
-        ]
-        && e'.allMessagesSent == e.allMessagesSent + messagesToBeBroadcast
-    }
-
-    // predicate NetworkStutter(
-    //     e: Network,
-    //     e': Network
-    // )
-    // {
-    //     e' == e
-    // }
-
-    predicate Next<M>(
-        e: Network,
-        e': Network,
-        n : Optional<BLSPubkey>,
-        messagesSentByTheNodes: set<M>,
-        messagesReceivedByTheNodes: set<M>
-    )
-    {
-        || (
-            && n.isPresent()
-            && DeliverNext(e, e', n.safe_get(), messagesSentByTheNodes,messagesReceivedByTheNodes)
-        )
-        // || (
-        //     && !n.isPresent()
-        //     && NetworkStutter(e, e')
-        //     && messagesSentByTheNodes == {}
-        //     && messagesReceivedByTheNodes == {}
-        // )
+        && messagesReceivedWithRecipient <= e.messagesInTransit
+        && e'.messagesInTransit == e.messagesInTransit - messagesReceivedWithRecipient + multiset(messagesToBeSent)
+        && e'.allMessagesSent == e.allMessagesSent + getMessagesFromMessagesWithRecipient(messagesToBeSent)
     }
 }

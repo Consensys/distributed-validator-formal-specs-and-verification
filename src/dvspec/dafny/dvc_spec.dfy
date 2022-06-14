@@ -77,6 +77,7 @@ abstract module DVCNode_Spec {
         attestation_slashing_db: AttestationSlashingDB,
         attestation_shares_db: AttestationSignatureShareDB,
         attestation_share_to_broadcast: Optional<AttestationShare>,
+        peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         // TODO: Note difference with spec.py
         dv_pubkey: BLSPubkey,
@@ -86,8 +87,8 @@ abstract module DVCNode_Spec {
     )    
 
     datatype Outputs = Outputs(
-        att_shares_sent: set<AttestationShare>,
-        att_consensus_commands_sent: set<ConsensuCommand>,
+        att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
+        att_consensus_commands_sent: set<ConsensusCommand>,
         attestations_submitted: set<Attestation>
     )    
 
@@ -98,7 +99,13 @@ abstract module DVCNode_Spec {
             {},
             {}
         )
-    }    
+    }  
+
+
+    function multicast<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    {
+        addRecepientsToMessage(m, receipients)
+    }
 
     datatype DVCNodeStateAndOuputs = DVCNodeStateAndOuputs(
         state: DVCNodeState,
@@ -117,6 +124,7 @@ abstract module DVCNode_Spec {
     predicate Init(
         s: DVCNodeState,
         dv_pubkey: BLSPubkey,
+        peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
     )
     {
@@ -126,6 +134,7 @@ abstract module DVCNode_Spec {
             attestation_slashing_db := {},
             attestation_shares_db := map[],
             attestation_share_to_broadcast := None,
+            peers := peers,
             construct_signed_attestation_signature := construct_signed_attestation_signature,
             dv_pubkey := dv_pubkey,
             future_att_consensus_instances_already_decided := {},
@@ -204,7 +213,7 @@ abstract module DVCNode_Spec {
                         current_attesation_duty := Some(attestation_duty)
             ),
             outputs := getEmptyOuputs().(
-                att_consensus_commands_sent := {ConsensuCommand.Start(attestation_duty.slot)}
+                att_consensus_commands_sent := {ConsensusCommand.Start(attestation_duty.slot)}
             )
         )        
     }      
@@ -254,7 +263,7 @@ abstract module DVCNode_Spec {
                 attestation_share_to_broadcast := Some(attestation_with_signature_share)
             ),
             outputs := getEmptyOuputs().(
-                att_shares_sent := {attestation_with_signature_share}
+                att_shares_sent := multicast(attestation_with_signature_share, process.peers)
             )
         )         
     }    
@@ -338,7 +347,7 @@ abstract module DVCNode_Spec {
             DVCNodeStateAndOuputs(
                 state := r.state,
                 outputs := r.outputs.(
-                    att_consensus_commands_sent := r.outputs.att_consensus_commands_sent + {ConsensuCommand.Stop(process.current_attesation_duty.safe_get().slot)}
+                    att_consensus_commands_sent := r.outputs.att_consensus_commands_sent + {ConsensusCommand.Stop(process.current_attesation_duty.safe_get().slot)}
                 )
             )
         else
@@ -357,7 +366,7 @@ abstract module DVCNode_Spec {
             outputs := getEmptyOuputs().(
                 att_shares_sent :=
                     if process.attestation_share_to_broadcast.isPresent() then
-                        {process.attestation_share_to_broadcast.safe_get()}
+                        multicast(process.attestation_share_to_broadcast.safe_get(), process.peers)
                     else
                         {}
                     )

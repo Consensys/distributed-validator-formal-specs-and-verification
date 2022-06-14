@@ -18,6 +18,7 @@ abstract module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             attestation_slashing_db := n.attestation_slashing_db,
             attestation_shares_db := n.attestation_shares_db,
             attestation_share_to_broadcast := n.attestation_share_to_broadcast,
+            peers := n.peers,
             construct_signed_attestation_signature := n.construct_signed_attestation_signature,
             dv_pubkey := n.dv_pubkey,
             future_att_consensus_instances_already_decided := n.future_att_consensus_instances_already_decided,
@@ -64,7 +65,7 @@ abstract module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     reads n, n.network, n.att_consensus, n.bn
     {
         Outputs(
-            att_shares_sent :=  seqMinusToSet(n.network.att_shares_sent, old(n.network.att_shares_sent)),
+            att_shares_sent :=  setUnion(seqMinusToSet(n.network.att_shares_sent, old(n.network.att_shares_sent))),
             att_consensus_commands_sent := seqMinusToSet(n.att_consensus.consensus_commands_sent, old(n.att_consensus.consensus_commands_sent)),
             attestations_submitted := seqMinusToSet(n.bn.attestations_submitted, old(n.bn.attestations_submitted))
         )

@@ -125,7 +125,7 @@ module Types
     // } 
 
 
-    datatype ConsensuCommand = 
+    datatype ConsensusCommand = 
         | Start(id: Slot)
         | Stop(id: Slot)          
 
@@ -175,7 +175,12 @@ module Types
                 assert |s - {e}| == 0;
                 Some(e)
         } 
-    }         
+    }        
+
+    datatype MessaageWithRecipient<M> = MessaageWithRecipient(
+        message: M,
+        receipient: BLSPubkey
+    ) 
 }
 
 module CommonFunctions{
@@ -243,4 +248,28 @@ module CommonFunctions{
 
     lemma {:axiom} hash_tree_root_properties<T>()
     ensures forall d1: T, d2: T :: hash_tree_root(d1) == hash_tree_root(d2) ==> d1 == d2
+
+
+    function getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
+    {
+        set mwr | mwr in mswr :: mwr.message
+    }
+
+    function addReceipientToMessages<M>(sm: set<M>, r: BLSPubkey): set<MessaageWithRecipient<M>>
+    {
+        set m | m in sm :: MessaageWithRecipient(
+            message :=  m,
+            receipient := r
+        )
+    }
+
+    function addRecepientsToMessage<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    {
+        set r | r in receipients :: MessaageWithRecipient(message := m, receipient := r)
+    }
+
+    function setUnion<T>(sets:set<set<T>>):set<T>
+    {
+        set s, e | s in sets && e in s :: e
+    } 
 }
