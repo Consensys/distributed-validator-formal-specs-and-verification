@@ -1,95 +1,4 @@
 include "../commons.dfy"
-
-module DVCNode_Externs
-{
-    import opened Types
-    import opened CommonFunctions
-
-    class Consensus {
-        ghost var consensus_commands_sent: seq<ConsensusCommand>
-
-        constructor()
-        {
-            consensus_commands_sent := [];
-        }
-
-        method {:extern} start(
-            id: Slot
-        )
-        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensusCommand.Start(id)]
-
-        method {:extern} stop(
-            id: Slot
-        )
-        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensusCommand.Stop(id)]        
-    }     
-
-    class Network  
-    {
-        ghost var att_shares_sent: seq<set<MessaageWithRecipient<AttestationShare>>>;
-
-        constructor()
-        {
-            att_shares_sent := [];
-        }
-
-        method {:extern} send_att_share(att_share: AttestationShare, receipients: set<BLSPubkey>)
-        ensures att_shares_sent == old(att_shares_sent)  + [addRecepientsToMessage(att_share, receipients)]
-    }
-
-    class BeaconNode
-    {
-        ghost var state_roots_of_imported_blocks: set<Root>;
-        ghost const attestations_submitted: seq<Attestation>; 
-
-        constructor()
-        {
-            attestations_submitted := [];
-            state_roots_of_imported_blocks := {};
-        }
-
-        method {:extern} get_fork_version(s: Slot) returns (v: Version)
-
-        method {:extern} submit_attestation(attestation: Attestation)
-        ensures attestations_submitted == old(attestations_submitted) + [attestation]
-
-        // https://ethereum.github.io/beacon-APIs/?urls.primaryName=v1#/Beacon/getEpochCommittees
-        method {:extern} get_epoch_committees(
-            state_id: Root,
-            index: CommitteeIndex
-        ) returns (s: Status, sv: seq<ValidatorIndex>)
-        ensures state_id in state_roots_of_imported_blocks <==> s.Success?
-        ensures uniqueSeq(sv)  
-
-        // https://ethereum.github.io/beacon-APIs/#/Beacon/getStateValidator
-        method {:extern} get_validator_index(
-            state_id: Root,
-            validator_id: BLSPubkey
-        ) returns (s: Status, vi: Optional<ValidatorIndex>)
-        ensures state_id in state_roots_of_imported_blocks <==> s.Success?
-    }
-
-    class RemoteSigner
-    {
-        const pubkey: BLSPubkey;
-
-        constructor(
-            pubkey: BLSPubkey
-        )
-        {
-            this.pubkey := pubkey;
-        }
-
-        method {:extern} sign_attestation(
-            attestation_data: AttestationData, 
-            fork_version: Version, 
-            signing_root: Root           
-        ) returns (s: BLSSignature)
-        requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
-
-    }
-}
-
 abstract module DVCNode_Implementation
 {
     import opened Types
@@ -311,5 +220,95 @@ abstract module DVCNode_Implementation
             }
         }        
     }    
+}
+
+module DVCNode_Externs
+{
+    import opened Types
+    import opened CommonFunctions
+
+    class Consensus {
+        ghost var consensus_commands_sent: seq<ConsensusCommand>
+
+        constructor()
+        {
+            consensus_commands_sent := [];
+        }
+
+        method {:extern} start(
+            id: Slot
+        )
+        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensusCommand.Start(id)]
+
+        method {:extern} stop(
+            id: Slot
+        )
+        ensures consensus_commands_sent == old(consensus_commands_sent) + [ConsensusCommand.Stop(id)]        
+    }     
+
+    class Network  
+    {
+        ghost var att_shares_sent: seq<set<MessaageWithRecipient<AttestationShare>>>;
+
+        constructor()
+        {
+            att_shares_sent := [];
+        }
+
+        method {:extern} send_att_share(att_share: AttestationShare, receipients: set<BLSPubkey>)
+        ensures att_shares_sent == old(att_shares_sent)  + [addRecepientsToMessage(att_share, receipients)]
+    }
+
+    class BeaconNode
+    {
+        ghost var state_roots_of_imported_blocks: set<Root>;
+        ghost const attestations_submitted: seq<Attestation>; 
+
+        constructor()
+        {
+            attestations_submitted := [];
+            state_roots_of_imported_blocks := {};
+        }
+
+        method {:extern} get_fork_version(s: Slot) returns (v: Version)
+
+        method {:extern} submit_attestation(attestation: Attestation)
+        ensures attestations_submitted == old(attestations_submitted) + [attestation]
+
+        // https://ethereum.github.io/beacon-APIs/?urls.primaryName=v1#/Beacon/getEpochCommittees
+        method {:extern} get_epoch_committees(
+            state_id: Root,
+            index: CommitteeIndex
+        ) returns (s: Status, sv: seq<ValidatorIndex>)
+        ensures state_id in state_roots_of_imported_blocks <==> s.Success?
+        ensures uniqueSeq(sv)  
+
+        // https://ethereum.github.io/beacon-APIs/#/Beacon/getStateValidator
+        method {:extern} get_validator_index(
+            state_id: Root,
+            validator_id: BLSPubkey
+        ) returns (s: Status, vi: Optional<ValidatorIndex>)
+        ensures state_id in state_roots_of_imported_blocks <==> s.Success?
+    }
+
+    class RemoteSigner
+    {
+        const pubkey: BLSPubkey;
+
+        constructor(
+            pubkey: BLSPubkey
+        )
+        {
+            this.pubkey := pubkey;
+        }
+
+        method {:extern} sign_attestation(
+            attestation_data: AttestationData, 
+            fork_version: Version, 
+            signing_root: Root           
+        ) returns (s: BLSSignature)
+        requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
+
+    }
 }
 
