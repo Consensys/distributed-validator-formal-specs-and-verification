@@ -1,6 +1,5 @@
 include "../commons.dfy"
 include "dvc_spec.dfy"
-include "../proof/dvc_implementation_spec_proof.dfy"
 include "consensus.dfy"
 include "network.dfy"
 
@@ -11,8 +10,7 @@ abstract module DV
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened DVCNode_Spec
-    import opened DVCNode_Externs_Proofs
-    import opened DVCNode = DVCNode_Implementation_Proofs`PublicInterface
+    
 
     datatype Adversary = Adversary(
         nodes: set<BLSPubkey>
@@ -84,6 +82,9 @@ abstract module DV
                             ::
                                     && var signing_root := compute_attestation_signing_root(data, fork_version);
                                     verify_bls_siganture(signing_root, constructed_sig.safe_get(), s.dv_pubkey)
+
+                                    && var signing_root := compute_attestation_signing_root(data, fork_version);
+                                    && verify_bls_siganture(signing_root, constructed_sig.safe_get(), s.dv_pubkey)
 
         )   
         && s.all_attestations_created == {}
