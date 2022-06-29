@@ -5,7 +5,6 @@ include "../implementation/dvc_implementation.dfy"
 abstract module DVCNode_Spec {
     import opened Types 
     import opened CommonFunctions
-    import opened DVCNode_Implementation`PublicInterface
     import opened DVCNode_Externs
 
     function {:axiom} bn_get_fork_version(slot: Slot): Version
@@ -70,6 +69,7 @@ abstract module DVCNode_Spec {
             pubkey := pubkey
         )
     }  
+
 
     datatype DVCNodeState = DVCNodeState(
         current_attesation_duty: Optional<AttestationDuty>,

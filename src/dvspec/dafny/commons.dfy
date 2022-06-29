@@ -19,6 +19,8 @@ module Types
         root: Root
     )
 
+    type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
+    
     type {:extern "Domain"} Domain(==)
     // type AttestationDuty 
     datatype AttestationData = AttestationData(
@@ -211,7 +213,7 @@ module CommonFunctions{
 
 
     lemma {:axiom} compute_domain_properties()
-    ensures forall d1, f1, d2, f2 :: compute_domain(d1, f2) == compute_domain(d2, f2) ==>
+    ensures forall d1, f1, d2, f2 :: compute_domain(d1, f1) == compute_domain(d2, f2) ==>
         && d1 == d2 
         && f1 == f2
 
@@ -233,7 +235,7 @@ module CommonFunctions{
         compute_signing_root(attestation_data, domain)
     }
 
-    predicate uniqueSeq<T(==)>(s: seq<T>)
+    predicate uniqueSeq<T>(s: seq<T>)
     {
         forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
     }
