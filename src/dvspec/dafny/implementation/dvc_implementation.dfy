@@ -83,7 +83,7 @@ abstract module DVCNode_Implementation
                     attestation_duties_queue := attestation_duties_queue[1..];
                     check_for_next_queued_duty();
                 }
-                else
+                else if !current_attesation_duty.isPresent()
                 {
                     start_next_duty(attestation_duties_queue[0]);
                 }
@@ -206,6 +206,7 @@ abstract module DVCNode_Implementation
             if current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot in future_att_consensus_instances_already_decided
             {
                 att_consensus.stop(current_attesation_duty.safe_get().slot);
+                current_attesation_duty := None;
                 check_for_next_queued_duty();
             }                                   
         }
