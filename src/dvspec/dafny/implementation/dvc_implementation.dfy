@@ -85,7 +85,10 @@ abstract module DVCNode_Implementation
                 }
                 else if !current_attesation_duty.isPresent()
                 {
-                    start_next_duty(attestation_duties_queue[0]);
+                    var queue_head := attestation_duties_queue[0];
+                    attestation_duties_queue := attestation_duties_queue[1..];
+
+                    start_next_duty(queue_head);
                 }
             }
         }
