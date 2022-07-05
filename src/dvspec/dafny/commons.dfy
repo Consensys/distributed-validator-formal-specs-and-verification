@@ -322,14 +322,9 @@ module CommonFunctions{
     ensures min in s 
     ensures forall e | e in s :: min <= e 
     {
-        if |s| == 1 then 
-            var e :| e in s;
-            assert |s - {e}| == 0;
-            e 
-        else
-            minOfSetOfIntExists(s);
-            var e :| e in s && forall e' | e' in s :: e' >= e;
-            e
+        minOfSetOfIntExists(s);
+        var e :| e in s && forall e' | e' in s :: e' >= e;
+        e
     }
 
     function method {:opaque} maxSet(s: set<int>): (max: int)
@@ -337,14 +332,9 @@ module CommonFunctions{
     ensures max in s 
     ensures forall e | e in s :: max >= e 
     {
-        if |s| == 1 then 
-            var e :| e in s;
-            assert |s - {e}| == 0;
-            e 
-        else
-            maxOfSetOfIntExists(s);
-            var e :| e in s && forall e' | e' in s :: e' <= e;
-            e
+        maxOfSetOfIntExists(s);
+        var e :| e in s && forall e' | e' in s :: e' <= e;
+        e
     }   
 
     function method get_target_epochs(att_slashing_db: AttestationSlashingDB): (target_epochs: set<nat>)
