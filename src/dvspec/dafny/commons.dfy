@@ -279,18 +279,9 @@ module CommonFunctions{
                         && min in s 
                         && forall e | e in s :: min <= e 
     {
-        var min := minOfSetOfIntExistsHelper(s);
-    }  
-
-    lemma minOfSetOfIntExistsHelper(s: set<int>) returns (min: int)
-    requires s != {}
-    ensures min in s 
-    ensures forall e | e in s :: min <= e 
-    {
         if |s| == 1 {
             var e :| e in s;
             assert |s - {e}| == 0;
-            min := e;
         } 
         else
         {
@@ -299,17 +290,10 @@ module CommonFunctions{
             assert |s| > 1;
             assert s == sMinusE + {e};
             assert |sMinusE| > 0;
-            var mMinusE := minOfSetOfIntExistsHelper(sMinusE);
-            if mMinusE < e  
-            {    
-                min := mMinusE;
-            }
-            else
-            {
-                min := e;
-            }
-        }
-    }    
+            minOfSetOfIntExists(sMinusE);
+            var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' >= mMinusE;
+        }    
+    }  
 
     function method {:opaque} minSet(s: set<int>): (min: int)
     requires s != {}
