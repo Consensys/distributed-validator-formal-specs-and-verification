@@ -273,7 +273,7 @@ module CommonFunctions{
         set s, e | s in sets && e in s :: e
     } 
 
-    lemma {:opaque} minOfSetOfIntExists(s: set<int>)
+    lemma minOfSetOfIntExists(s: set<int>)
     requires s != {}
     ensures exists min :: 
                         && min in s 
@@ -295,7 +295,7 @@ module CommonFunctions{
         }    
     }  
 
-    lemma {:opaque} maxOfSetOfIntExists(s: set<int>)
+    lemma maxOfSetOfIntExists(s: set<int>)
     requires s != {}
     ensures exists min :: 
                         && min in s 
