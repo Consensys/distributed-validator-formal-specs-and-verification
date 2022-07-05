@@ -295,6 +295,28 @@ module CommonFunctions{
         }    
     }  
 
+    lemma {:opaque} maxOfSetOfIntExists(s: set<int>)
+    requires s != {}
+    ensures exists min :: 
+                        && min in s 
+                        && forall e | e in s :: min >= e 
+    {
+        if |s| == 1 {
+            var e :| e in s;
+            assert |s - {e}| == 0;
+        } 
+        else
+        {
+            var e :| e in s;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            maxOfSetOfIntExists(sMinusE);
+            var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' <= mMinusE;
+        }    
+    }    
+
     function method {:opaque} minSet(s: set<int>): (min: int)
     requires s != {}
     ensures min in s 
@@ -307,15 +329,7 @@ module CommonFunctions{
         else
             minOfSetOfIntExists(s);
             var e :| e in s && forall e' | e' in s :: e' >= e;
-            var sMinusE := s - {e};
-            assert |s| > 1;
-            assert s == sMinusE + {e};
-            assert |sMinusE| > 0;
-            var mMinusE := minSet(sMinusE);
-            if mMinusE < e then 
-                mMinusE
-            else
-                e
+            e
     }
 
     function method {:opaque} maxSet(s: set<int>): (max: int)
@@ -328,17 +342,9 @@ module CommonFunctions{
             assert |s - {e}| == 0;
             e 
         else
-            minOfSetOfIntExists(s);
-            var e :| e in s && forall e' | e' in s :: e' >= e;
-            var sMinusE := s - {e};
-            assert |s| > 1;
-            assert s == sMinusE + {e};
-            assert |sMinusE| > 0;
-            var mMinusE := maxSet(sMinusE);
-            if mMinusE > e then 
-                mMinusE
-            else
-                e
+            maxOfSetOfIntExists(s);
+            var e :| e in s && forall e' | e' in s :: e' <= e;
+            e
     }   
 
     function method get_target_epochs(att_slashing_db: AttestationSlashingDB): (target_epochs: set<nat>)
