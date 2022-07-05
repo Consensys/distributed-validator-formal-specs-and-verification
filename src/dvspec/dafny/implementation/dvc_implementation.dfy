@@ -111,7 +111,7 @@ abstract module DVCNode_Implementation
             var slashing_db_attestation := SlashingDBAttestation(
                                                 source_epoch := attestation_data.source.epoch,
                                                 target_epoch := attestation_data.target.epoch,
-                                                signing_root := hash_tree_root(attestation_data));
+                                                signing_root := Some(hash_tree_root(attestation_data)));
             attestation_slashing_db := attestation_slashing_db + {slashing_db_attestation};
         }
 

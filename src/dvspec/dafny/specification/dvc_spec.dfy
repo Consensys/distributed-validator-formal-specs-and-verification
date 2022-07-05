@@ -187,14 +187,22 @@ abstract module DVCNode_Spec {
     function f_check_for_next_queued_duty(process: DVCNodeState): DVCNodeStateAndOuputs
     decreases process.attestation_duties_queue
     {
-        if process.attestation_duties_queue != [] then
+        if  && process.attestation_duties_queue != [] 
+            && (
+                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+                || !process.current_attesation_duty.isPresent()
+            )    
+        then
             
                 if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided then
                     f_check_for_next_queued_duty(process.(
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     ))
                 else
-                    f_start_next_duty(process, process.attestation_duties_queue[0])
+                    var new_process := process.(
+                        attestation_duties_queue := process.attestation_duties_queue[1..]
+                    );         
+                    f_start_next_duty(new_process, process.attestation_duties_queue[0])
                 
         else 
             DVCNodeStateAndOuputs(
@@ -233,7 +241,7 @@ abstract module DVCNode_Spec {
         var slashing_db_attestation := SlashingDBAttestation(
                                             source_epoch := attestation_data.source.epoch,
                                             target_epoch := attestation_data.target.epoch,
-                                            signing_root := hash_tree_root(attestation_data));
+                                            signing_root := Some(hash_tree_root(attestation_data)));
         
         attestation_slashing_db + {slashing_db_attestation}
     }      

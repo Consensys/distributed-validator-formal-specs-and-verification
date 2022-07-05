@@ -1,6 +1,6 @@
 include "../commons.dfy"
 include "dvc_spec.dfy"
-include "../proof/dvc_implementation_spec_proof.dfy"
+// include "../proof/dvc_implementation_spec_proof.dfy"
 include "consensus.dfy"
 include "network.dfy"
 
@@ -12,7 +12,7 @@ abstract module DV
     import opened ConsensusSpec
     import opened DVCNode_Spec
     import opened DVCNode_Externs_Proofs
-    import opened DVCNode = DVCNode_Implementation_Proofs`PublicInterface
+    // import opened DVCNode = DVCNode_Implementation_Proofs`PublicInterface
 
     datatype Adversary = Adversary(
         nodes: set<BLSPubkey>
@@ -37,9 +37,6 @@ abstract module DV
     | AdeversaryTakingStep(node: BLSPubkey, new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>)
     | HonestNodeTakingStep(node: BLSPubkey, event: DVCNode_Spec.Event, nodeOutputs: DVCNode_Spec.Outputs)
-
-
-    predicate is_slashable_attestation_data(slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
 
     predicate Init(
         s: DVState
@@ -218,7 +215,7 @@ abstract module DV
                 && var validityPredicate := 
                     (ad: AttestationData) => 
                         exists db | db in s.slashing_dbs_used_for_validating_attestations[cid] ::
-                            !is_slashable_attestation_data(db, ad)
+                            !is_slashable_attestation(db, ad)
                     ;
 
                 ConsensusSpec.Next(

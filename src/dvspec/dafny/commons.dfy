@@ -86,7 +86,7 @@ module Types
     datatype  SlashingDBAttestation = SlashingDBAttestation(
         source_epoch: Epoch,
         target_epoch: Epoch,
-        signing_root: Root
+        signing_root: Optional<Root>
     )
 
     datatype Status =
@@ -272,4 +272,190 @@ module CommonFunctions{
     {
         set s, e | s in sets && e in s :: e
     } 
+
+    lemma {:opaque} minOfSetOfIntExists(s: set<int>)
+    requires s != {}
+    ensures exists min :: 
+                        && min in s 
+                        && forall e | e in s :: min <= e 
+    {
+        var min := minOfSetOfIntExistsHelper(s);
+    }  
+
+    lemma minOfSetOfIntExistsHelper(s: set<int>) returns (min: int)
+    requires s != {}
+    ensures min in s 
+    ensures forall e | e in s :: min <= e 
+    {
+        if |s| == 1 {
+            var e :| e in s;
+            assert |s - {e}| == 0;
+            min := e;
+        } 
+        else
+        {
+            var e :| e in s;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            var mMinusE := minOfSetOfIntExistsHelper(sMinusE);
+            if mMinusE < e  
+            {    
+                min := mMinusE;
+            }
+            else
+            {
+                min := e;
+            }
+        }
+    }    
+
+    function method {:opaque} minSet(s: set<int>): (min: int)
+    requires s != {}
+    ensures min in s 
+    ensures forall e | e in s :: min <= e 
+    {
+        if |s| == 1 then 
+            var e :| e in s;
+            assert |s - {e}| == 0;
+            e 
+        else
+            minOfSetOfIntExists(s);
+            var e :| e in s && forall e' | e' in s :: e' >= e;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            var mMinusE := minSet(sMinusE);
+            if mMinusE < e then 
+                mMinusE
+            else
+                e
+    }
+
+    function method {:opaque} maxSet(s: set<int>): (max: int)
+    requires s != {}
+    ensures max in s 
+    ensures forall e | e in s :: max >= e 
+    {
+        if |s| == 1 then 
+            var e :| e in s;
+            assert |s - {e}| == 0;
+            e 
+        else
+            minOfSetOfIntExists(s);
+            var e :| e in s && forall e' | e' in s :: e' >= e;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            var mMinusE := maxSet(sMinusE);
+            if mMinusE > e then 
+                mMinusE
+            else
+                e
+    }   
+
+    function method get_target_epochs(att_slashing_db: AttestationSlashingDB): (target_epochs: set<nat>)
+    requires att_slashing_db != {}
+    ensures target_epochs != {}
+    {
+        var target_epochs := set attn | attn in att_slashing_db :: attn.target_epoch;
+        assert var e :| e in att_slashing_db; e.target_epoch in target_epochs;
+        target_epochs
+    }
+
+    function method get_source_epochs(att_slashing_db: AttestationSlashingDB): (source_epochs: set<nat>)
+    requires att_slashing_db != {}
+    ensures source_epochs != {}
+    {
+        var source_epochs := set attn | attn in att_slashing_db :: attn.source_epoch;
+        assert var e :| e in att_slashing_db; e.source_epoch in source_epochs;
+        source_epochs
+    }    
+
+    predicate method is_slashable_attestation_pair(data_1: SlashingDBAttestation, data_2: SlashingDBAttestation)
+    {
+        // Double vote - over approximated check compared to the 
+        // code in the Eth reference implementation as
+        // here we do not have all the fields of AttestationData
+        || (data_1.target_epoch == data_2.target_epoch) 
+        // Surround vote
+        || (data_1.source_epoch < data_2.source_epoch && data_2.target_epoch < data_1.target_epoch)        
+    }
+
+    predicate is_slashable_attestation(att_slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
+    {
+        // Check for EIP-3076 conditions:
+        // https://eips.ethereum.org/EIPS/eip-3076#conditions
+        if att_slashing_db != {} then
+            var min_target := minSet(get_target_epochs(att_slashing_db));
+            var min_source := minSet(get_source_epochs(att_slashing_db));
+            if attestation_data.target.epoch <= min_target then
+                true 
+            else if attestation_data.source.epoch < min_source then
+                true
+            else 
+                var slashing_db_att_for_att_data := 
+                    SlashingDBAttestation(
+                        source_epoch := attestation_data.source.epoch,
+                        target_epoch := attestation_data.target.epoch,
+                        signing_root := None
+                    );            
+                exists past_attn | past_attn in att_slashing_db ::
+                        is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
+        else
+            false        
+    } by method 
+    {
+        // Check for EIP-3076 conditions:
+        // https://eips.ethereum.org/EIPS/eip-3076#conditions
+        if att_slashing_db != {} 
+        {
+            var min_target := minSet(get_target_epochs(att_slashing_db));
+            var min_source := minSet(get_source_epochs(att_slashing_db));
+            if attestation_data.target.epoch <= min_target
+            {
+                assert is_slashable_attestation(att_slashing_db, attestation_data);
+                return true;
+            }
+            else if attestation_data.source.epoch < min_source
+            {
+                assert is_slashable_attestation(att_slashing_db, attestation_data);
+                return true;
+            }
+            else 
+            {
+                var attns_to_check := att_slashing_db;
+                var slashing_db_att_for_att_data := 
+                    SlashingDBAttestation(
+                        source_epoch := attestation_data.source.epoch,
+                        target_epoch := attestation_data.target.epoch,
+                        signing_root := None
+                    );
+                while attns_to_check != {}
+                invariant var checked := att_slashing_db - attns_to_check;
+                        forall a | a in checked :: !is_slashable_attestation_pair(a, slashing_db_att_for_att_data)
+                {
+                        var past_attn :| past_attn in attns_to_check;
+                        if is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
+                        {
+                            assert is_slashable_attestation(att_slashing_db, attestation_data);
+                            return true;
+                        }
+
+                        attns_to_check := attns_to_check - {past_attn};
+                }
+                assert !is_slashable_attestation(att_slashing_db, attestation_data);
+                return false;
+            }
+
+        }
+        else
+        {
+            assert !is_slashable_attestation(att_slashing_db, attestation_data);
+            return false;
+        }
+    }      
 }

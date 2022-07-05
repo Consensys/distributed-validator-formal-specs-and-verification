@@ -110,9 +110,13 @@ abstract module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                     ...;
                     assert f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
                 }
-                else
+                else if...
                 {
                     ...;
+                    assert f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
+                }
+                else
+                {
                     assert f_check_for_next_queued_duty(old(toDVCNodeState(this))) == toDVCNodeStateAndOuputs(this);
                 }
             }
