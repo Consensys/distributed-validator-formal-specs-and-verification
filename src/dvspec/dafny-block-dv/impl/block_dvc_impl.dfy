@@ -1,14 +1,14 @@
-include "../utils/types.dfy"
-include "../utils/common-functions.dfy"
-include "../utils/signing-functions.dfy"
-include "./externs.dfy"
+include "../utils/block_types.dfy"
+include "../utils/block_common_functions.dfy"
+include "../utils/block_signing_functions.dfy"
+include "./block_externs.dfy"
 
-abstract module DVCNode_Implementation
+abstract module Block_DVC_Impl
 {
-    import opened Types
-    import opened CommonFunctions
-    import opened SigningFunctions
-    import opened DVC_Externs
+    import opened BlockTypes
+    import opened BlockCommonFunctions
+    import opened BlockSigningFunctions
+    import opened Block_DVC_Externs
 
     export PublicInterface
         reveals  DVC
@@ -20,10 +20,10 @@ abstract module DVCNode_Implementation
                  DVC.resend_attestation_share,
                  DVC.bn
                  */
-        provides Types, 
-                 CommonFunctions,
-                 SigningFunctions,
-                 DVC_Externs
+        provides BlockTypes, 
+                 BlockCommonFunctions,
+                 BlockSigningFunctions,
+                 Block_DVC_Externs
 
     class DVC {        
         const bn: BeaconNode;
@@ -39,8 +39,9 @@ abstract module DVCNode_Implementation
         var future_decided_slots: set<Slot>   
         var past_decided_slots: set<Slot>;
 
+        var block_share_to_broadcast: Optional<SignedBeaconBlock>
+        var randao_share_to_broadcast: Optional<RandaoShare>
 
-        var block_sign_share_to_broadcast: Optional<SignedBeaconBlock>
         var complete_block_signature: (set<SignedBeaconBlock>) -> Optional<BLSSignature>;
         
         
@@ -74,8 +75,9 @@ abstract module DVCNode_Implementation
             this.future_decided_slots := {};
             this.past_decided_slots := {};
 
-            this.block_sign_share_to_broadcast := None;
-            this.block_slashing_db := map[];
+            this.block_share_to_broadcast := None;
+            this.randao_share_to_broadcast := None;
+            this.block_slashing_db := {};
             this.block_share_db := map[];    
             this.rcvd_randao_share := map[];   
             this.current_proposer_duty := None;
@@ -101,25 +103,7 @@ abstract module DVCNode_Implementation
         modifies this
         {
             proposer_duty_queue := proposer_duty_queue + [proposer_duty];
-            var slot := proposer_duty.slot;
-            var epoch := compute_epoch_at_slot(slot);
-            
-            var fork_version := bn.get_fork_version(slot);    
-            var root := compute_randao_reveal_signing_root(slot);
-            var randao_signature := rs.sign_randao_reveal(epoch, fork_version, root);                                                           
-            var randao_share := RandaoShare(proposer_duty, epoch, slot, root, randao_signature);
-            network.send_randao_share(randao_share, peers);
-        }
-
-        method listen_for_randao_shares(
-            randao_share: RandaoShare
-        ) 
-        requires |peers| > 0
-        modifies this
-        {
-            var slot := randao_share.slot;
-            rcvd_randao_share := rcvd_randao_share[slot := getOrDefault(rcvd_randao_share, slot, {}) + {randao_share} ];                      
-            check_for_next_queued_duty();
+            check_for_next_queued_duty();            
         }
 
         method {:extern} check_for_next_queued_duty()
@@ -149,10 +133,36 @@ abstract module DVCNode_Implementation
 
         method start_consensus_on_block(serving_duty: ProposerDuty)
         modifies this
-        {
+        {   
+            randao_share_to_broadcast := None;
+            block_share_to_broadcast := None;         
             current_proposer_duty := Some(serving_duty);
             consensus_on_block.start(serving_duty.slot);                                 
+            broadcast_randao_share(serving_duty);
         }
+
+        method broadcast_randao_share(serving_duty: ProposerDuty)
+        requires current_proposer_duty.isPresent()
+        modifies this
+        {      
+            var slot := serving_duty.slot;
+            var epoch := compute_epoch_at_slot(slot);            
+            var fork_version := bn.get_fork_version(slot);    
+            var root := compute_randao_reveal_signing_root(slot);
+            var randao_signature := rs.sign_randao_reveal(epoch, fork_version, root);                                                           
+            var randao_share := RandaoShare(serving_duty, epoch, slot, root, randao_signature);
+            randao_share_to_broadcast := Some(randao_share);
+            network.send_randao_share(randao_share_to_broadcast.safe_get(), peers);
+        }
+
+        method listen_for_randao_shares(
+            randao_share: RandaoShare
+        )         
+        modifies this
+        {
+            var slot := randao_share.slot;
+            rcvd_randao_share := rcvd_randao_share[slot := getOrDefault(rcvd_randao_share, slot, {}) + {randao_share} ];                                  
+        }        
 
         method {:extern} consensus_is_valid_block(
             block: BeaconBlock,
@@ -168,6 +178,67 @@ abstract module DVCNode_Implementation
                  block.body.randao_reveal == complete_signed_randao_reveal &&
                  !slashable;                 
         }
+
+
+
+        function method get_slashing_slots(slashing_db: BlockSlashingDB): (slots_in_db: set<int>)    
+        requires slashing_db != {}
+        ensures slots_in_db != {}    
+        {
+            var slots_in_db := set block | block in slashing_db :: block.slot;
+            assert var e :| e in slashing_db; e.slot in slots_in_db;
+            slots_in_db
+        }
+
+        function method get_slashing_blocks_with_slot(
+            slashing_db: BlockSlashingDB, 
+            slot: Slot
+        ): (slashing_blocks: set<SlashingDBBlock>)    
+        requires slashing_db != {}        
+        {
+            var slashing_blocks := set block | block in slashing_db && block.slot == slot :: block;            
+            slashing_blocks
+        }
+
+        method is_slashable_block(
+            block: BeaconBlock, 
+            pubkey: BLSPubkey
+        ) returns (b: bool)
+        modifies this
+        {            
+            
+            if block_slashing_db != {}
+            {
+                var slots := get_slashing_slots(block_slashing_db);
+                var min_slot := get_min(slots);
+
+                if block.slot < min_slot 
+                {
+                    return true;
+                }
+                
+                if exists db_block :: db_block in block_slashing_db && 
+                                      block.slot == db_block.slot &&
+                                      hash_tree_root(block) != db_block.signing_root
+                {
+                    return true;
+                }
+            }
+            
+            return false;            
+        }   
+
+        method update_block_slashing_db(block: BeaconBlock, pubkey: BLSPubkey)
+        modifies this        
+        {   
+            var slashable := is_slashable_block(block, pubkey);
+
+            if !slashable
+            {
+                var newDBBlock := SlashingDBBlock(block.slot, hash_tree_root(block));
+                block_slashing_db := block_slashing_db + {newDBBlock};                
+            }            
+        }        
 
         method {:extern} decide_block(block: BeaconBlock)
         modifies this        
@@ -187,9 +258,12 @@ abstract module DVCNode_Implementation
                     update_block_slashing_db(block, duty.pubkey);
                     var block_signing_root := compute_block_signing_root(block);
                     var fork_version := bn.get_fork_version(slot);
+                    // block_signature_share = rs_sign_block(block, fork_version, block_signing_root)
                     var block_signature := rs.sign_block(block, fork_version, block_signing_root);
+                    // block_signature_share = SignedBeaconBlock(message=block, signature=block_signature_share)
                     var block_share := SignedBeaconBlock(block, block_signature);
-                    network.send_block_share(block_share, peers);    
+                    block_share_to_broadcast := Some(block_share);
+                    network.send_block_share(block_share_to_broadcast.safe_get(), peers);    
                 }                     
             }            
         }
@@ -206,106 +280,49 @@ abstract module DVCNode_Implementation
             }
         }
 
-        method update_block_slashing_db(block: BeaconBlock, pubkey: BLSPubkey)
-        modifies this        
-        {   
-            var slashable := is_slashable_block(block, pubkey);
-
-            if !slashable
-            {
-                var newDBBlock := SlashingDBBlock(pubkey, block.slot, hash_tree_root(block));
-                var lastDBBlock := get_slashing_db_data_for_pubkey(pubkey);
-                if lastDBBlock.isPresent() ==> lastDBBlock.safe_get().slot < block.slot
-                {
-                    block_slashing_db := block_slashing_db[pubkey := newDBBlock];
-                }                
-            }            
-        }
-
-        method is_slashable_block(
-            block: BeaconBlock, 
-            pubkey: BLSPubkey
-        ) returns (b: bool)
-        modifies this
-        {            
-            var dbBlock := get_slashing_db_data_for_pubkey(pubkey);
-            if dbBlock.isPresent() 
-            {
-                var dbBlock_value := dbBlock.safe_get();
-                if block.slot < dbBlock_value.slot
-                {
-                    return true;
-                }
-                    
-                if block.slot == dbBlock_value.slot &&
-                   hash_tree_root(block) != dbBlock_value.signing_root
-                {
-                    return true;
-                }
-
-                return false;
-            }            
-        }
-        
-        method get_slashing_db_data_for_pubkey(
-            pubkey: BLSPubkey
-        ) returns (dbBlock: Optional<SlashingDBBlock>)
-        modifies this
-        {   
-            if pubkey in block_slashing_db.Keys
-            {
-                dbBlock := Some(block_slashing_db[pubkey]);
-            }
-            else 
-            {
-                dbBlock := None;
-            }            
-        }
-
-        method is_valid_imported_blocks(
-            block: BeaconBlock
-        ) returns (b: bool)
-        {
-            // Check attestations
-            var valid_attestations: bool;
-            // Check proposer
-            var valid_proposer: bool;
-            // Check a parent
-            var valid_parent: bool;
-            // Check randao
-            var valid_randao: bool;
-            //
-            b := valid_attestations && valid_proposer && valid_parent && valid_randao;
-        }
-
-
+                     
         method listen_for_new_imported_blocks(
-            block: BeaconBlock
-        ) returns (s: Status)
+            signed_block: SignedBeaconBlock
+        ) 
         modifies this
         {
-            var valid_block: bool := is_valid_imported_blocks(block);
-            if valid_block && 
-               (current_proposer_duty.isPresent() ==> block.slot >= current_proposer_duty.safe_get().slot)
-               /* &&
-               (!current_proposer_duty.isPresent() ==> 
-                    (last_served_proposer_duty == None || 
-                     (last_served_proposer_duty.isPresent() && block.slot > last_served_proposer_duty.safe_get().slot)))
-                     */
+            var valid_signed_block: bool := verify_bls_siganture(signed_block.message, signed_block.signature, dv_pubkey);           
+            if valid_signed_block && 
+               (current_proposer_duty.isPresent() ==> signed_block.message.slot >= current_proposer_duty.safe_get().slot)               
             {
-                future_decided_slots := future_decided_slots + {block.slot};
+                future_decided_slots := future_decided_slots + {signed_block.message.slot};
             }
             
             if current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot in future_decided_slots
             {
                 var slot := current_proposer_duty.safe_get().slot;
                 consensus_on_block.stop(slot);
-                // Update past_decided_slots
+                // Update past_decided_slots and future_decided_slots
                 past_decided_slots := past_decided_slots + {slot};
-                // last_served_proposer_duty := current_proposer_duty;
+                future_decided_slots := future_decided_slots - {slot};
+                // Avoid resending a randao share and a block share
+                randao_share_to_broadcast := None;
+                block_share_to_broadcast := None;
                 check_for_next_queued_duty();
             }                                   
         }
-    
+
+        method resend_randao_share()
+        modifies this
+        {
+            if randao_share_to_broadcast.isPresent()
+            {
+                network.send_randao_share(randao_share_to_broadcast.safe_get(), peers);
+            }
+        }        
+
+        method resend_block_share()
+        modifies this
+        {
+            if block_share_to_broadcast.isPresent()
+            {
+                network.send_block_share(block_share_to_broadcast.safe_get(), peers);
+            }
+        }  
     }    
 }
