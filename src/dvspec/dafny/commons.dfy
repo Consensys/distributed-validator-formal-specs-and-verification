@@ -4,7 +4,7 @@ module Types
     type Epoch = nat 
     type Slot = nat
     const SLOTS_PER_EPOCH := 32
-    type {:extern "CommitteeIndex"} CommitteeIndex(!new, 0)
+    type {:extern "CommitteeIndex"} CommitteeIndex(!new, 0, ==)
     // type Attestation 
     type {:extern "BLSSignature"} BLSSignature(==, !new, 0)
     type {:extern "BLSPubkey"} BLSPubkey(==, !new, 0)
@@ -76,10 +76,8 @@ module Types
     )
 
     type AttestationSlashingDB = set<SlashingDBAttestation>
-    // class AttestationSlashingDB
-    // {
 
-    // }
+    type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
 
     datatype BlockSlashingDB = BlockSlashingDB
 
@@ -124,10 +122,11 @@ module Types
     //     }
     // } 
 
-
-    datatype ConsensusCommand = 
-        | Start(id: Slot)
-        | Stop(id: Slot)          
+    trait {:termination false} ConsensusValidityCheck<T>
+    {
+        predicate is_valid(data: T)
+        reads *
+    }
 
     datatype Optional<T(0)> = Some(v: T) | None
     {
@@ -273,6 +272,11 @@ module CommonFunctions{
         set s, e | s in sets && e in s :: e
     } 
 
+    function seqToSet<T>(s: seq<T>): (r: set<T>)
+    {
+        set e | e in s
+    }
+
     lemma minOfSetOfIntExists(s: set<int>)
     requires s != {}
     ensures exists min :: 
@@ -365,7 +369,7 @@ module CommonFunctions{
         || (data_1.source_epoch < data_2.source_epoch && data_2.target_epoch < data_1.target_epoch)        
     }
 
-    predicate is_slashable_attestation(att_slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
+    predicate is_slashable_attestation_data(att_slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
     {
         // Check for EIP-3076 conditions:
         // https://eips.ethereum.org/EIPS/eip-3076#conditions
@@ -397,12 +401,12 @@ module CommonFunctions{
             var min_source := minSet(get_source_epochs(att_slashing_db));
             if attestation_data.target.epoch <= min_target
             {
-                assert is_slashable_attestation(att_slashing_db, attestation_data);
+                assert is_slashable_attestation_data(att_slashing_db, attestation_data);
                 return true;
             }
             else if attestation_data.source.epoch < min_source
             {
-                assert is_slashable_attestation(att_slashing_db, attestation_data);
+                assert is_slashable_attestation_data(att_slashing_db, attestation_data);
                 return true;
             }
             else 
@@ -421,21 +425,32 @@ module CommonFunctions{
                         var past_attn :| past_attn in attns_to_check;
                         if is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
                         {
-                            assert is_slashable_attestation(att_slashing_db, attestation_data);
+                            assert is_slashable_attestation_data(att_slashing_db, attestation_data);
                             return true;
                         }
 
                         attns_to_check := attns_to_check - {past_attn};
                 }
-                assert !is_slashable_attestation(att_slashing_db, attestation_data);
+                assert !is_slashable_attestation_data(att_slashing_db, attestation_data);
                 return false;
             }
 
         }
         else
         {
-            assert !is_slashable_attestation(att_slashing_db, attestation_data);
+            assert !is_slashable_attestation_data(att_slashing_db, attestation_data);
             return false;
         }
+    } 
+
+    predicate method consensus_is_valid_attestation_data(
+        slashing_db: AttestationSlashingDB,
+        attestation_data: AttestationData, 
+        attestation_duty: AttestationDuty
+    )
+    {
+        && attestation_data.slot == attestation_duty.slot
+        && attestation_data.index == attestation_duty.committee_index
+        && !is_slashable_attestation_data(slashing_db, attestation_data)   
     }      
 }
