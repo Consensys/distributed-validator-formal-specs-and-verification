@@ -135,6 +135,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         method process_event(
             event: Event
         ) returns (s: Status)
+        requires this as object != network
         modifies this, this.att_consensus, this.bn, this.network
         ensures (old(isValid()) && f_process_event.requires(old(toDVCNodeState(this)), event)) ==>    
                 && isValid()

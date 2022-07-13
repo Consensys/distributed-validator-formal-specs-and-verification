@@ -150,6 +150,7 @@ abstract module DVCNode_Implementation
             id: Slot,
             decided_attestation_data: AttestationData
         ) returns (r: Status)
+        requires this as object != network
         modifies this, this.network, this.att_consensus
         {
             var local_current_attestation_duty :- current_attesation_duty.get();            
@@ -220,6 +221,7 @@ abstract module DVCNode_Implementation
             var att_consensus_instances_already_decided := future_att_consensus_instances_already_decided;
 
             while i < |block.body.attestations|
+            modifies {}
             {
                 var a := block.body.attestations[i];
 
