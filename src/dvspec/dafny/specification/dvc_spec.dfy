@@ -50,12 +50,12 @@ module DVCNode_Spec {
         state_roots_of_imported_blocks: set<Root>   
     )
 
-    function getInitialBN(): BNState
-    {
-        BNState(
-            state_roots_of_imported_blocks := {}
-        )
-    }    
+    // function getInitialBN(): BNState
+    // {
+    //     BNState(
+    //         state_roots_of_imported_blocks := {}
+    //     )
+    // }    
 
     datatype RSState = RSState(
         pubkey: BLSPubkey
@@ -77,14 +77,6 @@ module DVCNode_Spec {
             attestation_consensus_active_instances := map[]
         )
     }
-
-    // function getValidityPredicate<!T>(
-    //     attestation_slashing_db: AttestationSlashingDB,
-    //     attestation_duty: AttestationDuty
-    // ): T -> bool
-    // {
-    //     (ad: AttestationDuty) => is_valid_attestation_data()
-    // }
 
     function startConsensusInstance(
         s: ConsensusEngineState,
@@ -135,7 +127,6 @@ module DVCNode_Spec {
         s: ConsensusEngineState,
         new_attestation_slashing_db: AttestationSlashingDB
     ): (r: ConsensusEngineState)
-    // ensures s.attestation_consensus_active_instances.Keys == r.attestation_consensus_active_instances.Keys
     {
         s.(
             attestation_consensus_active_instances := 
@@ -163,7 +154,6 @@ module DVCNode_Spec {
         attestation_shares_db: AttestationSignatureShareDB,
         attestation_shares_to_broadcast: map<Slot, AttestationShare>,
         attestation_consensus_engine_state: ConsensusEngineState,
-        // attestation_validity_check
         peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         // TODO: Note difference with spec.py
@@ -190,7 +180,6 @@ module DVCNode_Spec {
     {
         Outputs(
             {},
-            // {},
             {}
         )
     }  
@@ -212,20 +201,12 @@ module DVCNode_Spec {
         outputs: Outputs
     )
 
-    datatype Event = 
-    | ServeAttstationDuty(attestation_duty: AttestationDuty)
-    | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
-    | ReceviedAttesttionShare(attestation_share: AttestationShare)
-    | ImportedNewBlock(block: BeaconBlock)
-    | ResendAttestationShares
-    | NoEvent
-
-
     predicate Init(
         s: DVCNodeState,
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,
-        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        rs_pubkey: BLSPubkey
     )
     {
         s == DVCNodeState(
@@ -240,8 +221,8 @@ module DVCNode_Spec {
             construct_signed_attestation_signature := construct_signed_attestation_signature,
             dv_pubkey := dv_pubkey,
             future_att_consensus_instances_already_decided := {},
-            bn := getInitialBN(),
-            rs := s.rs
+            bn := s.bn,
+            rs := getInitialRS(rs_pubkey)
         )
     }
 

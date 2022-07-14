@@ -9,16 +9,10 @@ abstract module DVCNode_Implementation
     export PublicInterface
         reveals DVCNode        
         provides
-                DVCNode.serve_attestation_duty, 
-                DVCNode.att_consensus_decided, 
-                DVCNode.listen_for_attestation_shares,
-                DVCNode.listen_for_new_imported_blocks,
-                DVCNode.resend_attestation_share,
-                DVCNode.bn,
-                DVCNode.att_consensus,
-                DVCNode.network,
-                DVCNode.rs,
-                DVCNode.isValidRepr
+                DVCNode.process_event,
+                DVCNode.getRepr,
+                DVCNode.ValidConstructorRepr,
+                DVCNode.ValidRepr
         provides Types, DVCNode_Externs
 
     class AttestationConsensusValidityCheck extends ConsensusValidityCheck<AttestationData>
@@ -49,13 +43,11 @@ abstract module DVCNode_Implementation
         var current_attesation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
         var attestation_duties_queue: seq<AttestationDuty>;
-        // var pubkey: BLSPubkey;
         var attestation_slashing_db: AttestationSlashingDB;
         var attestation_shares_db: AttestationSignatureShareDB;
         var attestation_shares_to_broadcast: map<Slot, AttestationShare>
         var construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>;
         var peers: set<BLSPubkey>;
-        // TODO: Note difference with spec.py
         var dv_pubkey: BLSPubkey;
         var future_att_consensus_instances_already_decided: set<Slot>
 
@@ -74,45 +66,64 @@ abstract module DVCNode_Implementation
             rs: RemoteSigner,
             construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
         )
+        requires att_consensus.consensus_instances_started == map[]
+        requires ValidConstructorRepr(att_consensus, network, bn, rs)
         {
             current_attesation_duty := None;
             latest_attestation_duty := None;
+            attestation_duties_queue := [];
+            attestation_slashing_db := {};
             attestation_shares_to_broadcast := map[];
             attestation_shares_db := map[];
+            future_att_consensus_instances_already_decided := {};
 
-            // this.pubkey := pubkey;
+
             this.att_consensus := att_consensus;
             this.peers := peers;
             this.network := network;
             this.rs := rs;
             this.bn := bn;
             this.construct_signed_attestation_signature := construct_signed_attestation_signature;
-            this.dv_pubkey := dv_pubkey;
-            this.future_att_consensus_instances_already_decided := {};
+            this.dv_pubkey := dv_pubkey;        
         }
-        
-        predicate isValidRepr()
-        reads this, this.bn, this.network, this.att_consensus, att_consensus.consensus_instances_started.Values, this.rs
+    
+        /*=================================================================================
+         * Public methods
+         * ===============================================================================*/
+
+        method process_event(
+            event: Event
+        ) returns (s: Status)
+        requires ValidRepr()
+        modifies getRepr()
         {
-            && {this} 
-            // !! {this.bn} !! {this.network} !! {this.att_consensus} !! {this.rs}
-            !!att_consensus.consensus_instances_started.Values 
-            !! this.bn.Repr !! this.network.Repr !! this.att_consensus.Repr !! this.rs.Repr
-            && bn in bn.Repr 
-            && null !in bn.Repr
-            && network in network.Repr 
-            && null !in network.Repr
-            && att_consensus in att_consensus.Repr 
-            && null !in att_consensus.Repr
-            && rs in rs.Repr 
-            && null !in rs.Repr                                    
-        }        
+            match event {
+                case ServeAttstationDuty(attestation_duty) => 
+                    :- serve_attestation_duty(attestation_duty);
+                case AttConsensusDecided(id, decided_attestation_data) => 
+                    :- att_consensus_decided(id,  decided_attestation_data);
+                case ReceviedAttesttionShare(attestation_share) => 
+                    listen_for_attestation_shares(attestation_share);
+                case ImportedNewBlock(block) => 
+                    :- listen_for_new_imported_blocks(block);
+                case ResendAttestationShares => 
+                    resend_attestation_share();
+                case NoEvent =>
+                    
+            }
+
+            {return Success;}
+        }   
+        
+        /*=================================================================================
+         * Private methods
+         * ===============================================================================*/        
 
         method serve_attestation_duty(
             attestation_duty: AttestationDuty
         ) returns (s: Status)
-        requires isValidRepr()
-        modifies this, this.att_consensus, this.att_consensus.Repr
+        requires ValidRepr()
+        modifies getRepr()
         {
             attestation_duties_queue := attestation_duties_queue + [attestation_duty];
             {
@@ -123,8 +134,8 @@ abstract module DVCNode_Implementation
         }
 
         method check_for_next_queued_duty() returns (s: Status)
-        requires isValidRepr()
-        modifies this, this.att_consensus, this.att_consensus.Repr
+        requires ValidRepr()
+        modifies getRepr()
         decreases attestation_duties_queue
         {
             if attestation_duties_queue != []
@@ -147,8 +158,8 @@ abstract module DVCNode_Implementation
         }
 
         method start_next_duty(attestation_duty: AttestationDuty) returns (s: Status)
-        requires isValidRepr()
-        modifies this, this.att_consensus, this.att_consensus.Repr
+        requires ValidRepr()
+        modifies getRepr()
         {
             attestation_shares_db := map[];
             current_attesation_duty := Some(attestation_duty);
@@ -159,7 +170,7 @@ abstract module DVCNode_Implementation
         }        
 
         method update_attestation_slashing_db(attestation_data: AttestationData, attestation_duty_pubkey: BLSPubkey)
-        modifies this`attestation_slashing_db
+        modifies `attestation_slashing_db
         {
             var slashing_db_attestation := SlashingDBAttestation(
                                                 source_epoch := attestation_data.source.epoch,
@@ -172,8 +183,8 @@ abstract module DVCNode_Implementation
             id: Slot,
             decided_attestation_data: AttestationData
         ) returns (r: Status)
-        requires isValidRepr()
-        modifies this, this.network, this.network.Repr, this.att_consensus, this.att_consensus.Repr, this.bn, this.bn.Repr, this.rs.Repr
+        requires ValidRepr()
+        modifies getRepr()
         {
             var local_current_attestation_duty :- current_attesation_duty.get();            
             update_attestation_slashing_db(decided_attestation_data, local_current_attestation_duty.pubkey);
@@ -208,8 +219,8 @@ abstract module DVCNode_Implementation
         method listen_for_attestation_shares(
             attestation_share: AttestationShare
         )
-        requires isValidRepr()
-        modifies this, this.bn, this.bn.Repr
+        requires ValidRepr()
+        modifies getRepr()
         {
             // TODO: Decide 
             // 1. whether to add att shares to db only if already served attestation duty
@@ -233,24 +244,11 @@ abstract module DVCNode_Implementation
             }  
         }
 
-
-        method listen_for_new_imported_blocks_test(
-            block: BeaconBlock
-        ) returns (s: Status)
-        requires isValidRepr()
-        modifies this, this.att_consensus, this.att_consensus.Repr, this.bn.Repr
-        {
-            var valIndex :- bn.get_validator_index(block.body.state_root, dv_pubkey);
-            var valIndex2 :- bn.get_validator_index(block.body.state_root, dv_pubkey);
-        }
-
         method listen_for_new_imported_blocks(
             block: BeaconBlock
         ) returns (s: Status)
-        requires isValidRepr()
-        requires bn.Valid()
-        // modifies bn.Repr
-        modifies this, this.att_consensus, this.att_consensus.Repr, this.bn.Repr
+        requires ValidRepr()
+        modifies getRepr()
         {
             var r := bn.Repr;
             var valIndex :- bn.get_validator_index(block.body.state_root, dv_pubkey);
@@ -259,12 +257,7 @@ abstract module DVCNode_Implementation
             var att_consensus_instances_already_decided := future_att_consensus_instances_already_decided;
 
             while i < |block.body.attestations|
-            invariant isValidRepr()
-            invariant bn.Valid();
-            invariant fresh(bn.Repr - old(bn.Repr))
-            invariant att_consensus.Repr == old(att_consensus.Repr)
-            // modifies r
-            // modifies this.bn.Repr, this.bn
+            invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) && att_consensus.Repr == old(att_consensus.Repr)
             {
                 var a := block.body.attestations[i];
 
@@ -303,13 +296,49 @@ abstract module DVCNode_Implementation
             return Success;                              
         }
 
-        method resend_attestation_share(
-        )
-        requires isValidRepr()
-        modifies this, this.network, this.network.Repr
+        method resend_attestation_share()
+        requires ValidRepr()
+        modifies getRepr()
         {
             network.send_att_shares(attestation_shares_to_broadcast.Values, peers);
+        }     
+
+        static predicate ValidConstructorRepr(
+            att_consensus: Consensus<AttestationData>, 
+            network: Network,
+            bn: BeaconNode,
+            rs: RemoteSigner            
+        )
+        reads *
+        {
+            && att_consensus.consensus_instances_started.Values 
+            !! bn.Repr !! network.Repr !! att_consensus.Repr !! rs.Repr
+            && bn.Valid()
+            && rs.Valid()
+            && network.Valid()
+            && att_consensus.Valid()                                
+        }   
+
+        function getChildrenRepr(): set<object?>
+        reads *
+        {
+            this.att_consensus.consensus_instances_started.Values 
+            + this.bn.Repr + this.network.Repr + this.att_consensus.Repr + this.rs.Repr
         }        
+
+        function getRepr(): set<object?>
+        reads *
+        {
+            getChildrenRepr() + {this}
+        }
+
+        predicate ValidRepr()
+        reads *
+        {
+            && ValidConstructorRepr(this.att_consensus, this.network, this.bn, this.rs)
+            && this
+            !in getChildrenRepr()                                
+        }              
     }    
 }
 
@@ -321,46 +350,34 @@ module DVCNode_Externs
     trait {:autocontracts} Consensus<T(!new, ==)>
     {
         ghost var consensus_instances_started: map<Slot, ConsensusValidityCheck<T>>
-        // ghost var Repr: set<object>
 
         method start(
             id: Slot,
             validityPredicate: ConsensusValidityCheck<T>
         ) returns (s: Status)
-        // modifies this, Repr
-        requires validityPredicate as object != this
+        // requires validityPredicate as object != this
         ensures s.Success? <==> id !in old(consensus_instances_started.Keys)
         ensures s.Success? ==> consensus_instances_started == old(consensus_instances_started)[id := validityPredicate]
         ensures s.Failure? ==> unchanged(`consensus_instances_started)  
-        // ensures fresh(Repr - old(Repr))    
 
         method stop_multiple(
             ids: set<Slot>
         )
-        // ensures unchanged(`consensus_instances_started)
-        // modifies this
         ensures consensus_instances_started == old(consensus_instances_started) - ids
-        // ensures fresh(Repr - old(Repr))    
 
     }    
 
     trait {:autocontracts} Network  
     {
         ghost var att_shares_sent: seq<set<MessaageWithRecipient<AttestationShare>>>;
-        // ghost var Repr: set<object>
-
 
         method send_att_share(att_share: AttestationShare, receipients: set<BLSPubkey>)
-        // modifies this, Repr
         ensures att_shares_sent == old(att_shares_sent)  + [addRecepientsToMessage(att_share, receipients)]
-        // ensures fresh(Repr - old(Repr))    
 
         method send_att_shares(att_shares: set<AttestationShare>, receipients: set<BLSPubkey>)
-        // modifies this, Repr
         ensures     var setWithRecipient := set att_share | att_share in att_shares :: addRecepientsToMessage(att_share, receipients);
                     att_shares_sent == old(att_shares_sent)  + [setUnion(setWithRecipient)]
         ensures unchanged(`att_shares_sent)
-        // ensures fresh(Repr - old(Repr))    
 
     }
 
@@ -368,20 +385,14 @@ module DVCNode_Externs
     {
         ghost var state_roots_of_imported_blocks: set<Root>;
         ghost var attestations_submitted: seq<Attestation>; 
-        // ghost var Repr: set<object>
 
         method get_fork_version(s: Slot) returns (v: Version)
         ensures unchanged(`state_roots_of_imported_blocks)
         ensures unchanged(`attestations_submitted)
 
-
         method submit_attestation(attestation: Attestation)
-        // modifies this, Repr
         ensures attestations_submitted == old(attestations_submitted) + [attestation]
         ensures unchanged(`state_roots_of_imported_blocks)
-
-        // ensures fresh(Repr - old(Repr))    
-
 
         // https://ethereum.github.io/beacon-APIs/?urls.primaryName=v1#/Beacon/getEpochCommittees
         method get_epoch_committees(
@@ -401,7 +412,6 @@ module DVCNode_Externs
         ensures unchanged(`state_roots_of_imported_blocks)
         ensures unchanged(`attestations_submitted)        
         ensures state_id in state_roots_of_imported_blocks <==> s.Success?
-
     }
 
     trait {:autocontracts} RemoteSigner

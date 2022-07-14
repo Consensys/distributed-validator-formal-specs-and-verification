@@ -36,7 +36,7 @@ abstract module DV
     datatype Event = 
     | AdeversaryTakingStep(node: BLSPubkey, new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>)
-    | HonestNodeTakingStep(node: BLSPubkey, event: DVCNode_Spec.Event, nodeOutputs: DVCNode_Spec.Outputs)
+    | HonestNodeTakingStep(node: BLSPubkey, event: Types.Event, nodeOutputs: DVCNode_Spec.Outputs)
 
     predicate Init(
         s: DVState
@@ -87,7 +87,7 @@ abstract module DV
         // && s.slashing_dbs_used_for_validating_attestations == (imap s: Slot :: {})   
         && (
             forall n | n in s.honest_nodes_states.Keys ::
-                DVCNode_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature)
+                DVCNode_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature, n)
         )      
         &&  NetworkSpec.Init(s.att_network, s.all_nodes)
         &&  (
@@ -137,7 +137,7 @@ abstract module DV
     predicate NextHonestNode(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: DVCNode_Spec.Event,
+        nodeEvent: Types.Event,
         nodeOutputs: DVCNode_Spec.Outputs,
         s': DVState        
     ) 
@@ -158,7 +158,7 @@ abstract module DV
     predicate NextHonestAfterAddingBlockToBn(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: DVCNode_Spec.Event,
+        nodeEvent: Types.Event,
         nodeOutputs: DVCNode_Spec.Outputs,
         s': DVState
     )

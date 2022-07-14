@@ -100,27 +100,15 @@ module Types
         }
     }   
 
+    datatype Event = 
+    | ServeAttstationDuty(attestation_duty: AttestationDuty)
+    | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
+    | ReceviedAttesttionShare(attestation_share: AttestationShare)
+    | ImportedNewBlock(block: BeaconBlock)
+    | ResendAttestationShares
+    | NoEvent    
+
     type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
-
-
-    // datatype Outcome<T> =
-    // | Success(value: T)
-    // | Failure(error: string)
-    // {
-    //     predicate method IsFailure() {
-    //         this.Failure?
-    //     }
-    //     function method PropagateFailure<U>(): Outcome<U>
-    //         requires IsFailure()
-    //     {
-    //         Outcome.Failure(this.error) // this is Outcome<U>.Failure(...)
-    //     }
-    //     function method Extract(): T
-    //         requires !IsFailure()
-    //     {
-    //         this.value
-    //     }
-    // } 
 
     trait {:termination false} ConsensusValidityCheck<T>
     {
