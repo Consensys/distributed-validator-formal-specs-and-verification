@@ -122,21 +122,22 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     {
 
         predicate isValid()
-        reads this, this.bn, this.network, this.att_consensus, att_consensus.consensus_instances_started.Values
+        reads this, this.bn, this.network, this.att_consensus, att_consensus.consensus_instances_started.Values, this.rs
         {
             && (forall vp | vp in att_consensus.consensus_instances_started.Values :: 
                         && isAttestationConsensusValidityCheck(vp)
                         && toAttestationConsensusValidityCheck(vp).dvcNode == this
             )
-            && {this} !! {this.bn} !! {this.network} !! {this.att_consensus} !!att_consensus.consensus_instances_started.Values
+            && isValidRepr()
+            // && {this} !! {this.bn} !! {this.network} !! {this.att_consensus} !!att_consensus.consensus_instances_started.Values
         }
 
         // TODO: Move to refined class?
         method process_event(
             event: Event
         ) returns (s: Status)
-        requires this as object != network
-        modifies this, this.att_consensus, this.bn, this.network
+        requires isValid()
+        modifies this, this.att_consensus.Repr, this.bn.Repr, this.network.Repr, this.rs.Repr
         ensures (old(isValid()) && f_process_event.requires(old(toDVCNodeState(this)), event)) ==>    
                 && isValid()
                 && f_process_event(old(toDVCNodeState(this)), event) == toDVCNodeStateAndOuputs(this)
@@ -352,8 +353,9 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         }
 
         method listen_for_attestation_shares...
-        ensures f_listen_for_attestation_shares(old(toDVCNodeState(this)), attestation_share) == toDVCNodeStateAndOuputs(this);
-        ensures old(isValid()) ==> isValid()
+        ensures old(isValid()) ==> 
+                        && isValid()
+                        && f_listen_for_attestation_shares(old(toDVCNodeState(this)), attestation_share) == toDVCNodeStateAndOuputs(this);
         {
             ...;
         }
@@ -414,14 +416,16 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 
         method listen_for_new_imported_blocks...
         ensures (old(isValid()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState(this)), block)) ==> 
-                    && f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block) == toDVCNodeStateAndOuputs(this)
                     && isValid()
                     && s.Success?
+                    && f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block) == toDVCNodeStateAndOuputs(this)
         {
+            // assert old(isValid()) ==> isValid();
             assert (old(isValid()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState(this)), block)) ==> block.body.state_root in bn.state_roots_of_imported_blocks;
             ...;
             while...
                 invariant 0 <= i <= |block.body.attestations|
+                invariant isValidRepr();
                 invariant  old(isValid()) ==> isValid();                 
                 invariant block.body.state_root in bn.state_roots_of_imported_blocks;
                 invariant (isValid() && block.body.state_root in old(bn.state_roots_of_imported_blocks)) ==>
@@ -430,11 +434,10 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                     
                 invariant isValid() ==> toDVCNodeState(this) == old(toDVCNodeState(this))
                 invariant toDVCNodeStateAndOuputs(this).outputs == getEmptyOuputs();   
+                invariant unchanged(bn`attestations_submitted)
             {
 
             }
-
-            var o1 := toDVCNodeState(this);
             ...;
         
 
@@ -445,6 +448,8 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             toDVCNodeState(this) == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState(this)), block);    
                 ...;
                 assert old(isValid()) ==> isValid();
+                assert (old(isValid()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState(this)), block)) ==>
+            toDVCNodeStateAndOuputs(this) == f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block);  
             }
             else
             {
@@ -452,8 +457,11 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 assert (old(isValid()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState(this)), block)) ==>
             toDVCNodeState(this) == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState(this)), block);    
                 ...;
-                assert old(isValid()) ==> isValid();            
-            }
+                assert old(isValid()) ==> isValid();                            
+                assert (old(isValid()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState(this)), block)) ==>
+            toDVCNodeStateAndOuputs(this) == f_listen_for_new_imported_blocks(old(toDVCNodeState(this)), block);         
+            }       
+            ...;
         }
 
         method resend_attestation_share...
@@ -472,3 +480,28 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         }
     }
 }
+
+// Keep this here as it does come handy from time to time
+// var o := toDVCNodeState(this);
+// var rs := r.state;
+
+// assert rs.attestation_consensus_engine_state == o.attestation_consensus_engine_state;
+
+// assert rs == o.(
+//     // current_attesation_duty := rs.current_attesation_duty,
+//     latest_attestation_duty := rs.latest_attestation_duty,
+//     attestation_duties_queue := rs.attestation_duties_queue,
+//     attestation_slashing_db := rs.attestation_slashing_db,
+//     attestation_shares_db := rs.attestation_shares_db,
+//     attestation_shares_to_broadcast := rs.attestation_shares_to_broadcast,
+//     // attestation_consensus_engine_state := rs.attestation_consensus_engine_state,
+//     // attestation_validity_check
+//     peers := rs.peers,
+//     construct_signed_attestation_signature := rs.construct_signed_attestation_signature,
+//     // TODO := rs.// TODO,
+//     dv_pubkey := rs.dv_pubkey,
+//     future_att_consensus_instances_already_decided := rs.future_att_consensus_instances_already_decided//,
+//     // bn := rs.bn//,
+//     // rs := rs.rs
+// )
+// ;  
