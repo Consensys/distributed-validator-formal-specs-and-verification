@@ -32,11 +32,19 @@ module BlockCommonFunctions{
         forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
     }
 
+    /*
     method {:extern} verify_bls_siganture<T>(
         data: T,
         signature: BLSSignature,
         pubkey: BLSPubkey
     ) returns (b: bool)  
+    */
+
+    predicate method {:extern} verify_bls_siganture<T>(
+        data: T,
+        signature: BLSSignature,
+        pubkey: BLSPubkey
+    ) 
 
     function method {:extern} hash_tree_root<T>(data: T): Root 
 

@@ -11,21 +11,21 @@ abstract module Block_DVC_Impl
     import opened Block_DVC_Externs
 
     export PublicInterface
-        reveals  DVC
-        /*
-        provides DVC.serve_attestation_duty, 
-                 DVC.att_consensus_decided, 
-                 DVC.listen_for_attestation_shares,
-                 DVC.listen_for_new_imported_blocks,
-                 DVC.resend_attestation_share,
-                 DVC.bn
-                 */
+        reveals  Block_DVC        
+        provides Block_DVC.serve_proposer_duty, 
+                 Block_DVC.decide_block, 
+                 Block_DVC.listen_for_randao_shares,
+                 Block_DVC.listen_for_block_shares,
+                 Block_DVC.listen_for_new_imported_blocks,
+                 Block_DVC.resend_randao_share,
+                 Block_DVC.resend_block_share,
+                 Block_DVC.bn               
         provides BlockTypes, 
                  BlockCommonFunctions,
                  BlockSigningFunctions,
                  Block_DVC_Externs
 
-    class DVC {        
+    class Block_DVC {        
         const bn: BeaconNode;
         var consensus_on_block: Consensus;
         var network : Network
