@@ -206,6 +206,7 @@ module DVCNode_Spec {
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        initial_attestation_slashing_db: AttestationSlashingDB,
         rs_pubkey: BLSPubkey
     )
     {
@@ -213,7 +214,7 @@ module DVCNode_Spec {
             current_attesation_duty := None,
             latest_attestation_duty := None,
             attestation_duties_queue := [],
-            attestation_slashing_db := {},
+            attestation_slashing_db := initial_attestation_slashing_db,
             attestation_shares_db := map[],
             attestation_shares_to_broadcast := map[],
             attestation_consensus_engine_state := getInitialConensusEngineState(),

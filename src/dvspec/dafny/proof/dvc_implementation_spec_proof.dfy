@@ -134,7 +134,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         constructor...
         ensures 
                 && isValidReprExtended()
-                && Init(toDVCNodeState(), dv_pubkey, peers, construct_signed_attestation_signature, rs.pubkey)
+                && Init(toDVCNodeState(), dv_pubkey, peers, construct_signed_attestation_signature, attestation_slashing_db, rs.pubkey)
         {
             ...;
         }

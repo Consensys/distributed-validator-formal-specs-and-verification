@@ -15,29 +15,6 @@ abstract module DVCNode_Implementation
                 DVCNode.ValidRepr
         provides Types, DVCNode_Externs
 
-    class AttestationConsensusValidityCheck extends ConsensusValidityCheck<AttestationData>
-    {
-        const dvcNode: DVCNode
-        const attestation_duty: AttestationDuty
-
-        constructor(
-            dvcNode: DVCNode,
-            attestation_duty: AttestationDuty
-        )
-        ensures this.dvcNode == dvcNode
-        ensures this.attestation_duty == attestation_duty
-        {
-            this.dvcNode := dvcNode;
-            this.attestation_duty := attestation_duty;
-        }
-
-        predicate is_valid(data: AttestationData)
-        reads *
-        {
-            consensus_is_valid_attestation_data(dvcNode.attestation_slashing_db, data, this.attestation_duty)             
-        }
-    }
-
     class DVCNode {
 
         var current_attesation_duty: Optional<AttestationDuty>;
@@ -51,7 +28,7 @@ abstract module DVCNode_Implementation
         var dv_pubkey: BLSPubkey;
         var future_att_consensus_instances_already_decided: set<Slot>
 
-        var att_consensus: Consensus<AttestationData>;
+        const att_consensus: Consensus<AttestationData>;
         const network : Network
         const bn: BeaconNode;
         const rs: RemoteSigner;
@@ -64,19 +41,21 @@ abstract module DVCNode_Implementation
             network: Network,
             bn: BeaconNode,
             rs: RemoteSigner,
+            initial_attestation_slashing_db: AttestationSlashingDB,
             construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
         )
+        // The following indicates that `att_consensus` must not have any active consensus instance running.
+        // This may need to be strengthened to require that `att_consensus` has never started any consensus instance.
         requires att_consensus.consensus_instances_started == map[]
         requires ValidConstructorRepr(att_consensus, network, bn, rs)
         {
             current_attesation_duty := None;
             latest_attestation_duty := None;
             attestation_duties_queue := [];
-            attestation_slashing_db := {};
+            attestation_slashing_db := initial_attestation_slashing_db;
             attestation_shares_to_broadcast := map[];
             attestation_shares_db := map[];
             future_att_consensus_instances_already_decided := {};
-
 
             this.att_consensus := att_consensus;
             this.peers := peers;
@@ -339,7 +318,30 @@ abstract module DVCNode_Implementation
             && this
             !in getChildrenRepr()                                
         }              
-    }    
+    }  
+
+    class AttestationConsensusValidityCheck extends ConsensusValidityCheck<AttestationData>
+    {
+        const dvcNode: DVCNode
+        const attestation_duty: AttestationDuty
+
+        constructor(
+            dvcNode: DVCNode,
+            attestation_duty: AttestationDuty
+        )
+        ensures this.dvcNode == dvcNode
+        ensures this.attestation_duty == attestation_duty
+        {
+            this.dvcNode := dvcNode;
+            this.attestation_duty := attestation_duty;
+        }
+
+        predicate is_valid(data: AttestationData)
+        reads *
+        {
+            consensus_is_valid_attestation_data(dvcNode.attestation_slashing_db, data, this.attestation_duty)             
+        }
+    }      
 }
 
 module DVCNode_Externs
