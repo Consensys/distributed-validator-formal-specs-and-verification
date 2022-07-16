@@ -21,12 +21,12 @@ abstract module DVCNode_Implementation
         var latest_attestation_duty: Optional<AttestationDuty>;
         var attestation_duties_queue: seq<AttestationDuty>;
         var attestation_slashing_db: AttestationSlashingDB;
-        var attestation_shares_db: AttestationSignatureShareDB;
+        var attestation_shares_db: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
         var attestation_shares_to_broadcast: map<Slot, AttestationShare>
         var construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>;
         var peers: set<BLSPubkey>;
         var dv_pubkey: BLSPubkey;
-        var future_att_consensus_instances_already_decided: set<Slot>
+        var future_att_consensus_instances_already_decided: map<Slot, AttestationData>
 
         const att_consensus: Consensus<AttestationData>;
         const network : Network
@@ -55,7 +55,7 @@ abstract module DVCNode_Implementation
             attestation_slashing_db := initial_attestation_slashing_db;
             attestation_shares_to_broadcast := map[];
             attestation_shares_db := map[];
-            future_att_consensus_instances_already_decided := {};
+            future_att_consensus_instances_already_decided := map[];
 
             this.att_consensus := att_consensus;
             this.peers := peers;
@@ -119,9 +119,11 @@ abstract module DVCNode_Implementation
         {
             if attestation_duties_queue != []
             {
-                if attestation_duties_queue[0].slot in future_att_consensus_instances_already_decided
+                if attestation_duties_queue[0].slot in future_att_consensus_instances_already_decided.Keys
                 {
+                    var queue_head := attestation_duties_queue[0];
                     attestation_duties_queue := attestation_duties_queue[1..];
+                    update_attestation_slashing_db(future_att_consensus_instances_already_decided[queue_head.slot]);
                     { :- check_for_next_queued_duty();}
                 }
                 else if !current_attesation_duty.isPresent()
@@ -140,7 +142,6 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            attestation_shares_db := map[];
             current_attesation_duty := Some(attestation_duty);
             latest_attestation_duty := Some(attestation_duty);
             var validityCheck := new AttestationConsensusValidityCheck(this, attestation_duty);
@@ -148,7 +149,7 @@ abstract module DVCNode_Implementation
             return Success;
         }        
 
-        method update_attestation_slashing_db(attestation_data: AttestationData, attestation_duty_pubkey: BLSPubkey)
+        method update_attestation_slashing_db(attestation_data: AttestationData)
         modifies `attestation_slashing_db
         {
             var slashing_db_attestation := SlashingDBAttestation(
@@ -166,7 +167,7 @@ abstract module DVCNode_Implementation
         modifies getRepr()
         {
             var local_current_attestation_duty :- current_attesation_duty.get();            
-            update_attestation_slashing_db(decided_attestation_data, local_current_attestation_duty.pubkey);
+            update_attestation_slashing_db(decided_attestation_data);
  
             var fork_version := bn.get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
             var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
@@ -204,23 +205,37 @@ abstract module DVCNode_Implementation
             // TODO: Decide 
             // 1. whether to add att shares to db only if already served attestation duty
             // 2. when to wipe out the db
-            var k := (attestation_share.data, attestation_share.aggregation_bits);
-            attestation_shares_db := 
-                attestation_shares_db[k := 
-                                        getOrDefault(attestation_shares_db, k, {}) + 
-                                        {attestation_share}
-                                    ];
-                        
-            if construct_signed_attestation_signature(attestation_shares_db[k]).isPresent()
+            var activate_att_consensus_intances := att_consensus.get_active_instances();
+
+            if 
+                || (activate_att_consensus_intances == {} && !latest_attestation_duty.isPresent())
+                || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+                || (activate_att_consensus_intances == {} && current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot <= attestation_share.data.slot)                
+                || (activate_att_consensus_intances == {} && !current_attesation_duty.isPresent() && latest_attestation_duty.isPresent() && latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
-                var aggregated_attestation := 
-                        Attestation(
-                            aggregation_bits := attestation_share.aggregation_bits,
-                            data := attestation_share.data,
-                            signature := construct_signed_attestation_signature(attestation_shares_db[k]).safe_get()
-                        );
-                bn.submit_attestation(aggregated_attestation); 
-            }  
+                var k := (attestation_share.data, attestation_share.aggregation_bits);
+                var attestation_shares_db_at_slot := getOrDefault(attestation_shares_db, attestation_share.data.slot, map[]);
+                attestation_shares_db := 
+                    attestation_shares_db[
+                        attestation_share.data.slot := 
+                            attestation_shares_db_at_slot[
+                                        k := 
+                                            getOrDefault(attestation_shares_db_at_slot, k, {}) + 
+                                            {attestation_share}
+                                        ]
+                            ];
+                            
+                if construct_signed_attestation_signature(attestation_shares_db[attestation_share.data.slot][k]).isPresent()
+                {
+                    var aggregated_attestation := 
+                            Attestation(
+                                aggregation_bits := attestation_share.aggregation_bits,
+                                data := attestation_share.data,
+                                signature := construct_signed_attestation_signature(attestation_shares_db[attestation_share.data.slot][k]).safe_get()
+                            );
+                    bn.submit_attestation(aggregated_attestation); 
+                } 
+            } 
         }
 
         method listen_for_new_imported_blocks(
@@ -236,7 +251,11 @@ abstract module DVCNode_Implementation
             var att_consensus_instances_already_decided := future_att_consensus_instances_already_decided;
 
             while i < |block.body.attestations|
-            invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) && att_consensus.Repr == old(att_consensus.Repr)
+            invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) 
+            && unchanged(rs)
+            && unchanged(network)
+            && unchanged(att_consensus)
+            && unchanged(this)
             {
                 var a := block.body.attestations[i];
 
@@ -250,26 +269,35 @@ abstract module DVCNode_Implementation
                 && i < |a.aggregation_bits|
                 && a.aggregation_bits[i]
                 {
-                    att_consensus_instances_already_decided := att_consensus_instances_already_decided + {a.data.slot};
+                    att_consensus_instances_already_decided := att_consensus_instances_already_decided[a.data.slot := a.data];
                 }
 
                 i := i + 1;
             }
 
-            att_consensus.stop_multiple(att_consensus_instances_already_decided);
-            attestation_shares_to_broadcast := attestation_shares_to_broadcast - att_consensus_instances_already_decided;
+            att_consensus.stop_multiple(att_consensus_instances_already_decided.Keys);
+            attestation_shares_to_broadcast := attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys;
+            attestation_shares_db := attestation_shares_db - att_consensus_instances_already_decided.Keys;
 
             if latest_attestation_duty.isPresent()
             {
-                future_att_consensus_instances_already_decided := 
+                var old_instances := 
                         set i | 
-                            && i in att_consensus_instances_already_decided 
-                            && i > latest_attestation_duty.safe_get().slot
+                            && i in att_consensus_instances_already_decided.Keys
+                            && i <= latest_attestation_duty.safe_get().slot
                         ;
+                future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances;
             }
             else
             {
                 future_att_consensus_instances_already_decided := att_consensus_instances_already_decided;
+            }            
+
+            if current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided
+            {
+                // update_attestation_slashing_db(att_consensus_instances_already_decided[current_attesation_duty.safe_get().slot]);
+                current_attesation_duty := None;
+                { :- check_for_next_queued_duty();}
             }
 
             return Success;                              
@@ -367,6 +395,9 @@ module DVCNode_Externs
         )
         ensures consensus_instances_started == old(consensus_instances_started) - ids
 
+        method get_active_instances() returns (active_instances: set<Slot>)
+        ensures active_instances == consensus_instances_started.Keys 
+        ensures unchanged(`consensus_instances_started) 
     }    
 
     trait {:autocontracts} Network  

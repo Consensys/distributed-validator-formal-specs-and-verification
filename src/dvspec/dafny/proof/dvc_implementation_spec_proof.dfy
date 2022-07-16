@@ -67,6 +67,72 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         )
     }
 
+    twostate predicate lXXXXPre2(
+        ce: Consensus<AttestationData>,
+        removed_keys: set<Slot>
+    )
+    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+    {
+        ce.consensus_instances_started == old(ce.consensus_instances_started) - removed_keys 
+        // && unchanged(ce)
+        && forall v | v in ce.consensus_instances_started.Values :: 
+            && old(allocated(v))
+            && isAttestationConsensusValidityCheck(v) 
+            && unchanged(toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db) 
+            && unchanged(toAttestationConsensusValidityCheck(v))   
+    }    
+
+    twostate lemma lXXXX2(
+        ce: Consensus<AttestationData>,
+        removed_keys: set<Slot>
+    )
+    requires lXXXXPre2(ce, removed_keys)
+    ensures toConsensusEngineState(ce) == old(toConsensusEngineState(ce)).(
+        attestation_consensus_active_instances := old(toConsensusEngineState(ce)).attestation_consensus_active_instances - removed_keys
+    )
+    {
+
+        // forall e | e in old(toConsensusEngineState(ce)).attestation_consensus_active_instances.Keys
+        // ensures e in toConsensusEngineState(ce).attestation_consensus_active_instances.Keys;
+        // {
+        //     lemmaMapKeysHasOneEntryInItems(old(toConsensusEngineState(ce)).attestation_consensus_active_instances, e);
+        // } 
+
+        // assert old(toConsensusEngineState(ce)).attestation_consensus_active_instances.Keys == toConsensusEngineState(ce).attestation_consensus_active_instances.Keys;        
+    }    
+
+    twostate predicate lXXXXPre(
+        ce: Consensus<AttestationData>
+    )
+    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+    {
+        && unchanged(ce)
+        && forall v | v in ce.consensus_instances_started.Values :: 
+            && old(allocated(v))
+            && isAttestationConsensusValidityCheck(v) 
+            && unchanged(toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db) 
+            && unchanged(toAttestationConsensusValidityCheck(v))   
+    }
+
+    twostate lemma lXXXX(
+        ce: Consensus<AttestationData>
+    )
+    requires lXXXXPre(ce)
+    ensures old(toConsensusEngineState(ce)) == toConsensusEngineState(ce)
+    {
+
+        forall e | e in old(toConsensusEngineState(ce)).attestation_consensus_active_instances.Keys
+        ensures e in toConsensusEngineState(ce).attestation_consensus_active_instances.Keys;
+        {
+            lemmaMapKeysHasOneEntryInItems(old(toConsensusEngineState(ce)).attestation_consensus_active_instances, e);
+        } 
+
+        assert old(toConsensusEngineState(ce)).attestation_consensus_active_instances.Keys == toConsensusEngineState(ce).attestation_consensus_active_instances.Keys;        
+    }
+
+
+
+
     export PublicInterface...
         reveals *
 
@@ -80,7 +146,78 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             {}
     }
 
+        twostate lemma listen_for_new_imported_blocks_helper_5_l_e(
+            process: DVCNodeState,
+            // p0: DVCNodeState,
+            // att_consensus_instances_already_decided: map<Slot, AttestationData>,
+            block: BeaconBlock
+        )      
+        requires&& f_listen_for_new_imported_blocks.requires(process, block)
+                // && process.current_attesation_duty.isPresent()
+                // && att_consensus_instances_already_decided == process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block)
+                // && old(current_attesation_duty).safe_get().slot in att_consensus_instances_already_decided
+                // && p0 == listen_for_new_imported_blocks_helper_4(old(toDVCNodeState()), block) 
+                // && f_check_for_next_queued_duty.requires(p0)
 
+                // && toDVCNodeState() == f_check_for_next_queued_duty(p0).state
+        // ensures
+        //         toDVCNodeState()  == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state;
+        {
+            // var process := old(toDVCNodeState());
+        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+         
+        var s := map a |
+                && a in block.body.attestations
+                && isMyAttestation(a, process, block, valIndex)
+            ::
+                a.data.slot := a.data;
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
+
+        var future_att_consensus_instances_already_decided := 
+                if process.latest_attestation_duty.isPresent() then
+                    var old_instances := 
+                            set i | 
+                                && i in att_consensus_instances_already_decided.Keys
+                                && i <= process.latest_attestation_duty.safe_get().slot
+                            ;
+                    att_consensus_instances_already_decided - old_instances
+                else
+                    att_consensus_instances_already_decided
+                        ;
+
+        var newProcess :=
+                process.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys                    
+                );     
+
+            var newProces2 := newProcess.(
+                current_attesation_duty := None
+            );
+            var r := f_check_for_next_queued_duty(newProces2);
+            assert newProcess.current_attesation_duty ==  process.current_attesation_duty;       
+
+            // assert p0 == newProces2;   
+            // assert newProcess.current_attesation_duty.isPresent() && newProcess.current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided_let ;
+            // assert att_consensus_instances_already_decided_let == att_consensus_instances_already_decided;
+            if newProcess.current_attesation_duty.isPresent() && newProcess.current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided
+            {
+                // assert newProcess == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state; 
+                assert || f_check_for_next_queued_duty(newProces2) == f_listen_for_new_imported_blocks(process, block)  by 
+                {
+                    assert forall a, b :: a == b &&  (f_check_for_next_queued_duty.requires(a) ||  f_check_for_next_queued_duty.requires(b)) ==> f_check_for_next_queued_duty(a) == f_check_for_next_queued_duty(b);
+                }
+                // || newProcess == f_listen_for_new_imported_blocks(process, block).state
+                   
+            }
+                  
+        } 
     class DVCNode...
     {
         function toDVCNodeState(): DVCNodeState
@@ -208,6 +345,24 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 
         }
 
+        function  lemma_method_check_for_next_queued_duty_helper(process: DVCNodeState): DVCNodeState
+        requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+        requires process.attestation_duties_queue != []
+        requires process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
+        decreases process.attestation_duties_queue
+        {
+            var queue_head := process.attestation_duties_queue[0];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
+            process.(
+                attestation_duties_queue := process.attestation_duties_queue[1..],
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                        
+            )
+        }          
+
         method check_for_next_queued_duty...
         ensures (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCNodeState())))==> 
                 && f_check_for_next_queued_duty(old(toDVCNodeState())) == toDVCNodeStateAndOuputs()
@@ -215,16 +370,41 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 && s.Success?
                 && unchanged(network)
                 && unchanged(bn)
-                && unchanged(rs)                
+                && unchanged(rs)   
+                // && current_attesation_duty == Some(attestation_duty)
+                // && latest_attestation_duty == Some(attestation_duty)
+                // && unchanged(`attestation_duties_queue)
+                // && unchanged(`attestation_slashing_db)
+                && unchanged(`attestation_shares_db)
+                && unchanged(`attestation_shares_to_broadcast)
+                && unchanged(`construct_signed_attestation_signature)
+                && unchanged(`peers)
+                && unchanged(`dv_pubkey)
+                && unchanged(`future_att_consensus_instances_already_decided)
+                // && att_consensus.consensus_instances_started.Keys == old(att_consensus.consensus_instances_started.Keys) + {attestation_duty.slot}
+                && fresh(att_consensus.Repr - old(att_consensus.Repr))                     
+
         {
             if...
             {
                 if...
                 {
-
                     ...;
-                    {
-                        assert old(isValidReprExtended()) ==> isValidReprExtended();
+                    {                      
+                        if (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCNodeState()))) 
+                        {
+                            var rs := lemma_method_check_for_next_queued_duty_helper(old(toDVCNodeState()));                              
+
+                            forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                            ensures e in rs.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                            {
+                                lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                            }                          
+                                                    
+                            assert lemma_method_check_for_next_queued_duty_helper(old(toDVCNodeState())) == toDVCNodeState(); 
+
+                        }
+                       
                         ...;
 
                         assert (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCNodeState()))) ==> f_check_for_next_queued_duty(old(toDVCNodeState())) == toDVCNodeStateAndOuputs();       
@@ -258,6 +438,18 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                         && unchanged(network)
                         && unchanged(bn)
                         && unchanged(rs)
+                        && current_attesation_duty == Some(attestation_duty)
+                        && latest_attestation_duty == Some(attestation_duty)
+                        && unchanged(`attestation_duties_queue)
+                        && unchanged(`attestation_slashing_db)
+                        && unchanged(`attestation_shares_db)
+                        && unchanged(`attestation_shares_to_broadcast)
+                        && unchanged(`construct_signed_attestation_signature)
+                        && unchanged(`peers)
+                        && unchanged(`dv_pubkey)
+                        && unchanged(`future_att_consensus_instances_already_decided)
+                        && att_consensus.consensus_instances_started.Keys == old(att_consensus.consensus_instances_started.Keys) + {attestation_duty.slot}
+                        && fresh(att_consensus.Repr - old(att_consensus.Repr))
                     )
                 )
         {
@@ -282,7 +474,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         }
 
         method update_attestation_slashing_db...
-        ensures f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data, attestation_duty_pubkey) == this.attestation_slashing_db;
+        ensures f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data) == this.attestation_slashing_db == toDVCNodeState().attestation_slashing_db
         ensures  var slashing_db_attestation := SlashingDBAttestation(
                                                 source_epoch := attestation_data.source.epoch,
                                                 target_epoch := attestation_data.target.epoch,
@@ -301,7 +493,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
         {
             var local_current_attestation_duty := process.current_attesation_duty.safe_get();
-            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data, local_current_attestation_duty.pubkey);
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
             var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
@@ -341,23 +533,67 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         {
             ...;
             {
-            if old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCNodeState()), id, decided_attestation_data)
-            {
-                var r := f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data);
-                var s := old(current_attesation_duty).safe_get().slot;
-
-                forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-                ensures e in r.state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                if old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCNodeState()), id, decided_attestation_data)
                 {
-                    lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
-                }   
+                    var r := f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data);
+                    var s := old(current_attesation_duty).safe_get().slot;
 
-                assert f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data).state == toDVCNodeStateAndOuputs().state;
-            }                
+                    forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                    ensures e in r.state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                    {
+                        lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                    }   
+
+                    assert f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data).state == toDVCNodeStateAndOuputs().state;
+                }                
                 ...;
             }
             ...;
         }
+
+    predicate f_listen_for_attestation_shares_helper_c(
+        process: DVCNodeState,
+        attestation_share: AttestationShare
+    )
+    {
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+            || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
+            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances == {} && process.current_attesation_duty.isPresent() && process.current_attesation_duty.safe_get().slot <= attestation_share.data.slot)                
+            || (activate_att_consensus_intances == {} && !process.current_attesation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)     
+    } 
+
+    function f_listen_for_attestation_shares_helper(
+        process: DVCNodeState,
+        attestation_share: AttestationShare
+    ): DVCNodeState
+    {
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+        // if 
+        //     || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
+        //     || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+        //     || (activate_att_consensus_intances == {} && process.current_attesation_duty.isPresent() && process.current_attesation_duty.safe_get().slot <= attestation_share.data.slot)                
+        //     || (activate_att_consensus_intances == {} && !process.current_attesation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot) then
+
+                var k := (attestation_share.data, attestation_share.aggregation_bits);
+                var attestation_shares_db_at_slot := getOrDefault(process.attestation_shares_db, attestation_share.data.slot, map[]);
+                
+                var new_attestation_shares_db := 
+                        process.attestation_shares_db[
+                            attestation_share.data.slot := 
+                                attestation_shares_db_at_slot[
+                                            k := 
+                                                getOrDefault(attestation_shares_db_at_slot, k, {}) + 
+                                                {attestation_share}
+                                            ]
+                                ];
+
+                process.(
+                    attestation_shares_db := new_attestation_shares_db
+                )
+    }        
 
         method listen_for_attestation_shares...
         ensures old(isValidReprExtended()) ==> 
@@ -365,60 +601,543 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                         && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share) == toDVCNodeStateAndOuputs();
         {
             ...;
+            if...
+            {
+                if  old(isValidReprExtended())
+                {
+                    forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                    ensures e in att_consensus.consensus_instances_started.Keys
+                    {
+                        lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                    }                 
+                    forall e | e in att_consensus.consensus_instances_started.Keys
+                    ensures e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                    {
+                        lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
+                    }                  
+                    assert att_consensus.consensus_instances_started.Keys <= old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                    assert old(isValidReprExtended()) ==>  f_listen_for_attestation_shares_helper_c(old(toDVCNodeState()), attestation_share);
+                }
+                ...;
+                if...
+                {
+                assert old(isValidReprExtended()) ==> 
+                        && isValidReprExtended()
+                        && f_listen_for_attestation_shares_helper(old(toDVCNodeState()), attestation_share) == toDVCNodeState();                      
+                    ...;
+                }
+                assert old(isValidReprExtended()) ==> 
+                        && isValidReprExtended()
+                        && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share).state == f_listen_for_attestation_shares_helper(old(toDVCNodeState()), attestation_share);
+                assert old(isValidReprExtended()) ==> 
+                        && isValidReprExtended()
+                        && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share).state == toDVCNodeState();                          
+            }
+            else
+            {
+                assert old(isValidReprExtended()) ==> 
+                            && isValidReprExtended()
+                            && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share) == toDVCNodeStateAndOuputs();
+            }
         }
 
         // Helper function used when proving the postcondition of method listen_for_new_imported_blocks below
         function listen_for_new_imported_blocks_helper(
             process: DVCNodeState,
             block: BeaconBlock,
-            valIndex: Optional<ValidatorIndex>,
             i: nat
-        ) : (new_att: set<Slot>)
+        ) : (new_att: map<Slot, AttestationData>)
         requires i <= |block.body.attestations|
-        requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+        requires f_listen_for_new_imported_blocks.requires(process, block)
         {            
-            set a |
+            map a |
                     && a in block.body.attestations[..i]
-                    && isMyAttestation(a, process, block, valIndex)
+                    && isMyAttestation(a, process, block, bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey))
                 ::
-                    a.data.slot
+                    a.data.slot := a.data
         }  
 
+        predicate listen_for_new_imported_blocks_helper_lf(
+            process: DVCNodeState,
+            block: BeaconBlock,
+            i: nat,
+            a2: map<Slot, AttestationData>
+        ) 
+        requires i <= |block.body.attestations|
+        requires f_listen_for_new_imported_blocks.requires(process, block)
+        {
+            a2 == process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper(process, block, i)
+        }        
+
+        lemma listen_for_new_imported_blocks_helper_l(
+            process: DVCNodeState,
+            block: BeaconBlock,
+            i: nat,
+            a1: map<Slot, AttestationData>,
+            a2: map<Slot, AttestationData>
+        ) 
+        requires i < |block.body.attestations|
+        requires f_listen_for_new_imported_blocks.requires(process, block)        
+        requires var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                && a1 == process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper(process, block, i)
+                && var a := block.body.attestations[i]; a2 == if isMyAttestation(a,process, block, valIndex) then 
+                            a1[a.data.slot := a.data]
+                        else 
+                            a1
+        // ensures a2 == process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper(process, block, valIndex, i + 1);
+        ensures listen_for_new_imported_blocks_helper_lf(process, block, i + 1, a2)
+        {
+            // Yes!!! The following is needed to allow Dafny prove the lemma!!!
+            var a := block.body.attestations[i];
+            if isMyAttestation(a,process, block, bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey)) 
+            {
+                
+            }
+        }
+
+        lemma listen_for_new_imported_blocks_helper_la(
+            process: DVCNodeState,
+            block: BeaconBlock,
+            a1: map<Slot, AttestationData>
+        ) 
+        requires f_listen_for_new_imported_blocks.requires(process, block)        
+        requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                    listen_for_new_imported_blocks_helper_lf(process, block,|block.body.attestations|, a1)
+        ensures a1 == process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(process, block);
+        ensures listen_for_new_imported_blocks_helper_2(process, block).attestation_consensus_engine_state.attestation_consensus_active_instances == process.attestation_consensus_engine_state.attestation_consensus_active_instances - a1.Keys
+        {
+
+        }        
+
+        function listen_for_new_imported_blocks_helper_a(
+            process: DVCNodeState,
+            block: BeaconBlock
+        ): map<Slot, AttestationData>
+       requires f_listen_for_new_imported_blocks.requires(process, block)       
+        {
+            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                
+            map a |
+                    && a in block.body.attestations
+                    && isMyAttestation(a, process, block, valIndex)
+                ::
+                    a.data.slot := a.data
+
+        }         
 
         function listen_for_new_imported_blocks_helper_2(
             process: DVCNodeState,
             block: BeaconBlock
         ): DVCNodeState
-        requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+        requires f_listen_for_new_imported_blocks.requires(process, block)        
         {
-        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
-         
-        var s := set a |
-                && a in block.body.attestations
-                && isMyAttestation(a, process, block, valIndex)
-            ::
-                a.data.slot;
+            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                
+            var s := map a |
+                    && a in block.body.attestations
+                    && isMyAttestation(a, process, block, valIndex)
+                ::
+                    a.data.slot := a.data;
 
-        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
+            var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
 
-        var future_att_consensus_instances_already_decided := 
-                if process.latest_attestation_duty.isPresent() then
-                        set i | 
-                            && i in att_consensus_instances_already_decided 
-                            && i > process.latest_attestation_duty.safe_get().slot
-                else
-                    att_consensus_instances_already_decided
-                        ;
+            // var future_att_consensus_instances_already_decided := 
+            //         if process.latest_attestation_duty.isPresent() then
+            //             var old_instances := 
+            //                     set i | 
+            //                         && i in att_consensus_instances_already_decided.Keys
+            //                         && i <= process.latest_attestation_duty.safe_get().slot
+            //                     ;
+            //             att_consensus_instances_already_decided - old_instances
+            //         else
+            //             att_consensus_instances_already_decided
+            //             ;
 
             process.(
+                    // future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
                     attestation_consensus_engine_state := stopConsensusInstances(
                                     process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided
+                                    att_consensus_instances_already_decided.Keys
                     ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys 
             )      
 
         }   
+
+        twostate lemma lYYYY()
+        requires
+            && unchanged(network`att_shares_sent)
+            && unchanged(bn`attestations_submitted)
+        ensures toDVCNodeStateAndOuputs().outputs == getEmptyOuputs()
+        {
+
+        }
+
+        function listen_for_new_imported_blocks_helper_3(
+            process: DVCNodeState,
+            block: BeaconBlock
+        ): DVCNodeState
+        requires f_listen_for_new_imported_blocks.requires(process, block)        
+        {
+            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                
+            var s := map a |
+                    && a in block.body.attestations
+                    && isMyAttestation(a, process, block, valIndex)
+                ::
+                    a.data.slot := a.data;
+
+            var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
+
+            var new_future_att_consensus_instances_already_decided := 
+                    if process.latest_attestation_duty.isPresent() then
+                        var old_instances := 
+                                set i | 
+                                    && i in att_consensus_instances_already_decided.Keys
+                                    && i <= process.latest_attestation_duty.safe_get().slot
+                                ;
+                        att_consensus_instances_already_decided - old_instances
+                    else
+                        att_consensus_instances_already_decided
+                        ;
+
+            process.(
+                    future_att_consensus_instances_already_decided := new_future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys 
+            )      
+        }    
+
+        function listen_for_new_imported_blocks_helper_4(
+            process: DVCNodeState,
+            block: BeaconBlock
+        ): DVCNodeState
+        requires f_listen_for_new_imported_blocks.requires(process, block)        
+        {
+            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                
+            var s := map a |
+                    && a in block.body.attestations
+                    && isMyAttestation(a, process, block, valIndex)
+                ::
+                    a.data.slot := a.data;
+
+            var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
+
+            var new_future_att_consensus_instances_already_decided := 
+                    if process.latest_attestation_duty.isPresent() then
+                        var old_instances := 
+                                set i | 
+                                    && i in att_consensus_instances_already_decided.Keys
+                                    && i <= process.latest_attestation_duty.safe_get().slot
+                                ;
+                        att_consensus_instances_already_decided - old_instances
+                    else
+                        att_consensus_instances_already_decided
+                        ;
+
+            process.(
+                    future_att_consensus_instances_already_decided := new_future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys,
+                    current_attesation_duty := None
+            )      
+        }                   
+
+        lemma listen_for_new_imported_blocks_helper_3_l(
+            process: DVCNodeState,
+            block: BeaconBlock
+        )
+        requires f_listen_for_new_imported_blocks.requires(process, block)  
+        requires !process.latest_attestation_duty.isPresent()
+        // requires  listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);                      
+        ensures  listen_for_new_imported_blocks_helper_3.requires(process, block)
+        ensures  listen_for_new_imported_blocks_helper_3(process, block).future_att_consensus_instances_already_decided == process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(process, block);      
+        {
+            
+        }          
+
+        lemma listen_for_new_imported_blocks_helper_3_l2(
+            process: DVCNodeState,
+            block: BeaconBlock
+        )
+        requires f_listen_for_new_imported_blocks.requires(process, block)  
+        requires process.latest_attestation_duty.isPresent()
+        // requires  listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);                      
+        ensures  listen_for_new_imported_blocks_helper_3.requires(process, block)
+        ensures  var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(process, block);
+                var old_instances := 
+                        set i | 
+                            && i in att_consensus_instances_already_decided.Keys
+                            && i <= process.latest_attestation_duty.safe_get().slot
+                        ;                
+        
+        
+        listen_for_new_imported_blocks_helper_3(process, block).future_att_consensus_instances_already_decided == att_consensus_instances_already_decided - old_instances
+        {
+            
+        }    
+
+        function listen_for_new_imported_blocks_helper_3_l2v2_h2(
+            att_consensus_instances_already_decided: map<Slot, AttestationData>
+        ): set<Slot>
+        requires toDVCNodeState().latest_attestation_duty.isPresent()
+        reads toDVCNodeState.reads
+        {
+            set i | 
+                && i in att_consensus_instances_already_decided.Keys
+                && i <= toDVCNodeState().latest_attestation_duty.safe_get().slot
+                              
+        }        
+
+        twostate lemma listen_for_new_imported_blocks_helper_3_l2v2_h(
+            p0: DVCNodeState,
+            att_consensus_instances_already_decided: map<Slot, AttestationData>,
+            old_instances: set<Slot>,
+            block: BeaconBlock
+        )      
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) 
+                && old(latest_attestation_duty).isPresent()
+                && latest_attestation_duty.isPresent()
+                && p0 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block) 
+            
+                && att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block)
+
+                && old_instances == listen_for_new_imported_blocks_helper_3_l2v2_h2(att_consensus_instances_already_decided)
+                && toDVCNodeState() == p0.(
+                        future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances
+                    )
+        ensures
+                toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block);  
+        {
+            
+        }    
+
+        twostate lemma listen_for_new_imported_blocks_helper_3_l_h(
+            p0: DVCNodeState,
+            att_consensus_instances_already_decided: map<Slot, AttestationData>,
+            block: BeaconBlock
+        )      
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) 
+                && !old(latest_attestation_duty).isPresent()
+                && p0 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block) 
+            
+                && att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block)
+
+                && toDVCNodeState() == p0.(
+                        future_att_consensus_instances_already_decided := att_consensus_instances_already_decided 
+                    )
+        ensures
+                toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block);  
+        {
+            
+        }         
+
+        twostate lemma listen_for_new_imported_blocks_helper_4_l(
+            p0: DVCNodeState,
+            block: BeaconBlock
+        )      
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) 
+                && p0 == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block) 
+
+                && toDVCNodeState() == p0.(
+                        current_attesation_duty := None 
+                    )
+        ensures
+                toDVCNodeState() == listen_for_new_imported_blocks_helper_4(old(toDVCNodeState()), block);  
+        {
+            
+        }      
+
+
+        twostate lemma listen_for_new_imported_blocks_helper_5_l(
+            p0: DVCNodeState,
+            att_consensus_instances_already_decided: map<Slot, AttestationData>,
+            block: BeaconBlock
+        )      
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) 
+                && old(current_attesation_duty).isPresent()
+                && att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block)
+                && old(current_attesation_duty).safe_get().slot in att_consensus_instances_already_decided
+                && p0 == listen_for_new_imported_blocks_helper_4(old(toDVCNodeState()), block) 
+                && f_check_for_next_queued_duty.requires(p0)
+
+                && toDVCNodeState() == f_check_for_next_queued_duty(p0).state
+        ensures
+                toDVCNodeState()  == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state;
+        {
+            var process := old(toDVCNodeState());
+            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+            
+            var s := map a |
+                    && a in block.body.attestations
+                    && isMyAttestation(a, process, block, valIndex)
+                ::
+                    a.data.slot := a.data;
+
+            var att_consensus_instances_already_decided_let := process.future_att_consensus_instances_already_decided + s;
+
+            assert att_consensus_instances_already_decided_let == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);
+
+            var future_att_consensus_instances_already_decided := 
+                    if process.latest_attestation_duty.isPresent() then
+                        var old_instances := 
+                                set i | 
+                                    && i in att_consensus_instances_already_decided_let.Keys
+                                    && i <= process.latest_attestation_duty.safe_get().slot
+                                ;
+                        att_consensus_instances_already_decided_let - old_instances
+                    else
+                        att_consensus_instances_already_decided_let
+                            ;
+
+            var newProcess :=
+                    process.(
+                        future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                        attestation_consensus_engine_state := stopConsensusInstances(
+                                        process.attestation_consensus_engine_state,
+                                        att_consensus_instances_already_decided_let.Keys
+                        ),
+                        attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided_let.Keys,
+                        attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided_let.Keys                    
+                    );    
+
+            var newProces2 := newProcess.(
+                current_attesation_duty := None
+            );
+            var r := f_check_for_next_queued_duty(newProces2);
+            assert newProcess.current_attesation_duty ==  process.current_attesation_duty;       
+
+            assert p0 == newProces2;   
+            assert newProcess.current_attesation_duty.isPresent() && newProcess.current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided_let ;
+            assert att_consensus_instances_already_decided_let == att_consensus_instances_already_decided;
+            // if newProcess.current_attesation_duty.isPresent() && newProcess.current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided_let
+            // {
+                // assert newProcess == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state; 
+                assert || f_check_for_next_queued_duty(newProces2) == f_listen_for_new_imported_blocks(process, block) 
+                by 
+                {
+                    assert forall a, b :: a == b &&  (f_check_for_next_queued_duty.requires(a) ||  f_check_for_next_queued_duty.requires(b)) ==> f_check_for_next_queued_duty(a) == f_check_for_next_queued_duty(b);
+                }
+
+                // || newProcess == f_listen_for_new_imported_blocks(process, block).state
+                // || newProces2 == f_listen_for_new_imported_blocks(process, block).state
+                // ;   
+            // }
+                  
+        }             
+        
+
+        twostate lemma listen_for_new_imported_blocks_helper_5_l_2(
+            block: BeaconBlock,
+            att_consensus_instances_already_decided: map<Slot, AttestationData>
+        )      
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) 
+                && att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block)
+                && 
+                    (
+                        || !old(current_attesation_duty).isPresent()
+                        || old(current_attesation_duty).safe_get().slot !in att_consensus_instances_already_decided
+                    )
+                && toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block) 
+        ensures
+                toDVCNodeState()  == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state;
+        {
+                              
+        } 
+
+        // twostate lemma listen_for_new_imported_blocks_helper_3_l2v2(
+        //     p0: DVCNodeState,
+        //     block: BeaconBlock
+        // )      
+        // requires (&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) 
+        //         && old(latest_attestation_duty).isPresent()
+        //         && p0 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block) 
+            
+        //         // &&   var att_consensus_instances_already_decided := old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);
+        //         //     var old_instances := 
+        //         //                     set i | 
+        //         //                         && i in att_consensus_instances_already_decided.Keys
+        //         //                         && i <= old(toDVCNodeState()) .latest_attestation_duty.safe_get().slot
+        //         //                     ;            
+        //         //     toDVCNodeState() == p0.(
+        //         //         future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances
+        //         //     )
+        //         )
+        // ensures
+        //         toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block);  
+        // {
+            
+        // }                  
+
+        lemma f_listen_for_new_imported_blocks_empty_outputs(
+            process: DVCNodeState,
+            block: BeaconBlock
+        )
+        requires f_listen_for_new_imported_blocks.requires(process, block)
+        ensures f_listen_for_new_imported_blocks(process, block).outputs == getEmptyOuputs()
+        {
+            forall p | f_check_for_next_queued_duty.requires(p)
+            ensures f_check_for_next_queued_duty(p).outputs == getEmptyOuputs()
+            {
+                f_check_for_next_queued_duty_empty_outputs(p);
+            }
+        }
+
+
+        lemma f_check_for_next_queued_duty_empty_outputs(
+            process: DVCNodeState
+        )
+        requires f_check_for_next_queued_duty.requires(process)
+        decreases process.attestation_duties_queue
+        ensures f_check_for_next_queued_duty(process).outputs == getEmptyOuputs()
+        {
+            if  && process.attestation_duties_queue != [] 
+                && (
+                    || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+                    || !process.current_attesation_duty.isPresent()
+                )    
+            {
+                
+                    if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
+                    {
+                        var queue_head := process.attestation_duties_queue[0];
+                        var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
+                        f_check_for_next_queued_duty_empty_outputs(process.(
+                            attestation_duties_queue := process.attestation_duties_queue[1..],
+                            attestation_slashing_db := new_attestation_slashing_db,
+                            attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                process.attestation_consensus_engine_state,
+                                new_attestation_slashing_db
+                            )                        
+                        ));
+                        assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();       
+                    }
+                    else
+                    {
+                        var new_process := process.(
+                            attestation_duties_queue := process.attestation_duties_queue[1..]
+                        );  
+                        assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();       
+                        // f_start_next_duty(new_process, process.attestation_duties_queue[0])
+                    }
+            }
+                    
+            else 
+            {
+                assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();
+            }
+         
+        }        
 
         method listen_for_new_imported_blocks...
         ensures (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==> 
@@ -431,42 +1150,335 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             ...;
             while...
                 invariant 0 <= i <= |block.body.attestations|
-                invariant ValidRepr();
-                invariant  old(isValidReprExtended()) ==> isValidReprExtended();                 
-                invariant block.body.state_root in bn.state_roots_of_imported_blocks;
-                invariant (isValidReprExtended() && block.body.state_root in old(bn.state_roots_of_imported_blocks)) ==>
-                    att_consensus_instances_already_decided == 
-                    old(future_att_consensus_instances_already_decided) + listen_for_new_imported_blocks_helper(old(toDVCNodeState()), block, valIndex, i); 
-                    
-                invariant isValidReprExtended() ==> toDVCNodeState() == old(toDVCNodeState())
-                invariant toDVCNodeStateAndOuputs().outputs == getEmptyOuputs();   
+                invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) 
+            && unchanged(rs)
+            && unchanged(network)
+            && unchanged(att_consensus)
+            && unchanged(att_consensus.consensus_instances_started.Values)
+            && unchanged(this)
+            && unchanged(att_consensus.Repr)
+            && unchanged(bn`state_roots_of_imported_blocks)
+            && unchanged(bn`attestations_submitted)
+                invariant  old(isValidReprExtended()) ==> isValidReprExtended();       
+                invariant old(isValidReprExtended()) ==> lXXXXPre(att_consensus)                    
+                invariant old(isValidReprExtended() )==> toDVCNodeState() == old(toDVCNodeState())
+                // invariant toDVCNodeStateAndOuputs().outputs == getEmptyOuputs();   
                 invariant unchanged(bn`attestations_submitted)
-            {
+                invariant this as object != att_consensus
+                invariant this !in att_consensus.Repr
 
+                invariant (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==> listen_for_new_imported_blocks_helper_lf(old(toDVCNodeState()), block, i, att_consensus_instances_already_decided)
+                    // att_consensus_instances_already_decided == 
+                    // old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper(old(toDVCNodeState()), block, valIndex, i);                 
+            {
+                var ax := att_consensus_instances_already_decided;
+                // assume (isValidReprExtended() && block.body.state_root in old(bn.state_roots_of_imported_blocks)) ==>
+                //     a == 
+                //     old(future_att_consensus_instances_already_decided) + listen_for_new_imported_blocks_helper(old(toDVCNodeState()), block, valIndex, i); 
+                ...;
+                if...
+                {
+                    ...;
+                    
+               
+
+                }
+                if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)){
+                    listen_for_new_imported_blocks_helper_l(old(toDVCNodeState()), block, i, ax, att_consensus_instances_already_decided);
+                    // assert lXXXXPre(att_consensus);
+                }
+
+                ...;
+// assume (old(isValidReprExtended()) && block.body.state_root in old(bn.state_roots_of_imported_blocks)) ==>
+//                     att_consensus_instances_already_decided == 
+//                     old(future_att_consensus_instances_already_decided) + listen_for_new_imported_blocks_helper(old(toDVCNodeState()), block, valIndex, i);      
             }
+            // label L1:  
+            // lYYYY();
+            // assert toDVCNodeStateAndOuputs().outputs == getEmptyOuputs();
+            if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)){
+                    assert isValidReprExtended();   
+                    assert lXXXXPre(att_consensus);                
+                    listen_for_new_imported_blocks_helper_la(old(toDVCNodeState()), block, att_consensus_instances_already_decided);
+            }    
+                  
+            // assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>
+            //         att_consensus_instances_already_decided == 
+            //         old(future_att_consensus_instances_already_decided) + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block, valIndex); 
+            // ...;
             ...;
-        
 
             if...
             {
-                var o2 := toDVCNodeState();
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>
-            toDVCNodeState() == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);    
+
+                
+                var o1 := toDVCNodeState();
+                // var f1 := future_att_consensus_instances_already_decided;
+                label L2:
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==> 
+                    && o1 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block) 
+                    && isValidReprExtended()
+                    && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                    && unchanged(`current_attesation_duty)
+                by
+                {
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                    {
+                        assert isValidReprExtended();
+                        assert lXXXXPre2(att_consensus, att_consensus_instances_already_decided.Keys);
+                        lXXXX2(att_consensus, att_consensus_instances_already_decided.Keys);
+
+                        assert listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances == old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances - att_consensus_instances_already_decided.Keys;
+                        // // assert isValidReprExtended();
+                        // // // assert lXXXXPre(att_consensus);
+
+                        // // // lXXXX(att_consensus);      
+
+                        // // assert toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys  <= listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;  
+
+                        // // forall e | e in listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        // // ensures e in  toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        // // {
+                        // //     lemmaMapKeysHasOneEntryInItems(listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                        // // }   
+
+                        // // assert listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys; 
+
+                        calc {
+                            o1;
+                            { lXXXX@L2(att_consensus);}
+                            toDVCNodeState();
+                            listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);        
+                        }
+
+                        assert o1 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);   
+
+                        assert unchanged(`current_attesation_duty);                                                
+                    }
+                }
+                
+                
                 ...;
-                assert old(isValidReprExtended()) ==> isValidReprExtended();
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>
-            toDVCNodeStateAndOuputs() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block);  
+                // assert old@L1(toDVCNodeState()).future_att_consensus_instances_already_decided
+                // assert toDVCNodeState() == old@L1(toDVCNodeState()).(
+                //         future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances
+                //     );      
+                var o2 := toDVCNodeState();        
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>  
+                    && o2 == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block)
+                    && isValidReprExtended()  
+                    && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                    && unchanged(`current_attesation_duty)
+                by
+                {
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                    {
+                        // assert lXXXXPre(att_consensus);
+
+                        // lXXXX(att_consensus);                     
+                    //     assert old@L1(isValidReprExtended());   
+
+
+                    //     assert old@L1(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys  <= listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;  
+
+                    //     forall e | e in listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                    //     ensures e in  old@L1(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                    //     {
+                    //         lemmaMapKeysHasOneEntryInItems(listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                    //     }   
+
+                    //     // assert listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;                    
+
+                    //     assert old@L1(toDVCNodeState()) == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);                    
+                    //     assert isValidReprExtended(); 
+                        // assert (old@L2(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old@L2(toDVCNodeState()), block)) ;
+                        
+                        // assert && att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);
+                        // assert old_instances == listen_for_new_imported_blocks_helper_3_l2v2_h2(att_consensus_instances_already_decided);
+                        lXXXX@L2(att_consensus);
+                        assert o2 == o1.(
+                            future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances
+                        );
+                        listen_for_new_imported_blocks_helper_3_l2v2_h(o1, att_consensus_instances_already_decided, old_instances, block);
+                        // listen_for_new_imported_blocks_helper_3_l2v2@L2(block);
+                        // listen_for_new_imported_blocks_helper_3_l2(old(toDVCNodeState()), block);
+
+                        assert unchanged(`current_attesation_duty); 
+                        
+                        // // assert listen_for_new_imported_blocks_helper_3.requires(old(toDVCNodeState()), block);                                                   
+                        // assert toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block);                                                   
+                    }  
+                } 
             }
             else
             {
-                var o2 := toDVCNodeState();
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>
-            toDVCNodeState() == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);    
+                // var o1 := toDVCNodeState();
+               
+                var o1 := toDVCNodeState();
+                // var f1 := future_att_consensus_instances_already_decided;
+                label L2:
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==> 
+                        && o1 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block) 
+                        && isValidReprExtended()
+                        && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                        && unchanged(`current_attesation_duty)
+                by
+                {
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                    {
+                        assert isValidReprExtended();
+                        assert lXXXXPre2(att_consensus, att_consensus_instances_already_decided.Keys);
+                        lXXXX2(att_consensus, att_consensus_instances_already_decided.Keys);
+
+                        assert listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances == old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances - att_consensus_instances_already_decided.Keys;
+                        // // assert isValidReprExtended();
+                        // // // assert lXXXXPre(att_consensus);
+
+                        // // // lXXXX(att_consensus);      
+
+                        // // assert toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys  <= listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;  
+
+                        // // forall e | e in listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        // // ensures e in  toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        // // {
+                        // //     lemmaMapKeysHasOneEntryInItems(listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                        // // }   
+
+                        // // assert listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Keys; 
+
+                        calc {
+                            o1;
+                            { lXXXX@L2(att_consensus);}
+                            toDVCNodeState();
+                            listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);        
+                        }
+
+                        assert o1 == listen_for_new_imported_blocks_helper_2(old(toDVCNodeState()), block);            
+                        assert unchanged(`current_attesation_duty);                                        
+                    }
+                }
                 ...;
-                assert old(isValidReprExtended()) ==> isValidReprExtended();                            
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>
-            toDVCNodeStateAndOuputs() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block);         
-            }       
+
+                var o2 := toDVCNodeState();        
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>  
+                    && o2 == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block)  
+                    && isValidReprExtended()
+                    && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                    && unchanged(`current_attesation_duty)
+                by
+                {
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                    {
+                        assert isValidReprExtended();   
+                        // assert lXXXXPre(att_consensus);
+
+                        // lXXXX(att_consensus);                               
+
+                        // assert future_att_consensus_instances_already_decided == old(future_att_consensus_instances_already_decided) + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);    
+
+                        // assert !old(toDVCNodeState()).latest_attestation_duty.isPresent();    
+
+                        // listen_for_new_imported_blocks_helper_3_l(old(toDVCNodeState()), block);
+                        // assert listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block).future_att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);  
+                        // var o2 := toDVCNodeState();
+                        // // assert o2 == o1.(
+                        // //     future_att_consensus_instances_already_decided := att_consensus_instances_already_decided
+                        // // );
+                        // assert toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block); 
+
+                        var o2 := toDVCNodeState();
+                        // assert && att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);
+                        // assert old_instances == listen_for_new_imported_blocks_helper_3_l2v2_h2(att_consensus_instances_already_decided);
+                        lXXXX@L2(att_consensus);
+                        assert o2 == o1.(
+                            future_att_consensus_instances_already_decided := att_consensus_instances_already_decided 
+                        );
+                        listen_for_new_imported_blocks_helper_3_l_h(o1, att_consensus_instances_already_decided, block);
+                        assert unchanged(`current_attesation_duty); 
+
+                        // listen_for_new_imported_blocks_helper_3_l(old(toDVCNodeState()), block);
+                        // assert listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block).future_att_consensus_instances_already_decided == old(toDVCNodeState()).future_att_consensus_instances_already_decided + listen_for_new_imported_blocks_helper_a(old(toDVCNodeState()), block);                           
+                        
+                        // listen_for_new_imported_blocks_helper_3_l2v2_h(o1, att_consensus_instances_already_decided, old_instances, block);                                                                      
+                    } 
+                }                                         
+            }     
+
+            if...
+            {
+                label L3:
+                var o3 := toDVCNodeState();
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>  
+                    && toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block)
+                    && isValidReprExtended()
+                    && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                    && unchanged(`current_attesation_duty)
+                    ;
+                
+                ...;
+                {
+                    var o4 := toDVCNodeState();
+                    assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>  
+                        && o4 == listen_for_new_imported_blocks_helper_4(old(toDVCNodeState()), block)
+                        && isValidReprExtended()
+                        && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                    by 
+                    {
+                        if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                        {
+                            lXXXX@L3(att_consensus);
+                            assert o4 == o3.(
+                                current_attesation_duty := None
+                            );
+                            listen_for_new_imported_blocks_helper_4_l(o3, block);
+                            assert o4 == listen_for_new_imported_blocks_helper_4(old(toDVCNodeState()), block);  
+                        }
+                    } 
+                    
+                    ...;
+                    // assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>  toDVCNodeState() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state by       
+                    {
+                        if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                        {
+                            assert toDVCNodeState() == f_check_for_next_queued_duty(o4).state;
+
+                            listen_for_new_imported_blocks_helper_5_l(o4, att_consensus_instances_already_decided, block);
+                            assert toDVCNodeState() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state;
+                            // lXXXX@L3(att_consensus);
+                            // assert toDVCNodeState() == o3.(
+                            //     current_attesation_duty := None
+                            // );
+                            // listen_for_new_imported_blocks_helper_4_l(o3, block);
+                            // assert toDVCNodeState() == listen_for_new_imported_blocks_helper_4(old(toDVCNodeState()), block);  
+                        }
+                    }                                   
+
+                }
+            }
+            else
+            {
+                var o3 := toDVCNodeState();
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==>  
+                    && toDVCNodeState() == listen_for_new_imported_blocks_helper_3(old(toDVCNodeState()), block)
+                    && isValidReprExtended()
+                    && f_check_for_next_queued_duty.requires(toDVCNodeState())
+                    && unchanged(`current_attesation_duty)
+                    ;
+                if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+                {
+                    // assert !old(current_attesation_duty).isPresent();
+                    listen_for_new_imported_blocks_helper_5_l_2(block, att_consensus_instances_already_decided);
+                }
+            }
+            if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
+            {
+                assert toDVCNodeState() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state;  
+                assert unchanged(network);
+                assert unchanged(bn`attestations_submitted);
+                lYYYY();
+                f_listen_for_new_imported_blocks_empty_outputs(old(toDVCNodeState()), block);
+                // assert toDVCNodeStateAndOuputs() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block);                
+            }            
             ...;
         }
 

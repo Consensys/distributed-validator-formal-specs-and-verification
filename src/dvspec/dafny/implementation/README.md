@@ -24,6 +24,10 @@ This section covers features of the Dafny language that are critical to the unde
 - `:- <method call>`: The behaviour of this statement is similar to how exceptions work in other languages. If the method being called returns `Status.Failure`, then Dafny does not execute the rest of the caller-method code and it propagates the failure by immediately returning `Status.Failure`.
 - `trait`: A `trait` is an abstract superclass analogous to Java interfaces. 
 - `{<statement>}`: There is not any special meaning associated with statements being enclosed between curly braces. This is just an artifice used to allow most of the formal verification work to be carried out in separate files. Essentially, curly braces create a sort of an "anchor" in the code that a separate file can use to indicate where to insert formal verification statements.
+- `set`... TBD
+- remove from maps: TBD
+- map
+- seq
 - `requires <expression>`: These statements indicate that `<expression>` must evaluate to `true` every time that a method is called. Except for the first `requires` statement in the `constructor`, the rest of the `requires` statement are for formal verification purposes only.
 
 ## Understanding-NON-critical features of the Dafny language

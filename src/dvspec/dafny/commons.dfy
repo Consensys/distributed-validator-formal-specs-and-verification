@@ -77,8 +77,6 @@ module Types
 
     type AttestationSlashingDB = set<SlashingDBAttestation>
 
-    type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
-
     datatype BlockSlashingDB = BlockSlashingDB
 
     datatype  SlashingDBAttestation = SlashingDBAttestation(
