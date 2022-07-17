@@ -63,7 +63,6 @@ module DVCNode_Spec {
 
     datatype AttestationConsensusValidityCheckState = AttestationConsensusValidityCheckState(
         attestation_duty: AttestationDuty,
-        attestation_slashing_db: set<SlashingDBAttestation>,
         validityPredicate: AttestationData -> bool
     )
 
@@ -88,10 +87,9 @@ module DVCNode_Spec {
     {
         var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
-                    attestation_slashing_db := attestation_slashing_db,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );
-        assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(acvc.attestation_slashing_db, ad, acvc.attestation_duty));
+        assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
         s.(
             attestation_consensus_active_instances := s.attestation_consensus_active_instances[
                 id := acvc
@@ -118,7 +116,6 @@ module DVCNode_Spec {
             map it | it in m.Items
                 ::
                 it.0 := it.1.(
-                    attestation_slashing_db := new_attestation_slashing_db,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, it.1.attestation_duty)
                 )        
     }
@@ -162,14 +159,6 @@ module DVCNode_Spec {
         bn: BNState,
         rs: RSState
     )
-
-    predicate is_valid_attestation_data(
-        validity_check_data: AttestationConsensusValidityCheckState,
-        attestation_data: AttestationData
-    )
-    {
-        consensus_is_valid_attestation_data(validity_check_data.attestation_slashing_db, attestation_data, validity_check_data.attestation_duty)
-    }
 
     datatype Outputs = Outputs(
         att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,

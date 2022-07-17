@@ -17,7 +17,6 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         var attestation_slashing_db := acvc.slashing_db.attestations[pubkey];
         AttestationConsensusValidityCheckState(
             attestation_duty := attestation_duty,
-            attestation_slashing_db := attestation_slashing_db,
             validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
         )
     }    
@@ -535,19 +534,18 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             )                
         }  
 
-        lemma lZZZZ()
-        requires isValidReprExtended()
-        ensures forall i | i in toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Values :: i.attestation_slashing_db == toDVCNodeState().attestation_slashing_db;
-        {
-            var attestation_consensus_engine_state := toConsensusEngineState(att_consensus);
-            assert attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= att_consensus.consensus_instances_started.Keys;
+        // lemma lZZZZ()
+        // requires isValidReprExtended()
+        // {
+        //     var attestation_consensus_engine_state := toConsensusEngineState(att_consensus);
+        //     assert attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= att_consensus.consensus_instances_started.Keys;
 
-            forall e | e in att_consensus.consensus_instances_started.Keys
-            ensures e in attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-            {
-                lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
-            }                                             
-        }      
+        //     forall e | e in att_consensus.consensus_instances_started.Keys
+        //     ensures e in attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+        //     {
+        //         lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
+        //     }                                             
+        // }      
 
         twostate lemma lZZZZb(
             attestation_data: AttestationData
@@ -582,7 +580,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 )
             ensures  p.attestation_consensus_engine_state ==  toDVCNodeState().attestation_consensus_engine_state
             {
-                lZZZZ();
+                // lZZZZ();
 
 
 
@@ -624,7 +622,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         ensures
                         p.attestation_consensus_engine_state ==  toDVCNodeState().attestation_consensus_engine_state
         {
-            lZZZZ();
+            // lZZZZ();
 
 
 
