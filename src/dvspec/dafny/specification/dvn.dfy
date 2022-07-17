@@ -34,14 +34,14 @@ abstract module DV
 
     predicate Init(
         s: DVState,
-        initial_attestation_slashing_db: AttestationSlashingDB
+        initial_attestation_slashing_db: set<SlashingDBAttestation>
     )
     {
         && s.honest_nodes_states.Keys !! s.adversary.nodes !! {s.dv_pubkey}
         && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
         && s.honest_nodes_states.Keys != {}
         && |s.adversary.nodes| <= f(|s.all_nodes|)
-        && (
+        && (                            
             forall 
                 att_shares: set<AttestationShare>
                 ::

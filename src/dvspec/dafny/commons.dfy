@@ -75,9 +75,8 @@ module Types
         signature: BLSSignature
     )
 
-    type AttestationSlashingDB = set<SlashingDBAttestation>
-
     datatype BlockSlashingDB = BlockSlashingDB
+    type SlashingDBBlock(==, !new)
 
     datatype  SlashingDBAttestation = SlashingDBAttestation(
         source_epoch: Epoch,
@@ -107,12 +106,6 @@ module Types
     | NoEvent    
 
     type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
-
-    trait {:termination false} ConsensusValidityCheck<T>
-    {
-        predicate is_valid(data: T)
-        reads *
-    }
 
     datatype Optional<T(0)> = Some(v: T) | None
     {
@@ -327,7 +320,7 @@ module CommonFunctions{
         e
     }   
 
-    function method get_target_epochs(att_slashing_db: AttestationSlashingDB): (target_epochs: set<nat>)
+    function method get_target_epochs(att_slashing_db: set<SlashingDBAttestation>): (target_epochs: set<nat>)
     requires att_slashing_db != {}
     ensures target_epochs != {}
     {
@@ -336,7 +329,7 @@ module CommonFunctions{
         target_epochs
     }
 
-    function method get_source_epochs(att_slashing_db: AttestationSlashingDB): (source_epochs: set<nat>)
+    function method get_source_epochs(att_slashing_db: set<SlashingDBAttestation>): (source_epochs: set<nat>)
     requires att_slashing_db != {}
     ensures source_epochs != {}
     {
@@ -355,7 +348,7 @@ module CommonFunctions{
         || (data_1.source_epoch < data_2.source_epoch && data_2.target_epoch < data_1.target_epoch)        
     }
 
-    predicate is_slashable_attestation_data(att_slashing_db: AttestationSlashingDB, attestation_data: AttestationData)
+    predicate is_slashable_attestation_data(att_slashing_db: set<SlashingDBAttestation>, attestation_data: AttestationData)
     {
         // Check for EIP-3076 conditions:
         // https://eips.ethereum.org/EIPS/eip-3076#conditions
@@ -430,7 +423,7 @@ module CommonFunctions{
     } 
 
     predicate method consensus_is_valid_attestation_data(
-        slashing_db: AttestationSlashingDB,
+        slashing_db: set<SlashingDBAttestation>,
         attestation_data: AttestationData, 
         attestation_duty: AttestationDuty
     )

@@ -20,7 +20,6 @@ abstract module DVCNode_Implementation
         var current_attesation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
         var attestation_duties_queue: seq<AttestationDuty>;
-        var attestation_slashing_db: AttestationSlashingDB;
         var attestation_shares_db: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
         var attestation_shares_to_broadcast: map<Slot, AttestationShare>
         var construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>;
@@ -28,6 +27,7 @@ abstract module DVCNode_Implementation
         var dv_pubkey: BLSPubkey;
         var future_att_consensus_instances_already_decided: map<Slot, AttestationData>
 
+        const slashing_db: SlashingDB;
         const att_consensus: Consensus<AttestationData>;
         const network : Network
         const bn: BeaconNode;
@@ -41,18 +41,18 @@ abstract module DVCNode_Implementation
             network: Network,
             bn: BeaconNode,
             rs: RemoteSigner,
-            initial_attestation_slashing_db: AttestationSlashingDB,
+            initial_slashing_db: SlashingDB,
             construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
         )
         // The following indicates that `att_consensus` must not have any active consensus instance running.
         // This may need to be strengthened to require that `att_consensus` has never started any consensus instance.
         requires att_consensus.consensus_instances_started == map[]
-        requires ValidConstructorRepr(att_consensus, network, bn, rs)
+        requires ValidConstructorRepr(att_consensus, network, bn, rs, initial_slashing_db)
         {
             current_attesation_duty := None;
             latest_attestation_duty := None;
             attestation_duties_queue := [];
-            attestation_slashing_db := initial_attestation_slashing_db;
+            slashing_db := initial_slashing_db;
             attestation_shares_to_broadcast := map[];
             attestation_shares_db := map[];
             future_att_consensus_instances_already_decided := map[];
@@ -112,7 +112,7 @@ abstract module DVCNode_Implementation
             return Success;
         }
 
-        method check_for_next_queued_duty() returns (s: Status)
+        method check_for_next_queued_duty() returns (s: Status) // TODO T/O
         requires ValidRepr()
         modifies getRepr()
         decreases attestation_duties_queue
@@ -144,19 +144,22 @@ abstract module DVCNode_Implementation
         {
             current_attesation_duty := Some(attestation_duty);
             latest_attestation_duty := Some(attestation_duty);
-            var validityCheck := new AttestationConsensusValidityCheck(this, attestation_duty);
+            var validityCheck := new AttestationConsensusValidityCheck(this.dv_pubkey, this.slashing_db, attestation_duty);
             { :- att_consensus.start(attestation_duty.slot, validityCheck);}
             return Success;
         }        
 
         method update_attestation_slashing_db(attestation_data: AttestationData)
-        modifies `attestation_slashing_db
+        requires ValidRepr()
+        modifies slashing_db.Repr
+        ensures fresh(slashing_db.Repr - old(slashing_db.Repr))
+        ensures  ValidRepr()
         {
             var slashing_db_attestation := SlashingDBAttestation(
                                                 source_epoch := attestation_data.source.epoch,
                                                 target_epoch := attestation_data.target.epoch,
                                                 signing_root := Some(hash_tree_root(attestation_data)));
-            attestation_slashing_db := attestation_slashing_db + {slashing_db_attestation};
+            slashing_db.add_attestation(slashing_db_attestation, dv_pubkey);
         }
 
         method att_consensus_decided(
@@ -256,6 +259,7 @@ abstract module DVCNode_Implementation
             && unchanged(network)
             && unchanged(att_consensus)
             && unchanged(this)
+            && unchanged(slashing_db)
             {
                 var a := block.body.attestations[i];
 
@@ -295,7 +299,7 @@ abstract module DVCNode_Implementation
 
             if current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided
             {
-                // update_attestation_slashing_db(att_consensus_instances_already_decided[current_attesation_duty.safe_get().slot]);
+                // update_slashing_db(att_consensus_instances_already_decided[current_attesation_duty.safe_get().slot]);
                 current_attesation_duty := None;
                 { :- check_for_next_queued_duty();}
             }
@@ -314,16 +318,19 @@ abstract module DVCNode_Implementation
             att_consensus: Consensus<AttestationData>, 
             network: Network,
             bn: BeaconNode,
-            rs: RemoteSigner            
+            rs: RemoteSigner,
+            slashing_db: SlashingDB            
         )
         reads *
         {
             && att_consensus.consensus_instances_started.Values 
-            !! bn.Repr !! network.Repr !! att_consensus.Repr !! rs.Repr
+            !! bn.Repr !! network.Repr !! att_consensus.Repr 
+            !! rs.Repr !! slashing_db.Repr
             && bn.Valid()
             && rs.Valid()
             && network.Valid()
-            && att_consensus.Valid()                                
+            && att_consensus.Valid()    
+            && slashing_db.Valid()                            
         }   
 
         function getChildrenRepr(): set<object?>
@@ -331,6 +338,7 @@ abstract module DVCNode_Implementation
         {
             this.att_consensus.consensus_instances_started.Values 
             + this.bn.Repr + this.network.Repr + this.att_consensus.Repr + this.rs.Repr
+            + this.slashing_db.Repr
         }        
 
         function getRepr(): set<object?>
@@ -342,7 +350,7 @@ abstract module DVCNode_Implementation
         predicate ValidRepr()
         reads *
         {
-            && ValidConstructorRepr(this.att_consensus, this.network, this.bn, this.rs)
+            && ValidConstructorRepr(this.att_consensus, this.network, this.bn, this.rs, this.slashing_db)
             && this
             !in getChildrenRepr()                                
         }              
@@ -350,24 +358,38 @@ abstract module DVCNode_Implementation
 
     class AttestationConsensusValidityCheck extends ConsensusValidityCheck<AttestationData>
     {
-        const dvcNode: DVCNode
+        const dv_pubkey: BLSPubkey
         const attestation_duty: AttestationDuty
 
         constructor(
-            dvcNode: DVCNode,
+            dv_pubkey: BLSPubkey,
+            slashind_db: SlashingDB,
             attestation_duty: AttestationDuty
         )
-        ensures this.dvcNode == dvcNode
+        requires slashind_db.Valid()
+        ensures this.dv_pubkey == dv_pubkey
         ensures this.attestation_duty == attestation_duty
+        ensures this.slashing_db == slashind_db
+        ensures Valid()
         {
-            this.dvcNode := dvcNode;
+            this.dv_pubkey := dv_pubkey;
             this.attestation_duty := attestation_duty;
+            this.slashing_db := slashind_db;
+            Repr := {this} + {slashing_db} + slashind_db.Repr;
         }
 
-        predicate is_valid(data: AttestationData)
-        reads *
+        method is_valid(data: AttestationData) returns (valid: bool)
+        requires Valid()
+        modifies Repr
+        ensures Valid()
+        ensures fresh(Repr - old(Repr))
         {
-            consensus_is_valid_attestation_data(dvcNode.attestation_slashing_db, data, this.attestation_duty)             
+            assert Valid();
+            assert slashing_db.Valid();
+            var attestations := slashing_db.get_attestations(dv_pubkey);
+            Repr := Repr + slashing_db.Repr;
+
+            return consensus_is_valid_attestation_data(attestations, data, this.attestation_duty);             
         }
     }      
 }
@@ -376,6 +398,18 @@ module DVCNode_Externs
 {
     import opened Types
     import opened CommonFunctions
+
+    trait {:termination false} {:autocontracts} ConsensusValidityCheck<T>
+    {
+        const slashing_db: SlashingDB
+
+        method is_valid(data: T) returns (validity: bool)
+
+        predicate Valid()
+        {
+            true
+        }
+    }    
 
     trait {:autocontracts} Consensus<T(!new, ==)>
     {
@@ -459,5 +493,29 @@ module DVCNode_Externs
         requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
 
     }
+
+    trait {:autocontracts} SlashingDB
+    {
+        ghost var attestations: imaptotal<BLSPubkey, set<SlashingDBAttestation>>;
+        ghost var proposals: imaptotal<BLSPubkey, set<SlashingDBBlock>>
+
+        method add_attestation(attestation: SlashingDBAttestation, pubkey: BLSPubkey)
+        ensures attestations == old(attestations)[pubkey := old(attestations)[pubkey] + {attestation}]
+        ensures unchanged(`proposals)
+
+        method get_attestations(pubkey: BLSPubkey) returns (attestations: set<SlashingDBAttestation>)
+        ensures attestations == this.attestations[pubkey]
+        ensures unchanged(`attestations)
+        ensures unchanged(`proposals)
+
+        method add_proposal(block: SlashingDBBlock, pubkey: BLSPubkey)
+        ensures proposals == old(proposals)[pubkey := old(proposals)[pubkey] + {block}]
+        ensures unchanged(`attestations)
+
+        method get_proposals(pubkey: BLSPubkey) returns (proposals: set<SlashingDBBlock>)
+        ensures proposals == this.proposals[pubkey]
+        ensures unchanged(`attestations)
+        ensures unchanged(`proposals)        
+    }    
 }
 

@@ -63,7 +63,7 @@ module DVCNode_Spec {
 
     datatype AttestationConsensusValidityCheckState = AttestationConsensusValidityCheckState(
         attestation_duty: AttestationDuty,
-        attestation_slashing_db: AttestationSlashingDB,
+        attestation_slashing_db: set<SlashingDBAttestation>,
         validityPredicate: AttestationData -> bool
     )
 
@@ -82,7 +82,7 @@ module DVCNode_Spec {
         s: ConsensusEngineState,
         id: Slot,
         attestation_duty: AttestationDuty,
-        attestation_slashing_db: AttestationSlashingDB
+        attestation_slashing_db: set<SlashingDBAttestation>
     ): ConsensusEngineState
     requires id !in s.attestation_consensus_active_instances.Keys
     {
@@ -111,7 +111,7 @@ module DVCNode_Spec {
 
     function updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, AttestationConsensusValidityCheckState>,
-        new_attestation_slashing_db: AttestationSlashingDB
+        new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (r: map<Slot, AttestationConsensusValidityCheckState>)
     ensures r.Keys <= m.Keys
     {
@@ -125,7 +125,7 @@ module DVCNode_Spec {
 
     function updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
-        new_attestation_slashing_db: AttestationSlashingDB
+        new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (r: ConsensusEngineState)
     {
         s.(
@@ -150,7 +150,7 @@ module DVCNode_Spec {
         current_attesation_duty: Optional<AttestationDuty>,
         latest_attestation_duty: Optional<AttestationDuty>,
         attestation_duties_queue: seq<AttestationDuty>,
-        attestation_slashing_db: AttestationSlashingDB,
+        attestation_slashing_db: set<SlashingDBAttestation>,
         attestation_shares_db: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>,
         attestation_shares_to_broadcast: map<Slot, AttestationShare>,
         attestation_consensus_engine_state: ConsensusEngineState,
@@ -206,7 +206,7 @@ module DVCNode_Spec {
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
-        initial_attestation_slashing_db: AttestationSlashingDB,
+        initial_attestation_slashing_db: set<SlashingDBAttestation>,
         rs_pubkey: BLSPubkey
     )
     {
@@ -371,7 +371,7 @@ module DVCNode_Spec {
         seq(index, i => if i + 1 == index then true else false)
     } 
 
-    function f_update_attestation_slashing_db(attestation_slashing_db: AttestationSlashingDB, attestation_data: AttestationData): AttestationSlashingDB     
+    function f_update_attestation_slashing_db(attestation_slashing_db: set<SlashingDBAttestation>, attestation_data: AttestationData): set<SlashingDBAttestation>     
     {
         // assert not is_slashable_attestation_data(attestation_slashing_db, attestation_data, pubkey)
         // TODO: Is the following required given that each co-validator only handles one pubkey?

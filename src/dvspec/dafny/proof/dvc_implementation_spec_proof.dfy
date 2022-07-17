@@ -10,10 +10,11 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         acvc: ConsensusValidityCheck<AttestationData>
     ): AttestationConsensusValidityCheckState
     requires isAttestationConsensusValidityCheck(acvc)
-    reads acvc, (acvc as AttestationConsensusValidityCheck).dvcNode`attestation_slashing_db
+    reads acvc, acvc.slashing_db
     {
         var attestation_duty := (acvc as AttestationConsensusValidityCheck).attestation_duty;
-        var attestation_slashing_db := (acvc as AttestationConsensusValidityCheck).dvcNode.attestation_slashing_db;
+        var pubkey := (acvc as AttestationConsensusValidityCheck).dv_pubkey;
+        var attestation_slashing_db := acvc.slashing_db.attestations[pubkey];
         AttestationConsensusValidityCheckState(
             attestation_duty := attestation_duty,
             attestation_slashing_db := attestation_slashing_db,
@@ -48,7 +49,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     function get_attestation_consensus_active_instances(
         m: map<Slot, ConsensusValidityCheck<AttestationData>>
     ): (r: map<Slot, AttestationConsensusValidityCheckState>)
-    reads m.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in m.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+    reads m.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in m.Values  :: v.slashing_db
     ensures r.Keys <= m.Keys
     ensures forall k | k in r.Keys :: isAttestationConsensusValidityCheck(m[k]) && r[k] == toAttestationConsensusValidityCheckState(m[k])
     {  
@@ -60,7 +61,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     }
 
     function toConsensusEngineState(ce: Consensus<AttestationData>): (r: ConsensusEngineState)
-    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values  :: v.slashing_db
     {
         ConsensusEngineState(
             attestation_consensus_active_instances := get_attestation_consensus_active_instances(ce.consensus_instances_started)   
@@ -71,15 +72,14 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         ce: Consensus<AttestationData>,
         removed_keys: set<Slot>
     )
-    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values  :: v.slashing_db
     {
         ce.consensus_instances_started == old(ce.consensus_instances_started) - removed_keys 
         // && unchanged(ce)
         && forall v | v in ce.consensus_instances_started.Values :: 
             && old(allocated(v))
-            && isAttestationConsensusValidityCheck(v) 
-            && unchanged(toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db) 
-            && unchanged(toAttestationConsensusValidityCheck(v))   
+            && unchanged(v.slashing_db)
+            && unchanged(v)   
     }    
 
     twostate lemma lXXXX2(
@@ -104,14 +104,14 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     twostate predicate lXXXXPre(
         ce: Consensus<AttestationData>
     )
-    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+    reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values  :: v.slashing_db
     {
         && unchanged(ce)
         && forall v | v in ce.consensus_instances_started.Values :: 
             && old(allocated(v))
             && isAttestationConsensusValidityCheck(v) 
-            && unchanged(toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db) 
-            && unchanged(toAttestationConsensusValidityCheck(v))   
+            && unchanged(v.slashing_db) 
+            && unchanged(v)   
     }
 
     twostate lemma lXXXX(
@@ -221,13 +221,13 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
     class DVCNode...
     {
         function toDVCNodeState(): DVCNodeState
-        reads this, bn, rs, att_consensus, att_consensus.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in att_consensus.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+        reads this, bn, rs, att_consensus, slashing_db, att_consensus.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in att_consensus.consensus_instances_started.Values  :: v.slashing_db
         {
             DVCNodeState(
                 current_attesation_duty := current_attesation_duty,
                 latest_attestation_duty := latest_attestation_duty,
                 attestation_duties_queue := attestation_duties_queue,
-                attestation_slashing_db := attestation_slashing_db,
+                attestation_slashing_db := slashing_db.attestations[dv_pubkey],
                 attestation_shares_db := attestation_shares_db,
                 attestation_shares_to_broadcast := attestation_shares_to_broadcast,
                 attestation_consensus_engine_state := toConsensusEngineState(att_consensus),
@@ -250,7 +250,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         }              
 
         twostate function toDVCNodeStateAndOuputs(): DVCNodeStateAndOuputs
-        reads this, network, att_consensus, bn, rs, att_consensus.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in att_consensus.consensus_instances_started.Values && isAttestationConsensusValidityCheck(v) :: toAttestationConsensusValidityCheck(v).dvcNode`attestation_slashing_db
+        reads this, network, att_consensus, bn, rs, slashing_db, att_consensus.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in att_consensus.consensus_instances_started.Values :: v.slashing_db
         {
             DVCNodeStateAndOuputs(
                 state := toDVCNodeState(),
@@ -263,7 +263,8 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         {
             && (forall vp | vp in att_consensus.consensus_instances_started.Values :: 
                         && isAttestationConsensusValidityCheck(vp)
-                        && toAttestationConsensusValidityCheck(vp).dvcNode == this
+                        && vp.slashing_db == this.slashing_db
+                        && toAttestationConsensusValidityCheck(vp).dv_pubkey == this.dv_pubkey
             )
             && ValidRepr()
         }
@@ -271,7 +272,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         constructor...
         ensures 
                 && isValidReprExtended()
-                && Init(toDVCNodeState(), dv_pubkey, peers, construct_signed_attestation_signature, attestation_slashing_db, rs.pubkey)
+                && Init(toDVCNodeState(), dv_pubkey, peers, construct_signed_attestation_signature, initial_slashing_db.attestations[dv_pubkey], rs.pubkey)
         {
             ...;
         }
@@ -399,7 +400,9 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                             ensures e in rs.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
                             {
                                 lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
-                            }                          
+                            }   
+
+                            lZZZZb(future_att_consensus_instances_already_decided[queue_head.slot]);                       
                                                     
                             assert lemma_method_check_for_next_queued_duty_helper(old(toDVCNodeState())) == toDVCNodeState(); 
 
@@ -441,7 +444,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                         && current_attesation_duty == Some(attestation_duty)
                         && latest_attestation_duty == Some(attestation_duty)
                         && unchanged(`attestation_duties_queue)
-                        && unchanged(`attestation_slashing_db)
+                        && unchanged(slashing_db)
                         && unchanged(`attestation_shares_db)
                         && unchanged(`attestation_shares_to_broadcast)
                         && unchanged(`construct_signed_attestation_signature)
@@ -456,7 +459,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             if old(isValidReprExtended())
             {
                 forall e | e in old(att_consensus.consensus_instances_started.Keys)
-                ensures e in old(get_attestation_consensus_active_instances(att_consensus.consensus_instances_started)).Keys; 
+                ensures e in old(get_attestation_consensus_active_instances(att_consensus.consensus_instances_started)).Keys; // TOOD: Possible violation of postcondition
                 {
                     lemmaMapKeysHasOneEntryInItems(old(att_consensus.consensus_instances_started), e);
                 }     
@@ -474,12 +477,19 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         }
 
         method update_attestation_slashing_db...
-        ensures f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data) == this.attestation_slashing_db == toDVCNodeState().attestation_slashing_db
+        ensures f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data) == this.slashing_db.attestations[this.dv_pubkey] == toDVCNodeState().attestation_slashing_db
         ensures  var slashing_db_attestation := SlashingDBAttestation(
                                                 source_epoch := attestation_data.source.epoch,
                                                 target_epoch := attestation_data.target.epoch,
                                                 signing_root := Some(hash_tree_root(attestation_data)));
-            attestation_slashing_db == old(attestation_slashing_db) + {slashing_db_attestation};
+            slashing_db.attestations == old(slashing_db.attestations)[dv_pubkey := old(slashing_db.attestations)[dv_pubkey] + {slashing_db_attestation}]
+        ensures && unchanged(slashing_db`proposals)
+                && unchanged(this)
+                && unchanged(network)
+                && unchanged(rs)
+                && unchanged(bn)
+                && unchanged(att_consensus)
+                && unchanged(att_consensus.consensus_instances_started.Values)
         {
             ...;
         }
@@ -523,7 +533,72 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                     att_shares_sent := multicast(attestation_with_signature_share, process.peers)
                 )                  
             )                
-        }        
+        }  
+
+        lemma lZZZZ()
+        requires isValidReprExtended()
+        ensures forall i | i in toDVCNodeState().attestation_consensus_engine_state.attestation_consensus_active_instances.Values :: i.attestation_slashing_db == toDVCNodeState().attestation_slashing_db;
+        {
+            var attestation_consensus_engine_state := toConsensusEngineState(att_consensus);
+            assert attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= att_consensus.consensus_instances_started.Keys;
+
+            forall e | e in att_consensus.consensus_instances_started.Keys
+            ensures e in attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+            {
+                lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
+            }                                             
+        }      
+
+        twostate lemma lZZZZb(
+            attestation_data: AttestationData
+        )
+        requires old(isValidReprExtended())
+        requires isValidReprExtended()
+        requires unchanged(att_consensus)
+        requires var slashing_db_attestation := SlashingDBAttestation(
+                                                source_epoch := attestation_data.source.epoch,
+                                                target_epoch := attestation_data.target.epoch,
+                                                signing_root := Some(hash_tree_root(attestation_data)));        
+                && slashing_db.attestations == old(slashing_db.attestations)[dv_pubkey := old(slashing_db.attestations)[dv_pubkey] + {slashing_db_attestation}]
+        ensures
+                forall p: DVCNodeState |
+                        && p.dv_pubkey == dv_pubkey  
+                        && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data);
+                        && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data)
+                        && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
+                            old(toDVCNodeState()).attestation_consensus_engine_state,
+                            new_attestation_slashing_db
+                        )
+                    ::  
+                        p.attestation_consensus_engine_state ==  toDVCNodeState().attestation_consensus_engine_state
+        {
+            forall p: DVCNodeState |
+                && p.dv_pubkey == dv_pubkey  
+                && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data);
+                && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toDVCNodeState()).attestation_slashing_db, attestation_data)
+                && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
+                    old(toDVCNodeState()).attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )
+            ensures  p.attestation_consensus_engine_state ==  toDVCNodeState().attestation_consensus_engine_state
+            {
+                lZZZZ();
+
+
+
+                // forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                // ensures e in r.state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                // {
+                //     lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                // }         
+
+                forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                ensures e in p.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                {
+                    lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
+                } 
+            }                  
+        }
 
         method att_consensus_decided...
         ensures (old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCNodeState()), id, decided_attestation_data)) ==> 
@@ -538,13 +613,9 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                     var r := f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data);
                     var s := old(current_attesation_duty).safe_get().slot;
 
-                    forall e | e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-                    ensures e in r.state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-                    {
-                        lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
-                    }   
+                    lZZZZb(decided_attestation_data); 
 
-                    assert f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data).state == toDVCNodeStateAndOuputs().state;
+                    assert f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data).state == toDVCNodeStateAndOuputs().state; 
                 }                
                 ...;
             }
@@ -611,7 +682,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                         lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
                     }                 
                     forall e | e in att_consensus.consensus_instances_started.Keys
-                    ensures e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                    ensures e in old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances.Keys; // TODO: Error: possible violation of postcondition of forall statement
                     {
                         lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
                     }                  
@@ -637,7 +708,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             {
                 assert old(isValidReprExtended()) ==> 
                             && isValidReprExtended()
-                            && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share) == toDVCNodeStateAndOuputs();
+                            && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share) == toDVCNodeStateAndOuputs(); // TODO Assert violation
             }
         }
 
@@ -1160,7 +1231,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             && unchanged(bn`state_roots_of_imported_blocks)
             && unchanged(bn`attestations_submitted)
                 invariant  old(isValidReprExtended()) ==> isValidReprExtended();       
-                invariant old(isValidReprExtended()) ==> lXXXXPre(att_consensus)                    
+                invariant old(isValidReprExtended()) ==> lXXXXPre(att_consensus) // Does not hold                   
                 invariant old(isValidReprExtended() )==> toDVCNodeState() == old(toDVCNodeState())
                 // invariant toDVCNodeStateAndOuputs().outputs == getEmptyOuputs();   
                 invariant unchanged(bn`attestations_submitted)
