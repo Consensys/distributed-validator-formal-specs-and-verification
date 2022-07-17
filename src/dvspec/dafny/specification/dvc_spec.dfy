@@ -587,8 +587,15 @@ module DVCNode_Spec {
 
         if newProcess.current_attesation_duty.isPresent() && newProcess.current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided then
             // Stop(current_attesation_duty.safe_get().slot);
+            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attesation_duty.safe_get().slot];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
             var newProces2 := newProcess.(
-                current_attesation_duty := None
+                current_attesation_duty := None,
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    newProcess.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                
             );
             // DVCNodeStateAndOuputs(
             //     state := newProces2,

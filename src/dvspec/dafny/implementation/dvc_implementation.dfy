@@ -299,7 +299,7 @@ abstract module DVCNode_Implementation
 
             if current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided
             {
-                // update_slashing_db(att_consensus_instances_already_decided[current_attesation_duty.safe_get().slot]);
+                update_attestation_slashing_db(att_consensus_instances_already_decided[current_attesation_duty.safe_get().slot]);
                 current_attesation_duty := None;
                 { :- check_for_next_queued_duty();}
             }
