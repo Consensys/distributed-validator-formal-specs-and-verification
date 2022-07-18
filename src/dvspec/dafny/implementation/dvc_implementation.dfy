@@ -20,7 +20,7 @@ abstract module DVCNode_Implementation
         var current_attesation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
         var attestation_duties_queue: seq<AttestationDuty>;
-        var attestation_shares_db: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
+        var rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
         var attestation_shares_to_broadcast: map<Slot, AttestationShare>
         var construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>;
         var peers: set<BLSPubkey>;
@@ -54,7 +54,7 @@ abstract module DVCNode_Implementation
             attestation_duties_queue := [];
             slashing_db := initial_slashing_db;
             attestation_shares_to_broadcast := map[];
-            attestation_shares_db := map[];
+            rcvd_attestation_shares := map[];
             future_att_consensus_instances_already_decided := map[];
 
             this.att_consensus := att_consensus;
@@ -105,9 +105,7 @@ abstract module DVCNode_Implementation
         modifies getRepr()
         {
             attestation_duties_queue := attestation_duties_queue + [attestation_duty];
-            {
-                :- check_for_next_queued_duty();
-            }
+            { :- check_for_next_queued_duty();}
 
             return Success;
         }
@@ -192,9 +190,7 @@ abstract module DVCNode_Implementation
 
         function method get_aggregation_bits(
             index: nat
-        ): (s: seq<bool>)
-        ensures |s| == index
-        ensures forall i | 0 <= i < |s| :: if i == index - 1 then s[i] else !s[i]
+        ): seq<bool>
         {
             seq(index, i => if i + 1 == index then true else false)
         }        
@@ -213,10 +209,16 @@ abstract module DVCNode_Implementation
                 || (activate_att_consensus_intances == {} && current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot <= attestation_share.data.slot)                
                 || (activate_att_consensus_intances == {} && !current_attesation_duty.isPresent() && latest_attestation_duty.isPresent() && latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
+                // TODO: The check above is not consistent with the clean-up operation done in
+                // listen_for_new_imported_blocks. Here, any share for future slot is accepted, whereas
+                // listen_for_new_imported_blocks cleans up the received shares for any already-decided slot. This
+                // inconsistency should be fixed up by either accepting here only shares with slot higher than the
+                // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
+                // up only slot lower thant the slot of the current/latest duty 
                 var k := (attestation_share.data, attestation_share.aggregation_bits);
-                var attestation_shares_db_at_slot := getOrDefault(attestation_shares_db, attestation_share.data.slot, map[]);
-                attestation_shares_db := 
-                    attestation_shares_db[
+                var attestation_shares_db_at_slot := getOrDefault(rcvd_attestation_shares, attestation_share.data.slot, map[]);
+                rcvd_attestation_shares := 
+                    rcvd_attestation_shares[
                         attestation_share.data.slot := 
                             attestation_shares_db_at_slot[
                                         k := 
@@ -225,13 +227,13 @@ abstract module DVCNode_Implementation
                                         ]
                             ];
                             
-                if construct_signed_attestation_signature(attestation_shares_db[attestation_share.data.slot][k]).isPresent()
+                if construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
                 {
                     var aggregated_attestation := 
                             Attestation(
                                 aggregation_bits := attestation_share.aggregation_bits,
                                 data := attestation_share.data,
-                                signature := construct_signed_attestation_signature(attestation_shares_db[attestation_share.data.slot][k]).safe_get()
+                                signature := construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
                             );
                     bn.submit_attestation(aggregated_attestation); 
                 } 
@@ -277,8 +279,10 @@ abstract module DVCNode_Implementation
             }
 
             att_consensus.stop_multiple(att_consensus_instances_already_decided.Keys);
+            // TODO: The clean-up below is not consistent with the check done in listen_for_attestation_shares. See
+            // comment in listen_for_attestation_shares for an explanation.         
             attestation_shares_to_broadcast := attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys;
-            attestation_shares_db := attestation_shares_db - att_consensus_instances_already_decided.Keys;
+            rcvd_attestation_shares := rcvd_attestation_shares - att_consensus_instances_already_decided.Keys;
 
             if latest_attestation_duty.isPresent()
             {

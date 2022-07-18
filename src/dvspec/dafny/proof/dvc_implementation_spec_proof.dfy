@@ -143,7 +143,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 latest_attestation_duty := latest_attestation_duty,
                 attestation_duties_queue := attestation_duties_queue,
                 attestation_slashing_db := slashing_db.attestations[dv_pubkey],
-                attestation_shares_db := attestation_shares_db,
+                rcvd_attestation_shares := rcvd_attestation_shares,
                 attestation_shares_to_broadcast := attestation_shares_to_broadcast,
                 attestation_consensus_engine_state := toConsensusEngineState(att_consensus),
                 peers := peers,
@@ -287,7 +287,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 && unchanged(network)
                 && unchanged(bn)
                 && unchanged(rs)   
-                && unchanged(`attestation_shares_db)
+                && unchanged(`rcvd_attestation_shares)
                 && unchanged(`attestation_shares_to_broadcast)
                 && unchanged(`construct_signed_attestation_signature)
                 && unchanged(`peers)
@@ -355,7 +355,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                         && latest_attestation_duty == Some(attestation_duty)
                         && unchanged(`attestation_duties_queue)
                         && unchanged(slashing_db)
-                        && unchanged(`attestation_shares_db)
+                        && unchanged(`rcvd_attestation_shares)
                         && unchanged(`attestation_shares_to_broadcast)
                         && unchanged(`construct_signed_attestation_signature)
                         && unchanged(`peers)
@@ -539,6 +539,12 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             ...;
         }
 
+        function method get_aggregation_bits...
+        ensures 
+                var s := get_aggregation_bits(index);
+                && |s| == index
+                && forall i | 0 <= i < |s| :: if i == index - 1 then s[i] else !s[i]         
+
         // Helper functions/lemmas used when proving the postcondition of method listen_for_attestation_shares below
         predicate f_listen_for_attestation_shares_helper_2(
             process: DVCNodeState,
@@ -561,10 +567,10 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
 
             var k := (attestation_share.data, attestation_share.aggregation_bits);
-            var attestation_shares_db_at_slot := getOrDefault(process.attestation_shares_db, attestation_share.data.slot, map[]);
+            var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
             
             var new_attestation_shares_db := 
-                    process.attestation_shares_db[
+                    process.rcvd_attestation_shares[
                         attestation_share.data.slot := 
                             attestation_shares_db_at_slot[
                                         k := 
@@ -574,7 +580,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                             ];
 
             process.(
-                attestation_shares_db := new_attestation_shares_db
+                rcvd_attestation_shares := new_attestation_shares_db
             )
         }        
 
@@ -741,19 +747,10 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                                     att_consensus_instances_already_decided.Keys
                     ),
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys 
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys 
             )      
 
         }   
-
-        twostate lemma lYYYY()
-        requires
-            && unchanged(network`att_shares_sent)
-            && unchanged(bn`attestations_submitted)
-        ensures toDVCNodeStateAndOuputs().outputs == getEmptyOuputs()
-        {
-
-        }
 
         function f_listen_for_new_imported_blocks_part_3(
             process: DVCNodeState,
@@ -790,7 +787,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                                     att_consensus_instances_already_decided.Keys
                     ),
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys 
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys 
             )      
         }    
 
@@ -838,7 +835,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             process.(
                     future_att_consensus_instances_already_decided := new_future_att_consensus_instances_already_decided,
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys,
                     current_attesation_duty := None,
                     attestation_slashing_db := new_attestation_slashing_db,
                     attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
@@ -847,39 +844,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                     )                  
             )      
         }                   
-
-        lemma listen_for_new_imported_blocks_helper_3_l(
-            process: DVCNodeState,
-            block: BeaconBlock
-        )
-        requires f_listen_for_new_imported_blocks.requires(process, block)  
-        requires !process.latest_attestation_duty.isPresent()                    
-        ensures  f_listen_for_new_imported_blocks_part_3.requires(process, block)
-        ensures  f_listen_for_new_imported_blocks_part_3(process, block).future_att_consensus_instances_already_decided == process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(process, block);      
-        {
-            
-        }          
-
-        lemma listen_for_new_imported_blocks_helper_3_l2(
-            process: DVCNodeState,
-            block: BeaconBlock
-        )
-        requires f_listen_for_new_imported_blocks.requires(process, block)  
-        requires process.latest_attestation_duty.isPresent()                   
-        ensures  f_listen_for_new_imported_blocks_part_3.requires(process, block)
-        ensures  var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(process, block);
-                var old_instances := 
-                        set i | 
-                            && i in att_consensus_instances_already_decided.Keys
-                            && i <= process.latest_attestation_duty.safe_get().slot
-                        ;                
-        
-        
-        f_listen_for_new_imported_blocks_part_3(process, block).future_att_consensus_instances_already_decided == att_consensus_instances_already_decided - old_instances
-        {
-            
-        }    
-
+      
         function f_listen_for_new_imported_blocks_part_3_calc_old_instances(
             att_consensus_instances_already_decided: map<Slot, AttestationData>
         ): set<Slot>
@@ -1020,7 +985,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                                         att_consensus_instances_already_decided_let.Keys
                         ),
                         attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided_let.Keys,
-                        attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided_let.Keys                    
+                        rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided_let.Keys                    
                     );    
 
             var decided_attestation_data := att_consensus_instances_already_decided[process.current_attesation_duty.safe_get().slot];
@@ -1116,7 +1081,6 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                             attestation_duties_queue := process.attestation_duties_queue[1..]
                         );  
                         assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();       
-                        // f_start_next_duty(new_process, process.attestation_duties_queue[0])
                     }
             }
                     
@@ -1125,8 +1089,39 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();
             }
          
+        }     
+
+        twostate lemma lemaUnchangedThatImpliesEmptyOutputs()
+        requires
+            && unchanged(network`att_shares_sent)
+            && unchanged(bn`attestations_submitted)
+        ensures toDVCNodeStateAndOuputs().outputs == getEmptyOuputs()
+        {
+
         }        
 
+        // As the name, of the lemma suggests, this is an unused lemma which, however, if commented out, very very very surprisingly,
+        // causes the verification of the method listen_for_new_imported_blocks to increase to more
+        // than 30 min.
+        lemma unused_lemma_that_if_commented_out_gets_the_verification_time_of_the_following_method_to_increase_to_30_plus_min(
+            process: DVCNodeState,
+            block: BeaconBlock
+        )
+        requires f_listen_for_new_imported_blocks.requires(process, block)  
+        requires process.latest_attestation_duty.isPresent()                   
+        ensures  f_listen_for_new_imported_blocks_part_3.requires(process, block)
+        ensures  var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(process, block);
+                var old_instances := 
+                        set i | 
+                            && i in att_consensus_instances_already_decided.Keys
+                            && i <= process.latest_attestation_duty.safe_get().slot
+                        ;                
+        f_listen_for_new_imported_blocks_part_3(process, block).future_att_consensus_instances_already_decided == att_consensus_instances_already_decided - old_instances
+        {
+            
+        }            
+
+        // 6min - 3.7.1
         method listen_for_new_imported_blocks...
         ensures (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==> 
                     && isValidReprExtended()
@@ -1371,7 +1366,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 assert toDVCNodeState() == f_listen_for_new_imported_blocks(old(toDVCNodeState()), block).state;  
                 assert unchanged(network);
                 assert unchanged(bn`attestations_submitted);
-                lYYYY();
+                lemaUnchangedThatImpliesEmptyOutputs();
                 f_listen_for_new_imported_blocks_empty_outputs(old(toDVCNodeState()), block);               
             }            
             ...;
@@ -1405,7 +1400,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 //     latest_attestation_duty := rs.latest_attestation_duty,
 //     attestation_duties_queue := rs.attestation_duties_queue,
 //     attestation_slashing_db := rs.attestation_slashing_db,
-//     attestation_shares_db := rs.attestation_shares_db,
+//     rcvd_attestation_shares := rs.rcvd_attestation_shares,
 //     attestation_shares_to_broadcast := rs.attestation_shares_to_broadcast,
 //     // attestation_consensus_engine_state := rs.attestation_consensus_engine_state,
 //     // attestation_validity_check

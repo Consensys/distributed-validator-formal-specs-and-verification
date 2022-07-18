@@ -148,7 +148,7 @@ module DVCNode_Spec {
         latest_attestation_duty: Optional<AttestationDuty>,
         attestation_duties_queue: seq<AttestationDuty>,
         attestation_slashing_db: set<SlashingDBAttestation>,
-        attestation_shares_db: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>,
+        rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>,
         attestation_shares_to_broadcast: map<Slot, AttestationShare>,
         attestation_consensus_engine_state: ConsensusEngineState,
         peers: set<BLSPubkey>,
@@ -204,7 +204,7 @@ module DVCNode_Spec {
             latest_attestation_duty := None,
             attestation_duties_queue := [],
             attestation_slashing_db := initial_attestation_slashing_db,
-            attestation_shares_db := map[],
+            rcvd_attestation_shares := map[],
             attestation_shares_to_broadcast := map[],
             attestation_consensus_engine_state := getInitialConensusEngineState(),
             peers := peers,
@@ -423,10 +423,10 @@ module DVCNode_Spec {
             || (activate_att_consensus_intances == {} && !process.current_attesation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot) then
 
                 var k := (attestation_share.data, attestation_share.aggregation_bits);
-                var attestation_shares_db_at_slot := getOrDefault(process.attestation_shares_db, attestation_share.data.slot, map[]);
+                var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
                 
                 var new_attestation_shares_db := 
-                        process.attestation_shares_db[
+                        process.rcvd_attestation_shares[
                             attestation_share.data.slot := 
                                 attestation_shares_db_at_slot[
                                             k := 
@@ -436,17 +436,17 @@ module DVCNode_Spec {
                                 ];
 
                 var process := process.(
-                    attestation_shares_db := new_attestation_shares_db
+                    rcvd_attestation_shares := new_attestation_shares_db
                 );
 
                             
-                if process.construct_signed_attestation_signature(process.attestation_shares_db[attestation_share.data.slot][k]).isPresent() then
+                if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent() then
                 
                     var aggregated_attestation := 
                             Attestation(
                                 aggregation_bits := attestation_share.aggregation_bits,
                                 data := attestation_share.data,
-                                signature := process.construct_signed_attestation_signature(process.attestation_shares_db[attestation_share.data.slot][k]).safe_get()
+                                signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
                             );
 
                     DVCNodeStateAndOuputs(
@@ -554,7 +554,7 @@ module DVCNode_Spec {
                                     att_consensus_instances_already_decided.Keys
                     ),
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    attestation_shares_db := process.attestation_shares_db - att_consensus_instances_already_decided.Keys                    
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
                 );                    
 
         if process.current_attesation_duty.isPresent() && process.current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided then
