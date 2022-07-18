@@ -6,7 +6,8 @@ abstract module DVCNode_Implementation
     import opened DVCNode_Externs: DVCNode_Externs
 
     export PublicInterface
-        reveals DVCNode
+        reveals DVCNode,
+                AttestationSignatureShareDB
         provides
                 DVCNode.serve_attestation_duty, 
                 DVCNode.att_consensus_decided, 
@@ -15,6 +16,8 @@ abstract module DVCNode_Implementation
                 DVCNode.resend_attestation_share,
                 DVCNode.bn
         provides Types, DVCNode_Externs
+
+    type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
 
     class DVCNode {
 
@@ -34,9 +37,6 @@ abstract module DVCNode_Implementation
         const network : Network
         const bn: BeaconNode;
         const rs: RemoteSigner;
-
-        var past_decided_slots: set<Slot>;
-        var attestation_duties: set<AttestationDuty>;
 
         constructor(
             pubkey: BLSPubkey, 
@@ -61,12 +61,8 @@ abstract module DVCNode_Implementation
             this.construct_signed_attestation_signature := construct_signed_attestation_signature;
             this.dv_pubkey := dv_pubkey;
             this.future_att_consensus_instances_already_decided := {};
-
-            this.past_decided_slots := {};
-            this.attestation_duties := {};
         }
 
-        /*
         method serve_attestation_duty(
             attestation_duty: AttestationDuty
         )
@@ -87,57 +83,12 @@ abstract module DVCNode_Implementation
                     attestation_duties_queue := attestation_duties_queue[1..];
                     check_for_next_queued_duty();
                 }
-                else
+                else if !current_attesation_duty.isPresent()
                 {
-                    start_next_duty(attestation_duties_queue[0]);
-                }
-            }
-        }
-        */
+                    var queue_head := attestation_duties_queue[0];
+                    attestation_duties_queue := attestation_duties_queue[1..];
 
-        method serve_attestation_duty(
-            attestation_duty: AttestationDuty
-        )
-        modifies this
-        {
-            attestation_duties := attestation_duties + {attestation_duty};
-            check_for_next_queued_duty();
-        }
-
-        // Since attestation_duties_queue might not be increased in slots,
-        // I would like to introduce attestation_duties as a set and 
-        // prioritize an attestation duty with the minimum slot in that set. 
-        //
-        // Variable past_decided_slots keeps track of slots whose consensus on 
-        // corresponding attestations has stopped.
-        method check_for_next_queued_duty()
-        modifies this        
-        {
-            if |attestation_duties| > 0
-            {
-                var min_duty :| (min_duty in attestation_duties && 
-                                (forall duty :: duty in attestation_duties ==> min_duty.slot <= duty.slot));
-                if min_duty.slot in future_att_consensus_instances_already_decided
-                {
-                    attestation_duties := attestation_duties - {min_duty};
-                    past_decided_slots := past_decided_slots + {min_duty.slot};
-                    check_for_next_queued_duty();
-                }
-                else
-                {
-                    /* The following code has an issue with non-ghost variables.
-                    if forall past_slot :: past_slot < min_duty.slot ==> past_slot in past_decided_slots
-                    {
-                        start_next_duty(min_duty);   
-                    }
-                    */
-                    var max_past_slot :| (max_past_slot in past_decided_slots &&
-                                         (forall slot :: slot in past_decided_slots ==> slot <= max_past_slot));
-                    
-                    if (min_duty.slot == 0 || max_past_slot + 1 == min_duty.slot)
-                    {
-                        start_next_duty(min_duty);   
-                    }
+                    start_next_duty(queue_head);
                 }
             }
         }
@@ -258,10 +209,7 @@ abstract module DVCNode_Implementation
             if current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot in future_att_consensus_instances_already_decided
             {
                 att_consensus.stop(current_attesation_duty.safe_get().slot);
-
-                // Update past_decided_slots
-                past_decided_slots := past_decided_slots + {current_attesation_duty.safe_get().slot};
-
+                current_attesation_duty := None;
                 check_for_next_queued_duty();
             }                                   
         }
@@ -364,7 +312,5 @@ module DVCNode_Externs
             signing_root: Root           
         ) returns (s: BLSSignature)
         requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
-
     }
 }
-
