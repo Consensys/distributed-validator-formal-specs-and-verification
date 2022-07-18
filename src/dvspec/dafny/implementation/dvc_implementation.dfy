@@ -205,9 +205,6 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            // TODO: Decide 
-            // 1. whether to add att shares to db only if already served attestation duty
-            // 2. when to wipe out the db
             var activate_att_consensus_intances := att_consensus.get_active_instances();
 
             if 
@@ -399,16 +396,14 @@ module DVCNode_Externs
     import opened Types
     import opened CommonFunctions
 
-    trait {:termination false} {:autocontracts} ConsensusValidityCheck<T>
+    trait 
+    // See https://github.com/dafny-lang/dafny/issues/1588 for why {:termination false} is needed
+    {:termination false} 
+    {:autocontracts} ConsensusValidityCheck<T>
     {
         const slashing_db: SlashingDB
 
         method is_valid(data: T) returns (validity: bool)
-
-        predicate Valid()
-        {
-            true
-        }
     }    
 
     trait {:autocontracts} Consensus<T(!new, ==)>
@@ -419,7 +414,6 @@ module DVCNode_Externs
             id: Slot,
             validityPredicate: ConsensusValidityCheck<T>
         ) returns (s: Status)
-        // requires validityPredicate as object != this
         ensures s.Success? <==> id !in old(consensus_instances_started.Keys)
         ensures s.Success? ==> consensus_instances_started == old(consensus_instances_started)[id := validityPredicate]
         ensures s.Failure? ==> unchanged(`consensus_instances_started)  
