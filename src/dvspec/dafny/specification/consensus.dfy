@@ -31,14 +31,6 @@ module ConsensusSpec
     function quorum(n:nat):nat
     // returns ceil(2n/3)
 
-    // function getRunningNodes<D(!new, 0)>(
-    //     s: ConsensusInstance
-    // ): set<BLSPubkey> 
-    // {
-    //     set n | 
-    //         && n in s.honest_nodes_status
-    //         && s.honest_nodes_status[n] in {STARTED, DECIDED}
-    // }
 
     predicate isConditionForSafetyTrue<D(!new, 0)>(
         s: ConsensusInstance
@@ -46,15 +38,6 @@ module ConsensusSpec
     {
         quorum(|s.all_nodes|) <= |s.honest_nodes_status|
     }
-
-    // predicate isNodeRunning<D(!new, 0)>(
-    //     s: ConsensusInstance,
-    //     node: BLSPubkey
-    // )
-    // {
-    //     && node in s.honest_nodes_status.Keys
-    //     && s.honest_nodes_status[node] in {STARTED, DECIDED}
-    // }
 
     predicate Init<D(!new, 0)>(
         s: ConsensusInstance, 
@@ -69,7 +52,6 @@ module ConsensusSpec
 
     predicate Next<D(!new, 0)>(
         s: ConsensusInstance,
-        // input: Optional<InCommand>,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
         s': ConsensusInstance,
         output: Optional<OutCommand>
@@ -90,48 +72,17 @@ module ConsensusSpec
         output: Optional<OutCommand>
     )
     {
-        && (
-            // || (
-            //     && input.isPresent()
-            //     && !output.isPresent()
-            //     && input.safe_get().Start?
-            //     && var n := input.safe_get().node;
-            //     && n in s.honest_nodes_status.Keys 
-            //     && s.honest_nodes_status[n] in {NEVER_STARTED, STARTED}
-            //     && s' == s.(
-            //         honest_nodes_status := s.honest_nodes_status[n := STARTED]
-            //     )
-                
-            // )
-            // || (
-            //     && input.isPresent()
-            //     && !output.isPresent()
-            //     && input.safe_get().Stop?
-            //     && var n := input.safe_get().node;
-            //     && n in s.honest_nodes_status.Keys 
-            //     && s.honest_nodes_status[n] == STARTED
-            //     && s' == s.(
-            //         honest_nodes_status := s.honest_nodes_status[n := STOPPED]
-            //     )
-                
-            // )    
-            // || 
-            (
-                // && !input.isPresent()
-                && output.isPresent()
-                && var n := output.safe_get().node;
-                && n in s.honest_nodes_status.Keys 
-                && n in honest_nodes_validity_predicates.Keys
-                && s.honest_nodes_status[n] in {DECIDED}
-                &&  if isConditionForSafetyTrue(s) then
-                        && s.decided_value.isPresent()
-                        && output.safe_get().value == s.decided_value.safe_get()
-                        && s' == s
-                    else
-                        s' == s
-            )      
-        )
-     
+        && output.isPresent()
+        && var n := output.safe_get().node;
+        && n in s.honest_nodes_status.Keys 
+        && n in honest_nodes_validity_predicates.Keys
+        && s.honest_nodes_status[n] in {DECIDED}
+        &&  if isConditionForSafetyTrue(s) then
+                && s.decided_value.isPresent()
+                && output.safe_get().value == s.decided_value.safe_get()
+                && s' == s
+            else
+                s' == s     
     }
 
     predicate NextConsensusDecides<D(!new, 0)>(
@@ -162,9 +113,4 @@ module ConsensusSpec
         )
      
     }    
-
-    // datatype Consensus = ConsensusInstance 
-    // (
-    //     consensus_on_attestation_data: imaptotal<Slot, DVSAttestationConsensusData>
-    // )
 }

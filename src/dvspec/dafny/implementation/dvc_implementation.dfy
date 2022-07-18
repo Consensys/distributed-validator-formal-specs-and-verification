@@ -360,19 +360,19 @@ abstract module DVCNode_Implementation
 
         constructor(
             dv_pubkey: BLSPubkey,
-            slashind_db: SlashingDB,
+            slashing_db: SlashingDB,
             attestation_duty: AttestationDuty
         )
-        requires slashind_db.Valid()
+        requires slashing_db.Valid()
         ensures this.dv_pubkey == dv_pubkey
         ensures this.attestation_duty == attestation_duty
-        ensures this.slashing_db == slashind_db
+        ensures this.slashing_db == slashing_db
         ensures Valid()
         {
             this.dv_pubkey := dv_pubkey;
             this.attestation_duty := attestation_duty;
-            this.slashing_db := slashind_db;
-            Repr := {this} + {slashing_db} + slashind_db.Repr;
+            this.slashing_db := slashing_db;
+            Repr := {this} + {slashing_db} + slashing_db.Repr;
         }
 
         method is_valid(data: AttestationData) returns (valid: bool)
@@ -488,6 +488,7 @@ module DVCNode_Externs
 
     }
 
+    // NOTE: All methods in this trait MUST be implemented thread-safe.
     trait {:autocontracts} SlashingDB
     {
         ghost var attestations: imaptotal<BLSPubkey, set<SlashingDBAttestation>>;

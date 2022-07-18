@@ -12,7 +12,7 @@ This method must be executed on an instance `I` of `DVCNode` any time that a new
 The implementation is not thread-safe, that is, for any instance of `DVCNode`, only one `process_event` method must be executing at any point in time.
 `process_event` returns a value of type `Status` which indicates whether any error occurred in the processing of the event.
 
-The formal verification analysis will prove that, as long as the components external to the `DVCNode` class (i.e. network, consensus, beacon node and remote signer) behave as expected, no error can occur.
+The formal verification analysis will prove that, as long as the components external to the `DVCNode` class (i.e. network, consensus, beacon node, remote signer and slashing db) behave as expected, no error can occur.
 Therefore, if `process_event` indicates that an error occurred while processing the event, it means that one of the external components did not behave as expected.
 Hence, recovery from error conditions is outside the scope of this reference implementation.
 
@@ -22,7 +22,7 @@ Hence, recovery from error conditions is outside the scope of this reference imp
 This section covers features of the Dafny language that are critical to the understanding of the reference implementation.
 
 - `:- <method call>`: The behaviour of this statement is similar to how exceptions work in other languages. If the method being called returns `Status.Failure`, then Dafny does not execute the rest of the caller-method code and it propagates the failure by immediately returning `Status.Failure`.
-- `trait`: A `trait` is an abstract superclass analogous to Java interfaces. 
+- `trait`: A `trait` is an abstract superclass analogous to Java interfaces.
 - `{<statement>}`: There is not any special meaning associated with statements being enclosed between curly braces. This is just an artifice used to allow most of the formal verification work to be carried out in separate files. Essentially, curly braces create a sort of an "anchor" in the code that a separate file can use to indicate where to insert formal verification statements.
 - `set`... TBD
 - remove from maps: TBD
