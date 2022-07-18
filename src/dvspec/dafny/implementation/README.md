@@ -28,12 +28,9 @@ This section covers features of the Dafny language that are critical to the unde
 For example, set s | 0 <= s <= 5 :: s*2, corresponds to the set {0, 2, 4, 6, 8, 10}.
 Another way to define a set is var x := {1,2}.
 {} represents an empty set.
-- If m is a variable to type map<T1,T2>, then 
-m.[ k := v]
-Corresponds to the value held by the variable m with the exception that the value assigned to the key k is v.
-If m is a variable to type map<T1,T2>, then 
-m.Keys
-Corresponds to the set of keys in the map held by the variable m.
+- `m.[k := v]`: Map update. If `m` is a variable to type `map<T1,T2>`, then `m.[ k := v]` corresponds to the value held by the variable `m` with the exception that the value assigned to the key `k` is `v`. 
+- `m.Keys`: If `m` is a variable to type `map<T1,T2>`, then `m.Keys` corresponds to the set of keys in the map held by the variable `m`.
+- `m - set_of`: Map key removal.
 - remove from maps: TBD
 - map
 - seq
