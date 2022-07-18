@@ -24,7 +24,16 @@ This section covers features of the Dafny language that are critical to the unde
 - `:- <method call>`: The behaviour of this statement is similar to how exceptions work in other languages. If the method being called returns `Status.Failure`, then Dafny does not execute the rest of the caller-method code and it propagates the failure by immediately returning `Status.Failure`.
 - `trait`: A `trait` is an abstract superclass analogous to Java interfaces.
 - `{<statement>}`: There is not any special meaning associated with statements being enclosed between curly braces. This is just an artifice used to allow most of the formal verification work to be carried out in separate files. Essentially, curly braces create a sort of an "anchor" in the code that a separate file can use to indicate where to insert formal verification statements.
-- `set`... TBD
+- `set s | <boolean expression> :: <expression>`: This is the Dafny set comprehension expression. It corresponds to the set that includes all and only those values obtained by the evaluation of `<expression>` on the values of `s` that satisfy `<boolean expression>`.
+For example, set s | 0 <= s <= 5 :: s*2, corresponds to the set {0, 2, 4, 6, 8, 10}.
+Another way to define a set is var x := {1,2}.
+{} represents an empty set.
+- If m is a variable to type map<T1,T2>, then 
+m.[ k := v]
+Corresponds to the value held by the variable m with the exception that the value assigned to the key k is v.
+If m is a variable to type map<T1,T2>, then 
+m.Keys
+Corresponds to the set of keys in the map held by the variable m.
 - remove from maps: TBD
 - map
 - seq
