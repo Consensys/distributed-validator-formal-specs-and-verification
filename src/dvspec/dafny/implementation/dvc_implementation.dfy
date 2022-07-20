@@ -122,6 +122,7 @@ abstract module DVCNode_Implementation
                     var queue_head := attestation_duties_queue[0];
                     attestation_duties_queue := attestation_duties_queue[1..];
                     update_attestation_slashing_db(future_att_consensus_instances_already_decided[queue_head.slot]);
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided - {queue_head.slot};                    
                     { :- check_for_next_queued_duty();}
                 }
                 else if !current_attesation_duty.isPresent()
