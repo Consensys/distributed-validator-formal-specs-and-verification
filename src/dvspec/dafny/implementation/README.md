@@ -6,23 +6,17 @@ This folder contains the Dafny reference implementation section of the DVT proto
 
 The bulk of the implementation logic is contained in the `DVCNode` class.
 An instance of this class refers to a DVC that handles the attestation creation logic of the DVT protocol for a single Distributed Validator public key.
-<!-- Since DVC and DVCNode are different names, I would like to tell the reader that DVCNode plays a same role with DVC in https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dafny_spec_internal_roberto. -->
 
 The only public method of the `DVCNode` class is the `process_event` method.
 This method must be executed on an instance `I` of `DVCNode` any time that a new event concerning attestation creation for the Distributed Validator public key handled by instance `I` occurs.
-`process_event` returns a value of type `Status` which indicates whether any error occurred in the processing of the event.
 The implementation is not thread-safe, that is, for any instance of `DVCNode`, only one `process_event` method must be executing at any point in time.
-<!-- Since a thread-safe requirement is more interesting than a returned value, I would like to move it to the end of the paragraph.  -->
 
-
-The formal verification analysis will prove that, as long as the components external to the `DVCNode` class (i.e. network, consensus, beacon node, remote signer and slashing db) behave as expected, safety and liveness (?) properties are not violated.
-<!-- No errors seems very hard to archieve.  -->
-Therefore, if `process_event` indicates that a property violation occurred while processing the event, it means that one of the external components did not behave as expected.
+`process_event` returns a value of type `Status` which indicates whether any error occurred in the processing of the event.
+The formal verification analysis will prove that, as long as the components external to the `DVCNode` class (i.e. network, consensus, beacon node, remote signer and slashing db) behave as expected, no error can occur.
+Therefore, if `process_event` indicates that an error occurred while processing the event, it means that one of the external components did not behave as expected.
 Hence, recovery from error conditions is outside the scope of this reference implementation.
 
-[comment]: <> (Not very happy with this title)
-<!-- I would like to suggest the name "specification features". -->
-## Specification features of the Dafny language
+## Relevant features of the Dafny language
 
 This section covers features of the Dafny language that are critical to the understanding of the reference implementation.
 
@@ -34,23 +28,18 @@ This section covers features of the Dafny language that are critical to the unde
 - `{<statement>}`: There is not any special meaning associated with statements being enclosed between curly braces. This is just an artifice used to allow most of the formal verification work to be carried out in separate files. Essentially, curly braces create a sort of an "anchor" in the code that a separate file can use to indicate where to insert formal verification statements.
 - `:- <method call>`: The behaviour of this statement is similar to how exceptions work in other languages. If the method being called returns `Status.Failure`, then Dafny does not execute the rest of the caller-method code and it propagates the failure by immediately returning `Status.Failure`.
 - `requires <expression>`: This statement indicates that `<expression>` must be evaluated to `true` every time that a method is called. Except for the first `requires` statement in the `constructor`, the rest of the `requires` statement are for formal verification purposes only.
-- `ensures <expression>`: This statement indicates that `<expression>` must be evaluated to `true` every time that a method exists. It is only for formal verification purposes.
-<!-- I would like to change the appearance of general features like that as variables are usually introduced first, and then statements, and then methods. -->
-<!-- Perhaps you wish to mention ensures. -->
-
 
 ### Sets
 <!-- I would like to mention `set x | P(x)` -->
 
 - `set s | <boolean expression> :: <expression>`: This is the Dafny set comprehension expression. It corresponds to the set that includes all and only those values obtained by the evaluation of `<expression>` on the members of `s` that satisfy `<boolean expression>`.
-For example, the expression set s | 0 <= s <= 5 :: s*2 represents the set {0, 2, 4, 6, 8, 10}.
-Note that `set x | P(x)` is equivalent to `set x : T | P(x) :: x` where P(x) is a boolean predicate.
-Another way to define a set is `var x := {1,2}`.
-{} represents an empty set.
+For example, the expression `set s | 0 <= s <= 5 :: s*2` represents the set {0, 2, 4, 6, 8, 10}.
+Note that `set x | <boolean expression>` is the short form of `set x | <boolean expression> :: x`.
+Another way to define a set is by `var x := {1, 2}`.
+`{}` represents an empty set.
 - `|s|`: Cardinality or the number of elements in the set `s`.
 
 ### Maps
-<!-- I would like to mention Maps first since sequences are special cases of maps and tuples are special cases of sequences.  -->
 
 - `m[k]`: Access the element in the map `m` with key `k`.
 - `m.[k := v]`: Map update. If `m` is a variable to type `map<T1,T2>`, then `m.[ k := v]` corresponds to the value held by the variable `m` with the exception that the value assigned to the key `k` is `v`. 
@@ -111,13 +100,13 @@ For example,
     returns the double of the value passed as a parameter 
 
 
-## Miscellaneous features of the Dafny language
-<!-- Not happy with the name  -->
+## Less relevant features of the Dafny language
 
 This section covers features of the Dafny language that are NOT critical to the understanding of the reference implementation.
 
 - `modifies <locs>`: This statement indicates the set of memory locations that a method may modify. This statement is needed for formal verification purposes only.
 - `reads *`: This statment indicates that a function can access any memory location. This statement is needed for formal verification purposes only.
+- `ensures <expression>`: This statement indicates that `<expression>` must be evaluated to `true` every time that a method exists. It is only for formal verification purposes.
 
 ## TODOs
 
