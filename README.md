@@ -45,14 +45,14 @@ The following are existing implementations of Distributed Validator technology (
 
 ![General Architecture](figures/general-architecture.png)
 
-This specification presents a way to implement Distributed Validator Client software as middleware between the Beacon Node (BN) and a Remote Signer (RS):
+This specification presents a way to implement Distributed Validator Client software as middleware between the Beacon Node (BN) and a [Remote Signer (RS)](https://github.com/ConsenSys/web3signer):
 - all communication between the BN and RS is managed by the DVC in order for it to provide the additional DV functionality.
 - the BN & RS are unaware of the presence of the DVC, i.e., they think they are connected to each other as usual.
 
 ### Assumptions
 - We assume *N* total nodes and an *M-of-N* threshold signature scheme.
-    - For general compatibility with BFT consensus protocols, we assume that `M = (2 * N / 3) + 1`.
-- This specification assumes [some leader-based safety-favoring consensus protocol](src/dvspec/consensus.py) for the Co-Validators to decide on signing upon the same attestation/block. We assume that the consensus protocol runs successfully with *M* correct nodes out of *N* total nodes.
+    - For general compatibility with BFT consensus protocols, we assume that `M = ceil(2 * N / 3)`.
+- This specification assumes [some leader-based safety-favoring consensus protocol](src/dvspec/consensus.py) for the Co-Validators to decide on signing upon the same attestation/block. We assume that the consensus protocol runs successfully with *M* correct nodes, no more than `F = (N-1)/3` Byzantine nodes and no more than `N - M - F` fail-stop nodes out of *N* total nodes.
 - We assume the usual prerequisites for safe operation of the Validator Client, such as an up-to-date anti-slashing database, correct system clock, etc.
 - We disregard the voting on the "correct" Ethereum fork for now - this functionality will be added in a future update.
 
