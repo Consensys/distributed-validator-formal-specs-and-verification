@@ -271,6 +271,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
             process.(
                 attestation_duties_queue := process.attestation_duties_queue[1..],
+                future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
                 attestation_slashing_db := new_attestation_slashing_db,
                 attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
                     process.attestation_consensus_engine_state,
@@ -292,7 +293,6 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 && unchanged(`construct_signed_attestation_signature)
                 && unchanged(`peers)
                 && unchanged(`dv_pubkey)
-                && unchanged(`future_att_consensus_instances_already_decided)
                 && fresh(att_consensus.Repr - old(att_consensus.Repr))                     
 
         {
@@ -312,7 +312,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                                 lemmaMapKeysHasOneEntryInItems(old(toDVCNodeState()).attestation_consensus_engine_state.attestation_consensus_active_instances, e);
                             }   
 
-                            lemmaAttestationHasBeenAddedToSlashingDbForall(future_att_consensus_instances_already_decided[queue_head.slot]);                       
+                            lemmaAttestationHasBeenAddedToSlashingDb(old(future_att_consensus_instances_already_decided)[queue_head.slot], rs);                       
                                                     
                             assert f_check_for_next_queued_duty_helper(old(toDVCNodeState())) == toDVCNodeState(); 
 
