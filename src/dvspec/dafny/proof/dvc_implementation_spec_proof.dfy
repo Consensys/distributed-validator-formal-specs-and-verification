@@ -1014,7 +1014,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         }             
         
 
-        twostate lemma lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_not_already_been_decided(
+        twostate lemma lemma_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(
             block: BeaconBlock,
             att_consensus_instances_already_decided: map<Slot, AttestationData>
         )      
@@ -1100,29 +1100,35 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 
         }        
 
-        // As the name, of the lemma suggests, this is an unused lemma which, however, if commented out, very very very surprisingly,
-        // causes the verification of the method listen_for_new_imported_blocks to increase to more
-        // than 30 min.
-        lemma unused_lemma_that_if_commented_out_gets_the_verification_time_of_the_following_method_to_increase_to_30_plus_min(
-            process: DVCNodeState,
-            block: BeaconBlock
-        )
-        requires f_listen_for_new_imported_blocks.requires(process, block)  
-        requires process.latest_attestation_duty.isPresent()                   
-        ensures  f_listen_for_new_imported_blocks_part_3.requires(process, block)
-        ensures  var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(process, block);
-                var old_instances := 
-                        set i | 
-                            && i in att_consensus_instances_already_decided.Keys
-                            && i <= process.latest_attestation_duty.safe_get().slot
-                        ;                
-        f_listen_for_new_imported_blocks_part_3(process, block).future_att_consensus_instances_already_decided == att_consensus_instances_already_decided - old_instances
-        {
+        // Now that a bunch of {:fuel xxx, 0, 0} attributes have been added to listen_for_new_imported_blocks, this lemma does not seem tob be required anymore. Leaving it here, with its own old comment, just in case.
+        // 
+        // As the name of the lemma suggests, this is an unused lemma which, however, if commented out, very very very
+        // surprisingly, causes the verification time of the method listen_for_new_imported_blocks to increase to more
+        // than 30 min. lemma
+        // unused_lemma_that_if_commented_out_gets_the_verification_time_of_the_following_method_to_increase_to_30_plus_min(
+        // process: DVCNodeState, block: BeaconBlock
+        // )
+        // requires f_listen_for_new_imported_blocks.requires(process, block)  
+        // requires process.latest_attestation_duty.isPresent()                   
+        // ensures  f_listen_for_new_imported_blocks_part_3.requires(process, block) ensures  var
+        // att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided +
+        // f_listen_for_new_imported_blocks_part_1(process, block); var old_instances := set i | && i in
+        // att_consensus_instances_already_decided.Keys && i <= process.latest_attestation_duty.safe_get().slot
+        //                 ;                
+        // f_listen_for_new_imported_blocks_part_3(process, block).future_att_consensus_instances_already_decided ==
+        // att_consensus_instances_already_decided - old_instances
+        // {
             
-        }            
+        // }            
 
         // 6min - 3.7.1
-        method listen_for_new_imported_blocks...
+        method  
+        {:fuel f_check_for_next_queued_duty, 0, 0} 
+        {:fuel f_update_attestation_slashing_db, 0, 0} 
+        {:fuel f_listen_for_new_imported_blocks_part_3, 0, 0}
+        {:fuel f_listen_for_new_imported_blocks_part_4, 0, 0}
+        {:fuel f_listen_for_new_imported_blocks, 0, 0}
+        listen_for_new_imported_blocks...
         ensures (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block)) ==> 
                     && isValidReprExtended()
                     && s.Success?
@@ -1358,7 +1364,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))
                 {
                     // assert !old(current_attesation_duty).isPresent();
-                    lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_not_already_been_decided(block, att_consensus_instances_already_decided);
+                    lemma_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(block, att_consensus_instances_already_decided);
                 }
             }
             if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCNodeState()), block))

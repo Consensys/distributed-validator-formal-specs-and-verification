@@ -247,19 +247,13 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            var r := bn.Repr;
             var valIndex :- bn.get_validator_index(block.body.state_root, dv_pubkey);
             var i := 0;
 
             var att_consensus_instances_already_decided := future_att_consensus_instances_already_decided;
 
             while i < |block.body.attestations|
-            invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) 
-            && unchanged(rs)
-            && unchanged(network)
-            && unchanged(att_consensus)
-            && unchanged(this)
-            && unchanged(slashing_db)
+                invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) && unchanged(rs) && unchanged(network) && unchanged(att_consensus) && unchanged(this) && unchanged(slashing_db)
             {
                 var a := block.body.attestations[i];
 
