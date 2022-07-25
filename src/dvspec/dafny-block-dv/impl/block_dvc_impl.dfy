@@ -111,7 +111,23 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
             proposer_duty_queue := proposer_duty_queue + [proposer_duty];
+            broadcast_randao_share(proposer_duty);
             check_for_next_queued_duty();            
+        }
+
+        method broadcast_randao_share(serving_duty: ProposerDuty)
+        requires serving_duty.slot !in consensus_on_block.consensus_instances_started
+        requires ValidRepr()
+        modifies getRepr()
+        {            
+            var slot := serving_duty.slot;
+            var epoch := compute_epoch_at_slot(slot);            
+            var fork_version := bn.get_fork_version(slot);    
+            var root := compute_randao_reveal_signing_root(slot);
+            var randao_signature := rs.sign_randao_reveal(epoch, fork_version, root);                                                           
+            var randao_share := RandaoShare(serving_duty, epoch, slot, root, randao_signature);
+            randao_shares_to_broadcast := randao_shares_to_broadcast[serving_duty.slot := randao_share];
+            network.send_randao_share(randao_share, peers);            
         }
 
         method check_for_next_queued_duty()
@@ -128,14 +144,16 @@ abstract module Block_DVC_Impl
                     var queue_head := proposer_duty_queue[0];
                     proposer_duty_queue := proposer_duty_queue[1..];
                     update_block_slashing_db(future_decided_slots[queue_head.slot], dv_pubkey);
+                    future_decided_slots := future_decided_slots - {slot};
                     check_for_next_queued_duty();
                 }
-                else if !current_proposer_duty.isPresent() && 
-                        slot in rcvd_randao_shares.Keys
+                else if !current_proposer_duty.isPresent() 
                 {                    
                     var queue_head := proposer_duty_queue[0];
                     proposer_duty_queue := proposer_duty_queue[1..];
-                    broadcast_randao_share(queue_head);
+                    current_proposer_duty := Some(queue_head);
+                    last_served_proposer_duty := Some(queue_head);
+                    start_consensus_if_can_construct_randao_share();  
                 }                                
             }     
         }
@@ -152,36 +170,17 @@ abstract module Block_DVC_Impl
 
                 if constructed_randao_reveal.isPresent()  
                 {
-                    var validityCheck := new BlockConsensusValidityCheck(dv_pubkey, slashing_db, current_proposer_duty.safe_get(), constructed_randao_reveal.safe_get());
+                    var validityChecker := new BlockConsensusValidityChecker(dv_pubkey, slashing_db, current_proposer_duty.safe_get(), constructed_randao_reveal.safe_get());
                     consensus_on_block.start(
                         current_proposer_duty.safe_get().slot,
-                        validityCheck
+                        validityChecker
                     );
                 }                    
             }            
         }
 
-        method broadcast_randao_share(serving_duty: ProposerDuty)
-        requires serving_duty.slot !in consensus_on_block.consensus_instances_started
-        requires ValidRepr()
-        modifies getRepr()
-        {            
-            current_proposer_duty := Some(serving_duty);
-            last_served_proposer_duty := Some(serving_duty);
-
-            var slot := serving_duty.slot;
-            var epoch := compute_epoch_at_slot(slot);            
-            var fork_version := bn.get_fork_version(slot);    
-            var root := compute_randao_reveal_signing_root(slot);
-            var randao_signature := rs.sign_randao_reveal(epoch, fork_version, root);                                                           
-            var randao_share := RandaoShare(serving_duty, epoch, slot, root, randao_signature);
-            randao_shares_to_broadcast := randao_shares_to_broadcast[serving_duty.slot := randao_share];
-            network.send_randao_share(randao_share, peers);
-            start_consensus_if_can_construct_randao_share();
-        }
-
         predicate method is_slot_for_current_or_future_instances(
-            active_att_consensus_intances: set<Slot>,
+            active_block_consensus_intances: set<Slot>,
             received_slot: Slot
         )
         reads this
@@ -193,10 +192,10 @@ abstract module Block_DVC_Impl
             // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
             // up only slot lower thant the slot of the current/latest duty.
 
-            || (active_att_consensus_intances == {} && !last_served_proposer_duty.isPresent())
-            || (active_att_consensus_intances != {} && get_min(active_att_consensus_intances) <= received_slot)
-            || (active_att_consensus_intances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
-            || (active_att_consensus_intances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
+            || (active_block_consensus_intances == {} && !last_served_proposer_duty.isPresent())
+            || (active_block_consensus_intances != {} && get_min(active_block_consensus_intances) <= received_slot)
+            || (active_block_consensus_intances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
+            || (active_block_consensus_intances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
         }
 
         method listen_for_randao_shares(
@@ -207,12 +206,11 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
             var slot := randao_share.slot;
-            var active_att_consensus_intances := consensus_on_block.get_active_instances();
+            var active_block_consensus_intances := consensus_on_block.get_active_instances();
 
-            if is_slot_for_current_or_future_instances(active_att_consensus_intances, slot)
+            if is_slot_for_current_or_future_instances(active_block_consensus_intances, slot)
             {
                 rcvd_randao_shares := rcvd_randao_shares[slot := getOrDefault(rcvd_randao_shares, slot, {}) + {randao_share} ]; 
-
                 start_consensus_if_can_construct_randao_share();      
             }                                         
         }        
@@ -250,10 +248,10 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
 
-            var active_att_consensus_intances := consensus_on_block.get_active_instances();
+            var active_block_consensus_intances := consensus_on_block.get_active_instances();
             var slot := block_share.message.slot;
 
-            if is_slot_for_current_or_future_instances(active_att_consensus_intances, slot)
+            if is_slot_for_current_or_future_instances(active_block_consensus_intances, slot)
             {
                 var data := block_share.message;
                 var rcvd_block_shares_db_at_slot := getOrDefault(rcvd_block_shares, slot, map[]);
@@ -345,9 +343,9 @@ abstract module Block_DVC_Impl
         )
         reads *
         {
-            && consensus_on_block.consensus_instances_started.Values 
-            !! bn.Repr !! network.Repr !! consensus_on_block.Repr !! rs.Repr
-            !! slashing_db.Repr
+            && ( consensus_on_block.consensus_instances_started.Values 
+                 !! bn.Repr !! network.Repr !! consensus_on_block.Repr !! rs.Repr
+                 !! slashing_db.Repr )
             && bn.Valid()
             && rs.Valid()
             && network.Valid()
@@ -373,8 +371,7 @@ abstract module Block_DVC_Impl
         reads *
         {
             && ValidConstructorRepr(this.consensus_on_block, this.network, this.bn, this.rs, this.slashing_db)
-            && this
-            !in getChildrenRepr()                                
+            && this !in getChildrenRepr()                                
         }             
     }    
 
@@ -390,8 +387,8 @@ abstract module Block_DVC_Impl
         var slashable: bool;
         slashable := is_slashable_block(block_slashing_db, block, proposer_duty.pubkey);
         b := block.slot == proposer_duty.slot &&            
-                block.body.randao_reveal == complete_signed_randao_reveal &&
-                !slashable;                 
+             block.body.randao_reveal == complete_signed_randao_reveal &&
+             !slashable;                 
     }
 
 
@@ -443,7 +440,7 @@ abstract module Block_DVC_Impl
         return false;            
     }       
 
-    class BlockConsensusValidityCheck extends ConsensusValidityCheck<BeaconBlock>
+    class BlockConsensusValidityChecker extends ConsensusValidityChecker<BeaconBlock>
     {
         const dv_pubkey: BLSPubkey
         const proposer_duty: ProposerDuty

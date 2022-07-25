@@ -11,7 +11,7 @@ module Block_DVC_Externs
     trait 
     // See https://github.com/dafny-lang/dafny/issues/1588 for why {:termination false} is needed
     {:termination false} 
-    {:autocontracts} ConsensusValidityCheck<T>
+    {:autocontracts} ConsensusValidityChecker<T>
     {
         const slashing_db: SlashingDB
 
@@ -20,11 +20,11 @@ module Block_DVC_Externs
 
     trait {:autocontracts} Consensus<T(!new, ==)>
     {
-        ghost var consensus_instances_started: map<Slot, ConsensusValidityCheck<T>>
+        ghost var consensus_instances_started: map<Slot, ConsensusValidityChecker<T>>
 
         method start(
             id: Slot,
-            validityPredicate: ConsensusValidityCheck<T>
+            validityPredicate: ConsensusValidityChecker<T>
         )
         requires id !in consensus_instances_started.Keys
         ensures consensus_instances_started == old(consensus_instances_started)[id := validityPredicate]
