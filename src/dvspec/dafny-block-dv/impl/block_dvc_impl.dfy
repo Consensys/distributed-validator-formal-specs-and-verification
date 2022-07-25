@@ -26,19 +26,19 @@ abstract module Block_DVC_Impl
         const consensus_on_block: Consensus<BeaconBlock>;
         const network : Network
         const rs: RemoteSigner;
-        var dv_pubkey: BLSPubkey;
-        var peers: set<BLSPubkey>;
+        var dv_pubkey: BLSPubkey;       // its own BLS pubkey
+        var peers: set<BLSPubkey>;      // set of BLS pubkeys of all DVCs
 
         
         // var all_proposer_duties: set<ProposerDuty>;
-        var proposer_duty_queue: seq<ProposerDuty>;
-        var future_decided_slots: map<Slot, BeaconBlock>  
+        var proposer_duty_queue: seq<ProposerDuty>;         // unprocessing duties
+        var future_decided_slots: map<Slot, BeaconBlock>    // known blocks for future slots
 
-        var block_shares_to_broadcast: map<Slot, SignedBeaconBlock>
+        var block_shares_to_broadcast: map<Slot, SignedBeaconBlock> 
         var randao_shares_to_broadcast: map<Slot, RandaoShare>
 
         var complete_block_signature: (set<SignedBeaconBlock>) -> Optional<BLSSignature>;
-        
+        // must satisfy properties of M-of-N threshold signatures 
         
         var slashing_db: SlashingDB;
         var block_share_db: BlockSignatureShareDB;
@@ -48,7 +48,8 @@ abstract module Block_DVC_Impl
 
         var construct_signed_randao_reveal: (set<RandaoShare>) -> Optional<BLSSignature>;
         var construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>;
-
+        // must satisfy properties of M-of-N threshold signatures 
+        
         var current_proposer_duty: Optional<ProposerDuty>;
         var last_served_proposer_duty: Optional<ProposerDuty>;
                  
@@ -92,6 +93,7 @@ abstract module Block_DVC_Impl
             this.construct_signed_randao_reveal := construct_signed_randao_reveal;
         }
 
+        // The only public method
         method process_event(
             event: Event
         ) returns (s: Status)
@@ -120,7 +122,12 @@ abstract module Block_DVC_Impl
             {return Success;}
         }   
 
-        // Only put a new proposer duty in the queue.
+        // Multiple proposer duties may be in queue.
+        // The processing of a new duty is postponed if the last consensus instance has not reached 
+        // an agreement.
+        // Multiple consensus instances can run simultaneously but at most one has not decided a value.
+        // New: a randao share is broadcased immediately after a DVC receives a new proposer duty.
+        // This update is to reduce a delay in processing a new duty.
         method serve_proposer_duty(
             proposer_duty: ProposerDuty
         ) returns (s: Status)
@@ -135,6 +142,7 @@ abstract module Block_DVC_Impl
             return Success;
         }
 
+        // broadcast_randao_share is for lines 166 - 171.
         method broadcast_randao_share(serving_duty: ProposerDuty)
         requires serving_duty.slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
@@ -150,6 +158,12 @@ abstract module Block_DVC_Impl
             network.send_randao_share(randao_share, peers);            
         }
 
+        // Check the duty queue and find the next unprocessed duty.
+        // Notice that it is possible that a queue head has not processed by a DVC
+        // but a DVC has already received a block agreement for the queue head
+        // from a quorum.
+        // If a block of a queue head is unknown and there is no undecided consensus instance,
+        // a queue head is processed. 
         method check_for_next_queued_duty()
         requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
@@ -178,6 +192,9 @@ abstract module Block_DVC_Impl
             }     
         }
 
+        // TODO: think of a better name
+        // start_consensus_if_can_construct_randao_share is for lines 172 - 173.
+        // validityChecker is to ensure the desired properties of a consensus instance.
         method start_consensus_if_can_construct_randao_share()
         requires current_proposer_duty.isPresent() ==> current_proposer_duty.safe_get().slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
@@ -199,6 +216,7 @@ abstract module Block_DVC_Impl
             }            
         }
 
+        // Check whether messages related to slot should be processed.
         predicate method is_slot_for_current_or_future_instances(
             active_block_consensus_intances: set<Slot>,
             received_slot: Slot
@@ -218,6 +236,7 @@ abstract module Block_DVC_Impl
             || (active_block_consensus_intances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
         }
 
+        // listen_for_randao_shares is an underlying method for line 172.
         method listen_for_randao_shares(
             randao_share: RandaoShare
         )         
@@ -235,6 +254,7 @@ abstract module Block_DVC_Impl
             }                                         
         }        
 
+        // update_block_slashing_db is for line 177.
         method update_block_slashing_db(block: BeaconBlock, pubkey: BLSPubkey)
         requires ValidRepr()
         modifies slashing_db.Repr
@@ -245,6 +265,7 @@ abstract module Block_DVC_Impl
             slashing_db.add_proposal(newDBBlock, dv_pubkey);                
         }        
 
+        // decide_block_consensus is for lines 173 - 182.
         method decide_block_consensus(block: BeaconBlock) returns (s: Status)
         requires current_proposer_duty.isPresent()
         requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
@@ -265,6 +286,7 @@ abstract module Block_DVC_Impl
             return Success;              
         }
 
+        // listen_for_block_shares is for lines 217 - 230.
         method listen_for_block_shares(block_share: SignedBeaconBlock)
         requires ValidRepr()
         modifies getRepr()
@@ -295,10 +317,7 @@ abstract module Block_DVC_Impl
             } 
         }
 
-        // TODO: double-check type of an input
-        // method listen_for_new_imported_blocks(
-        //     signed_block: SignedBeaconBlock
-        // ) returns (s: Status)
+        // A new method to ensure the liveness property.
         method listen_for_new_imported_blocks(
             signed_block: SignedBeaconBlock
         ) returns (s: Status)
@@ -361,6 +380,7 @@ abstract module Block_DVC_Impl
             network.send_block_shares(block_shares_to_broadcast.Values, peers);
         }  
 
+        // For the verification purposes only.
         static predicate ValidConstructorRepr(
             consensus_on_block: Consensus<BeaconBlock>, 
             network: Network,
@@ -380,6 +400,7 @@ abstract module Block_DVC_Impl
             && slashing_db.Valid()                               
         }   
 
+        // For the verification purposes only.
         function getChildrenRepr(): set<object?>
         reads *
         {
@@ -388,12 +409,14 @@ abstract module Block_DVC_Impl
             + this.slashing_db.Repr
         }        
 
+        // For the verification purposes only.
         function getRepr(): set<object?>
         reads *
         {
             getChildrenRepr() + {this}
         }
 
+        // For the verification purposes only.
         predicate ValidRepr()
         reads *
         {
@@ -402,7 +425,7 @@ abstract module Block_DVC_Impl
         }             
     }    
 
-
+    // consensus_is_valid_block is for line 174
     method consensus_is_valid_block(
         block_slashing_db: set<SlashingDBBlock>,
         block: BeaconBlock,
@@ -418,7 +441,7 @@ abstract module Block_DVC_Impl
              !slashable;                 
     }
 
-
+    // 
     function method get_slashing_slots(slashing_db: BlockSlashingDB): (slots_in_db: set<int>)    
     requires slashing_db != {}
     ensures slots_in_db != {}    
@@ -439,6 +462,7 @@ abstract module Block_DVC_Impl
     //     slashing_blocks
     // }
 
+    // is_slashable_block is for line 153 in helpers.py
     method is_slashable_block(
         block_slashing_db: set<SlashingDBBlock>,
         block: BeaconBlock, 
