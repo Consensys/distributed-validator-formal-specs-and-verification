@@ -186,5 +186,24 @@ module BlockTypes
         root: Root,
         signature: BLSSignature
     )
+
+    datatype Event = 
+        | ServeProposerDuty(proposer_duty: ProposerDuty)
+        | DecideBlockConsensus(block: BeaconBlock)
+        | RecevieRandaoShare(randao_share: RandaoShare)
+        | RecevieBlockShare(block_share: SignedBeaconBlock)
+        | ImportNewBlock(signed_block: SignedBeaconBlock)
+        // Error: shared destructors must have the same type, 
+        // but 'block' has type 'BeaconBlock' in constructor 'DecideBlockConsensus' 
+        // and type 'SignedBeaconBlock' in constructor 'ImportedNewBlock'
+        // | DecideBlockConsensus(block: BeaconBlock)
+        // | ImportedNewBlock(block: SignedBeaconBlock)
+        ///////
+        // Issuess with the field "message"
+        // | DecideBlockConsensus(block: BeaconBlock)
+        // | ImportedNewBlock(block: BeaconBlock)
+        | ResendRandaoShare
+        | ResendBlockShare
+        | NoEvent       
 }
 

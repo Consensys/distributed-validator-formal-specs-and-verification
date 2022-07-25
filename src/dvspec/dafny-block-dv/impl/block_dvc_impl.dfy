@@ -12,20 +12,10 @@ abstract module Block_DVC_Impl
 
     export PublicInterface
         reveals  Block_DVC        
-        provides Block_DVC.serve_proposer_duty, 
-                 Block_DVC.block_consensus_decided, 
-                 Block_DVC.listen_for_randao_shares,
-                 Block_DVC.listen_for_block_shares,
-                 Block_DVC.listen_for_new_imported_blocks,
-                 Block_DVC.resend_randao_share,
-                 Block_DVC.resend_block_share,
+        provides Block_DVC.process_event,
                  Block_DVC.getRepr,
                  Block_DVC.ValidRepr,
-                 Block_DVC.ValidConstructorRepr,                 
-                 Block_DVC.bn,
-                 Block_DVC.proposer_duty_queue,
-                 Block_DVC.consensus_on_block,
-                 Block_DVC.current_proposer_duty           
+                 Block_DVC.ValidConstructorRepr                                   
         provides BlockTypes, 
                  BlockCommonFunctions,
                  BlockSigningFunctions,
@@ -102,17 +92,47 @@ abstract module Block_DVC_Impl
             this.construct_signed_randao_reveal := construct_signed_randao_reveal;
         }
 
+        method process_event(
+            event: Event
+        ) returns (s: Status)
+        requires ValidRepr()
+        modifies getRepr()
+        {
+            match event {
+                case ServeProposerDuty(proposer_duty) => 
+                    :- serve_proposer_duty(proposer_duty);
+                case DecideBlockConsensus(block) => 
+                    :- decide_block_consensus(block);
+                case RecevieRandaoShare(randao_share) => 
+                    listen_for_randao_shares(randao_share);
+                case RecevieBlockShare(block_share) => 
+                    listen_for_block_shares(block_share);                    
+                case ImportNewBlock(block) => 
+                    :- listen_for_new_imported_blocks(block);
+                case ResendRandaoShare => 
+                    resend_block_share();                    
+                case ResendBlockShare => 
+                    resend_block_share();
+                case NoEvent =>
+                    
+            }
+
+            {return Success;}
+        }   
+
         // Only put a new proposer duty in the queue.
         method serve_proposer_duty(
             proposer_duty: ProposerDuty
-        )
+        ) returns (s: Status)
         requires forall pd | pd in proposer_duty_queue + [proposer_duty] :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
         modifies getRepr()
         {
             proposer_duty_queue := proposer_duty_queue + [proposer_duty];
             broadcast_randao_share(proposer_duty);
-            check_for_next_queued_duty();            
+            { check_for_next_queued_duty(); }         
+
+            return Success;
         }
 
         method broadcast_randao_share(serving_duty: ProposerDuty)
@@ -225,7 +245,7 @@ abstract module Block_DVC_Impl
             slashing_db.add_proposal(newDBBlock, dv_pubkey);                
         }        
 
-        method block_consensus_decided(block: BeaconBlock)
+        method decide_block_consensus(block: BeaconBlock) returns (s: Status)
         requires current_proposer_duty.isPresent()
         requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
@@ -240,7 +260,9 @@ abstract module Block_DVC_Impl
             network.send_block_share(block_share, peers); 
 
             current_proposer_duty := None;
-            check_for_next_queued_duty();             
+            { check_for_next_queued_duty(); }       
+
+            return Success;              
         }
 
         method listen_for_block_shares(block_share: SignedBeaconBlock)
@@ -273,10 +295,13 @@ abstract module Block_DVC_Impl
             } 
         }
 
-                     
+        // TODO: double-check type of an input
+        // method listen_for_new_imported_blocks(
+        //     signed_block: SignedBeaconBlock
+        // ) returns (s: Status)
         method listen_for_new_imported_blocks(
             signed_block: SignedBeaconBlock
-        ) 
+        ) returns (s: Status)
         requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
         modifies getRepr()
@@ -316,8 +341,10 @@ abstract module Block_DVC_Impl
             {
                 update_block_slashing_db(block_consensus_already_decided[current_proposer_duty.safe_get().slot], dv_pubkey);
                 current_proposer_duty := None;
-                check_for_next_queued_duty();
-            }                              
+                { check_for_next_queued_duty(); }
+            }      
+
+            return Success;                                  
         }
 
         method resend_randao_share()
