@@ -96,21 +96,21 @@ abstract module Block_DVC_Impl
         // The only public method
         method process_event(
             event: Event
-        ) returns (s: Status)
+        ) 
         requires ValidRepr()
         modifies getRepr()
         {
             match event {
                 case ServeProposerDuty(proposer_duty) => 
-                    :- serve_proposer_duty(proposer_duty);
+                    serve_proposer_duty(proposer_duty);
                 case DecideBlockConsensus(block) => 
-                    :- decide_block_consensus(block);
+                    block_consensus_decided(block);
                 case RecevieRandaoShare(randao_share) => 
                     listen_for_randao_shares(randao_share);
                 case RecevieBlockShare(block_share) => 
                     listen_for_block_shares(block_share);                    
                 case ImportNewBlock(block) => 
-                    :- listen_for_new_imported_blocks(block);
+                    listen_for_new_imported_blocks(block);
                 case ResendRandaoShare => 
                     resend_block_share();                    
                 case ResendBlockShare => 
@@ -118,8 +118,6 @@ abstract module Block_DVC_Impl
                 case NoEvent =>
                     
             }
-
-            {return Success;}
         }   
 
         // Multiple proposer duties may be in queue.
@@ -130,16 +128,14 @@ abstract module Block_DVC_Impl
         // This update is to reduce a delay in processing a new duty.
         method serve_proposer_duty(
             proposer_duty: ProposerDuty
-        ) returns (s: Status)
+        ) 
         requires forall pd | pd in proposer_duty_queue + [proposer_duty] :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
         modifies getRepr()
         {
             proposer_duty_queue := proposer_duty_queue + [proposer_duty];
             broadcast_randao_share(proposer_duty);
-            { check_for_next_queued_duty(); }         
-
-            return Success;
+            { check_for_next_queued_duty(); }                     
         }
 
         // broadcast_randao_share is for lines 166 - 171.
@@ -265,8 +261,8 @@ abstract module Block_DVC_Impl
             slashing_db.add_proposal(newDBBlock, dv_pubkey);                
         }        
 
-        // decide_block_consensus is for lines 173 - 182.
-        method decide_block_consensus(block: BeaconBlock) returns (s: Status)
+        // block_consensus_decided is for lines 173 - 182.
+        method block_consensus_decided(block: BeaconBlock)
         requires current_proposer_duty.isPresent()
         requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
@@ -282,8 +278,6 @@ abstract module Block_DVC_Impl
 
             current_proposer_duty := None;
             { check_for_next_queued_duty(); }       
-
-            return Success;              
         }
 
         // listen_for_block_shares is for lines 217 - 230.
@@ -320,7 +314,7 @@ abstract module Block_DVC_Impl
         // A new method to ensure the liveness property.
         method listen_for_new_imported_blocks(
             signed_block: SignedBeaconBlock
-        ) returns (s: Status)
+        ) 
         requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
         modifies getRepr()
@@ -362,8 +356,6 @@ abstract module Block_DVC_Impl
                 current_proposer_duty := None;
                 { check_for_next_queued_duty(); }
             }      
-
-            return Success;                                  
         }
 
         method resend_randao_share()
