@@ -46,7 +46,7 @@ abstract module Block_DVC_Impl
         var rcvd_randao_shares: map<Slot, set<RandaoShare>>;
         var rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>;
 
-        var construct_signed_randao_reveal: (set<RandaoShare>) -> Optional<BLSSignature>;
+        var construct_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>;
         var construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>;
         // must satisfy properties of M-of-N threshold signatures 
         
@@ -62,9 +62,8 @@ abstract module Block_DVC_Impl
             peers: set<BLSPubkey>,            
             complete_block_signature: (set<SignedBeaconBlock>) -> Optional<BLSSignature>,
             construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
-            construct_signed_randao_reveal: (set<RandaoShare>) -> Optional<BLSSignature>,
-            initial_slashing_db: SlashingDB,
-            M: nat
+            construct_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+            initial_slashing_db: SlashingDB
         )
         requires consensus_on_block.consensus_instances_started == map[]
         requires ValidConstructorRepr(consensus_on_block, network, bn, rs, initial_slashing_db)        
@@ -77,6 +76,7 @@ abstract module Block_DVC_Impl
             this.slashing_db := initial_slashing_db;
             this.block_share_db := map[];    
             this.rcvd_randao_shares := map[];   
+            this.rcvd_block_shares := map[];   
             this.current_proposer_duty := None;
             this.last_served_proposer_duty := None;
             
@@ -103,16 +103,16 @@ abstract module Block_DVC_Impl
             match event {
                 case ServeProposerDuty(proposer_duty) => 
                     serve_proposer_duty(proposer_duty);
-                case DecideBlockConsensus(block) => 
+                case BlockConsensusDecided(block) => 
                     block_consensus_decided(block);
-                case RecevieRandaoShare(randao_share) => 
+                case ReceiveRandaoShare(randao_share) => 
                     listen_for_randao_shares(randao_share);
-                case RecevieBlockShare(block_share) => 
+                case ReceiveBlockShare(block_share) => 
                     listen_for_block_shares(block_share);                    
                 case ImportNewBlock(block) => 
                     listen_for_new_imported_blocks(block);
                 case ResendRandaoShare => 
-                    resend_block_share();                    
+                    resend_randao_share();                    
                 case ResendBlockShare => 
                     resend_block_share();
                 case NoEvent =>
@@ -140,7 +140,7 @@ abstract module Block_DVC_Impl
 
         // broadcast_randao_share is for lines 166 - 171.
         method broadcast_randao_share(serving_duty: ProposerDuty)
-        requires serving_duty.slot !in consensus_on_block.consensus_instances_started
+        // requires serving_duty.slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
         modifies getRepr()
         {            
@@ -190,7 +190,7 @@ abstract module Block_DVC_Impl
 
         // TODO: think of a better name
         // start_consensus_if_can_construct_randao_share is for lines 172 - 173.
-        // validityChecker is to ensure the desired properties of a consensus instance.
+        // validityCheck is to ensure the desired properties of a consensus instance.
         method start_consensus_if_can_construct_randao_share()
         requires current_proposer_duty.isPresent() ==> current_proposer_duty.safe_get().slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
@@ -199,14 +199,17 @@ abstract module Block_DVC_Impl
             if  && current_proposer_duty.isPresent()
                 && current_proposer_duty.safe_get().slot in rcvd_randao_shares
             {
-                var constructed_randao_reveal := construct_signed_randao_reveal(rcvd_randao_shares[current_proposer_duty.safe_get().slot]);
+                var all_rcvd_randao_sig := 
+                        set randao_share | randao_share in rcvd_randao_shares[current_proposer_duty.safe_get().slot]
+                                            :: randao_share.signature;
+                var constructed_randao_reveal := construct_signed_randao_reveal(all_rcvd_randao_sig);
 
                 if constructed_randao_reveal.isPresent()  
                 {
-                    var validityChecker := new BlockConsensusValidityChecker(dv_pubkey, slashing_db, current_proposer_duty.safe_get(), constructed_randao_reveal.safe_get());
+                    var validityCheck := new BlockConsensusValidityCheck(dv_pubkey, slashing_db, current_proposer_duty.safe_get(), constructed_randao_reveal.safe_get());
                     consensus_on_block.start(
                         current_proposer_duty.safe_get().slot,
-                        validityChecker
+                        validityCheck
                     );
                 }                    
             }            
@@ -214,7 +217,7 @@ abstract module Block_DVC_Impl
 
         // Check whether messages related to slot should be processed.
         predicate method is_slot_for_current_or_future_instances(
-            active_block_consensus_intances: set<Slot>,
+            block_consensus_active_instances: set<Slot>,
             received_slot: Slot
         )
         reads this
@@ -226,24 +229,24 @@ abstract module Block_DVC_Impl
             // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
             // up only slot lower thant the slot of the current/latest duty.
 
-            || (active_block_consensus_intances == {} && !last_served_proposer_duty.isPresent())
-            || (active_block_consensus_intances != {} && get_min(active_block_consensus_intances) <= received_slot)
-            || (active_block_consensus_intances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
-            || (active_block_consensus_intances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
+            || (block_consensus_active_instances == {} && !last_served_proposer_duty.isPresent())
+            || (block_consensus_active_instances != {} && get_min(block_consensus_active_instances) <= received_slot)
+            || (block_consensus_active_instances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
+            || (block_consensus_active_instances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
         }
 
         // listen_for_randao_shares is an underlying method for line 172.
         method listen_for_randao_shares(
             randao_share: RandaoShare
         )         
-        requires current_proposer_duty.isPresent() ==> current_proposer_duty.safe_get().slot !in consensus_on_block.consensus_instances_started
+        // requires current_proposer_duty.isPresent() ==> current_proposer_duty.safe_get().slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
         modifies getRepr()
         {
             var slot := randao_share.slot;
-            var active_block_consensus_intances := consensus_on_block.get_active_instances();
+            var block_consensus_active_instances := consensus_on_block.get_active_instances();
 
-            if is_slot_for_current_or_future_instances(active_block_consensus_intances, slot)
+            if is_slot_for_current_or_future_instances(block_consensus_active_instances, slot)
             {
                 rcvd_randao_shares := rcvd_randao_shares[slot := getOrDefault(rcvd_randao_shares, slot, {}) + {randao_share} ]; 
                 start_consensus_if_can_construct_randao_share();      
@@ -286,10 +289,10 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
 
-            var active_block_consensus_intances := consensus_on_block.get_active_instances();
+            var block_consensus_active_instances := consensus_on_block.get_active_instances();
             var slot := block_share.message.slot;
 
-            if is_slot_for_current_or_future_instances(active_block_consensus_intances, slot)
+            if is_slot_for_current_or_future_instances(block_consensus_active_instances, slot)
             {
                 var data := block_share.message;
                 var rcvd_block_shares_db_at_slot := getOrDefault(rcvd_block_shares, slot, map[]);
@@ -320,7 +323,7 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
             var block_consensus_already_decided := future_decided_slots;
-            if verify_bls_siganture(signed_block.message, signed_block.signature, dv_pubkey)
+            if verify_bls_signature(signed_block.message, signed_block.signature, dv_pubkey)
             {
                 block_consensus_already_decided := block_consensus_already_decided[signed_block.message.slot := signed_block.message];
             } 
@@ -417,73 +420,7 @@ abstract module Block_DVC_Impl
         }             
     }    
 
-    // consensus_is_valid_block is for line 174
-    method consensus_is_valid_block(
-        block_slashing_db: set<SlashingDBBlock>,
-        block: BeaconBlock,
-        proposer_duty: ProposerDuty,
-        complete_signed_randao_reveal: BLSSignature)
-    returns (b: bool) 
-    {
-        // TODO: Add correct block.proposer_index check
-        var slashable: bool;
-        slashable := is_slashable_block(block_slashing_db, block, proposer_duty.pubkey);
-        b := block.slot == proposer_duty.slot &&            
-             block.body.randao_reveal == complete_signed_randao_reveal &&
-             !slashable;                 
-    }
-
-    // 
-    function method get_slashing_slots(slashing_db: BlockSlashingDB): (slots_in_db: set<int>)    
-    requires slashing_db != {}
-    ensures slots_in_db != {}    
-    {
-        var slots_in_db := set block | block in slashing_db :: block.slot;
-        assert var e :| e in slashing_db; e.slot in slots_in_db;
-        slots_in_db
-    }
-
-    // NOTE: Left this method here just in case, but it is currently not being used anywhere.
-    // function method get_slashing_blocks_with_slot(
-    //     slashing_db: BlockSlashingDB, 
-    //     slot: Slot
-    // ): (slashing_blocks: set<SlashingDBBlock>)    
-    // requires slashing_db != {}        
-    // {
-    //     var slashing_blocks := set block | block in slashing_db && block.slot == slot :: block;            
-    //     slashing_blocks
-    // }
-
-    // is_slashable_block is for line 153 in helpers.py
-    method is_slashable_block(
-        block_slashing_db: set<SlashingDBBlock>,
-        block: BeaconBlock, 
-        pubkey: BLSPubkey
-    ) returns (b: bool)
-    {            
-        
-        if block_slashing_db != {}
-        {
-            var slots := get_slashing_slots(block_slashing_db);
-            var min_slot := get_min(slots);
-
-            if block.slot < min_slot 
-            {
-                return true;
-            }
-            
-            if exists db_block :: db_block in block_slashing_db && 
-                                    block.slot == db_block.slot &&
-                                    hash_tree_root(block) != db_block.signing_root
-            {
-                return true;
-            }
-        }
-        
-        return false;            
-    }       
-
-    class BlockConsensusValidityChecker extends ConsensusValidityChecker<BeaconBlock>
+    class BlockConsensusValidityCheck extends ConsensusValidityCheck<BeaconBlock>
     {
         const dv_pubkey: BLSPubkey
         const proposer_duty: ProposerDuty

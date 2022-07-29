@@ -37,5 +37,11 @@ module BlockSigningFunctions{
     requires n > 0
     {
         (2 * n / 3) + 1
-    }                
+    }   
+
+    predicate method {:extern} verify_bls_signature<T>(
+        data: T,
+        signature: BLSSignature,
+        pubkey: BLSPubkey
+    )             
 }
