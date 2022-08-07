@@ -68,21 +68,21 @@ module ConsensusSpec
     predicate NextNodeStep<D(!new, 0)>(
         s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
-        s': ConsensusInstance,
+        // s': ConsensusInstance,
         output: Optional<OutCommand>
     )
     {
-        && output.isPresent()
-        && var n := output.safe_get().node;
-        && n in s.honest_nodes_status.Keys 
-        && n in honest_nodes_validity_predicates.Keys
-        && s.honest_nodes_status[n] in {DECIDED}
-        &&  if isConditionForSafetyTrue(s) then
-                && s.decided_value.isPresent()
-                && output.safe_get().value == s.decided_value.safe_get()
-                && s' == s
-            else
-                s' == s     
+        ( && isConditionForSafetyTrue(s)
+          && output.isPresent() )
+        ==> 
+        (
+            && var n := output.safe_get().node;
+            && n in s.honest_nodes_status.Keys 
+            && n in honest_nodes_validity_predicates.Keys
+            && s.honest_nodes_status[n] in {DECIDED}
+            && s.decided_value.isPresent()
+            && output.safe_get().value == s.decided_value.safe_get()
+        )
     }
 
     predicate NextConsensusDecides<D(!new, 0)>(
