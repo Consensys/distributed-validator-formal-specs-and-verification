@@ -19,6 +19,7 @@ module ConsensusSpec
         decided_value: Optional<D>,
         honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
         ghost honest_nodes_validity_functions: set<D -> bool>
+        // ghost honest_nodes: set<BLSPubkey>
     )    
 
 
@@ -61,14 +62,13 @@ module ConsensusSpec
             // First we let the consensus protocol and the various nodes possibly decide on a value
             && NextConsensusDecides(s, honest_nodes_validity_predicates, s'')
             // Then we let the node take an input/output step
-            && NextNodeStep(s'', honest_nodes_validity_predicates, s', output)
+            && NextNodeStep(s'', honest_nodes_validity_predicates, output)
 
     }
 
     predicate NextNodeStep<D(!new, 0)>(
         s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
-        // s': ConsensusInstance,
         output: Optional<OutCommand>
     )
     {

@@ -3,7 +3,7 @@ include "dvc_spec.dfy"
 include "consensus.dfy"
 include "network.dfy"
 
-abstract module DV 
+module DV 
 {
     import opened Types
     import opened CommonFunctions
@@ -13,7 +13,7 @@ abstract module DV
     import opened DVCNode_Externs_Proofs
 
     datatype Adversary = Adversary(
-        nodes: set<BLSPubkey>
+        nodes: set<BLSPubkey>  
     )
 
     datatype DVState = DVState(
@@ -120,7 +120,7 @@ abstract module DV
         s: DVCNodeState,
         block: BeaconBlock
     ): DVCNodeState
-    {
+    { 
         s.(
             bn := s.bn.(
                 state_roots_of_imported_blocks := s.bn.state_roots_of_imported_blocks + {block.body.state_root}
