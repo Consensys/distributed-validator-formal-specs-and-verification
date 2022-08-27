@@ -160,7 +160,7 @@ module DVCNode_Spec {
         future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
         bn: BNState,
         rs: RSState,
-        all_rcvd_duties: set<AttestationDuty>
+        all_rcvd_duties: set<AttestationDuty>        
     )
 
     datatype Outputs = Outputs(
@@ -596,6 +596,16 @@ module DVCNode_Spec {
         )
 
     }        
+
+    // Is node n the owner of a given attestation share att
+    predicate is_owner_of_att_share(att_share: AttestationShare, dvc: DVCNodeState)
+    {
+        && var data := att_share.data;
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
+        && var att_signing_root := compute_attestation_signing_root(data, fork_version);
+        && var att_share_signature := rs_sign_attestation(data, fork_version, att_signing_root, dvc.rs);        
+        && att_share_signature == att_share.signature
+    }
 }
 
 module DVCNode_Externs_Proofs refines DVCNode_Externs

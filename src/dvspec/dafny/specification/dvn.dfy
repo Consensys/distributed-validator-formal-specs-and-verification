@@ -24,7 +24,12 @@ module DV
         consensus_on_attestation_data: imaptotal<Slot, ConsensusInstance<AttestationData>>,
         att_network: NetworkSpec.Network<AttestationShare>,
         all_attestations_created: set<Attestation>,
-        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+
+        ghost globally_signed_attestations: set<Attestation>,
+        ghost globally_slashing_db_attestations: set<SlashingDBAttestation>,
+        ghost all_att_shares: set<AttestationShare>,
+        ghost highest_slot_with_dvn_signed_att: Optional<Slot>
     )
 
     datatype Event = 
@@ -88,6 +93,8 @@ module DV
             forall ci | ci in  s.consensus_on_attestation_data.Values ::
                 ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
         )
+        && forall i: Slot :: i in s.consensus_on_attestation_data 
+                            ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
     }
 
     predicate Next(

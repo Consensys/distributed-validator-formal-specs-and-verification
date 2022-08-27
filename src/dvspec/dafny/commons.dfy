@@ -432,4 +432,79 @@ module CommonFunctions{
         && attestation_data.index == attestation_duty.committee_index
         && !is_slashable_attestation_data(slashing_db, attestation_data)   
     }      
+
+    // Given an attestation, returns its slot
+    function method get_slot_from_att(att: Attestation): Slot
+    {
+        att.data.slot
+    }
+
+    // Given an attestation data d and a slashing DB attestation dbAttRecord, 
+    // check whether dbAttRecord is based on d.
+    predicate method is_SlashingDBAtt_for_given_att_data(
+        dbAttRecord: SlashingDBAttestation, 
+        d: AttestationData)
+    {
+        && dbAttRecord.source_epoch == d.source.epoch
+        && dbAttRecord.target_epoch == d.target.epoch
+        && dbAttRecord.signing_root == Some(hash_tree_root(d))
+    }
+    
+    // Given an attestation att and a slashing DB attestation dbAttRecord, 
+    // check whether dbAttRecord is based on att.
+    predicate method is_SlashingDBAtt_for_given_att(
+        dbAttRecord: SlashingDBAttestation, 
+        att: Attestation)
+    {
+        is_SlashingDBAtt_for_given_att_data(dbAttRecord, att.data)
+    }
+
+    // Given a set S of attestation shares and an attestastion att,
+    // returns all shares in S that are based on att.
+    function get_shares_in_set_based_on_given_att(
+        S: set<AttestationShare>,
+        att: Attestation
+    ): set<AttestationShare>
+    {
+        var ret_set := set s: AttestationShare |
+                                s in S && s.data == att.data :: s;
+
+        ret_set
+    }
+
+    // Construct a slashing DB attestation for a given attestastion data
+    function method get_SlashingDBAttestation_from_att_data(attestation_data: AttestationData): SlashingDBAttestation
+    {        
+        var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := attestation_data.source.epoch,
+                                            target_epoch := attestation_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(attestation_data)));
+
+        slashing_db_attestation
+    }
+
+    // Construct a slashing DB attestation for a given attestastion 
+    function method get_SlashingDBAttestation_from_att(att: Attestation): SlashingDBAttestation
+    {        
+        var slashing_db_attestation := get_SlashingDBAttestation_from_att_data(att.data);
+
+        slashing_db_attestation
+    }
+    // Given a set S of attestation and a slot s such that there exists only one attestation att 
+    // such that att.data.slot == s. 
+    // Returns att.
+    function method get_attestation_with_given_slot(attSet: set<Attestation>, s: Slot): Attestation
+    requires exists att: Attestation :: att in attSet && att.data.slot == s
+    requires forall a1, a2: Attestation :: 
+                && a1 in attSet 
+                && a2 in attSet 
+                && a1.data.slot == a2.data.slot
+                        ==> a1 == a2
+    {
+        var ret_att: Attestation :| ret_att in attSet && ret_att.data.slot == s;
+
+        ret_att
+    }
+    
+
 }
