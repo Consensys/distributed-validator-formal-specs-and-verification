@@ -506,5 +506,19 @@ module CommonFunctions{
         ret_att
     }
     
+    function method get_SlashingDBAttestations_from_set_of_attestations(S: set<Attestation>): set<SlashingDBAttestation>
+    {
+        var ret_set := set att: Attestation |
+                                att in S :: get_SlashingDBAttestation_from_att_data(att.data);
 
+        ret_set
+    }
+
+    predicate is_slashable_attestation_data_in_set_of_attestations(
+        attSet: set<Attestation>, 
+        attestation_data: AttestationData)
+    {
+        && var slashingDBAttestationSet := get_SlashingDBAttestations_from_set_of_attestations(attSet);
+        && is_slashable_attestation_data(slashingDBAttestationSet, attestation_data)
+    }
 }

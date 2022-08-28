@@ -605,7 +605,7 @@ module AttInvariants
                         && var s := dvn.honest_nodes_states[pubkey];
                         && is_owner_of_att_share(share, s)
     }
-
+/*
     predicate pred37_in_sec_3_8(dvn: DVState)
     {
           && dvn.highest_slot_with_dvn_signed_att.isPresent()
@@ -632,9 +632,51 @@ module AttInvariants
                         && share in S
                         && is_owner_of_att_share(share, s);
           && var s := dvn.honest_nodes_states[pubkey];
-          && dvn.globally_signed_attestations <= seqToSet(s.bn.attestations_submitted)
-                
+          && dvn.globally_signed_attestations <= seqToSet(s.bn.attestations_submitted)                
     }
+*/
+
+    predicate pred37a_in_sec_3_8(dvn: DVState)
+    {
+        forall att: Attestation |
+            att in dvn.globally_signed_attestations ::
+                exists pubkey: BLSPubkey, 
+                       share: AttestationShare,
+                       S: set<AttestationShare> ::
+                    && is_honest_node(dvn, pubkey)
+                    && var s := dvn.honest_nodes_states[pubkey];
+                    && is_owner_of_att_share(share, s)
+                    && share in dvn.all_att_shares
+                    && share.data == att.data
+                    && share in S
+                    && dvn.construct_signed_attestation_signature(S).isPresent()
+                    && var sign := dvn.construct_signed_attestation_signature(S).safe_get();
+                    && sign == att.signature
+    }
+
+    predicate pred37b_in_sec_3_8(dvn: DVState)
+    {
+        forall pubkey: BLSPubkey |
+            is_honest_node(dvn, pubkey) ::
+                && var s := dvn.honest_nodes_states[pubkey];
+                && forall att: Attestation |
+                    att in s.bn.attestations_submitted ::
+                        forall duty: AttestationDuty ::
+                            && duty.slot < att.data.slot 
+                            && duty in s.all_rcvd_duties
+                                ==> exists a: Attestation ::
+                                        && a.data.slot == duty.slot
+                                        && a in s.bn.attestations_submitted
+    }
+
+    predicate pred37c_in_sec_3_8(dvn: DVState) 
+    {
+        exists pubkey: BLSPubkey ::
+            && is_honest_node(dvn, pubkey)
+            && var s := dvn.honest_nodes_states[pubkey];
+            && dvn.globally_signed_attestations <= seqToSet(s.bn.attestations_submitted)
+    }
+
 
     predicate slashingDB_without_slashable_records(db: set<SlashingDBAttestation>)
     {
@@ -689,17 +731,6 @@ module AttInvariants
     }
 
     predicate isSignedByDV(dvn: DVState, signed_att: Attestation)
-
-    predicate safety(dvn: DVState)
-    {
-        forall signed_att: Attestation |
-            && isSignedByDV(dvn, signed_att)
-            && signed_att in dvn.globally_signed_attestations ::                
-                && var dbAttRecord := get_SlashingDBAttestation_from_att(signed_att);
-                && var att_data := signed_att.data;
-                && var otherDBAttRecords := dvn.globally_slashing_db_attestations - {dbAttRecord};  
-                && !is_slashable_attestation_data(otherDBAttRecords, att_data)   
-    }
 
     predicate isMaxSlotWithSignedAtt(dvn: DVState, s: Slot)
     {
@@ -761,7 +792,7 @@ module AttInvariants
                                   && !is_slashable_attestation_data(other_records, att_data)   
                                 )
     }    
-*/
+
 
     predicate WitnessForHighestAttHasAllGloballySignedAtt(dvn: DVState, pubkey: BLSPubkey)
     {
@@ -769,5 +800,73 @@ module AttInvariants
         && var s := dvn.honest_nodes_states[pubkey];
         && dvn.globally_signed_attestations <= seqToSet(s.bn.attestations_submitted)
         && dvn.globally_slashing_db_attestations <= s.attestation_slashing_db
+    }
+*/
+
+    predicate pred40_no_slaslable_attestation_in_any_subset_of_submitted_attestations(dvn: DVState)
+    {
+        forall pubkey: BLSPubkey |
+            is_honest_node(dvn, pubkey) ::
+                && var s := dvn.honest_nodes_states[pubkey];
+                && var attSet := seqToSet(s.bn.attestations_submitted);
+                && forall S: set<Attestation>, att: Attestation |
+                    && S <= attSet 
+                    && att in S ::
+                        && var tempSet := S - { att };
+                        && is_slashable_attestation_data_in_set_of_attestations(tempSet, att.data)
+    }
+
+/*
+    predicate pred40(dvn: DVState)
+    {
+        forall pubkey: BLSPubkey ::,
+            S: set<Attestation>, 
+            a: Attestation ::
+                && is_honest_node(dvn, pubkey)
+                && var s := dvn.honest_nodes_states[pubkey];
+                && var attSet := seqToSet(s.bn.attestations_submitted);        
+                && S <= attSet 
+                && a in attSet
+                && a !in S  
+                    ==> is_slashable_attestation_data_in_set_of_attestations(S, a.data)
+    }
+    */
+
+    predicate pred40(dvn: DVState)
+    {
+        forall pubkey: BLSPubkey ::
+            is_honest_node(dvn, pubkey) ==> pred40_body(dvn.honest_nodes_states[pubkey])                
+    }
+
+
+    predicate pred40_body(s: DVCNodeState)
+    {
+        forall S: set<Attestation>, a: Attestation ::                
+            && var attSet := seqToSet(s.bn.attestations_submitted);        
+            && S <= attSet 
+            && a in attSet
+            && a !in S 
+                ==> is_slashable_attestation_data_in_set_of_attestations(S, a.data)
+    }
+
+/*
+    predicate old_safety(dvn: DVState)
+    {
+        forall signed_att: Attestation |
+            && isSignedByDV(dvn, signed_att)
+            && signed_att in dvn.globally_signed_attestations ::                
+                && var dbAttRecord := get_SlashingDBAttestation_from_att(signed_att);
+                && var att_data := signed_att.data;
+                && var otherDBAttRecords := dvn.globally_slashing_db_attestations - {dbAttRecord};  
+                && !is_slashable_attestation_data(otherDBAttRecords, att_data)   
+    }
+*/
+
+    predicate safety(dvn: DVState)
+    {
+        forall a: Attestation ::
+            a in dvn.globally_signed_attestations 
+                ==> && var S := dvn.globally_signed_attestations - { a };
+                    && is_slashable_attestation_data_in_set_of_attestations(S, a.data)
     }
 }
