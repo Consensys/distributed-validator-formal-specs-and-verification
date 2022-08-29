@@ -18,10 +18,10 @@ module Init_IndInv
     lemma init_implies_inv1(dvn: DVState)       
     requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
                 DV.Init(dvn, initial_attestation_slashing_db)        
-    ensures forall i: Slot :: no_conflict_decisions_pred1_in_sec_3_1(dvn.consensus_on_attestation_data[i])
+    ensures forall i: Slot :: inv1_in_sec_3_1_no_conflict_decisions(dvn.consensus_on_attestation_data[i])
     {}
 
-    lemma honest_node_inconsensus_init_satisfies_inv2<D(!new, 0)>(
+    lemma honest_node_in_consensus_init_satisfies_inv2<D(!new, 0)>(
         s: ConsensusInstance, 
         all_nodes: set<BLSPubkey>, 
         honest_nodes: set<BLSPubkey>,
@@ -43,7 +43,7 @@ module Init_IndInv
         honest_nodes: set<BLSPubkey>)
     requires ConsensusSpec.Init(s, all_nodes, honest_nodes)
     requires ConsensusSpec.isConditionForSafetyTrue(s)    
-    ensures no_decisions_pred2_in_sec_3_1(s)
+    ensures inv2_in_sec_3_1_no_decisions(s)
     { 
         var unchecked_honest_nodes := honest_nodes;
         var checked_honest_nodes := {};
@@ -57,11 +57,50 @@ module Init_IndInv
             decreases |unchecked_honest_nodes|
         {
             var i :| i in unchecked_honest_nodes;
-            honest_node_inconsensus_init_satisfies_inv2(s, all_nodes, honest_nodes, i);
+            honest_node_in_consensus_init_satisfies_inv2(s, all_nodes, honest_nodes, i);
             unchecked_honest_nodes := unchecked_honest_nodes - {i};
             checked_honest_nodes := checked_honest_nodes + {i};
         }
-    }       
+    }   
+
+
+    lemma init_implies_inv2(dvn: DVState)       
+    requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
+                DV.Init(dvn, initial_attestation_slashing_db)        
+    // ensures forall i: Slot :: inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i])
+    {
+        var i: Slot :| i in dvn.consensus_on_attestation_data.Keys;
+        assert ConsensusSpec.Init(dvn.consensus_on_attestation_data[i], dvn.all_nodes, dvn.honest_nodes_states.Keys);
+        assert ConsensusSpec.isConditionForSafetyTrue(dvn.consensus_on_attestation_data[i]);
+        consensus_init_implies_inv2(dvn.consensus_on_attestation_data[i], dvn.all_nodes, dvn.honest_nodes_states.Keys);        
+        assert inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i]);
+
+        assert forall i: Slot | i in dvn.consensus_on_attestation_data.Keys ::
+                    inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i]);
+    }    
+
+
+    lemma init_implies_inv3(dvn: DVState)       
+    requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
+                DV.Init(dvn, initial_attestation_slashing_db)        
+    ensures inv3_in_sec_3_2_consistant_att_slashing_databases_between_honest_nodes(dvn)
+    {}    
+
+    lemma init_implies_inv4(dvn: DVState)       
+    requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
+                DV.Init(dvn, initial_attestation_slashing_db)        
+    // ensures pred4_in_sec_3_2_consistant_slashing_db(dvn)
+    {
+        var pubkey: BLSPubkey :| is_honest_node(dvn, pubkey);
+        var nState := dvn.honest_nodes_states[pubkey];
+        var db := nState.attestation_slashing_db;        
+    }  
+
+    lemma init_implies_inv5(dvn: DVState)       
+    requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
+                DV.Init(dvn, initial_attestation_slashing_db)        
+    ensures pred5_in_sec_3_3_curr_att_duty_is_last_served_duty(dvn)
+    { }  
 }
 
 

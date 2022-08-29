@@ -13,18 +13,21 @@ module AttInvariants
     import opened DVCNode_Spec
     import opened DV
 
-    predicate no_conflict_decisions_pred1_in_sec_3_1<D(!new, 0)>(s: ConsensusInstance<D>)
+    // For every pair (n1, n2) of honest nodes working for the same attestation duty, 
+    // either both n1 and n2 decides on the same data or one of them has not decided yet.
+    predicate inv1_in_sec_3_1_no_conflict_decisions<D(!new, 0)>(s: ConsensusInstance<D>)
     {
-        forall i1: BLSPubkey, i2: BLSPubkey | 
+        forall n1: BLSPubkey, n2: BLSPubkey | 
             && ConsensusSpec.isConditionForSafetyTrue(s)
-            && i1 in s.honest_nodes_status.Keys
-            && i2 in s.honest_nodes_status.Keys ::                         
-                    || s.honest_nodes_status[i1] == NOT_DECIDED
-                    || s.honest_nodes_status[i2] == NOT_DECIDED
-                    || s.honest_nodes_status[i1] == s.honest_nodes_status[i2]
+            && n1 in s.honest_nodes_status.Keys
+            && n2 in s.honest_nodes_status.Keys ::                         
+                    || s.honest_nodes_status[n1] == NOT_DECIDED
+                    || s.honest_nodes_status[n2] == NOT_DECIDED
+                    || s.honest_nodes_status[n1] == s.honest_nodes_status[n2]
     }
 
-    predicate no_decisions_pred2_in_sec_3_1<D(!new, 0)>(s: ConsensusInstance<D>)
+    // If a consensus instance has not decided, no honest nodes have not decided.
+    predicate inv2_in_sec_3_1_no_decisions<D(!new, 0)>(s: ConsensusInstance<D>)
     {
         && ConsensusSpec.isConditionForSafetyTrue(s)
         && !s.decided_value.isPresent()
@@ -51,17 +54,42 @@ module AttInvariants
         quorum(|dvn.all_nodes|) <= |S|
     }
 
-    predicate consistant_att_slashing_databases_between_honest_nodes_pred3_in_sec_3_2(s: DVState)
+    // For every pair (db1, db2) of slashing attestation databases of two honest nodes, 
+    // db1 is a subset of db2 or db2 is a subset of db1.
+    predicate inv3_in_sec_3_2_consistant_att_slashing_databases_between_honest_nodes(s: DVState)
     {
         forall n1: BLSPubkey, n2: BLSPubkey |
             && is_honest_node(s, n1)
-            && is_honest_node(s, n2) 
-                :: || s.honest_nodes_states[n1].attestation_slashing_db <= s.honest_nodes_states[n2].attestation_slashing_db
-                   || s.honest_nodes_states[n2].attestation_slashing_db <= s.honest_nodes_states[n1].attestation_slashing_db
-                   
+            && is_honest_node(s, n2) ::
+                inv3_in_sec_3_2_body(s, n1, n2)
     }
 
-    predicate consistant_attestations_in_one_slashing_db_pred4_in_sec_3_2(dvn: DVState)
+    predicate inv3_in_sec_3_2_body(s: DVState, n1: BLSPubkey, n2: BLSPubkey)
+    {
+        && is_honest_node(s, n1)
+        && is_honest_node(s, n2) 
+        && ( || s.honest_nodes_states[n1].attestation_slashing_db <= s.honest_nodes_states[n2].attestation_slashing_db
+             || s.honest_nodes_states[n2].attestation_slashing_db <= s.honest_nodes_states[n1].attestation_slashing_db
+           )                   
+    }
+
+    // For every record r in a slashing db of an honest node, 
+    // there exist an attestation duty and an attestation data such that
+    //      - The node has received the duty.
+    //      - The data is for the attestation.
+    //      - The data and the duty are for the same slot.
+    //      - The data is not slashable in db - {r}.    
+        predicate pred4_in_sec_3_2_consistant_slashing_db(dvn: DVState)
+    {
+        forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
+            && var nState := dvn.honest_nodes_states[pubkey];
+            && var db := nState.attestation_slashing_db;
+            && forall dbRecord: SlashingDBAttestation | dbRecord in db ::
+                    pred4_in_sec_3_2_body(dvn, pubkey, dbRecord)      
+    }
+
+    /*
+    predicate pred4_in_sec_3_2_consistant_attestations_in_one_slashing_db(dvn: DVState)
     {
         forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
             && var nState := dvn.honest_nodes_states[pubkey];
@@ -74,15 +102,38 @@ module AttInvariants
                                 && att_data.slot == att_duty.slot 
                                 && consensus_is_valid_attestation_data(db, att_data, att_duty)         
     }
+*/
 
-    predicate curr_att_duty_is_last_served_duty_pred5_in_sec_3_3(dvn: DVState)        
+    predicate pred4_in_sec_3_2_body(dvn: DVState, pubkey: BLSPubkey, dbRecord: SlashingDBAttestation)
+    {
+        && is_honest_node(dvn, pubkey) 
+        && var nState := dvn.honest_nodes_states[pubkey];
+        && var db := nState.attestation_slashing_db;
+        && dbRecord in db 
+        && exists att_data: AttestationData, 
+                  att_duty: AttestationDuty ::
+                        && att_duty in nState.all_rcvd_duties                        
+                        && att_data.slot == att_duty.slot 
+                        && is_SlashingDBAtt_for_given_att_data(dbRecord, att_data)
+                        && var S := db - { dbRecord };
+                        && !is_slashable_attestation_data(S, att_data)
+    }
+
+    // If the current duty is not none, then the lastest served duty is the current duty.
+    predicate pred5_in_sec_3_3_curr_att_duty_is_last_served_duty(dvn: DVState)        
     {
         forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
-            && var s := dvn.honest_nodes_states[pubkey];
-            && s.current_attestation_duty.isPresent()
-                    ==> ( && s.latest_attestation_duty.isPresent()
-                          && s.current_attestation_duty.safe_get() == s.latest_attestation_duty.safe_get()
-                        )
+            pred5_in_sec_3_3_body(dvn, pubkey)            
+    }
+
+    predicate pred5_in_sec_3_3_body(dvn: DVState, pubkey: BLSPubkey)        
+    {
+        && is_honest_node(dvn, pubkey)
+        && var s := dvn.honest_nodes_states[pubkey];
+        && s.current_attestation_duty.isPresent()
+                ==> ( && s.latest_attestation_duty.isPresent()
+                      && s.current_attestation_duty.safe_get() == s.latest_attestation_duty.safe_get()
+                    )
     }
 
     predicate exisiting_consensus_instance_for_curr_att_duty_pred6_in_sec_3_3(dvn: DVState)        

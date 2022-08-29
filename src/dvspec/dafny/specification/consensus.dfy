@@ -31,6 +31,22 @@ module ConsensusSpec
 
     function quorum(n:nat):nat
     // returns ceil(2n/3)
+    {
+        if (n / 3) * 3 == n
+        then 2 * (n / 3)
+        else 2 * (n / 3) + 1
+    }
+
+    predicate ByzThresholdAssumption(
+        all_nodes: set<BLSPubkey>,
+        honest_nodes: set<BLSPubkey>,
+        dishonest_nodes: set<BLSPubkey>
+    )
+    {        
+        && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
+        && all_nodes == honest_nodes + dishonest_nodes
+        && honest_nodes * dishonest_nodes == {}
+    }
 
 
     predicate isConditionForSafetyTrue<D(!new, 0)>(
