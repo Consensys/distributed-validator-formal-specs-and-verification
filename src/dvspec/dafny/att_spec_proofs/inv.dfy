@@ -842,11 +842,13 @@ module AttInvariants
     predicate pred40_body(s: DVCNodeState)
     {
         forall S: set<Attestation>, a: Attestation ::                
-            && var attSet := seqToSet(s.bn.attestations_submitted);        
-            && S <= attSet 
-            && a in attSet
-            && a !in S 
-                ==> is_slashable_attestation_data_in_set_of_attestations(S, a.data)
+            && var attSet := seqToSet(s.bn.attestations_submitted);
+            (        
+                && S <= attSet 
+                && a in attSet
+                && a !in S 
+            )
+                ==> !is_slashable_attestation_data_in_set_of_attestations(S, a.data)
     }
 
 /*
@@ -866,7 +868,10 @@ module AttInvariants
     {
         forall a: Attestation ::
             a in dvn.globally_signed_attestations 
-                ==> && var S := dvn.globally_signed_attestations - { a };
-                    && is_slashable_attestation_data_in_set_of_attestations(S, a.data)
+                ==> 
+                (
+                    && var S := dvn.globally_signed_attestations - { a };
+                    && !is_slashable_attestation_data_in_set_of_attestations(S, a.data)
+                )
     }
 }
