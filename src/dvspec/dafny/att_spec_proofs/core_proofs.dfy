@@ -74,7 +74,7 @@ module Core_Proofs
             invariant forall a: Attestation :: 
                             a in checked_attestations 
                                 ==> && var tempSet := dvn.globally_signed_attestations - { a };
-                                    && is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
+                                    && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
             decreases |unchecked_attestations|
         {
             var a: Attestation :| a in unchecked_attestations;
@@ -84,7 +84,7 @@ module Core_Proofs
             var tempSet := dvn.globally_signed_attestations - { a };
             assert tempSet <= attestations;
 
-            assert is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
+            assert !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
 
             unchecked_attestations := unchecked_attestations - { a };   
             checked_attestations := checked_attestations + { a };
@@ -95,6 +95,6 @@ module Core_Proofs
         assert forall a: Attestation :: 
                     a in dvn.globally_signed_attestations
                         ==> && var tempSet := dvn.globally_signed_attestations - { a };
-                            && is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
+                            && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
     }
 }
