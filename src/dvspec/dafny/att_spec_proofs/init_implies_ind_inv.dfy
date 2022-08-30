@@ -67,16 +67,16 @@ module Init_IndInv
     lemma init_implies_inv2(dvn: DVState)       
     requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
                 DV.Init(dvn, initial_attestation_slashing_db)        
-    // ensures forall i: Slot :: inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i])
+    ensures forall i: Slot :: inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i])
     {
-        var i: Slot :| i in dvn.consensus_on_attestation_data.Keys;
-        assert ConsensusSpec.Init(dvn.consensus_on_attestation_data[i], dvn.all_nodes, dvn.honest_nodes_states.Keys);
-        assert ConsensusSpec.isConditionForSafetyTrue(dvn.consensus_on_attestation_data[i]);
-        consensus_init_implies_inv2(dvn.consensus_on_attestation_data[i], dvn.all_nodes, dvn.honest_nodes_states.Keys);        
-        assert inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i]);
-
-        assert forall i: Slot | i in dvn.consensus_on_attestation_data.Keys ::
-                    inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i]);
+        forall i: Slot
+        ensures inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i]);
+        {
+            assert ConsensusSpec.Init(dvn.consensus_on_attestation_data[i], dvn.all_nodes, dvn.honest_nodes_states.Keys);
+            assert ConsensusSpec.isConditionForSafetyTrue(dvn.consensus_on_attestation_data[i]);
+            consensus_init_implies_inv2(dvn.consensus_on_attestation_data[i], dvn.all_nodes, dvn.honest_nodes_states.Keys);        
+            assert inv2_in_sec_3_1_no_decisions(dvn.consensus_on_attestation_data[i]);
+        }                    
     }    
 
 
