@@ -106,6 +106,7 @@ module Types
     | NoEvent    
 
     type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
+    type iseq<T> = imaptotal<nat, T>
 
     datatype Optional<T(0)> = Some(v: T) | None
     {

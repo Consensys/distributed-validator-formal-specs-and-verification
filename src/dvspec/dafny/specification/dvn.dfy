@@ -16,6 +16,11 @@ module DV
         nodes: set<BLSPubkey>  
     )
 
+    datatype AttestationDutyAndNode = AttestationDutyAndNode(
+        attestation_duty: AttestationDuty,
+        node: BLSPubkey
+    )
+
     datatype DVState = DVState(
         all_nodes: set<BLSPubkey>,
         honest_nodes_states: map<BLSPubkey, DVCNodeState>,
@@ -25,6 +30,8 @@ module DV
         att_network: NetworkSpec.Network<AttestationShare>,
         all_attestations_created: set<Attestation>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,
+        index_next_attestation_duty_to_be_served: nat,
 
         ghost globally_signed_attestations: set<Attestation>,
         ghost globally_slashing_db_attestations: set<SlashingDBAttestation>,
@@ -93,10 +100,23 @@ module DV
             forall ci | ci in  s.consensus_on_attestation_data.Values ::
                 ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
         )
-        && forall i: Slot :: i in s.consensus_on_attestation_data 
+        && (forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
+        )
+        && is_sequence_attestation_duties_to_be_served_orderd(s)
+        
     }
 
+    predicate is_sequence_attestation_duties_to_be_served_orderd(s: DVState)
+    {
+        && (forall i, j | 
+                    && 0 <= i < j
+                    && s.sequence_attestation_duties_to_be_served[i].node == s.sequence_attestation_duties_to_be_served[j].node 
+                ::
+                    s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot <= s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
+        )
+    }
+    
     predicate Next(
         s: DVState,
         s': DVState 
@@ -113,6 +133,8 @@ module DV
     )
     {
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
+        && s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served
+        && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature
         && (
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
@@ -173,6 +195,15 @@ module DV
             node := new_node_state
         ]
         && s'.all_attestations_created == s.all_attestations_created + nodeOutputs.attestations_submitted
+        && (
+            if nodeEvent.ServeAttstationDuty? then
+                var attestation_duty_to_be_served := s.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
+                && node == attestation_duty_to_be_served.node 
+                && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
+                && s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served + 1
+            else 
+                s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served
+        )
         && var messagesReceivedByTheNode :=
             match nodeEvent
                 case ReceviedAttesttionShare(attestation_share) => {attestation_share}
@@ -204,7 +235,6 @@ module DV
                 )
         )      
         && s'.adversary == s.adversary
-        && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature
     }    
 
     predicate NextAdversary(
