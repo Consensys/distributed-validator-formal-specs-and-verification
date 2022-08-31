@@ -69,6 +69,15 @@ module DV
                                     && signer in s.all_nodes
                                     && verify_bls_siganture(signing_root, att_share.signature, signer)
                         )
+                        && exists signers: set<BLSPubkey> ::
+                                && signers <= s.all_nodes
+                                && |signers| >= quorum(|s.all_nodes|)
+                                && forall signer: BLSPubkey ::
+                                        signer in signers
+                                            ==> exists att_share: AttestationShare ::
+                                                    verify_bls_siganture(signing_root, att_share.signature, signer)
+                                                    
+
                 )
                 <==>
                     s.construct_signed_attestation_signature(att_shares).isPresent()
@@ -85,6 +94,14 @@ module DV
                             && |verifiable_att_shares| >= quorum(|s.all_nodes|)
                             && (forall att_share |
                                     att_share in verifiable_att_shares :: att_share.data == data)
+                            && exists signers: set<BLSPubkey> ::
+                                && signers <= s.all_nodes
+                                && |signers| >= quorum(|s.all_nodes|)
+                                && forall signer: BLSPubkey ::
+                                        signer in signers
+                                            ==> exists att_share: AttestationShare ::
+                                                    verify_bls_siganture(signing_root, att_share.signature, signer)
+
                             ::
                                     && var signing_root := compute_attestation_signing_root(data, fork_version);
                                     verify_bls_siganture(signing_root, constructed_sig.safe_get(), s.dv_pubkey)
