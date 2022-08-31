@@ -102,12 +102,21 @@ module Init_IndInv
     ensures pred5_in_sec_3_3_curr_att_duty_is_last_served_duty(dvn)
     { }  
 
+
+    // Every node is either honest or dishonest
     lemma init_implies_inv100(dvn: DVState)       
     requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
                 DV.Init(dvn, initial_attestation_slashing_db)        
     ensures forall pubkey: BLSPubkey | pubkey in dvn.all_nodes ::
                     || pubkey in dvn.honest_nodes_states.Keys
                     || pubkey in dvn.adversary.nodes
+    { }  
+
+    // The intersection of two quorums is not empty.
+    lemma init_implies_inv101(dvn: DVState, S: set<BLSPubkey>, T: set<BLSPubkey>)       
+    requires S <= dvn.all_nodes && quorum(|dvn.all_nodes|) <= |S|
+    requires T <= dvn.all_nodes && quorum(|dvn.all_nodes|) <= |T|
+    ensures S * T != {}
     { }  
 }
 
