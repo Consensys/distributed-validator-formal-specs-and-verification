@@ -367,7 +367,7 @@ module CommonFunctions{
                         signing_root := None
                     );            
                 exists past_attn | past_attn in att_slashing_db ::
-                        is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
+                        || is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
         else
             false        
     } by method 
@@ -430,7 +430,8 @@ module CommonFunctions{
     {
         && attestation_data.slot == attestation_duty.slot
         && attestation_data.index == attestation_duty.committee_index
-        && !is_slashable_attestation_data(slashing_db, attestation_data)   
+        && !is_slashable_attestation_data(slashing_db, attestation_data)  
+        && attestation_data.source.epoch < attestation_data.target.epoch 
     }      
 
     // Given an attestation, returns its slot

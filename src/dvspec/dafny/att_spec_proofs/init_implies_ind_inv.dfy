@@ -101,6 +101,14 @@ module Init_IndInv
                 DV.Init(dvn, initial_attestation_slashing_db)        
     ensures pred5_in_sec_3_3_curr_att_duty_is_last_served_duty(dvn)
     { }  
+
+    lemma init_implies_inv100(dvn: DVState)       
+    requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
+                DV.Init(dvn, initial_attestation_slashing_db)        
+    ensures forall pubkey: BLSPubkey | pubkey in dvn.all_nodes ::
+                    || pubkey in dvn.honest_nodes_states.Keys
+                    || pubkey in dvn.adversary.nodes
+    { }  
 }
 
 
