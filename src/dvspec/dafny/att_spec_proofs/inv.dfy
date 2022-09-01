@@ -943,7 +943,15 @@ module AttInvariants
             ::
                 && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
                 && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
-    }    
+    }  
+
+    predicate pred_4_1_f_a(dvn: DVState)
+    {
+        forall cid |
+            && dvn.consensus_on_attestation_data[cid].decided_value.isPresent()
+            ::
+            is_a_valid_decided_value(dvn.consensus_on_attestation_data[cid])
+    }  
 
     predicate safety(dvn: DVState)
     {

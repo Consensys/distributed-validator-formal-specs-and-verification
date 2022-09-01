@@ -101,6 +101,7 @@ module Core_Proofs
     lemma lemma_4_1(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
+    requires pred_4_1_f_a(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -141,6 +142,20 @@ module Core_Proofs
 
         assert
                 && dvn.consensus_on_attestation_data[att_share'.data.slot].decided_value.isPresent()
-                && dvn.consensus_on_attestation_data[att_share'.data.slot].decided_value.safe_get() == att_share'.data;                                            
+                && dvn.consensus_on_attestation_data[att_share'.data.slot].decided_value.safe_get() == att_share'.data;      
+
+        assert is_a_valid_decided_value(dvn.consensus_on_attestation_data[a.data.slot]); 
+        assert is_a_valid_decided_value(dvn.consensus_on_attestation_data[a'.data.slot]);  
+
+        var consa := dvn.consensus_on_attestation_data[a.data.slot]; 
+
+        assert consa.decided_value.isPresent();
+
+        var h_nodes_a :|
+                && h_nodes_a <= consa.honest_nodes_validity_functions.Keys  
+                && |h_nodes_a| >= f(|consa.all_nodes|) + 1
+                &&
+                (forall n | n in h_nodes_a :: 
+                    exists vp: AttestationData -> bool | vp in consa.honest_nodes_validity_functions[n] :: vp(consa.decided_value.safe_get()));                                   
     }
 }
