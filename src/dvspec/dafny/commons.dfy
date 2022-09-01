@@ -523,4 +523,22 @@ module CommonFunctions{
         && var slashingDBAttestationSet := get_SlashingDBAttestations_from_set_of_attestations(attSet);
         && is_slashable_attestation_data(slashingDBAttestationSet, attestation_data)
     }
+
+    function f(n:nat): nat
+    {
+        if n > 0 then
+            (n-1)/3
+        else
+            0
+    }
+
+    function quorum(n:nat):nat
+    {
+        if n > 0 then
+            (2*n -1)/3 + 1 
+        else 
+            0
+    }
+
+ 
 }

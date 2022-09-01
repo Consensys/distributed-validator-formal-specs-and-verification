@@ -23,26 +23,7 @@ module ConsensusSpec
         // ghost honest_nodes: set<BLSPubkey>
     )    
 
-
-    function f(n:nat): nat
-    {
-        if n > 0 then
-            (n-1)/3
-        else
-            0
-    }
-
-    function quorum(n:nat):nat
-    {
-        if n > 0 then
-            (2*n -1)/3 + 1 
-        else 
-            0
-    }
-
-    lemma test_quorum(n: nat)
-    ensures quorum(n) * 3 >= 2 * n
-    { }
+    // Move functions f, quorum, and test_quorum to file commons.dfy
 
     predicate ByzThresholdAssumption(
         all_nodes: set<BLSPubkey>,
@@ -82,11 +63,11 @@ module ConsensusSpec
         output: Optional<OutCommand>
     )
     {
-        exists s'': ConsensusInstance ::
+        // exists s'': ConsensusInstance ::
             // First we let the consensus protocol and the various nodes possibly decide on a value
-            && NextConsensusDecides(s, honest_nodes_validity_predicates, s'')
+            && NextConsensusDecides(s, honest_nodes_validity_predicates, s')
             // Then we let the node take an input/output step
-            && NextNodeStep(s'', honest_nodes_validity_predicates, output)
+            && NextNodeStep(s', honest_nodes_validity_predicates, output)
 
     }
 
@@ -109,6 +90,8 @@ module ConsensusSpec
         )
     }
 
+    // If n = 5, then f(5) = 1 and quorum(n) = 4.
+    // Therefore, f(5) + 1 < quorum(5) - f(5).
     predicate is_a_valid_decided_value<D(!new, 0)>(
         s: ConsensusInstance
     )
@@ -117,7 +100,8 @@ module ConsensusSpec
         && (
             exists h_nodes |
                 && h_nodes <= s.honest_nodes_validity_functions.Keys  
-                && |h_nodes| >= f(|s.all_nodes|) + 1
+                // && |h_nodes| >= f(|s.all_nodes|) + 1
+                && |h_nodes| >= quorum(|s.all_nodes|) - f(|s.all_nodes|) 
                 ::
                 forall n | n in h_nodes :: 
                     exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())       
