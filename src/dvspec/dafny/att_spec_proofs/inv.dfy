@@ -4,7 +4,9 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 
-module AttInvariants
+
+
+module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
     import opened Types 
     import opened CommonFunctions
@@ -948,6 +950,7 @@ module AttInvariants
     predicate pred_4_1_f_a(dvn: DVState)
     {
         forall cid |
+            && cid in dvn.consensus_on_attestation_data.Keys
             && dvn.consensus_on_attestation_data[cid].decided_value.isPresent()
             ::
             is_a_valid_decided_value(dvn.consensus_on_attestation_data[cid])
@@ -962,5 +965,36 @@ module AttInvariants
                     && var S := dvn.globally_signed_attestations - { a };
                     && !is_slashable_attestation_data_in_set_of_attestations(S, a.data)
                 )
+    }
+
+    // For every consensus instance ci, ci.decided value.isP resent() 
+    // if and only if is a valid decided value(ci).
+    predicate inv41<D(!new, 0)>(ci: ConsensusInstance<D>)
+    {
+        ci.decided_value.isPresent()
+            <==> is_a_valid_decided_value(ci)            
+    }
+
+    predicate honest_nodes_with_validityPredicate(consa: ConsensusInstance<AttestationData>,  h_nodes_a: set<BLSPubkey>)
+    requires h_nodes_a <= consa.honest_nodes_validity_functions.Keys  
+    requires |h_nodes_a| >= quorum(|consa.all_nodes|) 
+                                        - (|consa.all_nodes| - |consa.honest_nodes_status.Keys|)
+    requires consa.decided_value.isPresent()
+    {
+        forall n | n in h_nodes_a 
+            :: exists vp: AttestationData -> bool | vp in consa.honest_nodes_validity_functions[n] 
+                    :: vp(consa.decided_value.safe_get())
+    }
+    
+    
+    predicate inv42(dvn: DVState)
+    {
+        forall ci | ci in dvn.consensus_on_attestation_data.Values
+            :: && ci.all_nodes == dvn.all_nodes
+               && ci.honest_nodes_status.Keys == dvn.honest_nodes_states.Keys  
+               && ci.honest_nodes_status.Keys <= ci.all_nodes
+               && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
+               && |ci.honest_nodes_status.Keys| >= quorum(|ci.all_nodes|)
+               && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 }

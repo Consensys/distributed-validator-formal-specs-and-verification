@@ -408,6 +408,6 @@ function intsetmax(s:set<int>):int
     lemma lemmaQuorumAndF<T(==)>(nodes: set<T>)
     requires |nodes| > 0 
     ensures && var n := |nodes|;
-            && n <= f(n) + quorum(n) + 1
+            && 2 * quorum(n) > n + f(n)
     {}
 }

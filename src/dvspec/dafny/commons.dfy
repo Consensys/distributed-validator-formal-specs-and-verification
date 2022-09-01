@@ -535,7 +535,7 @@ module CommonFunctions{
     function quorum(n:nat):nat
     {
         if n > 0 then
-            (2*n -1)/3 + 1 
+            (2*n - 1)/3 + 1 
         else 
             0
     }
