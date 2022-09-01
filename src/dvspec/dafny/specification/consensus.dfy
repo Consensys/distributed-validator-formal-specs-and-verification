@@ -33,12 +33,16 @@ module ConsensusSpec
     }
 
     function quorum(n:nat):nat
-    // returns ceil(2n/3)
     {
-        if (n / 3) * 3 == n
-        then 2 * (n / 3)
-        else 2 * (n / 3) + 1
+        if n > 0 then
+            (2*n -1)/3 + 1 
+        else 
+            0
     }
+
+    lemma test_quorum(n: nat)
+    ensures quorum(n) * 3 >= 2 * n
+    { }
 
     predicate ByzThresholdAssumption(
         all_nodes: set<BLSPubkey>,
