@@ -453,35 +453,36 @@ module AttInvariants
                                 k)           
     } 
 
-    predicate pred25_in_sec_3_7(dvn: DVState)   
-    {
-        forall i: Slot, p: AttestationData -> bool | 
-            && i in dvn.consensus_on_attestation_data.Keys
-            && p in dvn.consensus_on_attestation_data[i].honest_nodes_validity_functions ::
-                forall att_data: AttestationData ::
-                    p(att_data) 
-                        ==> exists duty: AttestationDuty,    
-                                   db: set<SlashingDBAttestation>,                         
-                                   pubkey: BLSPubkey ::
-                                        && is_honest_node(dvn, pubkey)                                         
-                                        && var s := dvn.honest_nodes_states[pubkey];                                        
-                                        && duty in s.all_rcvd_duties
-                                        && consensus_is_valid_attestation_data(db, att_data, duty)
-                                        && att_data.slot == i
-                                        && db <= s.attestation_slashing_db
-                                        && forall j: Slot | 
-                                                && j <= i 
-                                                && ( exists d :: d in s.all_rcvd_duties && d.slot == j ) ::
-                                                        && dvn.consensus_on_attestation_data[j].decided_value.isPresent()
-                                                        && ( exists db_att: SlashingDBAttestation, data: AttestationData :: 
-                                                                && db_att in db
-                                                                && data.slot == j
-                                                                && db_att.signing_root == Some(hash_tree_root(data)) )
-                                                        && ( forall db_att: SlashingDBAttestation, data: AttestationData :: 
-                                                                && db_att in db
-                                                                && data.slot == j                                                                
-                                                                        ==> data == dvn.consensus_on_attestation_data[j].decided_value.safe_get() )                                                        
-    }   
+    // Type eroors after changing the type of honest_nodes_validity_functions in consensus
+    // predicate pred25_in_sec_3_7(dvn: DVState)   
+    // {
+    //     forall i: Slot, p: AttestationData -> bool | 
+    //         && i in dvn.consensus_on_attestation_data.Keys
+    //         && p in dvn.consensus_on_attestation_data[i].honest_nodes_validity_functions ::
+    //             forall att_data: AttestationData ::
+    //                 p(att_data) 
+    //                     ==> exists duty: AttestationDuty,    
+    //                                db: set<SlashingDBAttestation>,                         
+    //                                pubkey: BLSPubkey ::
+    //                                     && is_honest_node(dvn, pubkey)                                         
+    //                                     && var s := dvn.honest_nodes_states[pubkey];                                        
+    //                                     && duty in s.all_rcvd_duties
+    //                                     && consensus_is_valid_attestation_data(db, att_data, duty)
+    //                                     && att_data.slot == i
+    //                                     && db <= s.attestation_slashing_db
+    //                                     && forall j: Slot | 
+    //                                             && j <= i 
+    //                                             && ( exists d :: d in s.all_rcvd_duties && d.slot == j ) ::
+    //                                                     && dvn.consensus_on_attestation_data[j].decided_value.isPresent()
+    //                                                     && ( exists db_att: SlashingDBAttestation, data: AttestationData :: 
+    //                                                             && db_att in db
+    //                                                             && data.slot == j
+    //                                                             && db_att.signing_root == Some(hash_tree_root(data)) )
+    //                                                     && ( forall db_att: SlashingDBAttestation, data: AttestationData :: 
+    //                                                             && db_att in db
+    //                                                             && data.slot == j                                                                
+    //                                                                     ==> data == dvn.consensus_on_attestation_data[j].decided_value.safe_get() )                                                        
+    // }   
 
     
 
@@ -914,6 +915,35 @@ module AttInvariants
                 && !is_slashable_attestation_data(otherDBAttRecords, att_data)   
     }
 */
+
+    predicate pred_4_1_b(dvn: DVState)
+    {
+        forall hn, a |
+            && hn in dvn.honest_nodes_states.Keys 
+            && a in dvn.honest_nodes_states[hn].bn.attestations_submitted
+            ::
+            exists hn', att_share: AttestationShare ::
+                && hn' in dvn.honest_nodes_states.Keys 
+                && att_share in dvn.att_network.allMessagesSent
+                && att_share.data == a.data
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
+
+    }
+
+    predicate pred_4_1_c(dvn: DVState)
+    {
+        forall hn, att_share |
+                && hn in dvn.honest_nodes_states.Keys 
+                && att_share in dvn.att_network.allMessagesSent
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+            ::
+                && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
+                && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
+    }    
 
     predicate safety(dvn: DVState)
     {
