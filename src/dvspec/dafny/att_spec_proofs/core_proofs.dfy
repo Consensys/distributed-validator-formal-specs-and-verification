@@ -97,4 +97,65 @@ module Core_Proofs
                         ==> && var tempSet := dvn.globally_signed_attestations - { a };
                             && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
     }
+
+    lemma lemma_4_1(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    requires pred_4_1_b(dvn)
+    requires pred_4_1_c(dvn)
+    requires pred_4_1_f_a(dvn)
+    requires hn in dvn.honest_nodes_states.Keys 
+    requires hn' in dvn.honest_nodes_states.Keys
+    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
+    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires a.data.slot < a'.data.slot 
+    // ensures   
+    //         var sdba := SlashingDBAttestation(
+    //                         source_epoch := a.data.source.epoch,
+    //                         target_epoch := a.data.target.epoch,
+    //                         signing_root := None
+    //                 );   
+    //         var sdba' := SlashingDBAttestation(
+    //                         source_epoch := a'.data.source.epoch,
+    //                         target_epoch := a'.data.target.epoch,
+    //                         signing_root := None
+    //                 );                       
+    //         !is_slashable_attestation_pair(sdba, sdba')
+    {
+        var hna, att_share :|
+                && hna in dvn.honest_nodes_states.Keys 
+                && att_share in dvn.att_network.allMessagesSent
+                && att_share.data == a.data
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share.signature, hna);     
+
+        var hna', att_share' :|
+                && hna' in dvn.honest_nodes_states.Keys 
+                && att_share' in dvn.att_network.allMessagesSent
+                && att_share'.data == a'.data
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share'.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share'.signature, hna');  
+
+        assert
+                && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
+                && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;       
+
+        assert
+                && dvn.consensus_on_attestation_data[att_share'.data.slot].decided_value.isPresent()
+                && dvn.consensus_on_attestation_data[att_share'.data.slot].decided_value.safe_get() == att_share'.data;      
+
+        assert is_a_valid_decided_value(dvn.consensus_on_attestation_data[a.data.slot]); 
+        assert is_a_valid_decided_value(dvn.consensus_on_attestation_data[a'.data.slot]);  
+
+        var consa := dvn.consensus_on_attestation_data[a.data.slot]; 
+
+        assert consa.decided_value.isPresent();
+
+        var h_nodes_a :|
+                && h_nodes_a <= consa.honest_nodes_validity_functions.Keys  
+                && |h_nodes_a| >= f(|consa.all_nodes|) + 1
+                &&
+                (forall n | n in h_nodes_a :: 
+                    exists vp: AttestationData -> bool | vp in consa.honest_nodes_validity_functions[n] :: vp(consa.decided_value.safe_get()));                                   
+    }
 }

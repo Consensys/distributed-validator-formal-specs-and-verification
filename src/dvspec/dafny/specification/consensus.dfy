@@ -4,6 +4,7 @@ include "../commons.dfy"
 module ConsensusSpec
 {
     import opened Types 
+    import opened CommonFunctions
 
     datatype InCommand<!D> = 
     | Start(node: BLSPubkey)
@@ -18,24 +19,30 @@ module ConsensusSpec
         all_nodes: set<BLSPubkey>,
         decided_value: Optional<D>,
         honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
-        ghost honest_nodes_validity_functions: set<D -> bool>
+        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>
         // ghost honest_nodes: set<BLSPubkey>
     )    
 
 
     function f(n:nat): nat
-    requires n > 0 
     {
-        (n-1)/3
+        if n > 0 then
+            (n-1)/3
+        else
+            0
     }
 
     function quorum(n:nat):nat
-    // returns ceil(2n/3)
     {
-        if (n / 3) * 3 == n
-        then 2 * (n / 3)
-        else 2 * (n / 3) + 1
+        if n > 0 then
+            (2*n -1)/3 + 1 
+        else 
+            0
     }
+
+    lemma test_quorum(n: nat)
+    ensures quorum(n) * 3 >= 2 * n
+    { }
 
     predicate ByzThresholdAssumption(
         all_nodes: set<BLSPubkey>,
@@ -64,7 +71,8 @@ module ConsensusSpec
         && s.all_nodes == all_nodes
         && !s.decided_value.isPresent()
         && s.honest_nodes_status.Keys == honest_nodes
-        && forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED
+        && s.honest_nodes_validity_functions == map[]
+        && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)
     }
 
     predicate Next<D(!new, 0)>(
@@ -101,19 +109,48 @@ module ConsensusSpec
         )
     }
 
+    predicate is_a_valid_decided_value<D(!new, 0)>(
+        s: ConsensusInstance
+    )
+    {
+        && s.decided_value.isPresent()
+        && (
+            exists h_nodes |
+                && h_nodes <= s.honest_nodes_validity_functions.Keys  
+                && |h_nodes| >= f(|s.all_nodes|) + 1
+                ::
+                forall n | n in h_nodes :: 
+                    exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())       
+        ) 
+    }
+
+    function add_set_of_validity_predicates<D(!new, 0)>(
+        existing_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>
+    ): (new_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>)
+    {
+        map k | k in existing_honest_nodes_validity_predicates.Keys + honest_nodes_validity_predicates.Keys
+            ::
+            if k in honest_nodes_validity_predicates.Keys then
+                getOrDefault(existing_honest_nodes_validity_predicates, k, {}) + {honest_nodes_validity_predicates[k]}
+            else 
+                existing_honest_nodes_validity_predicates[k]
+    }
+
     predicate NextConsensusDecides<D(!new, 0)>(
         s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,    
         s': ConsensusInstance
     )
     {
-        && s'.honest_nodes_validity_functions == s.honest_nodes_validity_functions + honest_nodes_validity_predicates.Values
+        && honest_nodes_validity_predicates.Keys <= s.honest_nodes_status.Keys
+        && s'.honest_nodes_validity_functions == add_set_of_validity_predicates(s.honest_nodes_validity_functions, honest_nodes_validity_predicates)
         && (
             || (
                 && (isConditionForSafetyTrue(s) ==>
                                                     && s'.decided_value.isPresent()
                                                     && (s.decided_value.isPresent() ==> s'.decided_value == s.decided_value)
-                                                    && (exists vp | vp in s'.honest_nodes_validity_functions :: vp(s'.decided_value.safe_get()))
+                                                    && is_a_valid_decided_value(s')
                 )
                 && s'.honest_nodes_status.Keys == s.honest_nodes_status.Keys
                 && forall n | n in s.honest_nodes_status.Keys ::

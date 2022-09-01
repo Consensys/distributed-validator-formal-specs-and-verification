@@ -456,7 +456,11 @@ module DVCNode_Spec {
                             );
 
                     DVCNodeStateAndOuputs(
-                        state := process,
+                        state := process.(
+                            bn := process.bn.(
+                                attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
+                            )
+                        ),
                         outputs := getEmptyOuputs()
                         .(
                             attestations_submitted := {aggregated_attestation} 

@@ -17,7 +17,7 @@ abstract module DVCNode_Implementation
 
     class DVCNode {
 
-        var current_attesation_duty: Optional<AttestationDuty>;
+        var current_attestation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
         var attestation_duties_queue: seq<AttestationDuty>;
         var rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
@@ -49,7 +49,7 @@ abstract module DVCNode_Implementation
         requires att_consensus.consensus_instances_started == map[]
         requires ValidConstructorRepr(att_consensus, network, bn, rs, initial_slashing_db)
         {
-            current_attesation_duty := None;
+            current_attestation_duty := None;
             latest_attestation_duty := None;
             attestation_duties_queue := [];
             slashing_db := initial_slashing_db;
@@ -125,7 +125,7 @@ abstract module DVCNode_Implementation
                     future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided - {queue_head.slot};                    
                     { :- check_for_next_queued_duty();}
                 }
-                else if !current_attesation_duty.isPresent()
+                else if !current_attestation_duty.isPresent()
                 {
                     var queue_head := attestation_duties_queue[0];
                     attestation_duties_queue := attestation_duties_queue[1..];
@@ -141,7 +141,7 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            current_attesation_duty := Some(attestation_duty);
+            current_attestation_duty := Some(attestation_duty);
             latest_attestation_duty := Some(attestation_duty);
             var validityCheck := new AttestationConsensusValidityCheck(this.dv_pubkey, this.slashing_db, attestation_duty);
             { :- att_consensus.start(attestation_duty.slot, validityCheck);}
@@ -168,7 +168,7 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            var local_current_attestation_duty :- current_attesation_duty.get();            
+            var local_current_attestation_duty :- current_attestation_duty.get();            
             update_attestation_slashing_db(decided_attestation_data);
  
             var fork_version := bn.get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -182,7 +182,7 @@ abstract module DVCNode_Implementation
 
             attestation_shares_to_broadcast := attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share];
             network.send_att_share(attestation_with_signature_share, peers);  
-            current_attesation_duty := None;
+            current_attestation_duty := None;
             
             { :- check_for_next_queued_duty(); }
 
@@ -207,8 +207,8 @@ abstract module DVCNode_Implementation
             if 
                 || (activate_att_consensus_intances == {} && !latest_attestation_duty.isPresent())
                 || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
-                || (activate_att_consensus_intances == {} && current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot <= attestation_share.data.slot)                
-                || (activate_att_consensus_intances == {} && !current_attesation_duty.isPresent() && latest_attestation_duty.isPresent() && latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
+                || (activate_att_consensus_intances == {} && current_attestation_duty.isPresent() && current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
+                || (activate_att_consensus_intances == {} && !current_attestation_duty.isPresent() && latest_attestation_duty.isPresent() && latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
                 // TODO: The check above is not consistent with the clean-up operation done in
                 // listen_for_new_imported_blocks. Here, any share for future slot is accepted, whereas
@@ -293,10 +293,10 @@ abstract module DVCNode_Implementation
                 future_att_consensus_instances_already_decided := att_consensus_instances_already_decided;
             }            
 
-            if current_attesation_duty.isPresent() && current_attesation_duty.safe_get().slot in att_consensus_instances_already_decided
+            if current_attestation_duty.isPresent() && current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
             {
-                update_attestation_slashing_db(att_consensus_instances_already_decided[current_attesation_duty.safe_get().slot]);
-                current_attesation_duty := None;
+                update_attestation_slashing_db(att_consensus_instances_already_decided[current_attestation_duty.safe_get().slot]);
+                current_attestation_duty := None;
                 { :- check_for_next_queued_duty();}
             }
 
