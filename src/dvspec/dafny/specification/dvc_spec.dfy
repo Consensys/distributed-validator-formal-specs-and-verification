@@ -160,7 +160,9 @@ module DVCNode_Spec {
         future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
         bn: BNState,
         rs: RSState,
-        all_rcvd_duties: set<AttestationDuty>        
+        
+        all_rcvd_duties: set<AttestationDuty>,
+        att_slashing_db_hist: map<Slot, set<SlashingDBAttestation>>
     )
 
     datatype Outputs = Outputs(
@@ -216,7 +218,8 @@ module DVCNode_Spec {
             future_att_consensus_instances_already_decided := map[],
             bn := s.bn,
             rs := getInitialRS(rs_pubkey),
-            all_rcvd_duties := {}
+            all_rcvd_duties := {},
+            att_slashing_db_hist := map[]
         )
     }
 

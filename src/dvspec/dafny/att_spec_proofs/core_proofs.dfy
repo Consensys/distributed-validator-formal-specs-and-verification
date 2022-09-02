@@ -181,77 +181,26 @@ module Core_Proofs
 
         assert m in  consa.honest_nodes_validity_functions.Keys;      
                     
-    }
+        // TODO: Prove 4 g - i with lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp
+        // and invariants 43--45.
 
 
-    lemma lemma_4_1_f_i(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
-    requires pred_4_1_b(dvn)
-    requires pred_4_1_c(dvn)
-    requires pred_4_1_f_a(dvn)
-    requires hn in dvn.honest_nodes_states.Keys 
-    requires hn' in dvn.honest_nodes_states.Keys
-    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
-    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
-    requires a.data.slot < a'.data.slot 
-    requires is_a_valid_decided_value(dvn.consensus_on_attestation_data[a.data.slot])
-    requires is_a_valid_decided_value(dvn.consensus_on_attestation_data[a'.data.slot])
-    requires dvn.consensus_on_attestation_data[a.data.slot].decided_value.isPresent()
-    requires dvn.consensus_on_attestation_data[a'.data.slot].decided_value.isPresent()
-    requires 
-             && isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a.data.slot])
-    requires 
-             && isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a'.data.slot])             
-    requires inv42(dvn)
-    requires |dvn.all_nodes| > 0
-    // ensures   
-    //         var sdba := SlashingDBAttestation(
-    //                         source_epoch := a.data.source.epoch,
-    //                         target_epoch := a.data.target.epoch,
-    //                         signing_root := None
-    //                 );   
-    //         var sdba' := SlashingDBAttestation(
-    //                         source_epoch := a'.data.source.epoch,
-    //                         target_epoch := a'.data.target.epoch,
-    //                         signing_root := None
-    //                 );                       
-    //         !is_slashable_attestation_pair(sdba, sdba')
-    {
-        var consa := dvn.consensus_on_attestation_data[a.data.slot];         
-        var h_nodes_a :|
-                && h_nodes_a <= consa.honest_nodes_validity_functions.Keys  
-                && |h_nodes_a| >= quorum(|consa.all_nodes|) 
-                                        - (|consa.all_nodes| - |consa.honest_nodes_status.Keys|)
-                && honest_nodes_with_validityPredicate(consa, h_nodes_a);         
+    lemma lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp(
+        dvn: DVState, 
+        hn: BLSPubkey, 
+        s: Slot,
+        att: SlashingDBAttestation)
+    requires inv43_body.requires(dvn, hn, s)    
+    requires inv43_body(dvn, hn, s)    
+    requires att in dvn.honest_nodes_states[hn].att_slashing_db_hist[s]
+    requires dvn.consensus_on_attestation_data[s].decided_value.isPresent()
+    ensures && var att_data := dvn.consensus_on_attestation_data[s].decided_value.safe_get();
+            && var newRecord := get_SlashingDBAttestation_from_att_data(att_data);
+            && forall dbRecord | dbRecord in dvn.honest_nodes_states[hn].attestation_slashing_db ::
+                    && !is_slashable_attestation_pair(dbRecord, newRecord)
+                    && !is_slashable_attestation_pair(newRecord, dbRecord)
 
-        var consa' := dvn.consensus_on_attestation_data[a'.data.slot];         
-        var h_nodes_a' :|
-                && h_nodes_a' <= consa'.honest_nodes_validity_functions.Keys  
-                && |h_nodes_a'| >= quorum(|consa'.all_nodes|) 
-                                        - (|consa'.all_nodes| - |consa'.honest_nodes_status.Keys|)
-                && honest_nodes_with_validityPredicate(consa', h_nodes_a');    
+    
 
-        assert consa in dvn.consensus_on_attestation_data.Values;                    
-        assert consa' in dvn.consensus_on_attestation_data.Values;
-        assert consa.all_nodes == consa'.all_nodes == dvn.all_nodes;
-        assert consa.honest_nodes_status.Keys == consa'.honest_nodes_status.Keys;   
 
-        var nodes := consa.all_nodes;
-        var honest_nodes := consa.honest_nodes_status.Keys;
-        var byz_nodes := nodes - honest_nodes;
-        
-        assert h_nodes_a * byz_nodes == {};
-        assert h_nodes_a' * byz_nodes == {};        
-
-        assert |h_nodes_a + byz_nodes| >= quorum(|nodes|);
-        assert |h_nodes_a' + byz_nodes| >= quorum(|nodes|);
-        assert |byz_nodes| <= f(|nodes|);
-        assert nodes != {};
-
-        lemmaQuorumIntersection(nodes, byz_nodes, h_nodes_a + byz_nodes, h_nodes_a' + byz_nodes);
-            
-        var m: BLSPubkey :| m in honest_nodes && m in h_nodes_a && m in h_nodes_a';
-
-        // TODO: 4g
-
-    }
 }

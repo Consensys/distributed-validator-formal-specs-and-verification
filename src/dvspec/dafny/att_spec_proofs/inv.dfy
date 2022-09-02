@@ -966,24 +966,76 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
     }
 
+
     predicate pred_4_1_g_b(dvn: DVState)
     {
-        forall hn, s1: nat, s2: nat, vp, attestation_duty, attestation_slashing_db |
+        forall hn, s1: nat, s2: nat, vp |
             && hn in dvn.honest_nodes_states.Keys
             && s1 < s2
             && hn in dvn.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
             && hn in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
-            && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]
-            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
-            ::
+            ::    
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && s2 in hn_state.att_slashing_db_hist.Keys
+            && exists duty2: AttestationDuty :: duty2 in hn_state.all_rcvd_duties && duty2.slot == s2
+            && var db2 := hn_state.att_slashing_db_hist[s2];
+            && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]            
+            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty2)            
             && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
             && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
             && var sdba := SlashingDBAttestation(
                                             source_epoch := decided_a_data.source.epoch,
                                             target_epoch := decided_a_data.target.epoch,
                                             signing_root := Some(hash_tree_root(decided_a_data)));
-            && sdba in attestation_slashing_db
+            && sdba in db2
     }    
+
+
+    predicate inv43_body(dvn: DVState, hn: BLSPubkey, s: Slot)
+    requires is_honest_node(dvn, hn)
+    requires s in dvn.consensus_on_attestation_data.Keys         
+    requires hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys      
+    requires && var hn_state := dvn.honest_nodes_states[hn];
+             && exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s
+    {
+        && var hn_state := dvn.honest_nodes_states[hn];        
+        && var duty: AttestationDuty :| duty in hn_state.all_rcvd_duties && duty.slot == s;        
+        && s in hn_state.att_slashing_db_hist.Keys        
+        && var db := hn_state.att_slashing_db_hist[s];        
+        && forall vp :: vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)    
+    }
+
+    predicate inv43(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot |            
+            && is_honest_node(dvn, hn)
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && s in dvn.consensus_on_attestation_data.Keys
+            && hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys      
+            && exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s
+            ::
+            inv43_body(dvn, hn, s)
+    }   
+
+    predicate inv44(dvn: DVState)
+    {
+        forall hn: BLSPubkey | is_honest_node(dvn, hn) ::
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && forall s1: Slot, s2: Slot |
+                    && s1 in hn_state.att_slashing_db_hist.Keys
+                    && s2 in hn_state.att_slashing_db_hist.Keys 
+                    ::
+                    hn_state.att_slashing_db_hist[s1] < hn_state.att_slashing_db_hist[s2]            
+    }  
+
+    predicate inv45(dvn: DVState)
+    {
+        forall hn: BLSPubkey | is_honest_node(dvn, hn) ::
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && forall s: Slot | s in hn_state.att_slashing_db_hist.Keys ::
+                    hn_state.att_slashing_db_hist[s] <= hn_state.attestation_slashing_db
+    }  
+    
 
     predicate safety(dvn: DVState)
     {

@@ -369,6 +369,7 @@ module CommonFunctions{
                     );            
                 exists past_attn | past_attn in att_slashing_db ::
                         || is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
+                        || is_slashable_attestation_pair(slashing_db_att_for_att_data, past_attn)
         else
             false        
     } by method 
