@@ -956,17 +956,34 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             is_a_valid_decided_value(dvn.consensus_on_attestation_data[cid])
     }  
 
-    // predicate pred_4_1_g(dvn: DVState)
-    // {
-    //     forall hn, s1, s2 |
-    //         && hn in dvn.honest_nodes_states.Keys
-    //         && s1 < s2
-    //         && hn in dvs.consensus_on_attestation_data[s1].honest_nodes_validity_predicates.Keys
-    //         && hn in dvs.consensus_on_attestation_data[s2].honest_nodes_validity_predicates.Keys
-    //         ::
+    predicate pred_4_1_g_a(dvn: DVState)
+    {
+        forall hn, s: nat, vp |
+            && hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+            && vp in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
+            ::
+            exists attestation_duty, attestation_slashing_db ::
+                vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+    }
 
-
-    // }
+    predicate pred_4_1_g_b(dvn: DVState)
+    {
+        forall hn, s1: nat, s2: nat, vp, attestation_duty, attestation_slashing_db |
+            && hn in dvn.honest_nodes_states.Keys
+            && s1 < s2
+            && hn in dvn.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
+            && hn in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
+            && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]
+            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+            ::
+            && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
+            && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+            && var sdba := SlashingDBAttestation(
+                                            source_epoch := decided_a_data.source.epoch,
+                                            target_epoch := decided_a_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(decided_a_data)));
+            && sdba in attestation_slashing_db
+    }    
 
     predicate safety(dvn: DVState)
     {
@@ -977,6 +994,14 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     && var S := dvn.globally_signed_attestations - { a };
                     && !is_slashable_attestation_data_in_set_of_attestations(S, a.data)
                 )
+    }
+
+    // For every consensus instance ci, ci.decided value.isP resent() 
+    // if and only if is a valid decided value(ci).
+    predicate inv41<D(!new, 0)>(ci: ConsensusInstance<D>)
+    {
+        ci.decided_value.isPresent()
+            <==> is_a_valid_decided_value(ci)            
     }
 
     predicate honest_nodes_with_validityPredicate(consa: ConsensusInstance<AttestationData>,  h_nodes_a: set<BLSPubkey>)
