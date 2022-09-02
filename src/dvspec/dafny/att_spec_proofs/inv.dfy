@@ -956,6 +956,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             is_a_valid_decided_value(dvn.consensus_on_attestation_data[cid])
     }  
 
+    // predicate pred_4_1_g(dvn: DVState)
+    // {
+    //     forall hn, s1, s2 |
+    //         && hn in dvn.honest_nodes_states.Keys
+    //         && s1 < s2
+    //         && hn in dvs.consensus_on_attestation_data[s1].honest_nodes_validity_predicates.Keys
+    //         && hn in dvs.consensus_on_attestation_data[s2].honest_nodes_validity_predicates.Keys
+    //         ::
+
+
+    // }
+
     predicate safety(dvn: DVState)
     {
         forall a: Attestation ::
@@ -965,14 +977,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     && var S := dvn.globally_signed_attestations - { a };
                     && !is_slashable_attestation_data_in_set_of_attestations(S, a.data)
                 )
-    }
-
-    // For every consensus instance ci, ci.decided value.isP resent() 
-    // if and only if is a valid decided value(ci).
-    predicate inv41<D(!new, 0)>(ci: ConsensusInstance<D>)
-    {
-        ci.decided_value.isPresent()
-            <==> is_a_valid_decided_value(ci)            
     }
 
     predicate honest_nodes_with_validityPredicate(consa: ConsensusInstance<AttestationData>,  h_nodes_a: set<BLSPubkey>)
@@ -994,7 +998,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                && ci.honest_nodes_status.Keys == dvn.honest_nodes_states.Keys  
                && ci.honest_nodes_status.Keys <= ci.all_nodes
                && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
-               && |ci.honest_nodes_status.Keys| >= quorum(|ci.all_nodes|)
                && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 }
