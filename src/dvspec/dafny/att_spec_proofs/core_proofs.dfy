@@ -177,7 +177,9 @@ module Core_Proofs
 
         lemmaQuorumIntersection(nodes, byz_nodes, h_nodes_a + byz_nodes, h_nodes_a' + byz_nodes);
             
-        var m: BLSPubkey :| m in honest_nodes && m in h_nodes_a && m in h_nodes_a';            
+        var m: BLSPubkey :| m in honest_nodes && m in h_nodes_a && m in h_nodes_a';  
+
+        assert m in  consa.honest_nodes_validity_functions.Keys;      
                     
     }
 
