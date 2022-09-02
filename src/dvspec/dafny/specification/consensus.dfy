@@ -90,24 +90,28 @@ module ConsensusSpec
         )
     }
 
+    predicate is_a_valid_decided_value_according_to_set_of_nodes<D(!new, 0)>(
+        s: ConsensusInstance,
+        h_nodes: set<BLSPubkey>
+    )
+    {
+        && s.decided_value.isPresent()
+        && h_nodes <= s.honest_nodes_validity_functions.Keys  
+        && var byz := s.all_nodes - s.honest_nodes_status.Keys;
+            |h_nodes| >= quorum(|s.all_nodes|) - |byz|
+        && (
+            forall n | n in h_nodes :: 
+                exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())  
+        )
+    }
+
     // If n = 5, then f(5) = 1 and quorum(n) = 4.
     // Therefore, f(5) + 1 < quorum(5) - f(5).
     predicate is_a_valid_decided_value<D(!new, 0)>(
         s: ConsensusInstance
     )
     {
-        && s.decided_value.isPresent()
-        && (
-            exists h_nodes |
-                && h_nodes <= s.honest_nodes_validity_functions.Keys  
-                // && |h_nodes| >= f(|s.all_nodes|) + 1
-                // && |h_nodes| >= quorum(|s.all_nodes|) - f(|s.all_nodes|) 
-                && |h_nodes| >= quorum(|s.all_nodes|) 
-                                        - (|s.all_nodes| - |s.honest_nodes_status.Keys|)
-                ::
-                forall n | n in h_nodes :: 
-                    exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())       
-        ) 
+        exists h_nodes :: is_a_valid_decided_value_according_to_set_of_nodes(s, h_nodes)    
     }
 
     function add_set_of_validity_predicates<D(!new, 0)>(

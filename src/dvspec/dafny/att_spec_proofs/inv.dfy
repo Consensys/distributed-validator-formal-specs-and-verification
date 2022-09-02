@@ -956,6 +956,35 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             is_a_valid_decided_value(dvn.consensus_on_attestation_data[cid])
     }  
 
+    predicate pred_4_1_g_a(dvn: DVState)
+    {
+        forall hn, s: nat, vp |
+            && hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+            && vp in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
+            ::
+            exists attestation_duty, attestation_slashing_db ::
+                vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+    }
+
+    predicate pred_4_1_g_b(dvn: DVState)
+    {
+        forall hn, s1: nat, s2: nat, vp, attestation_duty, attestation_slashing_db |
+            && hn in dvn.honest_nodes_states.Keys
+            && s1 < s2
+            && hn in dvn.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
+            && hn in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
+            && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]
+            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+            ::
+            && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
+            && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+            && var sdba := SlashingDBAttestation(
+                                            source_epoch := decided_a_data.source.epoch,
+                                            target_epoch := decided_a_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(decided_a_data)));
+            && sdba in attestation_slashing_db
+    }    
+
     predicate safety(dvn: DVState)
     {
         forall a: Attestation ::
@@ -994,7 +1023,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                && ci.honest_nodes_status.Keys == dvn.honest_nodes_states.Keys  
                && ci.honest_nodes_status.Keys <= ci.all_nodes
                && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
-               && |ci.honest_nodes_status.Keys| >= quorum(|ci.all_nodes|)
                && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 }
