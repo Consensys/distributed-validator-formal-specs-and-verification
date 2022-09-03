@@ -107,7 +107,7 @@ module Core_Proofs
     }
 
 
-    lemma lemma_4_1(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
@@ -211,6 +211,83 @@ module Core_Proofs
         assert !is_slashable_attestation_data_eth_spec(a'.data, a.data);
         
     }    
+
+    lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    requires |dvn.all_nodes| > 0
+    requires pred_4_1_b(dvn)
+    requires pred_4_1_c(dvn)
+    requires pred_4_1_f_a(dvn)
+    requires inv42(dvn)
+    requires pred_4_1_g_a(dvn)
+    requires pred_4_1_g_b(dvn)
+    requires hn in dvn.honest_nodes_states.Keys 
+    requires hn' in dvn.honest_nodes_states.Keys
+    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
+    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires a.data.slot == a'.data.slot 
+    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a.data.slot])
+    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a'.data.slot])
+    ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+            && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+    {
+        var hna, att_share :|
+                && hna in dvn.honest_nodes_states.Keys 
+                && att_share in dvn.att_network.allMessagesSent
+                && att_share.data == a.data
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share.signature, hna);     
+
+        var hna', att_share' :|
+                && hna' in dvn.honest_nodes_states.Keys 
+                && att_share' in dvn.att_network.allMessagesSent
+                && att_share'.data == a'.data
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share'.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share'.signature, hna');  
+
+        var cons := dvn.consensus_on_attestation_data[a.data.slot];                 
+
+        assert
+                && cons.decided_value.isPresent()
+                && cons.decided_value.safe_get() == att_share.data
+                && cons.decided_value.safe_get() == att_share'.data;     
+
+        assert a.data == a'.data;  
+
+        assert !is_slashable_attestation_data_eth_spec(a.data, a'.data);
+        assert !is_slashable_attestation_data_eth_spec(a'.data, a.data);        
+    }      
+
+    lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    requires |dvn.all_nodes| > 0
+    requires pred_4_1_b(dvn)
+    requires pred_4_1_c(dvn)
+    requires pred_4_1_f_a(dvn)
+    requires inv42(dvn)
+    requires pred_4_1_g_a(dvn)
+    requires pred_4_1_g_b(dvn)
+    requires hn in dvn.honest_nodes_states.Keys 
+    requires hn' in dvn.honest_nodes_states.Keys
+    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
+    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a.data.slot])
+    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a'.data.slot])
+    ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+            && !is_slashable_attestation_data_eth_spec(a'.data, a.data)   
+    {
+        if a.data.slot == a'.data.slot 
+        {
+            lemma_4_1_b(dvn, a, a', hn, hn');
+        }
+        else if a.data.slot < a'.data.slot 
+        {
+            lemma_4_1_a(dvn, a, a', hn, hn');
+        }
+        else {
+            lemma_4_1_a(dvn, a', a, hn', hn);
+        }
+    } 
 
     lemma lemma_is_slashable_attestation_data(
         att_slashing_db: set<SlashingDBAttestation>, 
