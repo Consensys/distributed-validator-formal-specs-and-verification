@@ -911,7 +911,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall signed_att: Attestation |
             && isSignedByDV(dvn, signed_att)
             && signed_att in dvn.globally_signed_attestations ::                
-                && var dbAttRecord := get_SlashingDBAttestation_from_att(signed_att);
+                && var dbAttRecord := construct_SlashingDBAttestation_from_att(signed_att);
                 && var att_data := signed_att.data;
                 && var otherDBAttRecords := dvn.globally_slashing_db_attestations - {dbAttRecord};  
                 && !is_slashable_attestation_data(otherDBAttRecords, att_data)   

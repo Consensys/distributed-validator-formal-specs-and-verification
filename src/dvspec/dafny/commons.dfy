@@ -401,10 +401,13 @@ module CommonFunctions{
                     );
                 while attns_to_check != {}
                 invariant var checked := att_slashing_db - attns_to_check;
-                        forall a | a in checked :: !is_slashable_attestation_pair(a, slashing_db_att_for_att_data)
+                        forall a | a in checked :: 
+                            && !is_slashable_attestation_pair(a, slashing_db_att_for_att_data)
+                            && !is_slashable_attestation_pair(slashing_db_att_for_att_data, a)
                 {
                         var past_attn :| past_attn in attns_to_check;
-                        if is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
+                        if || is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
+                           || is_slashable_attestation_pair(slashing_db_att_for_att_data, past_attn)
                         {
                             assert is_slashable_attestation_data(att_slashing_db, attestation_data);
                             return true;
@@ -476,7 +479,7 @@ module CommonFunctions{
     }
 
     // Construct a slashing DB attestation for a given attestastion data
-    function method get_SlashingDBAttestation_from_att_data(attestation_data: AttestationData): SlashingDBAttestation
+    function method construct_SlashingDBAttestation_from_att_data(attestation_data: AttestationData): SlashingDBAttestation
     {        
         var slashing_db_attestation := SlashingDBAttestation(
                                             source_epoch := attestation_data.source.epoch,
@@ -487,9 +490,9 @@ module CommonFunctions{
     }
 
     // Construct a slashing DB attestation for a given attestastion 
-    function method get_SlashingDBAttestation_from_att(att: Attestation): SlashingDBAttestation
+    function method construct_SlashingDBAttestation_from_att(att: Attestation): SlashingDBAttestation
     {        
-        var slashing_db_attestation := get_SlashingDBAttestation_from_att_data(att.data);
+        var slashing_db_attestation := construct_SlashingDBAttestation_from_att_data(att.data);
 
         slashing_db_attestation
     }
@@ -509,10 +512,10 @@ module CommonFunctions{
         ret_att
     }
     
-    function method get_SlashingDBAttestations_from_set_of_attestations(S: set<Attestation>): set<SlashingDBAttestation>
+    function method construct_SlashingDBAttestations_from_set_of_attestations(S: set<Attestation>): set<SlashingDBAttestation>
     {
         var ret_set := set att: Attestation |
-                                att in S :: get_SlashingDBAttestation_from_att_data(att.data);
+                                att in S :: construct_SlashingDBAttestation_from_att_data(att.data);
 
         ret_set
     }
@@ -521,7 +524,7 @@ module CommonFunctions{
         attSet: set<Attestation>, 
         attestation_data: AttestationData)
     {
-        && var slashingDBAttestationSet := get_SlashingDBAttestations_from_set_of_attestations(attSet);
+        && var slashingDBAttestationSet := construct_SlashingDBAttestations_from_set_of_attestations(attSet);
         && is_slashable_attestation_data(slashingDBAttestationSet, attestation_data)
     }
 

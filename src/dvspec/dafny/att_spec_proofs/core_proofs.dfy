@@ -195,7 +195,7 @@ module Core_Proofs
     requires att in dvn.honest_nodes_states[hn].att_slashing_db_hist[s]
     requires dvn.consensus_on_attestation_data[s].decided_value.isPresent()
     ensures && var att_data := dvn.consensus_on_attestation_data[s].decided_value.safe_get();
-            && var newRecord := get_SlashingDBAttestation_from_att_data(att_data);
+            && var newRecord := construct_SlashingDBAttestation_from_att_data(att_data);
             && forall dbRecord | dbRecord in dvn.honest_nodes_states[hn].attestation_slashing_db ::
                     && !is_slashable_attestation_pair(dbRecord, newRecord)
                     && !is_slashable_attestation_pair(newRecord, dbRecord)
