@@ -489,6 +489,16 @@ module CommonFunctions{
         slashing_db_attestation
     }
 
+    // Error: cannot establish the existence of LHS values
+    // Error: to be compilable, the value of a let-such-that expression must be uniquely determined
+    function method get_slot_from_slashing_db_attestation(a: SlashingDBAttestation): Slot
+    // requires exists att_data: AttestationData ::  a.signing_root == Some(hash_tree_root(att_data))
+    {        
+        var att_data: AttestationData :|  a.signing_root == Some(hash_tree_root(att_data));
+
+        att_data.slot
+    }
+
     // Construct a slashing DB attestation for a given attestastion 
     function method construct_SlashingDBAttestation_from_att(att: Attestation): SlashingDBAttestation
     {        

@@ -168,8 +168,8 @@ module DVCNode_Spec {
         bn: BNState,
         rs: RSState,
         
-        all_rcvd_duties: set<AttestationDuty>,
-        att_slashing_db_hist: map<Slot, set<SlashingDBAttestation>>
+        ghost all_rcvd_duties: set<AttestationDuty>,
+        ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<SlashingDBAttestation>>>
     )
 
     datatype Outputs = Outputs(
