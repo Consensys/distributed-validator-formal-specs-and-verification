@@ -974,6 +974,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dvn.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
             && hn in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
             && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]
+            // Question: Is the value of attestation_slashing_db deterministically decided with given vp, ad, and duty?            
             && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
             ::
             && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
@@ -1064,7 +1065,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv43_body_b(dvn, hn, s)
     }   
 
-
+    // TODO: Fixed a trigger error for (forall a | a in db1 :: get_slot_from_slashing_db_attestation(a) < s2);
     predicate inv44(dvn: DVState)
     {
         forall hn: BLSPubkey | is_honest_node(dvn, hn) ::
@@ -1076,9 +1077,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     && vp1 in hn_state.att_slashing_db_hist[s1].Keys
                     && vp2 in hn_state.att_slashing_db_hist[s2].Keys
                     ::
-                    var db1: set<SlashingDBAttestation> :|
-                            && db1 <= hn_state.att_slashing_db_hist[s1][vp1]
-                            && 
+                    && var db1: set<SlashingDBAttestation> :|
+                                    && db1 <= hn_state.att_slashing_db_hist[s1][vp1]
+                                    && (forall a | a in db1 :: get_slot_from_slashing_db_attestation(a) < s2);
+                    && var db2 := hn_state.att_slashing_db_hist[s1][vp1];
+                    && db1 <= db2
     }  
 
 /*
