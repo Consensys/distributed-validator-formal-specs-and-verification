@@ -310,14 +310,14 @@ module Core_Proofs
         // TODO: Prove 4 g - i with lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp
         // and invariants 43--45.
 
-
+/*
     lemma lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp(
         dvn: DVState, 
         hn: BLSPubkey, 
         s: Slot,
         att: SlashingDBAttestation)
-    requires inv43_body.requires(dvn, hn, s)    
-    requires inv43_body(dvn, hn, s)    
+    requires inv43_body_a.requires(dvn, hn, s)    
+    requires inv43_body_b.requires(dvn, hn, s)        
     requires att in dvn.honest_nodes_states[hn].att_slashing_db_hist[s]
     requires dvn.consensus_on_attestation_data[s].decided_value.isPresent()
     ensures && var att_data := dvn.consensus_on_attestation_data[s].decided_value.safe_get();
@@ -325,8 +325,22 @@ module Core_Proofs
             && forall dbRecord | dbRecord in dvn.honest_nodes_states[hn].attestation_slashing_db ::
                     && !is_slashable_attestation_pair(dbRecord, newRecord)
                     && !is_slashable_attestation_pair(newRecord, dbRecord)
-
+*/
     
-
-
+/*
+    lemma uniqueDB(
+        dvc: DVCNodeState, 
+        // ad: AttestationData,
+        duty: AttestationDuty,
+        vp1: AttestationData -> bool, 
+        vp2: AttestationData -> bool, 
+        db1: set<SlashingDBAttestation>,
+        db2: set<SlashingDBAttestation>
+    )
+    requires vp1 == (ad: AttestationData) => consensus_is_valid_attestation_data(db1, ad, duty)
+    requires vp2 == (ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty)
+    requires vp1 == vp2
+    ensures db1 == db2
+    {}
+*/
 }
