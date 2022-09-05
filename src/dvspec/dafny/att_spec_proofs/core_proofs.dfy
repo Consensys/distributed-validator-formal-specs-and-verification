@@ -99,6 +99,7 @@ module Core_Proofs
                         ==> && var tempSet := dvn.globally_signed_attestations - { a };
                             && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
     }
+    
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)
     {
         || (data_1 != data_2 && data_1.target.epoch == data_2.target.epoch)
