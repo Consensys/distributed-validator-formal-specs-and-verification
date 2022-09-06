@@ -1167,6 +1167,27 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && vp in hn_state.att_slashing_db_hist[s] ::
                     hn_state.att_slashing_db_hist[s][vp] <= hn_state.attestation_slashing_db
     }  
+
+    predicate inv46_a(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot | is_honest_node(dvn, hn) ::
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                    <==> s in hn_state.att_slashing_db_hist.Keys)
+    }
+    
+    predicate inv46_b(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot ::
+            && is_honest_node(dvn, hn) 
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+            && s in hn_state.att_slashing_db_hist.Keys
+            ==> ( forall vp: AttestationData -> bool ::
+                    vp in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
+                        <==> vp in hn_state.att_slashing_db_hist[s]
+                )                    
+    }  
     
 
     predicate safety(dvn: DVState)
