@@ -327,20 +327,21 @@ module Core_Proofs
                     && !is_slashable_attestation_pair(newRecord, dbRecord)
 */
     
-/*
+
     lemma uniqueDB(
         dvc: DVCNodeState, 
-        // ad: AttestationData,
+        ad: AttestationData,
         duty: AttestationDuty,
         vp1: AttestationData -> bool, 
         vp2: AttestationData -> bool, 
         db1: set<SlashingDBAttestation>,
         db2: set<SlashingDBAttestation>
-    )
-    requires vp1 == (ad: AttestationData) => consensus_is_valid_attestation_data(db1, ad, duty)
-    requires vp2 == (ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty)
+    )    
+    requires vp1(ad) == consensus_is_valid_attestation_data(db1, ad, duty)
+    requires vp2(ad) == consensus_is_valid_attestation_data(db2, ad, duty)
     requires vp1 == vp2
+    requires consensus_is_valid_attestation_data(db1, ad, duty)
+                == consensus_is_valid_attestation_data(db2, ad, duty)
     ensures db1 == db2
     {}
-*/
 }
