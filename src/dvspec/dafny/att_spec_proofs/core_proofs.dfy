@@ -99,7 +99,7 @@ module Core_Proofs
                         ==> && var tempSet := dvn.globally_signed_attestations - { a };
                             && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
     }
-
+    
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)
     {
         || (data_1 != data_2 && data_1.target.epoch == data_2.target.epoch)
@@ -113,8 +113,8 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
     requires inv42(dvn)
-    requires pred_4_1_g_a(dvn)
-    requires pred_4_1_g_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -218,8 +218,8 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
     requires inv42(dvn)
-    requires pred_4_1_g_a(dvn)
-    requires pred_4_1_g_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -265,8 +265,8 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
     requires inv42(dvn)
-    requires pred_4_1_g_a(dvn)
-    requires pred_4_1_g_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -310,23 +310,22 @@ module Core_Proofs
         // TODO: Prove 4 g - i with lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp
         // and invariants 43--45.
 
-
+/*
     lemma lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp(
         dvn: DVState, 
         hn: BLSPubkey, 
         s: Slot,
         att: SlashingDBAttestation)
-    requires inv43_body.requires(dvn, hn, s)    
-    requires inv43_body(dvn, hn, s)    
+    requires inv43_body_a.requires(dvn, hn, s)    
+    requires inv43_body_b.requires(dvn, hn, s)        
     requires att in dvn.honest_nodes_states[hn].att_slashing_db_hist[s]
     requires dvn.consensus_on_attestation_data[s].decided_value.isPresent()
     ensures && var att_data := dvn.consensus_on_attestation_data[s].decided_value.safe_get();
-            && var newRecord := get_SlashingDBAttestation_from_att_data(att_data);
+            && var newRecord := construct_SlashingDBAttestation_from_att_data(att_data);
             && forall dbRecord | dbRecord in dvn.honest_nodes_states[hn].attestation_slashing_db ::
                     && !is_slashable_attestation_pair(dbRecord, newRecord)
                     && !is_slashable_attestation_pair(newRecord, dbRecord)
-
+*/
     
-
 
 }

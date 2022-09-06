@@ -91,6 +91,7 @@ module DVCNode_Spec {
                     attestation_duty := attestation_duty,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );
+        
         assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
         s.(
             attestation_consensus_active_instances := s.attestation_consensus_active_instances[
@@ -109,6 +110,12 @@ module DVCNode_Spec {
         )
     }    
 
+    // While multiple consensus instances might be running,
+    // there exists at most undecided one.
+    // The updated validity predicates for decided consensus instances 
+    // should not change their decisions.
+    // Should we update only the validitiy Predicate for 
+    // the undecided consensus instance?
     function updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
@@ -161,8 +168,8 @@ module DVCNode_Spec {
         bn: BNState,
         rs: RSState,
         
-        all_rcvd_duties: set<AttestationDuty>,
-        att_slashing_db_hist: map<Slot, set<SlashingDBAttestation>>
+        ghost all_rcvd_duties: set<AttestationDuty>,
+        ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<SlashingDBAttestation>>>
     )
 
     datatype Outputs = Outputs(
@@ -341,10 +348,6 @@ module DVCNode_Spec {
     function f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty): DVCNodeStateAndOuputs
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
     {
-        var validityPredicate := 
-                (ad: AttestationData)  => 
-                    consensus_is_valid_attestation_data(process.attestation_slashing_db, ad, attestation_duty)
-                ;        
         DVCNodeStateAndOuputs(
             state :=  process.(
                         current_attestation_duty := Some(attestation_duty),
