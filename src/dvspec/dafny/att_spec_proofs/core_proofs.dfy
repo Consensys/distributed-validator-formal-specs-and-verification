@@ -113,8 +113,8 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
     requires inv42(dvn)
-    requires pred_4_1_g_a(dvn)
-    requires pred_4_1_g_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -218,8 +218,8 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
     requires inv42(dvn)
-    requires pred_4_1_g_a(dvn)
-    requires pred_4_1_g_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -265,8 +265,8 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
     requires inv42(dvn)
-    requires pred_4_1_g_a(dvn)
-    requires pred_4_1_g_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -328,20 +328,4 @@ module Core_Proofs
 */
     
 
-    lemma uniqueDB(
-        dvc: DVCNodeState, 
-        ad: AttestationData,
-        duty: AttestationDuty,
-        vp1: AttestationData -> bool, 
-        vp2: AttestationData -> bool, 
-        db1: set<SlashingDBAttestation>,
-        db2: set<SlashingDBAttestation>
-    )    
-    requires vp1(ad) == consensus_is_valid_attestation_data(db1, ad, duty)
-    requires vp2(ad) == consensus_is_valid_attestation_data(db2, ad, duty)
-    requires vp1 == vp2
-    requires consensus_is_valid_attestation_data(db1, ad, duty)
-                == consensus_is_valid_attestation_data(db2, ad, duty)
-    ensures db1 == db2
-    {}
 }
