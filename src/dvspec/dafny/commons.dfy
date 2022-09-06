@@ -233,7 +233,8 @@ module CommonFunctions{
                 exists data: AttestationData :: 
                     r.signing_root == Some(hash_tree_root(data))
 
-
+    lemma {:axiom} exists_att_data_for_given_slashingDBattestaion(r: SlashingDBAttestation)
+    ensures exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))
 
     function getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
     {

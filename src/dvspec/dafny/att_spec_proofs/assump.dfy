@@ -81,7 +81,7 @@ module AttAssumptions
                      )
                )
             
-  // Assumption 5
+  // TODO: DVN.Init should implies this lemma.
   lemma {:axiom} constructable_signed_attestation_signature(
     dvn: DVState,
     att_shares: set<AttestationShare>) 
@@ -94,7 +94,7 @@ module AttAssumptions
                             && s2 in S
                                 ==> att_shares_from_same_att_data(s1, s2) )
 
-  // Assumption 6
+  // TODO: DVN.Init should implies this lemma.
   lemma {:axiom} agreement_on_constructed_signed_attestation_signature(
     dvn: DVState,
     att_shares1: set<AttestationShare>, 
