@@ -1111,7 +1111,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
            )        
     }
 
-    predicate inv43_body_b(dvn: DVState, hn: BLSPubkey, s: Slot)
+    predicate inv43_body_b(dvn: DVState, hn: BLSPubkey, s: Slot, 
+                            ci: ConsensusInstance<AttestationData>, h_nodes: set<BLSPubkey>)
     requires is_honest_node(dvn, hn)
     requires s in dvn.consensus_on_attestation_data.Keys         
     requires hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys      
@@ -1120,11 +1121,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires && inv47_body(dvn, hn, s) 
              && inv46_a(dvn)     
     requires s in dvn.honest_nodes_states[hn].att_slashing_db_hist.Keys                
+    requires is_a_valid_decided_value_according_to_set_of_nodes(ci, h_nodes)
     {
         && var hn_state := dvn.honest_nodes_states[hn];        
         && var duty: AttestationDuty :| duty in hn_state.all_rcvd_duties && duty.slot == s;        
         && ( && dvn.consensus_on_attestation_data[s].decided_value.isPresent()
-             && hn in dvn.consensus_on_attestation_data[s].quorum_made_decision
+             && hn in h_nodes
                     ==> && var ad := dvn.consensus_on_attestation_data[s].decided_value.safe_get();
                         && exists vp :: && vp in hn_state.att_slashing_db_hist[s].Keys 
                                         && var db := hn_state.att_slashing_db_hist[s][vp];
@@ -1144,7 +1146,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv46_a(dvn)           
             ::            
             && inv43_body_a(dvn, hn, s)
-            && inv43_body_b(dvn, hn, s)
+            && ( dvn.consensus_on_attestation_data[s].decided_value.isPresent() 
+                    ==> exists h_nodes :: && is_a_valid_decided_value_according_to_set_of_nodes(
+                                                dvn.consensus_on_attestation_data[s], 
+                                                h_nodes) 
+                                          && inv43_body_b(dvn, hn, s, dvn.consensus_on_attestation_data[s], h_nodes)
+               )                          
     }   
 
     predicate has_all_slashing_db_attestations_before_slot_s(
@@ -1281,47 +1288,25 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 
-    predicate inv48_body(dvn: DVState, s: Slot, hn: BLSPubkey) 
-    {
-        && var ci := dvn.consensus_on_attestation_data[s];
-        && hn in ci.honest_nodes_validity_functions.Keys
-        && ci.honest_nodes_validity_functions[hn] != {}                
-    }
     
-    predicate inv48(dvn: DVState)
-    {
-        forall s: Slot ::
-            && var ci := dvn.consensus_on_attestation_data[s];
-            && ( ci.decided_value.isPresent()
-                    <==>  && ci.quorum_made_decision != {}
-                          && ( forall hn: BLSPubkey :: 
-                                    && is_honest_node(dvn, hn)
-                                    && hn in ci.quorum_made_decision
-                                    ==> inv48_body(dvn, s, hn)                                        
-                              )
-                              
-               )
-    }
 
-    predicate pred_4_1_witness(dvn: DVState, a: Attestation, a': Attestation, m: BLSPubkey)
+    predicate pred_4_1_witness(
+        dvn: DVState, a: Attestation, a': Attestation, m: BLSPubkey,
+        consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
+        h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     {
         && is_honest_node(dvn, m)                
-        && var consa := dvn.consensus_on_attestation_data[a.data.slot];
-        && var consa' := dvn.consensus_on_attestation_data[a'.data.slot];       
+        && consa == dvn.consensus_on_attestation_data[a.data.slot]
+        && consa' == dvn.consensus_on_attestation_data[a'.data.slot]
         && m in consa.honest_nodes_validity_functions.Keys
-        && m in consa.quorum_made_decision
+        && m in h_nodes_a
         && m in consa'.honest_nodes_validity_functions.Keys                
-        && m in consa'.quorum_made_decision
+        && m in h_nodes_a'
+        && consa'.honest_nodes_validity_functions[m] != {}
+        && is_a_valid_decided_value_according_to_set_of_nodes(consa, h_nodes_a) 
+        && is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes_a') 
     }
 
-/*
-    lemma uniqueDB(vp: AttestationData -> bool, duty: AttestationDuty, 
-                    db1: set<SlashingDBAttestation>, db2: set<SlashingDBAttestation>)
-    requires vp == ((ad: AttestationData) => consensus_is_valid_attestation_data(db1, ad, duty))
-    requires db1 == db2
-    ensures vp == ((ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty))    
-    {}
-    */
 
     predicate inv49(dvn: DVState)
     {
@@ -1361,5 +1346,52 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var hn_state := dvn.honest_nodes_states[hn];
             && var db := hn_state.att_slashing_db_hist[s][vp];
             && inv50_body(dvn, hn, s, db, duty, vp)
+    }
+
+    predicate inv51_body(dvn: DVState, hn: BLSPubkey, s: Slot)
+    requires && is_honest_node(dvn, hn)
+             && var hn_state := dvn.honest_nodes_states[hn];
+             && s in hn_state.att_slashing_db_hist.Keys
+    {
+        && var hn_state := dvn.honest_nodes_states[hn];
+        && exists duty: AttestationDuty :: 
+                    && duty in hn_state.all_rcvd_duties
+                    && duty.slot == s
+    }
+
+
+    predicate inv51(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot |
+            && is_honest_node(dvn, hn) 
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && s in hn_state.att_slashing_db_hist.Keys
+            ::
+            inv51_body(dvn, hn, s)    
+            
+    }
+
+    predicate inv48_body(dvn: DVState, s: Slot, hn: BLSPubkey) 
+    {
+        && var ci := dvn.consensus_on_attestation_data[s];
+        && hn in ci.honest_nodes_validity_functions.Keys
+        && ci.honest_nodes_validity_functions[hn] != {}                
+    }
+    
+    predicate inv48(dvn: DVState)
+    {
+        forall s: Slot ::
+            && var ci := dvn.consensus_on_attestation_data[s];
+            && ( ci.decided_value.isPresent()
+                    <==> ( exists h_nodes :: 
+                                && is_a_valid_decided_value_according_to_set_of_nodes(ci, h_nodes)            
+                                && ( forall hn: BLSPubkey :: 
+                                            && is_honest_node(dvn, hn)
+                                            && hn in h_nodes
+                                                    ==> inv48_body(dvn, s, hn)                                        
+                                   )
+                         )
+                              
+               )
     }
 }
