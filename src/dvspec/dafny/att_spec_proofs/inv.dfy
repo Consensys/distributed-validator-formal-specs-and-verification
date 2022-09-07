@@ -81,7 +81,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //      - The data is for the attestation.
     //      - The data and the duty are for the same slot.
     //      - The data is not slashable in db - {r}.    
-        predicate pred4_in_sec_3_2_consistant_slashing_db(dvn: DVState)
+    predicate pred4_in_sec_3_2_consistant_slashing_db(dvn: DVState)
     {
         forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
             && var nState := dvn.honest_nodes_states[pubkey];
@@ -985,8 +985,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     } 
 */
 
-    predicate pred_4_1_g_ii_body(dvn: DVState, hn: BLSPubkey, s1: Slot, s2: Slot, 
-                                 vp: AttestationData -> bool, db2: set<SlashingDBAttestation>)    
+    predicate pred_4_1_g_ii_body(dvn: DVState, hn: BLSPubkey, 
+                                 s1: Slot, s2: Slot, 
+                                 vp: AttestationData -> bool, 
+                                 db2: set<SlashingDBAttestation>,
+                                 sdba: SlashingDBAttestation)    
     requires 
             && hn in dvn.honest_nodes_states.Keys
             && var hn_state := dvn.honest_nodes_states[hn];
@@ -1002,13 +1005,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv47_body(dvn, hn, s2) 
             && db2 == hn_state.att_slashing_db_hist[s2][vp]
             && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
+            && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
+            && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+            && sdba == construct_SlashingDBAttestation_from_att_data(decided_a_data)
     {
-        && var hn_state := dvn.honest_nodes_states[hn];            
-        && var duty2: AttestationDuty :| duty2 in hn_state.all_rcvd_duties && duty2.slot == s2;
-        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty2)            
+        // && var hn_state := dvn.honest_nodes_states[hn];            
+        // && var duty2: AttestationDuty :| duty2 in hn_state.all_rcvd_duties && duty2.slot == s2;
+        // && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty2)      
+        /*      
         && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
         && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
         && var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);
+        */
         && sdba in db2
     }
 
@@ -1032,7 +1040,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::                
             && var hn_state := dvn.honest_nodes_states[hn];
             && var db2 := hn_state.att_slashing_db_hist[s2][vp];
-            && pred_4_1_g_ii_body(dvn, hn, s1, s2, vp, db2)
+            && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
+            && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+            && var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);
+            && pred_4_1_g_ii_body(dvn, hn, s1, s2, vp, db2, sdba)
     }    
 
     /*
@@ -1290,5 +1301,65 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                               )
                               
                )
+    }
+
+    predicate pred_4_1_witness(dvn: DVState, a: Attestation, a': Attestation, m: BLSPubkey)
+    {
+        && is_honest_node(dvn, m)                
+        && var consa := dvn.consensus_on_attestation_data[a.data.slot];
+        && var consa' := dvn.consensus_on_attestation_data[a'.data.slot];       
+        && m in consa.honest_nodes_validity_functions.Keys
+        && m in consa.quorum_made_decision
+        && m in consa'.honest_nodes_validity_functions.Keys                
+        && m in consa'.quorum_made_decision
+    }
+
+/*
+    lemma uniqueDB(vp: AttestationData -> bool, duty: AttestationDuty, 
+                    db1: set<SlashingDBAttestation>, db2: set<SlashingDBAttestation>)
+    requires vp == ((ad: AttestationData) => consensus_is_valid_attestation_data(db1, ad, duty))
+    requires db1 == db2
+    ensures vp == ((ad: AttestationData) => consensus_is_valid_attestation_data(db2, ad, duty))    
+    {}
+    */
+
+    predicate inv49(dvn: DVState)
+    {
+        forall hn: BLSPubkey, d1: AttestationDuty, d2: AttestationDuty | 
+            && is_honest_node(dvn, hn)
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && d1 in hn_state.all_rcvd_duties
+            && d2 in hn_state.all_rcvd_duties
+            && d1.slot == d2.slot
+            ::
+            d1 == d2
+    }
+
+    predicate inv50_body(dvn: DVState, hn: BLSPubkey, s: Slot, 
+                            db: set<SlashingDBAttestation>, duty: AttestationDuty, vp: AttestationData -> bool)
+    requires && is_honest_node(dvn, hn)
+             && var hn_state := dvn.honest_nodes_states[hn];
+             && s in hn_state.att_slashing_db_hist.Keys
+             && vp in hn_state.att_slashing_db_hist[s]
+             // && duty in hn_state.all_rcvd_duties
+             // && duty.slot == s
+    {
+        && var hn_state := dvn.honest_nodes_states[hn];
+        && var db := hn_state.att_slashing_db_hist[s][vp];
+        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+    }
+    predicate inv50(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool, duty: AttestationDuty | 
+            && is_honest_node(dvn, hn)
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && s in hn_state.att_slashing_db_hist.Keys
+            && vp in hn_state.att_slashing_db_hist[s]
+            && duty in hn_state.all_rcvd_duties
+            && duty.slot == s
+            ::
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && var db := hn_state.att_slashing_db_hist[s][vp];
+            && inv50_body(dvn, hn, s, db, duty, vp)
     }
 }

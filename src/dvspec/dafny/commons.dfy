@@ -642,5 +642,14 @@ module CommonFunctions{
             0
     }
 
- 
+    predicate ByzThresholdAssumption(
+        all_nodes: set<BLSPubkey>,
+        honest_nodes: set<BLSPubkey>,
+        dishonest_nodes: set<BLSPubkey>
+    )
+    {        
+        && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
+        && all_nodes == honest_nodes + dishonest_nodes
+        && honest_nodes * dishonest_nodes == {}
+    }
 }

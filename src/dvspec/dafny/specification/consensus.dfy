@@ -25,16 +25,7 @@ module ConsensusSpec
 
     // Move functions f, quorum, and test_quorum to file commons.dfy
 
-    predicate ByzThresholdAssumption(
-        all_nodes: set<BLSPubkey>,
-        honest_nodes: set<BLSPubkey>,
-        dishonest_nodes: set<BLSPubkey>
-    )
-    {        
-        && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
-        && all_nodes == honest_nodes + dishonest_nodes
-        && honest_nodes * dishonest_nodes == {}
-    }
+
 
 
     predicate isConditionForSafetyTrue<D(!new, 0)>(

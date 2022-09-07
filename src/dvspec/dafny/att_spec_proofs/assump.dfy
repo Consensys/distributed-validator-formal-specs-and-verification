@@ -13,7 +13,7 @@ module AttAssumptions
     import opened NetworkSpec
     import opened DVCNode_Spec
     import opened DV
-    import opened AttInvariants
+    import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
     // Assumption 4a
     // Let a be a new attestation duty served to an honest node n. Then
