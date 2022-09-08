@@ -52,7 +52,7 @@ module DV
         && s.honest_nodes_states.Keys !! s.adversary.nodes !! {s.dv_pubkey}
         && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
         && s.honest_nodes_states.Keys != {}
-        && |s.adversary.nodes| <= f(|s.all_nodes|)
+        && |s.adversary.nodes| <= f(|s.all_nodes|)        
         && (                            
             forall 
                 att_shares: set<AttestationShare>
@@ -132,6 +132,8 @@ module DV
         s': DVState
     )
     {
+        && s'.all_nodes == s.all_nodes
+        && s'.adversary == s.adversary
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
         && s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served
         && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature

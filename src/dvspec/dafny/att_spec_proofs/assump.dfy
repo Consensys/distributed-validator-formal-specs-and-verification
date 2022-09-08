@@ -5,7 +5,7 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 
-module AttAssumptions
+module Att_Assumptions
 {
     import opened Types 
     import opened CommonFunctions
@@ -112,11 +112,6 @@ module AttAssumptions
                             && s1 in S
                             && s2 in S
                                 ==> att_shares_from_same_att_data(s1, s2) ) 
-
-  lemma {:axiom} init_satisfies_ByzThresholdAssumption(dvn: DVState)       
-  requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
-                DV.Init(dvn, initial_attestation_slashing_db)        
-  ensures ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)                                                            
 }
 
 

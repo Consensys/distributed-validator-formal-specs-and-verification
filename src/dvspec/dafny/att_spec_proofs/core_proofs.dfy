@@ -32,7 +32,7 @@ module Core_Proofs
                         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dvn.all_nodes| > 0
-    requires ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)    
+    requires inv52(dvn)    
     requires pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
     requires // && var consa := dvn.consensus_on_attestation_data[a.data.slot];
              // && var consa' := dvn.consensus_on_attestation_data[a'.data.slot];  
@@ -90,7 +90,7 @@ module Core_Proofs
 
     lemma lemma_4_1_a_i(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
@@ -169,7 +169,7 @@ module Core_Proofs
 
     lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
@@ -209,7 +209,7 @@ module Core_Proofs
 
     lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
@@ -258,7 +258,7 @@ module Core_Proofs
 
     lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)

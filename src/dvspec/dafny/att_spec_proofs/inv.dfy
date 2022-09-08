@@ -966,25 +966,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
     }
 
-/*
-    predicate pred_4_1_g_ii_roberto(dvn: DVState)
-    {
-        forall hn, s1: nat, s2: nat, vp, attestation_duty, attestation_slashing_db |
-            && hn in dvn.honest_nodes_states.Keys
-            && s1 < s2
-            && hn in dvn.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
-            && hn in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
-            && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]
-            // Question: Is the value of attestation_slashing_db deterministically decided with given vp, ad, and duty?            
-            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
-            ::
-            && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
-            && var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
-            && var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);
-            && sdba in attestation_slashing_db
-    } 
-*/
-
     predicate pred_4_1_g_ii_body(dvn: DVState, hn: BLSPubkey, 
                                  s1: Slot, s2: Slot, 
                                  vp: AttestationData -> bool, 
@@ -1000,8 +981,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             // Another invariant to prove the two following lines
             && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]        
             && vp in hn_state.att_slashing_db_hist[s2].Keys   
-            // Another invariant to prove the following line                     
-            // && (exists duty2: AttestationDuty :: duty2 in hn_state.all_rcvd_duties && duty2.slot == s2)
             && inv47_body(dvn, hn, s2) 
             && db2 == hn_state.att_slashing_db_hist[s2][vp]
             && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
@@ -1393,5 +1372,15 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                          )
                               
                )
+    }
+
+    predicate inv52(dvn: DVState)
+    {        
+        && var all_nodes := dvn.all_nodes;
+        && var honest_nodes := dvn.honest_nodes_states.Keys;
+        && var dishonest_nodes := dvn.adversary.nodes;
+        && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
+        && all_nodes == honest_nodes + dishonest_nodes
+        && honest_nodes * dishonest_nodes == {}
     }
 }
