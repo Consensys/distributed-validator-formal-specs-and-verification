@@ -3,6 +3,7 @@ include "../specification/dvc_spec.dfy"
 include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
+include "../att_spec_proofs/helper_sets_lemmas.dfy"
 
 
 
@@ -14,6 +15,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened NetworkSpec
     import opened DVCNode_Spec
     import opened DV
+    import opened Helper_Sets_Lemmas
+
 
     // For every pair (n1, n2) of honest nodes working for the same attestation duty, 
     // either both n1 and n2 decides on the same data or one of them has not decided yet.
@@ -1379,8 +1382,35 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && var all_nodes := dvn.all_nodes;
         && var honest_nodes := dvn.honest_nodes_states.Keys;
         && var dishonest_nodes := dvn.adversary.nodes;
-        && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
+        // && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
+        && 0 < |all_nodes|
+        && quorum(|all_nodes|) <= |honest_nodes|
+        && |dishonest_nodes| <= f(|all_nodes|) 
         && all_nodes == honest_nodes + dishonest_nodes
         && honest_nodes * dishonest_nodes == {}
+    }
+
+    lemma test_inv52(dvn: DVState)
+    requires inv52(dvn)
+    ensures && var all_nodes := dvn.all_nodes;
+            && var honest_nodes := dvn.honest_nodes_states.Keys;
+            && var dishonest_nodes := dvn.adversary.nodes;
+            && 2 * |dishonest_nodes| < |honest_nodes|
+    {     
+      var all_nodes := dvn.all_nodes;
+      var honest_nodes := dvn.honest_nodes_states.Keys;
+      var dishonest_nodes := dvn.adversary.nodes;   
+      lemmaQuorumIsGreaterThan2F(all_nodes);
+
+      calc {
+            |honest_nodes|;
+            >= 
+            quorum(|all_nodes|);
+            >
+            { lemmaQuorumIsGreaterThan2F(all_nodes); }
+            2 * f(|all_nodes|);
+            >=
+            2 * |dishonest_nodes|;
+        }
     }
 }
