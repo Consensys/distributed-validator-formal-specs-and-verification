@@ -1413,4 +1413,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             2 * |dishonest_nodes|;
         }
     }
+
+    predicate inv53(dvn: DVState)
+    {
+        forall s: Slot ::
+            && var ci := dvn.consensus_on_attestation_data[s];            
+            && dvn.all_nodes == ci.all_nodes
+            && dvn.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
+    }
+    
 }
