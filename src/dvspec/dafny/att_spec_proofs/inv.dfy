@@ -1265,9 +1265,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall ci | ci in dvn.consensus_on_attestation_data.Values
             :: && ci.all_nodes == dvn.all_nodes
                && ci.honest_nodes_status.Keys == dvn.honest_nodes_states.Keys  
-               && ci.honest_nodes_status.Keys <= ci.all_nodes
+               // && ci.honest_nodes_status.Keys <= ci.all_nodes
                && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
-               && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
+               // && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 
     

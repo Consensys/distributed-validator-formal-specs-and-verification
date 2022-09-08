@@ -18,8 +18,8 @@ module DVN_Ind_Inv
     import opened Att_Assumptions
 
     lemma dvn_init_inv52(dvn: DVState)       
-    requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
-                DV.Init(dvn, initial_attestation_slashing_db)        
+    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
+             && DV.Init(dvn, initial_attestation_slashing_db)        
     ensures inv52(dvn)
     {}    
 
@@ -38,4 +38,26 @@ module DVN_Ind_Inv
         var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
         dvn_next_event_inv52(dvn, e, dvn');
     }
+
+    lemma dvn_init_inv42(dvn: DVState)       
+    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
+             && DV.Init(dvn, initial_attestation_slashing_db)    
+    ensures inv42(dvn)
+    {}  
+
+    lemma dvn_next_event_inv42(dvn: DVState, e: DV.Event, dvn': DVState)       
+    requires DV.NextEvent(dvn, e, dvn')        
+    requires inv42(dvn)
+    ensures inv42(dvn')
+    {}
+
+    lemma dvn_next_inv42(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    requires inv42(dvn)
+    ensures inv42(dvn')
+    {
+        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
+        dvn_next_event_inv42(dvn, e, dvn');
+    }
+    
 }

@@ -137,6 +137,11 @@ module DV
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
         && s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served
         && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature
+        && ( forall ci | ci in  s'.consensus_on_attestation_data.Values ::
+                && ci.all_nodes == s'.all_nodes                
+                && ci.honest_nodes_status.Keys == s'.honest_nodes_states.Keys
+                && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
+           )
         && (
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
