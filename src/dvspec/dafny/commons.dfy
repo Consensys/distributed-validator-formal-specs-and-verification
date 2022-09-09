@@ -228,10 +228,12 @@ module CommonFunctions{
     lemma {:axiom} hash_tree_root_properties<T>()
     ensures forall d1: T, d2: T :: hash_tree_root(d1) == hash_tree_root(d2) ==> d1 == d2
     
+    /*
     lemma {:axiom} exists_att_data_for_every_slashingDBattestaion()
     ensures forall r: SlashingDBAttestation :: 
                 exists data: AttestationData :: 
                     r.signing_root == Some(hash_tree_root(data))
+*/
 
     lemma {:axiom} exists_att_data_for_given_slashingDBattestaion(r: SlashingDBAttestation)
     ensures exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))

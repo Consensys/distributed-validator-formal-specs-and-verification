@@ -5,12 +5,8 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
-include "../att_spec_proofs/core_proofs.dfy"
-include "../att_spec_proofs/ci_ind_inv.dfy"
-include "../att_spec_proofs/dvc_ind_inv.dfy"
 
-
-module Proof_Test
+module DVN_Init_Ind_Inv
 {
     import opened Types 
     import opened CommonFunctions
@@ -19,10 +15,32 @@ module Proof_Test
     import opened DVCNode_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Helper_Sets_Lemmas
+    import opened Att_Assumptions
 
+    
+    lemma dvn_init_inv5(dvn: DVState)
+    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
+             && DV.Init(dvn, initial_attestation_slashing_db)    
+    ensures inv5(dvn)
+    {}
 
+    lemma dvn_init_inv10(dvn: DVState)
+    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
+             && DV.Init(dvn, initial_attestation_slashing_db)    
+    ensures inv5(dvn)
+    {}
+
+    lemma dvn_init_inv42(dvn: DVState)       
+    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
+             && DV.Init(dvn, initial_attestation_slashing_db)    
+    ensures inv42(dvn)
+    {}  
+
+    lemma dvn_init_inv52(dvn: DVState)       
+    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
+             && DV.Init(dvn, initial_attestation_slashing_db)        
+    ensures inv52(dvn)
+    {}    
 
     lemma prop52_a(dvn: DVState, hn: BLSPubkey)       
     requires inv52(dvn)    
@@ -40,4 +58,5 @@ module Proof_Test
             false;
         }        
     }
+
 }

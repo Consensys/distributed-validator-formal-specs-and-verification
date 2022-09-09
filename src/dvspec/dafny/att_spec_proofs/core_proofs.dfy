@@ -71,7 +71,7 @@ module Core_Proofs
         
         var dba': set<SlashingDBAttestation> := m_state.att_slashing_db_hist[sa'][vpa'];  
 
-        assert inv51_body(dvn, m, sa');
+        assert inv51_body(m_state, sa');
         var duty: AttestationDuty :| duty in m_state.all_rcvd_duties && duty.slot == sa';
         
         assert inv50_body(dvn, m, sa', dba', duty, vpa');

@@ -126,17 +126,25 @@ module DV
             NextEvent(s, e, s')
     }
 
+    predicate unchanged_fixed_paras(dvn: DVState, dvn': DVState)
+    {
+        && dvn.all_nodes == dvn'.all_nodes
+        && dvn.adversary == dvn'.adversary
+        && dvn.honest_nodes_states.Keys == dvn'.honest_nodes_states.Keys        
+        && dvn.dv_pubkey == dvn'.dv_pubkey
+        && dvn.construct_signed_attestation_signature
+                == dvn'.construct_signed_attestation_signature
+        && dvn.sequence_attestation_duties_to_be_served
+                == dvn.sequence_attestation_duties_to_be_served
+    }
+
     predicate NextEvent(
         s: DVState,
         event: Event,
         s': DVState
     )
     {
-        && s'.all_nodes == s.all_nodes
-        && s'.adversary == s.adversary
-        && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
-        && s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served
-        && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature
+        && unchanged_fixed_paras(s, s')
         && ( forall ci | ci in  s'.consensus_on_attestation_data.Values ::
                 && ci.all_nodes == s'.all_nodes                
                 && ci.honest_nodes_status.Keys == s'.honest_nodes_states.Keys
@@ -172,7 +180,7 @@ module DV
         s': DVState        
     ) 
     {
-        && node in s.honest_nodes_states.Keys
+        && node in s.honest_nodes_states.Keys        
         && var s_w_honest_node_states_updated :=
             if nodeEvent.ImportedNewBlock? then 
                 s.(
@@ -181,8 +189,8 @@ module DV
             else 
                 s 
             ;
-        && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
-                
+        && unchanged_fixed_paras(s, s_w_honest_node_states_updated)
+        && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )                
     }
 
     predicate NextHonestAfterAddingBlockToBn(
@@ -193,8 +201,7 @@ module DV
         s': DVState
     )
     {
-        && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
-        && s'.dv_pubkey == s.dv_pubkey        
+        && unchanged_fixed_paras(s, s')
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
         && DVCNode_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
@@ -252,8 +259,8 @@ module DV
         s': DVState
     )
     {
-
-        (
+        && unchanged_fixed_paras(s, s')
+        && (
             && node in (s.all_nodes - s.honest_nodes_states.Keys)
             && (
                 forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
@@ -276,7 +283,7 @@ module DV
                 consensus_on_attestation_data := s'.consensus_on_attestation_data,
                 all_attestations_created := s'.all_attestations_created
             )            
-        )         
+           )         
     }
 
 

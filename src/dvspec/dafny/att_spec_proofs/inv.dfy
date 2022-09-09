@@ -43,8 +43,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate is_honest_node(s: DVState, n: BLSPubkey)
     {
-        && n in s.all_nodes
-        && !(n in s.adversary.nodes)
+        // && n in s.all_nodes
+        // && !(n in s.adversary.nodes)
         && n in s.honest_nodes_states.Keys
     }
 
@@ -125,20 +125,19 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     // If the current duty is not none, then the lastest served duty is the current duty.
-    predicate pred5_in_sec_3_3_curr_att_duty_is_last_served_duty(dvn: DVState)        
+    predicate inv5(dvn: DVState)        
     {
         forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
-            pred5_in_sec_3_3_body(dvn, pubkey)            
+            && var s := dvn.honest_nodes_states[pubkey];
+            && inv5_body(s)            
     }
 
-    predicate pred5_in_sec_3_3_body(dvn: DVState, pubkey: BLSPubkey)        
+    predicate inv5_body(hn_state: DVCNodeState)        
     {
-        && is_honest_node(dvn, pubkey)
-        && var s := dvn.honest_nodes_states[pubkey];
-        && s.current_attestation_duty.isPresent()
-                ==> ( && s.latest_attestation_duty.isPresent()
-                      && s.current_attestation_duty.safe_get() == s.latest_attestation_duty.safe_get()
-                    )
+        hn_state.current_attestation_duty.isPresent()
+            ==> ( && hn_state.latest_attestation_duty.isPresent()
+                  && hn_state.current_attestation_duty.safe_get() == hn_state.latest_attestation_duty.safe_get()
+                )
     }
 
     predicate exisiting_consensus_instance_for_curr_att_duty_pred6_in_sec_3_3(dvn: DVState)        
@@ -179,12 +178,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             s.bn.attestations_submitted[i].data.slot <= s.current_attestation_duty.safe_get().slot
     }
 
-    predicate none_latest_att_duty_implies_empty_att_duty_queue_pred10_in_sec_3_4(dvn: DVState)        
+    predicate inv10_body(s: DVCNodeState)
     {
-        forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
+        !s.latest_attestation_duty.isPresent()
+            ==> s.attestation_duties_queue == [] 
+    }
+
+    predicate inv10(dvn: DVState)        
+    {
+        forall pubkey: BLSPubkey :: 
+            && is_honest_node(dvn, pubkey) 
             && var s := dvn.honest_nodes_states[pubkey];
-            && !s.latest_attestation_duty.isPresent()
-                    ==> |s.attestation_duties_queue| == 0
+            && inv10_body(s)
     }
 
     predicate queued_duties_later_than_latest_att_duty_pred11_in_sec_3_4(dvn: DVState)        
@@ -1330,13 +1335,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv50_body(dvn, hn, s, db, duty, vp)
     }
 
-    predicate inv51_body(dvn: DVState, hn: BLSPubkey, s: Slot)
-    requires && is_honest_node(dvn, hn)
-             && var hn_state := dvn.honest_nodes_states[hn];
-             && s in hn_state.att_slashing_db_hist.Keys
+    predicate inv51_body(hn_state: DVCNodeState, s: Slot)
+    requires s in hn_state.att_slashing_db_hist.Keys
     {
-        && var hn_state := dvn.honest_nodes_states[hn];
-        && exists duty: AttestationDuty :: 
+        exists duty: AttestationDuty :: 
                     && duty in hn_state.all_rcvd_duties
                     && duty.slot == s
     }
@@ -1344,13 +1346,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv51(dvn: DVState)
     {
-        forall hn: BLSPubkey, s: Slot |
+        forall hn: BLSPubkey, s: Slot ::
             && is_honest_node(dvn, hn) 
             && var hn_state := dvn.honest_nodes_states[hn];
             && s in hn_state.att_slashing_db_hist.Keys
-            ::
-            inv51_body(dvn, hn, s)    
-            
+            ==>
+            inv51_body(hn_state, s)                
     }
 
     predicate inv48_body(dvn: DVState, s: Slot, hn: BLSPubkey) 
@@ -1382,7 +1383,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && var all_nodes := dvn.all_nodes;
         && var honest_nodes := dvn.honest_nodes_states.Keys;
         && var dishonest_nodes := dvn.adversary.nodes;
-        // && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
         && 0 < |all_nodes|
         && quorum(|all_nodes|) <= |honest_nodes|
         && |dishonest_nodes| <= f(|all_nodes|) 
@@ -1421,5 +1421,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && dvn.all_nodes == ci.all_nodes
             && dvn.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
     }
+    
     
 }
