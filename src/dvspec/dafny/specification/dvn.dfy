@@ -360,10 +360,12 @@ module DV
         && unchanged_fixed_paras(s, s')
         && (
             && node in (s.all_nodes - s.honest_nodes_states.Keys)
-            // && (
-            //     forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
-            //         verify_bls_siganture(new_attestation_share_sent.message.data, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
-            // )
+            && (
+                forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
+                    var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(new_attestation_share_sent.message.data.target.epoch));
+                    var attestation_signing_root := compute_attestation_signing_root(new_attestation_share_sent.message.data, fork_version);
+                    verify_bls_siganture(attestation_signing_root, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
+            )
             && NetworkSpec.Next(s.att_network, s'.att_network, node, new_attestation_shares_sent, messagesReceivedByTheNode)
             && s.all_attestations_created <= s'.all_attestations_created
             && var new_aggregated_attestations_sent := s'.all_attestations_created - s.all_attestations_created;
