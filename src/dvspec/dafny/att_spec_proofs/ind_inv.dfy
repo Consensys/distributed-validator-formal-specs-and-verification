@@ -304,8 +304,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         process.dv_pubkey,
         dvn.all_nodes
     )
-    requires dvn.honest_nodes_states.Keys <= dvn.all_nodes
-    requires var byz := dvn.all_nodes - dvn.honest_nodes_states.Keys; |byz| < f(|dvn.all_nodes|)
+    requires inv52(dvn)
     requires attestation_share in dvn.att_network.allMessagesSent
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dvn, process)
     requires forall a | a in process.bn.attestations_submitted :: exists hn', att_share: AttestationShare, fork_version :: pred_4_1_b_exists(dvn, hn', att_share, fork_version, a)
@@ -464,15 +463,14 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     requires forall n | n in s.honest_nodes_states.Keys :: s.honest_nodes_states[n].construct_signed_attestation_signature == s.construct_signed_attestation_signature
     requires forall n | n in s.honest_nodes_states.Keys :: s.honest_nodes_states[n].dv_pubkey == s.dv_pubkey    
-    requires s.honest_nodes_states.Keys <= s.all_nodes
-    requires var byz := s.all_nodes - s.honest_nodes_states.Keys; |byz| < f(|s.all_nodes|)
     requires forall m | 
                                 && m in s.att_network.messagesInTransit
                             ::
                                 m.message in s.att_network.allMessagesSent;
 
+    requires inv52(s)
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
-    ensures pred_4_1_b(s)
+    ensures pred_4_1_b(s')
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
