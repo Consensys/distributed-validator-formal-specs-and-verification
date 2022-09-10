@@ -125,20 +125,18 @@ module Core_Proofs
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
-        var hna, att_share :|
+        var hna, att_share, fv :|
                 && hna in dvn.honest_nodes_states.Keys 
                 && att_share in dvn.att_network.allMessagesSent
                 && att_share.data == a.data
-                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fv);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hna);     
 
-        var hna', att_share' :|
+        var hna', att_share', fv' :|
                 && hna' in dvn.honest_nodes_states.Keys 
                 && att_share' in dvn.att_network.allMessagesSent
                 && att_share'.data == a'.data
-                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share'.data.target.epoch));
-                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fork_version);
+                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fv');
                 && verify_bls_siganture(attestation_signing_root, att_share'.signature, hna');  
 
         assert

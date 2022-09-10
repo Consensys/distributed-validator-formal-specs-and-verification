@@ -41,7 +41,8 @@ module ConsensusSpec
         s: ConsensusInstance
     )
     {
-        quorum(|s.all_nodes|) <= |s.honest_nodes_status|
+        var byz := s.all_nodes - s.honest_nodes_status.Keys;
+        |byz| < f(|s.all_nodes|)
     }
 
     predicate Init<D(!new, 0)>(

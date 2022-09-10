@@ -55,6 +55,13 @@ predicate Injective<X(!new), Y(!new)>(f:X-->Y)
   forall x1, x2 :: f(x1) == f(x2) ==> x1 == x2
 }
 
+// predicate InjectiveOverSimp<X, Y>(xs:set<X>, f:X-->Y)
+//   reads f.reads;
+//   requires forall x :: x in xs ==> f.requires(x);
+// {
+//   forall x1, x2 :: x1 in xs && x2 in xs && f(x1) == f(x2) ==> x1 == x2
+// }
+
 predicate InjectiveOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
   reads f.reads;
   requires forall x :: x in xs ==> f.requires(x);
@@ -84,6 +91,21 @@ lemma lemma_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
     lemma_MapSetCardinality(xs', ys', f);
   }
 }
+
+// lemma lemma_MapSetCardinalityOverSImp<X, Y>(xs:set<X>, f:X-->Y)
+//   requires forall x :: x in xs ==> f.requires(x);
+//   requires InjectiveOverSimp(xs, f);
+//   requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
+//   ensures  |xs| == |ys|;
+// {
+//   if (xs != {})
+//   {
+//     var x :| x in xs;
+//     var xs' := xs - {x};
+//     var ys' := ys - {f(x)};
+//     lemma_MapSetCardinalityOver(xs', ys', f);
+//   }
+// }
 
 lemma lemma_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
   requires forall x :: x in xs ==> f.requires(x);

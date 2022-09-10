@@ -44,6 +44,138 @@ module DV
         messagesReceivedByTheNode: set<AttestationShare>)
     | HonestNodeTakingStep(node: BLSPubkey, event: Types.Event, nodeOutputs: DVCNode_Spec.Outputs)
 
+    predicate do_all_att_shares_have_the_same_data(
+        att_shares: set<AttestationShare>,
+        data: AttestationData 
+    )
+    {
+        && (forall att_share | att_share in att_shares ::att_share.data == data)            
+    }
+
+    predicate signer_threshold(
+        all_nodes: set<BLSPubkey>,
+        att_shares: set<AttestationShare>,
+        signing_root: Root
+    )
+    {
+        && var signers := 
+                    set signer, att_share | 
+                        && att_share in att_shares
+                        && signer in all_nodes
+                        && verify_bls_siganture(signing_root, att_share.signature, signer)
+                    ::
+                        signer;
+        && |signers| >= quorum(|all_nodes|)
+           
+    }    
+
+    predicate construct_signed_attestation_signature_assumptions_helper_forward(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall data: AttestationData, signing_root: Root, att_shares |
+            && do_all_att_shares_have_the_same_data(att_shares, data)
+            && signer_threshold(all_nodes, att_shares, signing_root) 
+        ::
+            && construct_signed_attestation_signature(att_shares).isPresent()
+            && verify_bls_siganture(
+                signing_root,
+                construct_signed_attestation_signature(att_shares).safe_get(),
+                dv_pubkey
+            )
+    }
+
+    predicate construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>,
+        att_shares: set<AttestationShare>,
+        data: AttestationData
+    )       
+    {
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
+        && var signing_root := compute_attestation_signing_root(data, fork_version);
+        && verify_bls_siganture(
+            signing_root,
+            construct_signed_attestation_signature(att_shares).safe_get(),
+            dv_pubkey
+        )                   
+        && do_all_att_shares_have_the_same_data(att_shares, data)
+        && signer_threshold(all_nodes, att_shares, signing_root) 
+    }
+
+    predicate construct_signed_attestation_signature_assumptions_helper_reverse(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall att_shares |
+            && construct_signed_attestation_signature(att_shares).isPresent()
+        ::
+        exists data: AttestationData ::      
+            construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes,
+                att_shares,
+                data                
+            )
+    }    
+
+    predicate construct_signed_attestation_signature_assumptions_helper(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )
+    {
+        && (                            
+            construct_signed_attestation_signature_assumptions_helper_forward(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes
+            )
+        )   
+        && (
+            construct_signed_attestation_signature_assumptions_helper_reverse(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes
+            )
+        )
+         
+        // &&
+        //     (
+        //     forall 
+        //         att_shares: set<AttestationShare>
+        //             |
+        //              construct_signed_attestation_signature(att_shares).isPresent()
+        //         ::
+        //         exists x ::
+        //         construct_signed_attestation_signature_assumptions_helper_3(
+        //             construct_signed_attestation_signature,
+        //             dv_pubkey,
+        //             all_nodes,
+        //             att_shares,
+        //             construct_signed_attestation_signature(att_shares).safe_get()
+        //         )
+
+        // )   
+    }
+
+    predicate construct_signed_attestation_signature_assumptions(
+        s: DVState
+    )
+    {
+        construct_signed_attestation_signature_assumptions_helper(
+            s.construct_signed_attestation_signature,
+            s.dv_pubkey,
+            s.all_nodes
+        ) 
+    }
+    
     predicate Init(
         s: DVState,
         initial_attestation_slashing_db: set<SlashingDBAttestation>
@@ -53,43 +185,7 @@ module DV
         && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
         && s.honest_nodes_states.Keys != {}
         && |s.adversary.nodes| <= f(|s.all_nodes|)
-        && (                            
-            forall 
-                att_shares: set<AttestationShare>
-                ::
-                (
-                    && exists verifiable_att_shares: set<AttestationShare>, data: AttestationData, fork_version: Version ::
-                        && verifiable_att_shares <= att_shares
-                        && var signing_root := compute_attestation_signing_root(data, fork_version);
-                        && |verifiable_att_shares| >= quorum(|s.all_nodes|)
-                        && (forall att_share |
-                                att_share in verifiable_att_shares ::
-                                && att_share.data == data 
-                                && exists signer :: 
-                                    && signer in s.all_nodes
-                                    && verify_bls_siganture(signing_root, att_share.signature, signer)
-                        )                        
-                )
-                <==>
-                    s.construct_signed_attestation_signature(att_shares).isPresent()
-        )    
-        &&
-            (
-            forall 
-                att_shares: set<AttestationShare>
-                ::
-                    var constructed_sig := s.construct_signed_attestation_signature(att_shares);
-                    constructed_sig.isPresent() ==>  
-                        forall verifiable_att_shares: set<AttestationShare>, data: AttestationData, fork_version: Version |
-                            && verifiable_att_shares <= att_shares
-                            && |verifiable_att_shares| >= quorum(|s.all_nodes|)
-                            && (forall att_share |
-                                    att_share in verifiable_att_shares :: att_share.data == data)                            
-                            ::
-                                    && var signing_root := compute_attestation_signing_root(data, fork_version);
-                                    verify_bls_siganture(signing_root, constructed_sig.safe_get(), s.dv_pubkey)
-
-        )   
+        && construct_signed_attestation_signature_assumptions(s)
         && s.all_attestations_created == {}
         && (
             forall n | n in s.honest_nodes_states.Keys ::
@@ -132,6 +228,7 @@ module DV
         s': DVState
     )
     {
+        && s'.all_nodes == s.all_nodes
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
         && s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served
         && s'.construct_signed_attestation_signature == s.construct_signed_attestation_signature
@@ -248,10 +345,10 @@ module DV
 
         (
             && node in (s.all_nodes - s.honest_nodes_states.Keys)
-            && (
-                forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
-                    verify_bls_siganture(new_attestation_share_sent.message.data, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
-            )
+            // && (
+            //     forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
+            //         verify_bls_siganture(new_attestation_share_sent.message.data, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
+            // )
             && NetworkSpec.Next(s.att_network, s'.att_network, node, new_attestation_shares_sent, messagesReceivedByTheNode)
             && s.all_attestations_created <= s'.all_attestations_created
             && var new_aggregated_attestations_sent := s'.all_attestations_created - s.all_attestations_created;
@@ -264,7 +361,6 @@ module DV
                             && constructed_sig.safe_get() == aggregated_attestation_sent.signature
             )
             && s' == s.(
-                honest_nodes_states := s'.honest_nodes_states,
                 att_network := s'.att_network,
                 consensus_on_attestation_data := s'.consensus_on_attestation_data,
                 all_attestations_created := s'.all_attestations_created
