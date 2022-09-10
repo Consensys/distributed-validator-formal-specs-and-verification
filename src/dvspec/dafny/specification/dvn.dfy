@@ -287,7 +287,6 @@ module DV
             else 
                 s 
             ;
-        && unchanged_fixed_paras(s, s_w_honest_node_states_updated)
         && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )                
     }
 
@@ -299,7 +298,6 @@ module DV
         s': DVState
     )
     {
-        && unchanged_fixed_paras(s, s')
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
         && DVCNode_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
@@ -357,7 +355,6 @@ module DV
         s': DVState
     )
     {
-        && unchanged_fixed_paras(s, s')
         && (
             && node in (s.all_nodes - s.honest_nodes_states.Keys)
             && (
