@@ -19,22 +19,12 @@ module ConsensusSpec
         all_nodes: set<BLSPubkey>,
         decided_value: Optional<D>,
         honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
-        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>,
-        ghost quorum_made_decision: set<BLSPubkey>
+        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>        
     )    
 
     // Move functions f, quorum, and test_quorum to file commons.dfy
 
-    predicate ByzThresholdAssumption(
-        all_nodes: set<BLSPubkey>,
-        honest_nodes: set<BLSPubkey>,
-        dishonest_nodes: set<BLSPubkey>
-    )
-    {        
-        && 2 * |dishonest_nodes| + 1 <= |honest_nodes|
-        && all_nodes == honest_nodes + dishonest_nodes
-        && honest_nodes * dishonest_nodes == {}
-    }
+
 
 
     predicate isConditionForSafetyTrue<D(!new, 0)>(
@@ -54,8 +44,7 @@ module ConsensusSpec
         && !s.decided_value.isPresent()
         && s.honest_nodes_status.Keys == honest_nodes
         && s.honest_nodes_validity_functions == map[]
-        && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)
-        && s.quorum_made_decision == {}
+        && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)        
     }
 
     predicate Next<D(!new, 0)>(
@@ -104,8 +93,7 @@ module ConsensusSpec
         && (
             forall n | n in h_nodes :: 
                 exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())  
-        )  
-        && s.quorum_made_decision == h_nodes      
+        )          
     }
 
     // If n = 5, then f(5) = 1 and quorum(n) = 4.

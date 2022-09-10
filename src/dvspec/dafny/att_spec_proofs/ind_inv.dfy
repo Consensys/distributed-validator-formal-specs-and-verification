@@ -471,10 +471,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             ::
                                 m.message in s.att_network.allMessagesSent;
 
-    // requires attestation_share in dvn.att_network.allMessagesSent
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
     ensures pred_4_1_b(s)
     {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
@@ -483,8 +483,19 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) => 
-                        // Proved
-                        lemma_pred_4_1_b_f_serve_attestation_duty(s.honest_nodes_states[node], attestation_duty, s'.honest_nodes_states[node]);
+                        // // Proved
+                        forall n | n in s'.honest_nodes_states.Keys
+                        ensures s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
+                        {
+                            if n != node 
+                            {
+                                assert s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
+                            }
+                            else 
+                            {
+                                lemma_pred_4_1_b_f_serve_attestation_duty(s.honest_nodes_states[node], attestation_duty, s'.honest_nodes_states[node]);
+                            }
+                        }
                         lemma_pred_4_1_b_helper(s, event, s');
                         assert pred_4_1_b(s');                    
                     case AttConsensusDecided(id, decided_attestation_data) => 

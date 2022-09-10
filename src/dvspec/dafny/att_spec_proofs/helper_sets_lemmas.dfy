@@ -432,4 +432,6 @@ function intsetmax(s:set<int>):int
     ensures && var n := |nodes|;
             && 2 * quorum(n) > n + f(n)
     {}
+
+    
 }

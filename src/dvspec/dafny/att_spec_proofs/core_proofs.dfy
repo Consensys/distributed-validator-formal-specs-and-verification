@@ -19,87 +19,7 @@ module Core_Proofs
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
 
-/*
-    lemma core_invariants_imply_safety(dvn: DVState)
-    requires pred37c_in_sec_3_8(dvn)    
-    requires pred40(dvn)
-    // ensures safety(dvn)
-    {
-        var pubkey: BLSPubkey :| 
-                && is_honest_node(dvn, pubkey)
-                && dvn.globally_signed_attestations <= seqToSet(dvn.honest_nodes_states[pubkey].bn.attestations_submitted);
-        var s := dvn.honest_nodes_states[pubkey];                
-        var attestations := seqToSet(s.bn.attestations_submitted);
-        var unchecked_attestations := dvn.globally_signed_attestations;
-        var checked_attestations: set<Attestation> := {};
-        
-        while unchecked_attestations != {}
-            invariant unchecked_attestations <= dvn.globally_signed_attestations
-            invariant unchecked_attestations + checked_attestations == dvn.globally_signed_attestations
-            invariant dvn.globally_signed_attestations <= attestations 
-            decreases |unchecked_attestations|
-        {
-            var a: Attestation :| a in unchecked_attestations;
-            assert a in dvn.globally_signed_attestations;
-            assert a in attestations;
 
-            var tempSet := dvn.globally_signed_attestations - { a };
-            assert tempSet <= attestations;
-
-            unchecked_attestations := unchecked_attestations - { a };   
-            checked_attestations := checked_attestations + { a };
-        }
-    }
-    */
-    
-
-    lemma core_invariants_imply_safety(dvn: DVState)
-    requires pred37c_in_sec_3_8(dvn)    
-    requires pred40(dvn)
-    ensures safety(dvn)
-    {
-        var pubkey: BLSPubkey :| 
-                && is_honest_node(dvn, pubkey)
-                && dvn.globally_signed_attestations <= seqToSet(dvn.honest_nodes_states[pubkey].bn.attestations_submitted);
-        var s := dvn.honest_nodes_states[pubkey];                
-        var attestations := seqToSet(s.bn.attestations_submitted);
-        assert dvn.globally_signed_attestations <= attestations;
-
-        var unchecked_attestations := dvn.globally_signed_attestations;
-        var checked_attestations: set<Attestation> := {};
-
-        while unchecked_attestations != {}
-            invariant unchecked_attestations <= dvn.globally_signed_attestations
-            invariant unchecked_attestations + checked_attestations == dvn.globally_signed_attestations
-            invariant dvn.globally_signed_attestations <= attestations 
-            invariant is_honest_node(dvn, pubkey)
-            invariant forall a: Attestation :: 
-                            a in checked_attestations 
-                                ==> && var tempSet := dvn.globally_signed_attestations - { a };
-                                    && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
-            decreases |unchecked_attestations|
-        {
-            var a: Attestation :| a in unchecked_attestations;
-            assert a in dvn.globally_signed_attestations;
-            assert a in attestations;
-
-            var tempSet := dvn.globally_signed_attestations - { a };
-            assert tempSet <= attestations;
-
-            assert !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
-
-            unchecked_attestations := unchecked_attestations - { a };   
-            checked_attestations := checked_attestations + { a };
-        }
-        
-
-        assert checked_attestations == dvn.globally_signed_attestations;
-        assert forall a: Attestation :: 
-                    a in dvn.globally_signed_attestations
-                        ==> && var tempSet := dvn.globally_signed_attestations - { a };
-                            && !is_slashable_attestation_data_in_set_of_attestations(tempSet, a.data);
-    }
-    
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)
     {
         || (data_1 != data_2 && data_1.target.epoch == data_2.target.epoch)
@@ -107,33 +27,89 @@ module Core_Proofs
     }
 
 
-    lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    lemma lemma_4_1_a_ii(dvn: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
+                        consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
+                        h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dvn.all_nodes| > 0
+    requires inv52(dvn)    
+    requires pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
+    requires && consa.decided_value.isPresent()
+             && consa'.decided_value.isPresent()
+             && a.data == consa.decided_value.safe_get()
+             && a'.data == consa'.decided_value.safe_get()
+    requires && is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes_a')
+             && m in h_nodes_a'             
+    requires a.data.slot < a'.data.slot
+    requires inv48(dvn)
+    requires inv47(dvn)
+    requires inv46_a(dvn)
+    requires inv46_b(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
+    requires inv50(dvn)
+    requires inv49(dvn)
+    requires inv51(dvn)
+    ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+            && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+    {        
+        var m_state := dvn.honest_nodes_states[m];
+        var sa := a.data.slot;
+        var sa' := a'.data.slot;
+        var consa := dvn.consensus_on_attestation_data[sa];
+        var consa' := dvn.consensus_on_attestation_data[sa'];  
+        var dva := consa.decided_value.safe_get();
+        var dva' := consa'.decided_value.safe_get();
+        var sdba := construct_SlashingDBAttestation_from_att_data(dva);
+        var sdba' := construct_SlashingDBAttestation_from_att_data(dva');
+        
+        assert consa'.honest_nodes_validity_functions[m] != {};
+        var vpa': AttestationData -> bool :| && vpa' in consa'.honest_nodes_validity_functions[m]
+                                             && vpa'(consa'.decided_value.safe_get());
+
+        assert inv46_b_body(dvn, m, sa', vpa');
+        assert vpa' in m_state.att_slashing_db_hist[sa'];
+        
+        var dba': set<SlashingDBAttestation> := m_state.att_slashing_db_hist[sa'][vpa'];  
+
+        assert inv51_body(m_state, sa');
+        var duty: AttestationDuty :| duty in m_state.all_rcvd_duties && duty.slot == sa';
+        
+        assert inv50_body(dvn, m, sa', dba', duty, vpa');
+        assert vpa' == (ad: AttestationData) => consensus_is_valid_attestation_data(dba', ad, duty);
+        assert !is_slashable_attestation_data(dba', dva');
+
+        lemma_is_slashable_attestation_data(dba', dva', sdba', sdba);        
+        assert !is_slashable_attestation_data_eth_spec(dva, dva');
+        assert !is_slashable_attestation_data_eth_spec(dva', dva);                 
+    }
+
+
+    lemma lemma_4_1_a_i(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    requires |dvn.all_nodes| > 0
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
-    requires inv42(dvn)
-    requires pred_4_1_g_i(dvn)
-    requires pred_4_1_g_ii(dvn)
+    requires inv42(dvn)   
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
     requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
     requires a.data.slot < a'.data.slot 
-    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a.data.slot])
-    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a'.data.slot])
-    ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
-            && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+    ensures && var consa := dvn.consensus_on_attestation_data[a.data.slot];
+            && var consa' := dvn.consensus_on_attestation_data[a'.data.slot];   
+            && exists m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :: 
+                        pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a')    
     {
         var hna, att_share, fv :|
-                && hna in dvn.honest_nodes_states.Keys 
+                && is_honest_node(dvn, hna)
                 && att_share in dvn.att_network.allMessagesSent
                 && att_share.data == a.data
                 && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fv);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hna);     
 
         var hna', att_share', fv' :|
-                && hna' in dvn.honest_nodes_states.Keys 
+                && is_honest_node(dvn, hna)
                 && att_share' in dvn.att_network.allMessagesSent
                 && att_share'.data == a'.data
                 && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fv');
@@ -166,7 +142,6 @@ module Core_Proofs
         
         assert h_nodes_a * byz_nodes == {};
         assert h_nodes_a' * byz_nodes == {};        
-
         assert |h_nodes_a + byz_nodes| >= quorum(|nodes|);
         assert |h_nodes_a' + byz_nodes| >= quorum(|nodes|);
         assert |byz_nodes| <= f(|nodes|);
@@ -176,42 +151,52 @@ module Core_Proofs
             
         var m: BLSPubkey :| m in honest_nodes && m in h_nodes_a && m in h_nodes_a';  
 
-        assert m in  consa.honest_nodes_validity_functions.Keys; 
-        assert m in  consa'.honest_nodes_validity_functions.Keys; 
+        assert pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        assert ( exists m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :: 
+                                pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
+    }
 
-        var vpa: AttestationData -> bool :| 
-            vpa in consa.honest_nodes_validity_functions[m] && vpa(consa.decided_value.safe_get()); 
+    lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    requires |dvn.all_nodes| > 0
+    requires inv52(dvn)
+    requires pred_4_1_b(dvn)
+    requires pred_4_1_c(dvn)
+    requires pred_4_1_f_a(dvn)
+    requires inv42(dvn)
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_ii(dvn)
+    requires hn in dvn.honest_nodes_states.Keys 
+    requires hn' in dvn.honest_nodes_states.Keys
+    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
+    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires a.data.slot < a'.data.slot 
+    requires inv48(dvn)
+    requires inv47(dvn)
+    requires inv46_a(dvn)
+    requires inv46_b(dvn)
+    requires inv50(dvn)
+    requires inv49(dvn)
+    requires inv51(dvn)
+    ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+            && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+    {
+        lemma_4_1_a_i(dvn, a, a', hn, hn');
 
-        var vpa': AttestationData -> bool :| 
-            vpa' in consa'.honest_nodes_validity_functions[m] && vpa'(consa'.decided_value.safe_get()); 
+        
+        var consa := dvn.consensus_on_attestation_data[a.data.slot];
+        var consa' := dvn.consensus_on_attestation_data[a'.data.slot];                      
+        var m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :| 
+                pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
 
-        var attestation_duty', attestation_slashing_db' :|
-                vpa' == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db', ad, attestation_duty');   
-
-        assert consa.decided_value.isPresent();  
-
-        var decided_a_data := consa.decided_value.safe_get();
-        var sdba := SlashingDBAttestation(
-                                        source_epoch := decided_a_data.source.epoch,
-                                        target_epoch := decided_a_data.target.epoch,
-                                        signing_root := Some(hash_tree_root(decided_a_data)));
-        assert sdba in attestation_slashing_db';     
-
-        assert !is_slashable_attestation_data(attestation_slashing_db', a'.data);
-
-        var sdba' := SlashingDBAttestation(
-                                        source_epoch := a'.data.source.epoch,
-                                        target_epoch := a'.data.target.epoch,
-                                        signing_root := None);        
-
-        lemma_is_slashable_attestation_data(attestation_slashing_db', a'.data, sdba', sdba);
-        assert !is_slashable_attestation_data_eth_spec(a.data, a'.data);
-        assert !is_slashable_attestation_data_eth_spec(a'.data, a.data);
+        
+        assert pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        lemma_4_1_a_ii(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
         
     }    
 
     lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
@@ -223,26 +208,22 @@ module Core_Proofs
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
     requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
     requires a.data.slot == a'.data.slot 
-    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a.data.slot])
-    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a'.data.slot])
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
-        var hna, att_share :|
+        var hna, att_share, fv :|
                 && hna in dvn.honest_nodes_states.Keys 
                 && att_share in dvn.att_network.allMessagesSent
                 && att_share.data == a.data
-                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fv);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hna);     
 
-        var hna', att_share' :|
+        var hna', att_share', fv' :|
                 && hna' in dvn.honest_nodes_states.Keys 
                 && att_share' in dvn.att_network.allMessagesSent
                 && att_share'.data == a'.data
-                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share'.data.target.epoch));
-                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fork_version);
-                && verify_bls_siganture(attestation_signing_root, att_share'.signature, hna');  
+                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fv');
+                && verify_bls_siganture(attestation_signing_root, att_share'.signature, hna');   
 
         var cons := dvn.consensus_on_attestation_data[a.data.slot];                 
 
@@ -257,8 +238,10 @@ module Core_Proofs
         assert !is_slashable_attestation_data_eth_spec(a'.data, a.data);        
     }      
 
+
     lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
+    requires inv52(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)
@@ -269,8 +252,13 @@ module Core_Proofs
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
     requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
-    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a.data.slot])
-    requires isConditionForSafetyTrue(dvn.consensus_on_attestation_data[a'.data.slot])
+    requires inv48(dvn)
+    requires inv47(dvn)
+    requires inv46_a(dvn)
+    requires inv46_b(dvn)
+    requires inv50(dvn)
+    requires inv49(dvn)
+    requires inv51(dvn)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)   
     {
@@ -286,6 +274,7 @@ module Core_Proofs
             lemma_4_1_a(dvn, a', a, hn', hn);
         }
     } 
+
 
     lemma lemma_is_slashable_attestation_data(
         att_slashing_db: set<SlashingDBAttestation>, 
@@ -303,27 +292,5 @@ module Core_Proofs
     {
 
     }
-            
-                    
-        // TODO: Prove 4 g - i with lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp
-        // and invariants 43--45.
-
-/*
-    lemma lemma_decided_value_is_not_slashable_with_slashing_db_that_constructed_vp(
-        dvn: DVState, 
-        hn: BLSPubkey, 
-        s: Slot,
-        att: SlashingDBAttestation)
-    requires inv43_body_a.requires(dvn, hn, s)    
-    requires inv43_body_b.requires(dvn, hn, s)        
-    requires att in dvn.honest_nodes_states[hn].att_slashing_db_hist[s]
-    requires dvn.consensus_on_attestation_data[s].decided_value.isPresent()
-    ensures && var att_data := dvn.consensus_on_attestation_data[s].decided_value.safe_get();
-            && var newRecord := construct_SlashingDBAttestation_from_att_data(att_data);
-            && forall dbRecord | dbRecord in dvn.honest_nodes_states[hn].attestation_slashing_db ::
-                    && !is_slashable_attestation_pair(dbRecord, newRecord)
-                    && !is_slashable_attestation_pair(newRecord, dbRecord)
-*/
-    
-
+        
 }

@@ -5,7 +5,7 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 
-module AttAssumptions
+module Att_Assumptions
 {
     import opened Types 
     import opened CommonFunctions
@@ -13,7 +13,7 @@ module AttAssumptions
     import opened NetworkSpec
     import opened DVCNode_Spec
     import opened DV
-    import opened AttInvariants
+    import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
     // Assumption 4a
     // Let a be a new attestation duty served to an honest node n. Then
@@ -81,7 +81,7 @@ module AttAssumptions
                      )
                )
             
-  // Assumption 5
+  // TODO: DVN.Init should implies this lemma.
   lemma {:axiom} constructable_signed_attestation_signature(
     dvn: DVState,
     att_shares: set<AttestationShare>) 
@@ -94,7 +94,7 @@ module AttAssumptions
                             && s2 in S
                                 ==> att_shares_from_same_att_data(s1, s2) )
 
-  // Assumption 6
+  // TODO: DVN.Init should implies this lemma.
   lemma {:axiom} agreement_on_constructed_signed_attestation_signature(
     dvn: DVState,
     att_shares1: set<AttestationShare>, 
@@ -112,11 +112,6 @@ module AttAssumptions
                             && s1 in S
                             && s2 in S
                                 ==> att_shares_from_same_att_data(s1, s2) ) 
-
-  lemma {:axiom} init_satisfies_ByzThresholdAssumption(dvn: DVState)       
-  requires exists initial_attestation_slashing_db: set<SlashingDBAttestation> :: 
-                DV.Init(dvn, initial_attestation_slashing_db)        
-  ensures ByzThresholdAssumption(dvn.all_nodes, dvn.honest_nodes_states.Keys, dvn.adversary.nodes)                                                            
 }
 
 
