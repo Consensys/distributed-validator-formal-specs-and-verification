@@ -1512,6 +1512,16 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && dvn.honest_nodes_states[n].construct_signed_attestation_signature == dvn.construct_signed_attestation_signature
             && dvn.honest_nodes_states[n].dv_pubkey == dvn.dv_pubkey            
     }
+
+    predicate invNetwork(
+        dvn: DVState
+    )
+    {
+         forall m | 
+                && m in dvn.att_network.messagesInTransit
+            ::
+                m.message in dvn.att_network.allMessagesSent       
+    }
     
     
 }

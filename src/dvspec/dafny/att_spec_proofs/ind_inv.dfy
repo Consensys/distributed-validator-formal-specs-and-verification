@@ -462,11 +462,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s.all_nodes
     )
     requires invSimilarTo52And53(s)  
-    requires forall m | 
-                                && m in s.att_network.messagesInTransit
-                            ::
-                                m.message in s.att_network.allMessagesSent;
-
+    requires invNetwork(s)
     requires inv52(s)
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
     ensures pred_4_1_b(s')
