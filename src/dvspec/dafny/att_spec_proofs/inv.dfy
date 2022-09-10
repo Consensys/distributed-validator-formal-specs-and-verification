@@ -1505,6 +1505,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && dvn.all_nodes == ci.all_nodes
             && dvn.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
     }
+
+    predicate invSimilarTo52And53(dvn: DVState)
+    {
+        forall n | n in dvn.honest_nodes_states.Keys :: 
+            && dvn.honest_nodes_states[n].construct_signed_attestation_signature == dvn.construct_signed_attestation_signature
+            && dvn.honest_nodes_states[n].dv_pubkey == dvn.dv_pubkey            
+    }
     
     
 }

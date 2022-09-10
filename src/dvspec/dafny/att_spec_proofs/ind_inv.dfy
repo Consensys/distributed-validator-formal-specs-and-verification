@@ -461,8 +461,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s.dv_pubkey,
         s.all_nodes
     )
-    requires forall n | n in s.honest_nodes_states.Keys :: s.honest_nodes_states[n].construct_signed_attestation_signature == s.construct_signed_attestation_signature
-    requires forall n | n in s.honest_nodes_states.Keys :: s.honest_nodes_states[n].dv_pubkey == s.dv_pubkey    
+    requires invSimilarTo52And53(s)  
     requires forall m | 
                                 && m in s.att_network.messagesInTransit
                             ::
