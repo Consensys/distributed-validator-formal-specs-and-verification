@@ -128,7 +128,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     // }
 
-    lemma lemma_pred_4_1_b_f_serve_attestation_duty(
+    lemma lemma_f_serve_attestation_duty_constants(
         s: DVCNodeState,
         attestation_duty: AttestationDuty,
         s': DVCNodeState
@@ -142,10 +142,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 attestation_duties_queue := s.attestation_duties_queue + [attestation_duty],
                 all_rcvd_duties := s.all_rcvd_duties + {attestation_duty}
             );
-        lemma_pred_4_1_b_f_check_for_next_queued_duty(s_mod, s');
+        lemma_f_check_for_next_queued_duty_constants(s_mod, s');
     }
 
-    lemma lemma_pred_4_1_b_f_check_for_next_queued_duty(
+    lemma lemma_f_check_for_next_queued_duty_constants(
         s: DVCNodeState,
         s': DVCNodeState
     )
@@ -175,7 +175,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             new_attestation_slashing_db
                         )                        
                     );
-                    lemma_pred_4_1_b_f_check_for_next_queued_duty(s_mod, s');
+                    lemma_f_check_for_next_queued_duty_constants(s_mod, s');
                 }
                 else
                 {
@@ -188,7 +188,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }
     }
 
-    lemma lemma_pred_4_1_b_f_att_consensus_decided(
+    lemma lemma_f_att_consensus_decided_constants(
         s: DVCNodeState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -223,10 +223,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 )
             );
 
-        lemma_pred_4_1_b_f_check_for_next_queued_duty(s, s');             
+        lemma_f_check_for_next_queued_duty_constants(s, s');             
     } 
 
-    lemma lemma_pred_4_1_b_f_listen_for_new_imported_blocks(
+    lemma lemma_f_listen_for_new_imported_blocks_constants(
         s: DVCNodeState,
         block: BeaconBlock,
         s': DVCNodeState
@@ -268,7 +268,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 )                
             );
             assert s' == f_check_for_next_queued_duty(s).state;
-            lemma_pred_4_1_b_f_check_for_next_queued_duty(s, s');
+            lemma_f_check_for_next_queued_duty_constants(s, s');
         }
     }  
 
@@ -553,14 +553,14 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             }
                             else 
                             {
-                                lemma_pred_4_1_b_f_serve_attestation_duty(s.honest_nodes_states[node], attestation_duty, s'.honest_nodes_states[node]);
+                                lemma_f_serve_attestation_duty_constants(s.honest_nodes_states[node], attestation_duty, s'.honest_nodes_states[node]);
                             }
                         }
                         lemma_pred_4_1_b_helper(s, event, s');
                         assert pred_4_1_b(s');                    
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         // Proved
-                        lemma_pred_4_1_b_f_att_consensus_decided(s.honest_nodes_states[node], id, decided_attestation_data, s'.honest_nodes_states[node]);
+                        lemma_f_att_consensus_decided_constants(s.honest_nodes_states[node], id, decided_attestation_data, s'.honest_nodes_states[node]);
                         lemma_pred_4_1_b_helper(s, event, s');
                         assert pred_4_1_b(s');                    
                     case ReceviedAttesttionShare(attestation_share) => 
@@ -622,7 +622,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     case ImportedNewBlock(block) => 
                         // Provded
                         var s_node := add_block_to_bn(s_node, nodeEvent.block);
-                        lemma_pred_4_1_b_f_listen_for_new_imported_blocks(s_node, block, s'_node);
+                        lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
                         lemma_pred_4_1_b_helper(s, event, s');
                         assert pred_4_1_b(s');                    
                     case ResendAttestationShares => 
@@ -659,10 +659,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) => 
-                        lemma_pred_4_1_b_f_serve_attestation_duty(s_node, attestation_duty, s'_node);
+                        lemma_f_serve_attestation_duty_constants(s_node, attestation_duty, s'_node);
                         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_pred_4_1_b_f_att_consensus_decided(s_node, id, decided_attestation_data, s'_node);
+                        lemma_f_att_consensus_decided_constants(s_node, id, decided_attestation_data, s'_node);
                         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
                     case ReceviedAttesttionShare(attestation_share) => 
                         assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= s.att_network.messagesInTransit;
@@ -680,7 +680,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');
                     case ImportedNewBlock(block) => 
                         var s_node := add_block_to_bn(s_node, nodeEvent.block);
-                        lemma_pred_4_1_b_f_listen_for_new_imported_blocks(s_node, block, s'_node);
+                        lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
                         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
                     case ResendAttestationShares => 
                         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
