@@ -752,14 +752,14 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
                             {attestation_with_signature_share}; 
 
-                        // assert id in s.consensus_on_attestation_data.Keys ;
+                        assert id in s.consensus_on_attestation_data.Keys ;
 
-                        // ConsensusSpec.Next(
-                        //     s.consensus_on_attestation_data[cid],
+                        // assert ConsensusSpec.Next(
+                        //     s.consensus_on_attestation_data[id],
                         //     validityPredicates,
-                        //     s'.consensus_on_attestation_data[cid],
+                        //     s'.consensus_on_attestation_data[id],
                         //     output
-                        // )                             
+                        // );                             
 
 
                         // assert s.consensus_on_attestation_data[id].decided_value.isPresent();                                                       

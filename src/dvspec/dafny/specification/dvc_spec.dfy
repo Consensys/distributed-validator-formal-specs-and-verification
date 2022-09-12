@@ -529,15 +529,15 @@ module DVCNode_Spec {
         process: DVCNodeState,
         block: BeaconBlock
     ): map<Slot, AttestationData>
-    // requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    // requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
-    //             forall a1, a2 | 
-    //                     && a1 in block.body.attestations
-    //                     && isMyAttestation(a1, process, block, valIndex)
-    //                     && a2 in block.body.attestations
-    //                     && isMyAttestation(a2, process, block, valIndex)                        
-    //                 ::
-    //                     a1.data.slot == a2.data.slot ==> a1 == a2    
+    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+    requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                forall a1, a2 | 
+                        && a1 in block.body.attestations
+                        && isMyAttestation(a1, process, block, valIndex)
+                        && a2 in block.body.attestations
+                        && isMyAttestation(a2, process, block, valIndex)                        
+                    ::
+                        a1.data.slot == a2.data.slot ==> a1 == a2    
     {
         var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
         map a |
