@@ -376,7 +376,6 @@ module DV
             )
             && s' == s.(
                 att_network := s'.att_network,
-                consensus_on_attestation_data := s'.consensus_on_attestation_data,
                 all_attestations_created := s'.all_attestations_created
             )            
            )         

@@ -137,6 +137,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires s' == f_serve_attestation_duty(s, attestation_duty).state
     ensures s'.bn.attestations_submitted == s.bn.attestations_submitted      
     ensures s'.rcvd_attestation_shares == s.rcvd_attestation_shares
+    ensures f_serve_attestation_duty(s, attestation_duty).outputs == getEmptyOuputs()
     {
         var s_mod := s.(
                 attestation_duties_queue := s.attestation_duties_queue + [attestation_duty],
@@ -153,6 +154,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires s' == f_check_for_next_queued_duty(s).state
     ensures s'.bn.attestations_submitted == s.bn.attestations_submitted
     ensures s'.rcvd_attestation_shares == s.rcvd_attestation_shares
+    ensures f_check_for_next_queued_duty(s).outputs == getEmptyOuputs()
     decreases s.attestation_duties_queue
     {
         if  && s.attestation_duties_queue != [] 
@@ -691,5 +693,144 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
                 assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');
         }
-    }        
+    }     
+
+    // lemma lemma_getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>, message: M)
+    // requires forall m | m in mswr :: m.message == message;   
+    // {
+    //     var r := getMessagesFromMessagesWithRecipient(mswr);
+    //     assert forall e | e in r :: e == message;
+    //     if r != {message}
+    //     {
+    //         if r == {}
+    //         {
+                
+    //         }
+    //     }
+    // } 
+
+    lemma lemma_pred_4_1_c(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires pred_4_1_c(s)
+    requires inv52(s)
+    requires inv53(s)
+    requires invSimilarTo52And53(s)
+    requires |s.all_nodes| > 0
+    // requires construct_signed_attestation_signature_assumptions_helper(
+    //     s.construct_signed_attestation_signature,
+    //     s.dv_pubkey,
+    //     s.all_nodes
+    // )
+    // requires invSimilarTo52And53(s)  
+    // requires invNetwork(s)
+    // requires inv52(s)
+    // requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
+    // ensures pred_4_1_c(s')   
+    {
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) => 
+                        // // The following verifies in 3min. But if split before the forall, verification wil be faster.
+                        // var messagesToBeSent := f_serve_attestation_duty(s_node, attestation_duty).outputs.att_shares_sent;
+                        // assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                        //     getMessagesFromMessagesWithRecipient(messagesToBeSent);
+                        // lemma_f_serve_attestation_duty_constants(s_node, attestation_duty, s'_node);
+                        // assert messagesToBeSent == {};
+                        // assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;
+
+                        // forall cid | cid in s.consensus_on_attestation_data.Keys 
+                        // ensures 
+                        //     var s_consensus := s.consensus_on_attestation_data[cid];
+                        //     var s'_consensus := s'.consensus_on_attestation_data[cid];
+                        //     s_consensus.decided_value.isPresent() ==> 
+                        //         && s'_consensus.decided_value.isPresent()
+                        //         && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
+                        //     ;
+                        // {
+                        //     var s_consensus := s.consensus_on_attestation_data[cid];
+                        //     var s'_consensus := s'.consensus_on_attestation_data[cid];
+
+                        //     assert isConditionForSafetyTrue(s_consensus);
+                        //     assert s_consensus.decided_value.isPresent() ==> 
+                        //         && s'_consensus.decided_value.isPresent()
+                        //         && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
+                        //     ;
+                        // }
+                        // assert pred_4_1_c(s');                        
+                   
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        var local_current_attestation_duty := s_node.current_attestation_duty.safe_get();
+                        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+                        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+                        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);
+                        var attestation_with_signature_share := AttestationShare(
+                                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                                data := decided_attestation_data, 
+                                signature := attestation_signature_share
+                            ); 
+
+                        var messagesToBeSent := f_att_consensus_decided(s_node, id, decided_attestation_data).outputs.att_shares_sent;
+                        assert messagesToBeSent ==  multicast(attestation_with_signature_share, s_node.peers);     
+                        assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                            getMessagesFromMessagesWithRecipient(messagesToBeSent); 
+                        assert forall m | m in messagesToBeSent :: m.message == attestation_with_signature_share;     
+                        assert getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {attestation_with_signature_share};
+                        assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                            {attestation_with_signature_share}; 
+
+                        // assert id in s.consensus_on_attestation_data.Keys ;
+
+                        // ConsensusSpec.Next(
+                        //     s.consensus_on_attestation_data[cid],
+                        //     validityPredicates,
+                        //     s'.consensus_on_attestation_data[cid],
+                        //     output
+                        // )                             
+
+
+                        // assert s.consensus_on_attestation_data[id].decided_value.isPresent();                                                       
+                  
+                    case ReceviedAttesttionShare(attestation_share) => 
+
+                    case ImportedNewBlock(block) => 
+                
+                    case ResendAttestationShares => 
+                    
+                    case NoEvent => 
+                        // assert s'.att_network == s.att_network;
+                        // forall cid | cid in s.consensus_on_attestation_data.Keys 
+                        // ensures 
+                        //     var s_consensus := s.consensus_on_attestation_data[cid];
+                        //     var s'_consensus := s'.consensus_on_attestation_data[cid];
+                        //     s_consensus.decided_value.isPresent() ==> 
+                        //         && s'_consensus.decided_value.isPresent()
+                        //         && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
+                        //     ;
+                        // {
+                        //     var s_consensus := s.consensus_on_attestation_data[cid];
+                        //     var s'_consensus := s'.consensus_on_attestation_data[cid];
+
+                        //     assert isConditionForSafetyTrue(s_consensus);
+                        //     assert s_consensus.decided_value.isPresent() ==> 
+                        //         && s'_consensus.decided_value.isPresent()
+                        //         && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
+                        //     ;
+                        // }
+                        // assert pred_4_1_c(s');
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                // assert pred_4_1_c(s');
+                
+        }        
+    }   
 }

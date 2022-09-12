@@ -1509,8 +1509,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate invSimilarTo52And53(dvn: DVState)
     {
         forall n | n in dvn.honest_nodes_states.Keys :: 
-            && dvn.honest_nodes_states[n].construct_signed_attestation_signature == dvn.construct_signed_attestation_signature
-            && dvn.honest_nodes_states[n].dv_pubkey == dvn.dv_pubkey            
+            var nodes := dvn.honest_nodes_states[n];
+            && nodes.construct_signed_attestation_signature == dvn.construct_signed_attestation_signature
+            && nodes.dv_pubkey == dvn.dv_pubkey       
+            && nodes.peers == dvn.all_nodes
     }
 
     predicate invNetwork(
