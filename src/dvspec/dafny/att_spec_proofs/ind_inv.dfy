@@ -47,40 +47,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert inv41(s');
     }
 
-    lemma DV_Init_implies_inv41(dvn: DVState)
-    requires DV.Init(dvn, {}) 
-    ensures forall s: Slot :: inv41(dvn.consensus_on_attestation_data[s])
-    { } 
-
-    // TODO: Remove {:axiom} and prove this lemma later.
-    lemma {:axiom} DV_Next_implies_inv41(dvn: DVState, dvn': DVState)
-    requires forall s: Slot :: inv41(dvn.consensus_on_attestation_data[s])
-    requires exists event: DV.Event :: DV.NextEvent(dvn, event, dvn')
-    ensures forall s: Slot :: inv41(dvn'.consensus_on_attestation_data[s])
-   
-    lemma a_valid_decided_value_has_at_least_f_plus_1_honest_nodes(s: ConsensusInstance<AttestationData>)
-    requires is_a_valid_decided_value(s)
-    ensures exists h_nodes |
-                && h_nodes <= s.honest_nodes_validity_functions.Keys  
-                && |h_nodes| >= quorum(|s.all_nodes|) - (|s.all_nodes| - |s.honest_nodes_status.Keys|)
-                ::
-                honest_nodes_with_validityPredicate(s, h_nodes)
-    {}
-
-
-    lemma DV_Init_implies_inv42(dvn: DVState)
-    requires DV.Init(dvn, {}) 
-    ensures inv42(dvn)
-    { } 
-
-    // TODO: Remove {:axiom} and prove this lemma later.
-    lemma {:axiom} DV_Next_implies_inv42(dvn: DVState, dvn': DVState)
-    requires inv42(dvn)
-    requires exists event: DV.Event :: DV.NextEvent(dvn, event, dvn')
-    ensures inv42(dvn')
 
     
-    lemma DV_Init_implies_thresholds(dvn: DVState)
-    requires DV.Init(dvn, {})
-    ensures |dvn.honest_nodes_states.Keys| >= |dvn.all_nodes| - f(|dvn.all_nodes|) 
 }

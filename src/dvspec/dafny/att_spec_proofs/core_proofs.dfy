@@ -31,7 +31,7 @@ module Core_Proofs
                         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dvn.all_nodes| > 0
-    requires inv52(dvn)    
+    requires inv1(dvn)    
     requires pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
     requires && consa.decided_value.isPresent()
              && consa'.decided_value.isPresent()
@@ -86,11 +86,11 @@ module Core_Proofs
 
     lemma lemma_4_1_a_i(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires inv52(dvn)
+    requires inv1(dvn)   
+    requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
-    requires pred_4_1_f_a(dvn)
-    requires inv42(dvn)   
+    requires pred_4_1_f_a(dvn)    
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -162,11 +162,11 @@ module Core_Proofs
 
     lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires inv52(dvn)
+    requires inv1(dvn)
+    requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
-    requires pred_4_1_f_a(dvn)
-    requires inv42(dvn)
+    requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
@@ -200,11 +200,11 @@ module Core_Proofs
 
     lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires inv52(dvn)
+    requires inv1(dvn)
+    requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
-    requires pred_4_1_f_a(dvn)
-    requires inv42(dvn)
+    requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
@@ -247,11 +247,11 @@ module Core_Proofs
 
     lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
     requires |dvn.all_nodes| > 0
-    requires inv52(dvn)
+    requires inv1(dvn)
+    requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
-    requires pred_4_1_f_a(dvn)
-    requires inv42(dvn)
+    requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_ii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 

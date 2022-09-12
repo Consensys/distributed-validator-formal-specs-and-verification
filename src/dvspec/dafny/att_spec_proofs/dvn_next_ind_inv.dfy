@@ -82,48 +82,29 @@ module DVN_Next_Ind_Inv
         }        
     }
 
-/*
-    lemma dvn_next_inv5(dvn: DVState, dvn': DVState)       
+    lemma dvn_next_inv1(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
-    requires inv5(dvn)
-    ensures inv5(dvn')
-    {
-        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
-        dvn_next_event_inv42(dvn, e, dvn');
-    }
-    */
+    requires inv1(dvn)
+    ensures inv1(dvn')
+    { }
 
-    lemma dvn_next_event_inv42(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')        
-    requires inv42(dvn)
-    ensures inv42(dvn')
-    {}
-
-    lemma dvn_next_inv42(dvn: DVState, dvn': DVState)       
+    lemma dvn_next_inv2(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
-    requires inv42(dvn)
-    ensures inv42(dvn')
-    {
-        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
-        dvn_next_event_inv42(dvn, e, dvn');
-    }
+    requires inv2(dvn)
+    ensures inv2(dvn')
+    { }
 
-    lemma dvn_next_event_inv52(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')        
-    requires inv52(dvn)
-    ensures inv52(dvn')
-    {}
-    
-    lemma dvn_next_inv52(dvn: DVState, dvn': DVState)       
+    lemma dvn_next_inv3(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
-    requires inv52(dvn)
-    ensures inv52(dvn')
-    {
-        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
-        dvn_next_event_inv52(dvn, e, dvn');
-    }
+    requires inv3(dvn)
+    ensures inv3(dvn')
+    { }
 
-
+    lemma dvn_next_inv4(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    requires inv4(dvn)
+    ensures inv4(dvn')
+    { }
 
     
     

@@ -51,8 +51,48 @@ module DVN_Ind_Inv
             && inv5_body.requires(hn_state) ==> inv5_body(hn_state)
     {}  
 
+    lemma f_start_next_duty_inv5_body(hn_state: DVCNodeState, hn_state': DVCNodeState, duty: AttestationDuty)
+    requires && f_start_next_duty.requires(hn_state, duty)
+             && f_start_next_duty(hn_state, duty).state == hn_state'         
+    requires inv5_body(hn_state) 
+    ensures inv5_body(hn_state')
+    {}
+
     lemma {:axiom} assump_inv5_body(hn_state: DVCNodeState)
     ensures inv5_body(hn_state)
+
+    // TODO
+    /*
+    lemma f_check_for_next_queued_duty_inv5_body(hn_state: DVCNodeState, hn_state': DVCNodeState)
+    requires f_check_for_next_queued_duty.requires(hn_state)
+    requires f_check_for_next_queued_duty(hn_state).state == hn_state'
+    requires inv5_body(hn_state)
+    // ensures inv5_body(hn_state')
+    { 
+        if  && hn_state.attestation_duties_queue != [] 
+            && (
+                || hn_state.attestation_duties_queue[0].slot in hn_state.future_att_consensus_instances_already_decided
+                || !hn_state.current_attestation_duty.isPresent()
+               )  
+        {
+            if hn_state.attestation_duties_queue[0].slot in hn_state.future_att_consensus_instances_already_decided.Keys 
+            {
+                assump_inv5_body(hn_state');    
+            }
+            else
+            {                
+                var duty: AttestationDuty :| && f_start_next_duty.requires(hn_state, duty)
+                                             && f_start_next_duty(hn_state, duty).state == hn_state';
+                f_start_next_duty_inv5_body(hn_state, hn_state', duty);
+            }
+        }
+        else
+        {
+            assert f_check_for_next_queued_duty(hn_state).state == hn_state;
+            assert hn_state == hn_state';
+        }        
+    }        
+    */
 
     lemma dvc_next_inv5(        
         hn_state: DVCNodeState,
@@ -82,7 +122,7 @@ module DVN_Ind_Inv
                     && f_listen_for_new_imported_blocks.requires(hn_state, block)
                     && f_listen_for_new_imported_blocks(hn_state, block).state == hn_state';
                 assert f_listen_for_new_imported_blocks(hn_state, block).state == hn_state';
-                // assump_inv5_body(hn_state');             
+                assump_inv5_body(hn_state');             
             }
             else
             {}            
@@ -132,10 +172,10 @@ module DVN_Ind_Inv
     ensures ( forall s: Slot :: inv51_body.requires(hn_state', s) ==> inv51_body(hn_state', s) )
     {}
 
-    lemma dvn_next_inv52(dvn: DVState, dvn': DVState)       
+    lemma dvn_next_inv2(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
-    requires inv52(dvn)
-    ensures inv52(dvn')
+    requires inv2(dvn)
+    ensures inv2(dvn')
     {}
  */
     

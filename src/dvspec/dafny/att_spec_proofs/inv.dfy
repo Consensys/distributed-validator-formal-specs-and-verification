@@ -1265,15 +1265,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
     
     
-    predicate inv42(dvn: DVState)
-    {
-        forall ci | ci in dvn.consensus_on_attestation_data.Values
-            :: && ci.all_nodes == dvn.all_nodes
-               && ci.honest_nodes_status.Keys == dvn.honest_nodes_states.Keys  
-               // && ci.honest_nodes_status.Keys <= ci.all_nodes
-               && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
-               // && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
-    }
+
 
     
 
@@ -1378,7 +1370,19 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                )
     }
 
-    predicate inv52(dvn: DVState)
+    
+
+
+
+    predicate inv53(dvn: DVState)
+    {
+        forall s: Slot ::
+            && var ci := dvn.consensus_on_attestation_data[s];            
+            && dvn.all_nodes == ci.all_nodes
+            && dvn.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
+    }
+    
+    predicate inv1(dvn: DVState)
     {        
         && var all_nodes := dvn.all_nodes;
         && var honest_nodes := dvn.honest_nodes_states.Keys;
@@ -1390,37 +1394,34 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && honest_nodes * dishonest_nodes == {}
     }
 
-    lemma test_inv52(dvn: DVState)
-    requires inv52(dvn)
-    ensures && var all_nodes := dvn.all_nodes;
-            && var honest_nodes := dvn.honest_nodes_states.Keys;
-            && var dishonest_nodes := dvn.adversary.nodes;
-            && 2 * |dishonest_nodes| < |honest_nodes|
-    {     
-      var all_nodes := dvn.all_nodes;
-      var honest_nodes := dvn.honest_nodes_states.Keys;
-      var dishonest_nodes := dvn.adversary.nodes;   
-      lemmaQuorumIsGreaterThan2F(all_nodes);
-
-      calc {
-            |honest_nodes|;
-            >= 
-            quorum(|all_nodes|);
-            >
-            { lemmaQuorumIsGreaterThan2F(all_nodes); }
-            2 * f(|all_nodes|);
-            >=
-            2 * |dishonest_nodes|;
-        }
-    }
-
-    predicate inv53(dvn: DVState)
+    predicate inv2(dvn: DVState)
     {
-        forall s: Slot ::
-            && var ci := dvn.consensus_on_attestation_data[s];            
-            && dvn.all_nodes == ci.all_nodes
-            && dvn.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
+        forall ci | ci in dvn.consensus_on_attestation_data.Values
+            :: && ci.all_nodes == dvn.all_nodes
+               && ci.honest_nodes_status.Keys == dvn.honest_nodes_states.Keys  
+               && ci.honest_nodes_status.Keys <= ci.all_nodes
+               && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
+               && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
+    }
+
+    predicate inv3(dvn: DVState)
+    {
+        forall k1: nat, k2: nat :: 
+            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
+                    == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
+            ==> 
+            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty
+                    == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty
     }
     
-    
+    predicate inv4(dvn: DVState)
+    {
+        forall k1: nat, k2: nat :: 
+            && k1 < k2
+            && dvn.sequence_attestation_duties_to_be_served[k1].node 
+                    == dvn.sequence_attestation_duties_to_be_served[k2].node
+            ==> 
+            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
+                    < dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
+    }
 }

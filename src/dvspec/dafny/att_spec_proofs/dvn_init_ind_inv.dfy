@@ -30,20 +30,13 @@ module DVN_Init_Ind_Inv
     ensures inv5(dvn)
     {}
 
-    lemma dvn_init_inv42(dvn: DVState)       
-    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
-             && DV.Init(dvn, initial_attestation_slashing_db)    
-    ensures inv42(dvn)
+    lemma dvn_init_inv1(dvn: DVState)       
+    requires DV.Init(dvn, {})    
+    ensures inv1(dvn)
     {}  
 
-    lemma dvn_init_inv52(dvn: DVState)       
-    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
-             && DV.Init(dvn, initial_attestation_slashing_db)        
-    ensures inv52(dvn)
-    {}    
-
-    lemma prop52_a(dvn: DVState, hn: BLSPubkey)       
-    requires inv52(dvn)    
+    lemma prop1_a(dvn: DVState, hn: BLSPubkey)       
+    requires inv1(dvn)    
     requires hn in dvn.honest_nodes_states.Keys
     ensures hn in dvn.all_nodes
     ensures hn !in dvn.adversary.nodes
@@ -59,4 +52,18 @@ module DVN_Init_Ind_Inv
         }        
     }
 
+    lemma dvn_init_inv2(dvn: DVState)       
+    requires DV.Init(dvn, {})    
+    ensures inv2(dvn)
+    {}    
+
+    lemma dvn_init_inv3(dvn: DVState)       
+    requires DV.Init(dvn, {})    
+    ensures inv3(dvn)
+    {}    
+
+    lemma dvn_init_inv4(dvn: DVState)       
+    requires DV.Init(dvn, {})    
+    ensures inv4(dvn)
+    {}    
 }
