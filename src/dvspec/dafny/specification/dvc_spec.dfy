@@ -525,6 +525,35 @@ module DVCNode_Spec {
             f_listen_for_new_imported_blocks_compute_att_consensus_instances_already_decided( process, block, valIndex, new_att_consensus_instances_already_decided, i + 1)
     }
 
+    function f_listen_for_new_imported_blocks_helper_1(
+        process: DVCNodeState,
+        block: BeaconBlock
+    ): map<Slot, AttestationData>
+    {
+        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+        map a |
+                && a in block.body.attestations
+                && isMyAttestation(a, process, block, valIndex)
+            ::
+                a.data.slot := a.data        
+    }
+
+    function f_listen_for_new_imported_blocks_helper_2(
+        process: DVCNodeState,
+        att_consensus_instances_already_decided: map<Slot, AttestationData>
+    ): map<int, AttestationData>
+    {
+        if process.latest_attestation_duty.isPresent() then
+            var old_instances := 
+                    set i | 
+                        && i in att_consensus_instances_already_decided.Keys
+                        && i <= process.latest_attestation_duty.safe_get().slot
+                    ;
+            att_consensus_instances_already_decided - old_instances
+        else
+            att_consensus_instances_already_decided     
+    }
+
     function f_listen_for_new_imported_blocks(
         process: DVCNodeState,
         block: BeaconBlock
@@ -540,27 +569,12 @@ module DVCNode_Spec {
                         a1.data.slot == a2.data.slot ==> a1 == a2
     requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
     {
-        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
-         
-        var s := map a |
-                && a in block.body.attestations
-                && isMyAttestation(a, process, block, valIndex)
-            ::
-                a.data.slot := a.data;
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
-        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
         var future_att_consensus_instances_already_decided := 
-                if process.latest_attestation_duty.isPresent() then
-                    var old_instances := 
-                            set i | 
-                                && i in att_consensus_instances_already_decided.Keys
-                                && i <= process.latest_attestation_duty.safe_get().slot
-                            ;
-                    att_consensus_instances_already_decided - old_instances
-                else
-                    att_consensus_instances_already_decided
-                        ;
+            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
         var process :=
                 process.(

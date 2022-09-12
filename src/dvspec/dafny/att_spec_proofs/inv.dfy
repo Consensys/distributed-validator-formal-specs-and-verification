@@ -926,28 +926,112 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 */
 
+    predicate pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
+        dvn: DVState,
+        dvc: DVCNodeState
+    )
+    {
+        var rcvd_attestation_shares := dvc.rcvd_attestation_shares;
+
+        forall i, j |
+            && i in rcvd_attestation_shares.Keys 
+            && j in rcvd_attestation_shares[i]
+            ::
+            rcvd_attestation_shares[i][j] <= dvn.att_network.allMessagesSent
+    }
+
+    predicate pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node(
+        dvn: DVState,
+        n: BLSPubkey
+    )
+    requires n in dvn.honest_nodes_states.Keys
+    {
+        pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
+            dvn,
+            dvn.honest_nodes_states[n]
+        )
+    }
+
+    predicate pred_rcvd_attestation_shares_is_in_all_messages_sent(
+        dvn: DVState    
+    )
+    {
+        forall n |
+            n in dvn.honest_nodes_states
+            ::
+            pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node(dvn, n)
+    }  
+
+    // predicate pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(
+    //     dvn: DVState,
+    //     att_share: AttestationShare,
+    //     signing_root: Root,
+    //     signature: BLSSignature
+    // )      
+    // {
+    //     && att_share in dvn.att_network.allMessagesSent
+    //     && att_share.signature == signature
+    //     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+    //     && signing_root == compute_attestation_signing_root(att_share.data, fork_version)
+    // }
+
+    // predicate pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
+    //     dvn: DVState,
+    //     att_share: AttestationShare,
+    //     hn: BLSPubkey,
+    //     signing_root: Root
+    // )
+    // {
+    //     && att_share in dvn.att_network.allMessagesSent
+    //     && hn in dvn.honest_nodes_states.Keys
+    //     && verify_bls_siganture(signing_root, att_share.signature, hn)
+    // }
+
+    // predicate pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data(
+    //     dvn: DVState
+    // )
+    // {
+    //     forall att_share, signing_root, hn |
+    //             pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
+    //                 dvn,
+    //                 att_share,
+    //                 hn,
+    //                 signing_root
+    //             )
+    //         ::
+    //         exists att_share' :: pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(dvn, att_share', signing_root, att_share.signature)
+
+    // }    
+
+    predicate pred_4_1_b_exists(
+        dvn: DVState,
+        hn': BLSPubkey, 
+        att_share: AttestationShare,
+        fork_version: Version,
+        a: Attestation
+    )
+    {
+        && hn' in dvn.honest_nodes_states.Keys 
+        && att_share in dvn.att_network.allMessagesSent
+        && att_share.data == a.data
+        && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+        && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
+    }
+
     predicate pred_4_1_b(dvn: DVState)
     {
         forall hn, a |
             && hn in dvn.honest_nodes_states.Keys 
             && a in dvn.honest_nodes_states[hn].bn.attestations_submitted
             ::
-            exists hn', att_share: AttestationShare ::
-                && hn' in dvn.honest_nodes_states.Keys 
-                && att_share in dvn.att_network.allMessagesSent
-                && att_share.data == a.data
-                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
-
+            exists hn', att_share: AttestationShare, fork_version :: pred_4_1_b_exists(dvn, hn', att_share, fork_version, a)
     }
 
     predicate pred_4_1_c(dvn: DVState)
     {
-        forall hn, att_share |
+        forall hn, att_share, fork_version |
                 && hn in dvn.honest_nodes_states.Keys 
                 && att_share in dvn.att_network.allMessagesSent
-                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
                 && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
             ::
@@ -1412,6 +1496,25 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ==> 
             dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty
                     == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty
+    }
+
+    predicate invSimilarTo52And53(dvn: DVState)
+    {
+        forall n | n in dvn.honest_nodes_states.Keys :: 
+            var nodes := dvn.honest_nodes_states[n];
+            && nodes.construct_signed_attestation_signature == dvn.construct_signed_attestation_signature
+            && nodes.dv_pubkey == dvn.dv_pubkey       
+            && nodes.peers == dvn.all_nodes
+    }
+
+    predicate invNetwork(
+        dvn: DVState
+    )
+    {
+         forall m | 
+                && m in dvn.att_network.messagesInTransit
+            ::
+                m.message in dvn.att_network.allMessagesSent       
     }
     
     predicate inv4(dvn: DVState)

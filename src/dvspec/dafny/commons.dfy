@@ -217,11 +217,27 @@ module CommonFunctions{
         forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
     }
 
-    predicate {:extern} verify_bls_siganture<T>(
-        data: T,
+    predicate {:extern} verify_bls_siganture(
+        data: Root,
         signature: BLSSignature,
         pubkey: BLSPubkey
     )   
+
+    lemma {:axiom} lemma_verify_bls_siganture()
+    ensures 
+        forall d: Root, s, pk1, pk2 |
+            && verify_bls_siganture(d, s, pk1)
+            && verify_bls_siganture(d, s, pk2)
+            ::
+            pk1 == pk2
+
+    ensures 
+        forall d: Root, s1, s2, pk |
+            && verify_bls_siganture(d, s1, pk)
+            && verify_bls_siganture(d, s2, pk)
+            ::
+            s1 == s2            
+        
 
     function method {:extern} hash_tree_root<T>(data: T): Root 
 
