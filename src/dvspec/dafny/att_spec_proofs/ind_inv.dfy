@@ -495,7 +495,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s.dv_pubkey,
         s.all_nodes
     )
-    requires invSimilarTo52And53(s)  
+    requires inv3(s)  
     requires invNetwork(s)
     requires inv1(s)
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
@@ -682,15 +682,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEvent(s, event, s')
     requires pred_4_1_c(s)
     requires inv1(s)
-    requires inv53(s)
-    requires invSimilarTo52And53(s)
+    // requires inv53(s)
+    requires inv3(s)
     requires |s.all_nodes| > 0
     // requires construct_signed_attestation_signature_assumptions_helper(
     //     s.construct_signed_attestation_signature,
     //     s.dv_pubkey,
     //     s.all_nodes
     // )
-    // requires invSimilarTo52And53(s)  
+    // requires inv3(s)  
     // requires invNetwork(s)
     // requires inv52(s)
     // requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    

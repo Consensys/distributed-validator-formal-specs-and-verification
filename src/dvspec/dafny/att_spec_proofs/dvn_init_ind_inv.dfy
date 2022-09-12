@@ -62,8 +62,5 @@ module DVN_Init_Ind_Inv
     ensures inv3(dvn)
     {}    
 
-    lemma dvn_init_inv4(dvn: DVState)       
-    requires DV.Init(dvn, {})    
-    ensures inv4(dvn)
-    {}    
+
 }
