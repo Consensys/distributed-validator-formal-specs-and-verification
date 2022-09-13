@@ -7,7 +7,7 @@ include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
 
 
-module Fnc_Ind_Inv
+module Fnc_Inv
 {
     import opened Types 
     import opened CommonFunctions
