@@ -252,6 +252,12 @@ module DV
                 == dvn'.construct_signed_attestation_signature
         && dvn.sequence_attestation_duties_to_be_served
                 == dvn'.sequence_attestation_duties_to_be_served
+        && ( forall n | n in dvn'.honest_nodes_states.Keys :: 
+                var nodes' := dvn'.honest_nodes_states[n];
+                && nodes'.construct_signed_attestation_signature == dvn'.construct_signed_attestation_signature
+                && nodes'.dv_pubkey == dvn.dv_pubkey       
+                && nodes'.peers == dvn.all_nodes
+           )
     }
 
     predicate NextEvent(

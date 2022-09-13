@@ -20,11 +20,7 @@ module DVN_Init_Inv
     import opened Att_Assumptions
 
     
-    lemma dvn_init_inv1(dvn: DVState)       
-    requires DV.Init(dvn, {})    
-    ensures inv1(dvn)
-    {}  
-
+    
     lemma prop1_a(dvn: DVState, hn: BLSPubkey)       
     requires inv1(dvn)    
     requires hn in dvn.honest_nodes_states.Keys
@@ -42,19 +38,16 @@ module DVN_Init_Inv
         }        
     }
 
-    lemma dvn_init_inv2(dvn: DVState)       
+    lemma dvn_invs_1_to_6_init(dvn: DVState)       
     requires DV.Init(dvn, {})    
+    ensures inv1(dvn)
     ensures inv2(dvn)
-    {}    
-
-    lemma dvn_init_inv3(dvn: DVState)       
-    requires DV.Init(dvn, {})    
     ensures inv3(dvn)
-    {}    
-
-    lemma dvn_init_inv4(dvn: DVState)
-    requires DV.Init(dvn, {})    
     ensures inv4(dvn)
-    {}
+    ensures inv5(dvn)
+    ensures inv6(dvn)
+    {}  
 
+
+    
 }
