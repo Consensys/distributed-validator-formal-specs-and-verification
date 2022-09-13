@@ -38,6 +38,20 @@ module DVN_Init_Inv
         }        
     }
 
+    lemma lemma_invs_1_to_10_dvn_init(dvn: DVState)       
+    requires DV.Init(dvn, {})    
+    ensures inv1(dvn)
+    ensures inv2(dvn)
+    ensures inv3(dvn)
+    ensures inv4(dvn)
+    ensures inv5(dvn)
+    ensures inv6(dvn)
+    ensures inv7(dvn)
+    ensures inv8(dvn)
+    ensures inv9(dvn)
+    ensures inv10(dvn)
+    ensures inv11(dvn)
+    {}  
     
 
 

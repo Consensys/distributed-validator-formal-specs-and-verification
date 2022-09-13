@@ -32,6 +32,10 @@ module Proofs_DVN_Ind_Inv
         &&  inv5(dvn)
         &&  inv6(dvn)
         &&  inv7(dvn)    
+        &&  inv8(dvn)   
+        &&  inv9(dvn)  
+        &&  inv10(dvn) 
+        &&  inv11(dvn)  
     }
 
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
@@ -52,5 +56,9 @@ module Proofs_DVN_Ind_Inv
         lemma_inv5_dvn_next(dvn, e, dvn');
         lemma_inv6_dvn_next(dvn, e, dvn');
         lemma_inv7_dvn_next(dvn, e, dvn');
+        lemma_inv8_dvn_next(dvn, e, dvn');
+        lemma_inv9_dvn_next(dvn, e, dvn');
+        lemma_inv10_dvn_next(dvn, e, dvn');
+        lemma_inv11_dvn_next(dvn, e, dvn');
     }
 }
