@@ -1492,6 +1492,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var nodes := dvn.honest_nodes_states[n];
             && forall duty: AttestationDuty | duty in nodes.all_rcvd_duties ::
                 exists k: nat :: 
+                    && k < dvn.index_next_attestation_duty_to_be_served
                     && dvn.sequence_attestation_duties_to_be_served[k].node == n
                     && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty == duty
     }

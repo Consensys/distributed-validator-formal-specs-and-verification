@@ -7,6 +7,7 @@ include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/dvc_ind_inv.dfy"
 include "../att_spec_proofs/fnc_ind_inv.dfy"
+include "../att_spec_proofs/helper_sets_lemmas.dfy"
 
 module DVN_Next_Ind_Inv
 {
@@ -20,6 +21,7 @@ module DVN_Next_Ind_Inv
     import opened Att_Assumptions
     import opened DVN_Ind_Inv
     import opened Fnc_Ind_Inv
+    import opened Helper_Sets_Lemmas
 
     lemma {:axiom} dvn_next_event_inv5_axiom(dvn: DVState, e: DV.Event, dvn': DVState)       
     requires DV.NextEvent(dvn, e, dvn')        
@@ -119,73 +121,79 @@ module DVN_Next_Ind_Inv
                 var dvc' := dvn'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(att_duty) =>            
-                        forall hn | hn in dvn.honest_nodes_states.Keys                        
+                    case ServeAttstationDuty(att_duty) =>     
+                        assert dvn'.index_next_attestation_duty_to_be_served 
+                                    == dvn.index_next_attestation_duty_to_be_served + 1;
+                        forall hn | hn in dvn.honest_nodes_states.Keys                          
                         ensures forall duty: AttestationDuty 
                                     | 
                                     duty in dvn'.honest_nodes_states[hn].all_rcvd_duties
                                     ::
                                     exists k: nat :: 
+                                        && k < dvn'.index_next_attestation_duty_to_be_served
                                         && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
-                                        && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty
-                                        
+                                        && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty                                     
                         {
                             if hn != node 
                             {
+                                
                                 assert dvn.sequence_attestation_duties_to_be_served == dvn'.sequence_attestation_duties_to_be_served;                          
                                 assert dvn'.honest_nodes_states[hn].all_rcvd_duties == dvn.honest_nodes_states[hn].all_rcvd_duties;                                                                  
-                                assert forall duty: AttestationDuty 
-                                                | 
-                                                duty in dvn'.honest_nodes_states[hn].all_rcvd_duties
-                                                ::
-                                                exists k: nat :: 
-                                                    && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
-                                                    && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty                              
-                                ;                                                                                             
+                                
+                                forall duty: AttestationDuty | duty in dvn.honest_nodes_states[hn].all_rcvd_duties
+                                ensures exists k: nat ::
+                                                && k < dvn'.index_next_attestation_duty_to_be_served
+                                                && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
+                                                && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty
+                                {
+                                    var k: nat :| && k < dvn.index_next_attestation_duty_to_be_served
+                                                  && dvn.sequence_attestation_duties_to_be_served[k].node == hn
+                                                  && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty == duty;
+                                }
                             }
                             else 
-                            {   
+                            {                                   
                                 var curr_index := dvn.index_next_attestation_duty_to_be_served;
                                 var new_duty := dvn.sequence_attestation_duties_to_be_served[curr_index].attestation_duty;
-                                assert node == dvn.sequence_attestation_duties_to_be_served[curr_index].node;                        
                                 lemma_f_serve_attestation_duty_inv3(dvc, new_duty, dvc');    
                                 assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {new_duty};                                                            
-                                                                                          
-                                forall duty: AttestationDuty | duty in dvn'.honest_nodes_states[hn].all_rcvd_duties
+                                assert new_duty in dvc'.all_rcvd_duties;                                                          
+
+                                forall duty: AttestationDuty | duty in dvn'.honest_nodes_states[hn].all_rcvd_duties                                
                                 ensures exists k: nat :: 
-                                                && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
-                                                && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty                              
-                                {
+                                            && k < dvn'.index_next_attestation_duty_to_be_served
+                                            && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
+                                            && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty                                                                              
+                                {   
                                     if duty == new_duty
-                                    {                                                                              
-                                        assert && dvn'.sequence_attestation_duties_to_be_served[curr_index].node == hn
-                                               && dvn'.sequence_attestation_duties_to_be_served[curr_index].attestation_duty == duty;
-                                        
-                                        assert exists k: nat :: 
-                                                && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
-                                                && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty;
+                                    {                                                                                                                                                      
+                                        assert && curr_index < dvn'.index_next_attestation_duty_to_be_served
+                                               && dvn'.sequence_attestation_duties_to_be_served[curr_index].node == hn
+                                               && dvn'.sequence_attestation_duties_to_be_served[curr_index].attestation_duty == duty;                                                                                
                                     }
                                     else
-                                    {                                        
-                                        assert exists k: nat :: 
-                                                && dvn'.sequence_attestation_duties_to_be_served[k].node == hn
-                                                && dvn'.sequence_attestation_duties_to_be_served[k].attestation_duty == duty;
+                                    {   
+                                        assert duty in dvc.all_rcvd_duties;                                        
+                                        var k: nat :| && k < dvn.index_next_attestation_duty_to_be_served
+                                                      && dvn.sequence_attestation_duties_to_be_served[k].node == hn
+                                                      && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty == duty;                                        
                                     }
-                                }                            
+                                }      
+                                                   
                             }
-                        }
+                        }                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_f_att_consensus_decided_inv3(dvc, id, decided_attestation_data, dvc');
+                        lemma_f_att_consensus_decided_inv3(dvc, id, decided_attestation_data, dvc');                        
                         
-                    case ReceviedAttesttionShare(attestation_share) => 
-                        lemma_f_listen_for_attestation_shares_inv3(dvc, attestation_share, dvc');
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_f_listen_for_attestation_shares_inv3(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_f_listen_for_new_imported_blocks_inv3(dvc, block, dvc');
-                        
-                    case ResendAttestationShares => 
+                        lemma_f_listen_for_new_imported_blocks_inv3(dvc, block, dvc');                        
+                                                
+                    case ResendAttestationShares =>                         
                         
                     case NoEvent => 
                         
