@@ -125,14 +125,14 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     // If the current duty is not none, then the lastest served duty is the current duty.
-    predicate inv5(dvn: DVState)        
+    predicate old_inv5(dvn: DVState)        
     {
         forall pubkey: BLSPubkey | is_honest_node(dvn, pubkey) ::
             && var s := dvn.honest_nodes_states[pubkey];
-            && inv5_body(s)            
+            && old_inv5_body(s)            
     }
 
-    predicate inv5_body(hn_state: DVCNodeState)        
+    predicate old_inv5_body(hn_state: DVCNodeState)        
     {
         hn_state.current_attestation_duty.isPresent()
             ==> ( && hn_state.latest_attestation_duty.isPresent()
@@ -1476,9 +1476,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                )
     }
 
-    
-
-
 
     predicate inv53(dvn: DVState)
     {
@@ -1488,6 +1485,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && dvn.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
     }
     
+
     predicate inv1(dvn: DVState)
     {        
         && var all_nodes := dvn.all_nodes;
@@ -1512,22 +1510,67 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv3(dvn: DVState)
     {
-        forall k1: nat, k2: nat :: 
-            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
-                    == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
-            ==> 
-            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty
-                    == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty
-    }
-
-    predicate invSimilarTo52And53(dvn: DVState)
-    {
         forall n | n in dvn.honest_nodes_states.Keys :: 
             var nodes := dvn.honest_nodes_states[n];
             && nodes.construct_signed_attestation_signature == dvn.construct_signed_attestation_signature
             && nodes.dv_pubkey == dvn.dv_pubkey       
             && nodes.peers == dvn.all_nodes
     }
+
+    predicate inv4(dvn: DVState)
+    {
+        forall n: BLSPubkey | n in dvn.honest_nodes_states.Keys ::            
+            && var nodes := dvn.honest_nodes_states[n];
+            && forall duty: AttestationDuty | duty in nodes.all_rcvd_duties ::
+                exists k: nat :: 
+                    && k < dvn.index_next_attestation_duty_to_be_served
+                    && dvn.sequence_attestation_duties_to_be_served[k].node == n
+                    && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty == duty
+    }
+
+    predicate inv5_body(dvc: DVCNodeState)
+    {
+        forall k: nat ::
+            0 <= k < |dvc.attestation_duties_queue|
+                ==> ( && var queued_duty: AttestationDuty := dvc.attestation_duties_queue[k];
+                      && queued_duty in dvc.all_rcvd_duties )
+    }
+
+    predicate inv5(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv5_body(dvc)
+    }
+
+    predicate inv6_body(dvc: DVCNodeState)
+    {
+        dvc.current_attestation_duty.isPresent()
+            ==> dvc.current_attestation_duty.safe_get()
+                    in dvc.all_rcvd_duties
+    }
+
+    predicate inv6(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv6_body(dvc)
+    }
+
+    predicate inv7_body(dvc: DVCNodeState)
+    {
+        dvc.latest_attestation_duty.isPresent()
+            ==> dvc.latest_attestation_duty.safe_get()
+                    in dvc.all_rcvd_duties
+    }
+
+    predicate inv7(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv7_body(dvc)
+    }
+
 
     predicate invNetwork(
         dvn: DVState
@@ -1538,7 +1581,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::
                 m.message in dvn.att_network.allMessagesSent       
     }
-    
+
+/*
+    predicate inv3(dvn: DVState)
+    {
+        forall k1: nat, k2: nat :: 
+            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
+                    == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
+            ==> 
+            dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty
+                    == dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty
+    }
+
     predicate inv4(dvn: DVState)
     {
         forall k1: nat, k2: nat :: 
@@ -1549,6 +1603,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
                     < dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
     }
+    */
 
     predicate inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(
         dvn: DVState,

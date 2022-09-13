@@ -97,6 +97,7 @@ module DV
         att_shares: set<AttestationShare>,
         data: AttestationData
     )       
+    requires construct_signed_attestation_signature(att_shares).isPresent()
     {
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
         && var signing_root := compute_attestation_signing_root(data, fork_version);
@@ -251,6 +252,12 @@ module DV
                 == dvn'.construct_signed_attestation_signature
         && dvn.sequence_attestation_duties_to_be_served
                 == dvn'.sequence_attestation_duties_to_be_served
+        && ( forall n | n in dvn'.honest_nodes_states.Keys :: 
+                var nodes' := dvn'.honest_nodes_states[n];
+                && nodes'.construct_signed_attestation_signature == dvn'.construct_signed_attestation_signature
+                && nodes'.dv_pubkey == dvn.dv_pubkey       
+                && nodes'.peers == dvn.all_nodes
+           )
     }
 
     predicate NextEvent(
@@ -295,6 +302,7 @@ module DV
         nodeOutputs: DVCNode_Spec.Outputs,
         s': DVState        
     ) 
+    requires unchanged_fixed_paras(s, s')
     {
         && node in s.honest_nodes_states.Keys        
         && var s_w_honest_node_states_updated :=
@@ -315,6 +323,7 @@ module DV
         nodeOutputs: DVCNode_Spec.Outputs,
         s': DVState
     )
+    requires unchanged_fixed_paras(s, s')
     {
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];

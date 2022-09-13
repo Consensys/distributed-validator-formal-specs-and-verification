@@ -461,5 +461,9 @@ function intsetmax(s:set<int>):int
       }
     }
 
-    
+    lemma lemmaInUnion<T(==)>(S: set<T>, S1: set<T>, S2: set<T>, m: T)
+    requires S == S1 + S2
+    requires m in S
+    ensures m in S1 || m in S2
+    {}
 }

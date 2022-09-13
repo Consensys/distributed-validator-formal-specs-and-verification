@@ -5,8 +5,10 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
+include "../att_spec_proofs/fnc_inv.dfy"
+include "../att_spec_proofs/helper_sets_lemmas.dfy"
 
-module DVN_Init_Ind_Inv
+module DVN_Init_Inv
 {
     import opened Types 
     import opened CommonFunctions
@@ -18,23 +20,7 @@ module DVN_Init_Ind_Inv
     import opened Att_Assumptions
 
     
-    lemma dvn_init_inv5(dvn: DVState)
-    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
-             && DV.Init(dvn, initial_attestation_slashing_db)    
-    ensures inv5(dvn)
-    {}
-
-    lemma dvn_init_inv10(dvn: DVState)
-    requires && var initial_attestation_slashing_db: set<SlashingDBAttestation> := {}; 
-             && DV.Init(dvn, initial_attestation_slashing_db)    
-    ensures inv5(dvn)
-    {}
-
-    lemma dvn_init_inv1(dvn: DVState)       
-    requires DV.Init(dvn, {})    
-    ensures inv1(dvn)
-    {}  
-
+    
     lemma prop1_a(dvn: DVState, hn: BLSPubkey)       
     requires inv1(dvn)    
     requires hn in dvn.honest_nodes_states.Keys
@@ -52,18 +38,16 @@ module DVN_Init_Ind_Inv
         }        
     }
 
-    lemma dvn_init_inv2(dvn: DVState)       
+    lemma dvn_invs_1_to_6_init(dvn: DVState)       
     requires DV.Init(dvn, {})    
+    ensures inv1(dvn)
     ensures inv2(dvn)
-    {}    
-
-    lemma dvn_init_inv3(dvn: DVState)       
-    requires DV.Init(dvn, {})    
     ensures inv3(dvn)
-    {}    
-
-    lemma dvn_init_inv4(dvn: DVState)       
-    requires DV.Init(dvn, {})    
     ensures inv4(dvn)
-    {}    
+    ensures inv5(dvn)
+    ensures inv6(dvn)
+    {}  
+
+
+    
 }
