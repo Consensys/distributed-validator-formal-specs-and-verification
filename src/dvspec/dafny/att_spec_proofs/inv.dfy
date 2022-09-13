@@ -1007,13 +1007,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvn: DVState,
         hn': BLSPubkey, 
         att_share: AttestationShare,
-        fork_version: Version,
         a: Attestation
     )
     {
         && hn' in dvn.honest_nodes_states.Keys 
         && att_share in dvn.att_network.allMessagesSent
         && att_share.data == a.data
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
         && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
         && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
     }
@@ -1024,14 +1024,15 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dvn.honest_nodes_states.Keys 
             && a in dvn.honest_nodes_states[hn].bn.attestations_submitted
             ::
-            exists hn', att_share: AttestationShare, fork_version :: pred_4_1_b_exists(dvn, hn', att_share, fork_version, a)
+            exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dvn, hn', att_share, a)
     }
 
     predicate pred_4_1_c(dvn: DVState)
     {
-        forall hn, att_share, fork_version |
+        forall hn, att_share |
                 && hn in dvn.honest_nodes_states.Keys 
                 && att_share in dvn.att_network.allMessagesSent
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));                
                 && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
             ::
@@ -1048,6 +1049,27 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             is_a_valid_decided_value(dvn.consensus_on_attestation_data[cid])
     }  
 
+
+    predicate pred_4_1_f_b(dvn: DVState)
+    {
+        forall cid |
+            && cid in dvn.consensus_on_attestation_data.Keys
+            && dvn.consensus_on_attestation_data[cid].decided_value.isPresent()
+            ::
+            dvn.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
+    }     
+
+    predicate pred_4_1_g_i_body(
+        s: Slot,
+        attestation_duty: AttestationDuty,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        vp: AttestationData -> bool
+    )
+    {
+        && attestation_duty.slot == s
+        && (vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty))
+    }
+
     predicate pred_4_1_g_i(dvn: DVState)
     {
         forall hn, s: nat, vp |
@@ -1055,7 +1077,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && vp in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
             ::
             exists attestation_duty, attestation_slashing_db ::
-                vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+                pred_4_1_g_i_body(s, attestation_duty, attestation_slashing_db, vp)
     }
 
     predicate pred_4_1_g_ii_body(dvn: DVState, hn: BLSPubkey, 
@@ -1527,4 +1549,23 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
                     < dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
     }
+
+    predicate inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(
+        dvn: DVState,
+        n: BLSPubkey
+    )
+    requires n in dvn.honest_nodes_states.Keys 
+    {
+        dvn.honest_nodes_states[n].attestation_shares_to_broadcast.Values <= dvn.att_network.allMessagesSent
+    }
+
+    predicate inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
+        dvn: DVState
+    )
+    {
+        forall n |
+            n in dvn.honest_nodes_states.Keys 
+            ::
+        inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(dvn, n)
+    }    
 }

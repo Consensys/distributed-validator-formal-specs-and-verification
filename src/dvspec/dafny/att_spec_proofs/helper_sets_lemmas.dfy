@@ -433,5 +433,33 @@ function intsetmax(s:set<int>):int
             && 2 * quorum(n) > n + f(n)
     {}
 
+    lemma lemmaEmptyIntersectionImpliesDisjointness<T>(
+      s1: set<T>,
+      s2: set<T>
+    )
+    requires s1 * s2 == {}
+    ensures s1 !! s2 
+    {
+      if s1 == {} && s2 == {}
+      {
+        assert s1 !! s2 ;
+      }
+      else if s1 == {} 
+      {
+        assert s1 !! s2 ;
+      }  
+      else if s2 == {} 
+      {
+        assert s1 !! s2 ;
+      }           
+      else if !(s1 !! s2)
+      {
+        var e :| e in s1 && e in s2;
+        assert e in (s1 * s2);
+        assert (s1 * s2) != {};
+        assert false;
+      }
+    }
+
     
 }
