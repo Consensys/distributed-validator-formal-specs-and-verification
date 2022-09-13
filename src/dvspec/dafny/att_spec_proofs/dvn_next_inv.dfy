@@ -21,6 +21,17 @@ module DVN_Next_Inv
     import opened Fnc_Inv
     import opened Helper_Sets_Lemmas
 
+    lemma lemma_invs_1_to_7_dvn_init(dvn: DVState)       
+    requires DV.Init(dvn, {})    
+    ensures inv1(dvn)
+    ensures inv2(dvn)
+    ensures inv3(dvn)
+    ensures inv4(dvn)
+    ensures inv5(dvn)
+    ensures inv6(dvn)
+    ensures inv7(dvn)
+    {}  
+
     lemma lemma_inv1_dvn_next(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires inv1(dvn)
@@ -186,4 +197,86 @@ module DVN_Next_Inv
                 
         }   
     }
+
+    lemma lemma_inv6_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')
+    requires inv5(dvn)
+    requires inv6(dvn)
+    ensures inv6(dvn')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>     
+                        lemma_inv6_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lemma_inv6_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_inv6_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := add_block_to_bn(dvc, nodeEvent.block);
+                        lemma_inv6_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendAttestationShares =>                         
+                        
+                    case NoEvent => 
+                        
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }   
+    } 
+
+    lemma lemma_inv7_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')
+    requires inv5(dvn)
+    requires inv7(dvn)
+    ensures inv7(dvn')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>     
+                        lemma_inv7_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lemma_inv7_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_inv7_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := add_block_to_bn(dvc, nodeEvent.block);
+                        lemma_inv7_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendAttestationShares =>                         
+                        
+                    case NoEvent => 
+                        
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }   
+    }  
 }

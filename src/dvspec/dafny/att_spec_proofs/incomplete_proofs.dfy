@@ -23,17 +23,16 @@ module Incomplete_Proofs
     import opened DVN_Next_Inv
     import opened Fnc_Inv    
 
+        
+    
+
+    
+
+       
+
+    
+
+    
+
          
-    }   
-
-    
-
-
-
-    
-
-
-    
-
-      
 }
