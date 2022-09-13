@@ -101,18 +101,20 @@ module Core_Proofs
             && exists m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :: 
                         pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a')    
     {
-        var hna, att_share, fv :|
+        var hna, att_share :|
                 && is_honest_node(dvn, hna)
                 && att_share in dvn.att_network.allMessagesSent
                 && att_share.data == a.data
-                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fv);
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hna);     
 
-        var hna', att_share', fv' :|
+        var hna', att_share' :|
                 && is_honest_node(dvn, hna)
                 && att_share' in dvn.att_network.allMessagesSent
                 && att_share'.data == a'.data
-                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fv');
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share'.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share'.data, fork_version);
                 && verify_bls_siganture(attestation_signing_root, att_share'.signature, hna');  
 
         assert
