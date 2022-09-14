@@ -5,6 +5,7 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
+include "dvn_next_inv.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -16,6 +17,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
+    import opened DVN_Next_Inv
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
@@ -675,15 +677,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //     }
     // } 
 
-    lemma lemma_pred_4_1_f_b(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    requires NextEvent(s, event, s')
-    requires pred_4_1_f_b(s)    
-    ensures pred_4_1_f_b(s')    
-
 
     lemma lemma_pred_4_1_c_helper(
         s: DVState,
@@ -722,6 +715,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');        
     }     
 
+    // Ver time: 1m 17s
     lemma lemma_pred_4_1_c_att_consensus_decided(
         s: DVState,
         event: DV.Event,
@@ -734,8 +728,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv1(s)
+    requires inv2(s)
     requires inv53(s)
     requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)    
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s')   
     {
@@ -866,6 +863,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');
     }      
 
+    // Ver time: 1m 35s
     lemma lemma_pred_4_1_c(
         s: DVState,
         event: DV.Event,
@@ -876,8 +874,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv1(s)
+    requires inv2(s)
     requires inv53(s)
     requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)        
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s')   
     {
@@ -946,5 +947,383 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 lemma_pred_4_1_c_att_adversary(s, event, s');
 
         }        
+    }   
+
+    lemma  lemmaNextConsensus<D(!new, 0)>(
+        s: ConsensusInstance,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
+        s': ConsensusInstance,
+        output: Optional<OutCommand>
+    )
+    requires ConsensusSpec.Next(
+                        s,
+                        honest_nodes_validity_predicates,
+                        s',
+                        output
+                    );
+    ensures s.honest_nodes_validity_functions.Keys <= s'.honest_nodes_validity_functions.Keys;                 
+    {
+    }
+
+    lemma  lemmaNextConsensus2<D(!new, 0)>(
+        s: ConsensusInstance,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
+        s': ConsensusInstance,
+        output: Optional<OutCommand>,
+        n: BLSPubkey
+    )
+    requires ConsensusSpec.Next(
+                        s,
+                        honest_nodes_validity_predicates,
+                        s',
+                        output
+                    );
+    requires n in s.honest_nodes_validity_functions.Keys
+    ensures s.honest_nodes_validity_functions[n] <= s'.honest_nodes_validity_functions[n];                    
+    {
+    }    
+
+    // 1m 15s
+    lemma lemma_pred_4_1_f_a_helper(
+        s: DVState,
+        event: DV.Event,
+        cid: Slot,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires cid in s'.consensus_on_attestation_data.Keys
+    requires inv1(s)
+    requires inv53(s)
+    requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
+    ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]); 
+    // ensures pred_4_1_f_a(s')   
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+
+                var s_w_honest_node_states_updated :=
+                    if nodeEvent.ImportedNewBlock? then 
+                        s.(
+                            honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                        )
+                    else 
+                        s 
+                    ;                
+
+                assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+                var output := 
+                    if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                        Some(Decided(node, nodeEvent.decided_attestation_data))
+                    else
+                        None
+                    ;
+
+                var validityPredicates := 
+                    map n |
+                            && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        ::
+                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                    ;
+
+                var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+                var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+                assert
+                    ConsensusSpec.Next(
+                        s_consensus,
+                        validityPredicates,
+                        s'_consensus,
+                        output
+                    );
+
+
+
+                // assert s_consensus == s'.consensus_on_attestation_data[cid];
+
+                // if s_consensus.decided_value.isPresent()
+                {
+                    assert isConditionForSafetyTrue(s_consensus);
+                    assert 
+                        && s'_consensus.decided_value.isPresent()
+                        && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
+                    ;
+
+                    var h_nodes :| is_a_valid_decided_value_according_to_set_of_nodes(s_consensus, h_nodes); 
+
+                    assert s_consensus.honest_nodes_validity_functions.Keys <= s'_consensus.honest_nodes_validity_functions.Keys;
+                    assert         
+                        && var byz := s'.all_nodes - s'_consensus.honest_nodes_status.Keys;
+                        |h_nodes| >= quorum(|s.all_nodes|) - |byz|;
+
+                    lemmaNextConsensus(
+                        s_consensus,
+                        validityPredicates,
+                        s'_consensus,
+                        output                        
+                    );
+
+
+                    forall n | n in h_nodes 
+                    ensures exists vp: AttestationData -> bool :: vp in s'_consensus.honest_nodes_validity_functions[n] && vp(s'_consensus.decided_value.safe_get());
+                    {
+                        assert is_a_valid_decided_value(s_consensus); 
+                        var vp: AttestationData -> bool :| vp in s_consensus.honest_nodes_validity_functions[n] && vp(s_consensus.decided_value.safe_get()); 
+                        lemmaNextConsensus2(
+                            s_consensus,
+                            validityPredicates,
+                            s'_consensus,
+                            output,
+                            n                       
+                        );                        
+                        assert vp in  s'_consensus.honest_nodes_validity_functions[n]; 
+                        assert vp(s'_consensus.decided_value.safe_get());
+                        assert exists vp: AttestationData -> bool :: vp in s'_consensus.honest_nodes_validity_functions[n] && vp(s'_consensus.decided_value.safe_get());
+                    }
+
+                            
+
+                    assert is_a_valid_decided_value_according_to_set_of_nodes(s'_consensus, h_nodes); 
+                    assert is_a_valid_decided_value(s'_consensus); 
+                }
+                // else
+                // {
+                //     assert is_a_valid_decided_value(s'_consensus); 
+                // }
+
+        }
+    }   
+
+    lemma lemma_pred_4_1_f_a(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires inv1(s)
+    requires inv53(s)
+    requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    ensures pred_4_1_f_a(s')   
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+
+                var s_w_honest_node_states_updated :=
+                    if nodeEvent.ImportedNewBlock? then 
+                        s.(
+                            honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                        )
+                    else 
+                        s 
+                    ;                
+
+                forall cid | 
+                        && cid in s'.consensus_on_attestation_data.Keys
+                        && s'.consensus_on_attestation_data[cid].decided_value.isPresent()
+                ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]);
+                {
+                    if s.consensus_on_attestation_data[cid].decided_value.isPresent()
+                    {
+                        lemma_pred_4_1_f_a_helper(s, event, cid, s');
+                    }
+                    else
+                    {
+                        assert is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]);
+                    }
+                }
+                assert pred_4_1_f_a(s');
+               
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert pred_4_1_f_a(s');
+        }        
+    } 
+
+    lemma lemma_pred_4_1_f_b_helper(
+        s: DVState,
+        cid: Slot
+    )
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)
+    requires cid in s.consensus_on_attestation_data.Keys
+    requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
+    ensures s.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
+    {
+        var s_consensus := s.consensus_on_attestation_data[cid];
+        assert is_a_valid_decided_value(s_consensus);  
+
+        var h_nodes_a :| is_a_valid_decided_value_according_to_set_of_nodes(s_consensus, h_nodes_a);
+
+        var byz := s.all_nodes - s.honest_nodes_states.Keys;
+
+        assert byz * h_nodes_a == {} by 
+        {
+            assert s.honest_nodes_states.Keys * byz == {};
+        }
+
+        lemmaThereExistsAnHonestInQuorum2(s.all_nodes, byz, h_nodes_a);  
+
+        var h_n :| h_n in h_nodes_a;  
+
+        var vp: AttestationData -> bool :| vp in s_consensus.honest_nodes_validity_functions[h_n] && vp(s_consensus.decided_value.safe_get());  
+
+        var attestation_duty, attestation_slashing_db :|
+                pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+
+        assert s_consensus.decided_value.safe_get().slot == cid;
+    }
+
+    lemma lemma_pred_4_1_f_b(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)  
+    ensures pred_4_1_f_b(s') 
+    {
+        lemma_inv1_dvn_next2(s, event, s');
+        lemma_inv2_dvn_next2(s, event, s');
+        lemma_inv3_dvn_next2(s, event, s');
+        lemma_pred_4_1_f_a(s, event, s');
+        lemma_pred_4_1_f_g_i(s, event, s');
+        lemma_pred_4_1_f_b2(s');   
+    }     
+
+    lemma lemma_pred_4_1_f_b2(
+        s: DVState
+    )
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)
+    ensures pred_4_1_f_b(s) 
+    {
+        forall cid |
+            && cid in s.consensus_on_attestation_data.Keys
+            && s.consensus_on_attestation_data[cid].decided_value.isPresent()
+        {
+           lemma_pred_4_1_f_b_helper(s, cid);
+        }        
+    }        
+
+    lemma lemma_pred_4_1_f_g_i(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )   
+    requires NextEvent(s, event, s') 
+    requires pred_4_1_g_i(s)
+    ensures pred_4_1_g_i(s')   
+    {
+
+    }       
+
+    lemma lemma_pred_4_1_f_g_i_helper(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        cid: Slot,
+        hn: BLSPubkey,
+        vp: AttestationData -> bool
+    )   
+    requires NextEvent(s, event, s') 
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)      
+    requires
+            && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
+            && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
+    requires event.HonestNodeTakingStep?
+    requires pred_4_1_g_i(s)
+    // ensures pred_4_1_g_i(s')   
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+
+                var s_w_honest_node_states_updated :=
+                    if nodeEvent.ImportedNewBlock? then 
+                        s.(
+                            honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                        )
+                    else 
+                        s 
+                    ;                
+
+                assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+                var output := 
+                    if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                        Some(Decided(node, nodeEvent.decided_attestation_data))
+                    else
+                        None
+                    ;
+
+                var validityPredicates := 
+                    map n |
+                            && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        ::
+                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                    ;
+
+                var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+                var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+                assert
+                    ConsensusSpec.Next(
+                        s_consensus,
+                        validityPredicates,
+                        s'_consensus,
+                        output
+                    );
+
+            if hn in s_consensus.honest_nodes_validity_functions.Keys 
+            {
+                if vp in s_consensus.honest_nodes_validity_functions[hn]
+                {
+                    // assert vp in s'_consensus.honest_nodes_validity_functions[hn];
+
+                    // assert exists attestation_duty, attestation_slashing_db :: pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+                }
+                else 
+                {
+                    assert vp in validityPredicates.Values;
+                }
+            }
+            else 
+            {
+                assert vp in validityPredicates.Values;
+            }
+
+        }
+
     }   
 }
