@@ -1059,6 +1059,29 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             dvn.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
     }     
 
+    predicate pred_4_1_g_i_for_dvc_single_dvc(
+        dvn: DVState,
+        n: BLSPubkey,
+        cid: Slot
+    )
+    requires n in dvn.honest_nodes_states.Keys 
+    requires cid in dvn.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances
+    {
+        exists attestation_duty, attestation_slashing_db ::
+            pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, dvn.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate)        
+    }
+
+    predicate pred_4_1_g_i_for_dvc(
+        dvn: DVState
+    )
+    {
+        forall n, cid | 
+            && n in dvn.honest_nodes_states 
+            && cid in dvn.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances
+            ::
+            pred_4_1_g_i_for_dvc_single_dvc(dvn, n, cid)
+    }
+
     predicate pred_4_1_g_i_body(
         s: Slot,
         attestation_duty: AttestationDuty,

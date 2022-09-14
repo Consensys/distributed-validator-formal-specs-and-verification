@@ -732,7 +732,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv53(s)
     requires inv3(s)
     requires pred_4_1_f_a(s)    
-    requires pred_4_1_g_i(s)    
+    requires pred_4_1_g_i(s)
+    requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s')   
     {
@@ -878,7 +879,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv53(s)
     requires inv3(s)
     requires pred_4_1_f_a(s)    
-    requires pred_4_1_g_i(s)        
+    requires pred_4_1_g_i(s)    
+    requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s')   
     {
@@ -1198,6 +1200,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEvent(s, event, s')
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
+    requires pred_4_1_g_i_for_dvc(s)  
     requires inv1(s)
     requires inv2(s)
     requires inv3(s)  
@@ -1229,17 +1232,35 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }        
     }        
 
-    lemma lemma_pred_4_1_f_g_i(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )   
-    requires NextEvent(s, event, s') 
-    requires pred_4_1_g_i(s)
-    ensures pred_4_1_g_i(s')   
-    {
+     
 
-    }       
+    lemma lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event
+    ) returns (s_w_honest_node_states_updated: DVState)
+    requires node in s.honest_nodes_states
+    ensures s_w_honest_node_states_updated ==
+                if nodeEvent.ImportedNewBlock? then 
+                    s.(
+                        honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                    )
+                else 
+                    s 
+                ;  
+    ensures s_w_honest_node_states_updated == s.(honest_nodes_states := s_w_honest_node_states_updated.honest_nodes_states)
+    ensures s_w_honest_node_states_updated.honest_nodes_states == s.honest_nodes_states[node := s_w_honest_node_states_updated.honest_nodes_states[node]]
+    ensures s_w_honest_node_states_updated.honest_nodes_states[node] == s.honest_nodes_states[node].(bn := s_w_honest_node_states_updated.honest_nodes_states[node].bn)
+    {
+        s_w_honest_node_states_updated :=
+            if nodeEvent.ImportedNewBlock? then 
+                s.(
+                    honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                )
+            else 
+                s 
+            ;         
+    }
 
     lemma lemma_pred_4_1_f_g_i_helper(
         s: DVState,
@@ -1248,7 +1269,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         cid: Slot,
         hn: BLSPubkey,
         vp: AttestationData -> bool
-    )   
+    )   returns (attestation_duty: AttestationDuty, attestation_slashing_db: set<SlashingDBAttestation>)
     requires NextEvent(s, event, s') 
     requires inv1(s)
     requires inv2(s)
@@ -1258,7 +1279,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
     requires event.HonestNodeTakingStep?
     requires pred_4_1_g_i(s)
-    // ensures pred_4_1_g_i(s')   
+    requires pred_4_1_g_i_for_dvc(s)
+    ensures pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp); 
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1268,13 +1290,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 var s'_node := s'.honest_nodes_states[node];
 
                 var s_w_honest_node_states_updated :=
-                    if nodeEvent.ImportedNewBlock? then 
-                        s.(
-                            honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
-                        )
-                    else 
-                        s 
-                    ;                
+                    lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);         
 
                 assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
@@ -1305,25 +1321,62 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         output
                     );
 
-            if hn in s_consensus.honest_nodes_validity_functions.Keys 
+            if hn in s_consensus.honest_nodes_validity_functions.Keys  && vp in s_consensus.honest_nodes_validity_functions[hn]
             {
-                if vp in s_consensus.honest_nodes_validity_functions[hn]
-                {
-                    // assert vp in s'_consensus.honest_nodes_validity_functions[hn];
+                assert vp in s'_consensus.honest_nodes_validity_functions[hn];
 
-                    // assert exists attestation_duty, attestation_slashing_db :: pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
-                }
-                else 
-                {
-                    assert vp in validityPredicates.Values;
-                }
+                attestation_duty, attestation_slashing_db :| pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+
             }
             else 
             {
                 assert vp in validityPredicates.Values;
+                var vpn :| vpn in validityPredicates.Keys && validityPredicates[vpn] == vp;
+                assert validityPredicates[vpn] == s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate;
+
+                assert vpn in s.honest_nodes_states.Keys;
+                assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+                assert s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state == s.honest_nodes_states[vpn].attestation_consensus_engine_state;
+                assert pred_4_1_g_i_for_dvc_single_dvc(s, vpn, cid);
+
+                attestation_duty, attestation_slashing_db :| pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
             }
+
+            assert pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+
 
         }
 
-    }   
+    }  
+
+    lemma lemma_pred_4_1_f_g_i(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )   
+    requires NextEvent(s, event, s') 
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)      
+    requires pred_4_1_g_i_for_dvc(s)  
+    ensures pred_4_1_g_i(s')   
+    {
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                forall hn, cid: nat, vp |
+                    && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
+                    && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
+                ensures exists attestation_duty, attestation_slashing_db :: pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp)
+                {
+                    var attestation_duty: AttestationDuty, attestation_slashing_db := lemma_pred_4_1_f_g_i_helper(s, event, s', cid, hn, vp);
+                }
+                assert pred_4_1_g_i(s');
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert pred_4_1_g_i(s');
+        }
+    }       
 }
