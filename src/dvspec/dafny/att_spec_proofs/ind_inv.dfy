@@ -1130,7 +1130,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     else 
                         s 
                     ;                
-                    
+
                 forall cid | 
                         && cid in s'.consensus_on_attestation_data.Keys
                         && s'.consensus_on_attestation_data[cid].decided_value.isPresent()
@@ -1236,5 +1236,94 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )   
     requires NextEvent(s, event, s') 
     requires pred_4_1_g_i(s)
-    ensures pred_4_1_g_i(s')      
+    ensures pred_4_1_g_i(s')   
+    {
+
+    }       
+
+    lemma lemma_pred_4_1_f_g_i_helper(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        cid: Slot,
+        hn: BLSPubkey,
+        vp: AttestationData -> bool
+    )   
+    requires NextEvent(s, event, s') 
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)      
+    requires
+            && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
+            && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
+    requires event.HonestNodeTakingStep?
+    requires pred_4_1_g_i(s)
+    // ensures pred_4_1_g_i(s')   
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+
+                var s_w_honest_node_states_updated :=
+                    if nodeEvent.ImportedNewBlock? then 
+                        s.(
+                            honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                        )
+                    else 
+                        s 
+                    ;                
+
+                assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+                var output := 
+                    if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                        Some(Decided(node, nodeEvent.decided_attestation_data))
+                    else
+                        None
+                    ;
+
+                var validityPredicates := 
+                    map n |
+                            && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                        ::
+                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                    ;
+
+                var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+                var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+                assert
+                    ConsensusSpec.Next(
+                        s_consensus,
+                        validityPredicates,
+                        s'_consensus,
+                        output
+                    );
+
+            if hn in s_consensus.honest_nodes_validity_functions.Keys 
+            {
+                if vp in s_consensus.honest_nodes_validity_functions[hn]
+                {
+                    // assert vp in s'_consensus.honest_nodes_validity_functions[hn];
+
+                    // assert exists attestation_duty, attestation_slashing_db :: pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+                }
+                else 
+                {
+                    assert vp in validityPredicates.Values;
+                }
+            }
+            else 
+            {
+                assert vp in validityPredicates.Values;
+            }
+
+        }
+
+    }   
 }
