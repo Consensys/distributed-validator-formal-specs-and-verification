@@ -61,4 +61,16 @@ module Proofs_DVN_Ind_Inv
         lemma_inv10_dvn_next(dvn, e, dvn');
         lemma_inv11_dvn_next(dvn, e, dvn');
     }
+
+    lemma lemma_ind_inv_implies_other_invs(dvn: DVState)
+    requires ind_inv(dvn)
+    ensures inv53(dvn)    
+    {
+        lemma_inv2_inv53(dvn);
+    }
+
+    lemma lemma_inv2_inv53(dvn: DVState)
+    requires inv2(dvn)
+    ensures inv53(dvn)
+    { }
 }
