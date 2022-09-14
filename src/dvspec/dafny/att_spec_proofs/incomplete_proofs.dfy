@@ -23,12 +23,16 @@ module Incomplete_Proofs
     import opened DVN_Next_Inv
     import opened Fnc_Inv    
 
-    lemma {:axiom} axiom_inv10(dvc: DVCNodeState)    
-    ensures inv10_body(dvc)
+    lemma {:axiom} axiom_inv15(dvc: DVCNodeState)    
+    ensures inv15_body(dvc)
 
     
     
     
 
+    
+
+    
+      
     
 }

@@ -1203,9 +1203,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv3(s)  
     ensures pred_4_1_f_b(s') 
     {
-        lemma_inv1_dvn_next2(s, event, s');
-        lemma_inv2_dvn_next2(s, event, s');
-        lemma_inv3_dvn_next2(s, event, s');
+        lemma_inv1_dvn_next(s, event, s');
+        lemma_inv2_dvn_next(s, event, s');
+        lemma_inv3_dvn_next(s, event, s');
         lemma_pred_4_1_f_a(s, event, s');
         lemma_pred_4_1_f_g_i(s, event, s');
         lemma_pred_4_1_f_b2(s');   

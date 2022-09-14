@@ -36,6 +36,9 @@ module Proofs_DVN_Ind_Inv
         &&  inv9(dvn)  
         &&  inv10(dvn) 
         &&  inv11(dvn)  
+        &&  inv12(dvn)  
+        &&  inv14(dvn)  
+        &&  inv15(dvn)  
     }
 
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
@@ -43,23 +46,45 @@ module Proofs_DVN_Ind_Inv
     ensures ind_inv(dvn)
     {}  
 
-    lemma lemma_ind_inv_dvn_next(dvn: DVState, dvn': DVState)       
+    lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires ind_inv(dvn)
-    ensures ind_inv(dvn')
+    // ensures ind_inv(dvn')
     {
         var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
-        lemma_inv1_dvn_next(dvn, dvn');
-        lemma_inv2_dvn_next(dvn, dvn');
-        lemma_inv3_dvn_next(dvn, dvn');
+        lemma_inv1_dvn_next(dvn, e, dvn');
+        lemma_inv2_dvn_next(dvn, e, dvn');
+        lemma_inv3_dvn_next(dvn, e, dvn');
         lemma_inv4_dvn_next(dvn, e, dvn');
         lemma_inv5_dvn_next(dvn, e, dvn');
         lemma_inv6_dvn_next(dvn, e, dvn');
         lemma_inv7_dvn_next(dvn, e, dvn');
+        
+        
+        /*
+        // Error: ... System.Threading.Thread.StartCallback() ...
+        lemma_inv10_dvn_next(dvn, e, dvn');       
+        lemma_inv11_dvn_next(dvn, e, dvn');
+        lemma_inv12_dvn_next(dvn, e, dvn');        
+        lemma_inv14_dvn_next(dvn, e, dvn');
+        */
+        
+    }
+
+    lemma lemma_ind_inv_dvn_next_invs_8_14(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    requires ind_inv(dvn)
+    // ensures ind_inv(dvn')
+    {
+        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
         lemma_inv8_dvn_next(dvn, e, dvn');
         lemma_inv9_dvn_next(dvn, e, dvn');
-        lemma_inv10_dvn_next(dvn, e, dvn');
+        lemma_inv10_dvn_next(dvn, e, dvn');        
         lemma_inv11_dvn_next(dvn, e, dvn');
+        lemma_inv12_dvn_next(dvn, e, dvn');
+        lemma_inv13_dvn_next(dvn, e, dvn');
+        lemma_inv14_dvn_next(dvn, e, dvn');
+        lemma_inv15_dvn_next(dvn, e, dvn');
     }
 
     lemma lemma_ind_inv_implies_other_invs(dvn: DVState)

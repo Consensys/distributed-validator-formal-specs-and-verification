@@ -204,11 +204,11 @@ module DV
         && (forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
         )
-        && is_sequence_attestation_duties_to_be_served_orderd(s)
+        && is_sequence_attestation_duties_to_be_served_orders(s)
         
     }
 
-    predicate is_sequence_attestation_duties_to_be_served_orderd(s: DVState)
+    predicate is_sequence_attestation_duties_to_be_served_orders(s: DVState)
     {
         && (forall i, j | 
                     && 0 <= i < j
@@ -216,6 +216,7 @@ module DV
                 ::
                     s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot <= s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
         )
+        /*
         && ( forall k1: nat, k2: nat :: 
                 s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
                     == s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
@@ -231,6 +232,7 @@ module DV
                 s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
                     < s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
            )
+        */
     }
     
     predicate Next(
