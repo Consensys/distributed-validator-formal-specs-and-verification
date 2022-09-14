@@ -29,17 +29,35 @@ module DVN_Next_Inv
     ensures inv1(dvn')
     { }
 
+    lemma lemma_inv1_dvn_next2(dvn: DVState, event: DV.Event, dvn': DVState)       
+    requires DV.NextEvent(dvn, event, dvn')
+    requires inv1(dvn)
+    ensures inv1(dvn')
+    { }    
+
     lemma lemma_inv2_dvn_next(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires inv2(dvn)
     ensures inv2(dvn')
     { }
 
+    lemma lemma_inv2_dvn_next2(dvn: DVState, event: DV.Event, dvn': DVState)       
+    requires DV.NextEvent(dvn, event, dvn')
+    requires inv2(dvn)
+    ensures inv2(dvn')
+    { }    
+
     lemma lemma_inv3_dvn_next(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires inv3(dvn)
     ensures inv3(dvn')
     { }
+
+    lemma lemma_inv3_dvn_next2(dvn: DVState, event: DV.Event, dvn': DVState)       
+    requires DV.NextEvent(dvn, event, dvn')
+    requires inv3(dvn)
+    ensures inv3(dvn')
+    { }    
 
     // It takes more than 60 seconds to prove lemma_inv4_dvn_next.
     lemma lemma_inv4_dvn_next(

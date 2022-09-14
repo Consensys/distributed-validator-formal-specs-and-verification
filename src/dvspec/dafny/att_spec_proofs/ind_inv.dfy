@@ -5,6 +5,7 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
+include "dvn_next_inv.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -16,6 +17,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
+    import opened DVN_Next_Inv
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
@@ -675,15 +677,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //     }
     // } 
 
-    lemma lemma_pred_4_1_f_b(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    requires NextEvent(s, event, s')
-    requires pred_4_1_f_b(s)    
-    ensures pred_4_1_f_b(s')    
-
 
     lemma lemma_pred_4_1_c_helper(
         s: DVState,
@@ -722,6 +715,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');        
     }     
 
+    // Ver time: 1m 17s
     lemma lemma_pred_4_1_c_att_consensus_decided(
         s: DVState,
         event: DV.Event,
@@ -734,8 +728,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv1(s)
+    requires inv2(s)
     requires inv53(s)
     requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)    
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s')   
     {
@@ -866,6 +863,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');
     }      
 
+    // Ver time: 1m 35s
     lemma lemma_pred_4_1_c(
         s: DVState,
         event: DV.Event,
@@ -876,8 +874,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv1(s)
+    requires inv2(s)
     requires inv53(s)
     requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)        
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s')   
     {
@@ -982,6 +983,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
     }    
 
+    // 1m 15s
     lemma lemma_pred_4_1_f_a_helper(
         s: DVState,
         event: DV.Event,
@@ -1128,12 +1130,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     else 
                         s 
                     ;                
-
-                assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
-
+                    
                 forall cid | 
                         && cid in s'.consensus_on_attestation_data.Keys
-                        && s.consensus_on_attestation_data[cid].decided_value.isPresent()
+                        && s'.consensus_on_attestation_data[cid].decided_value.isPresent()
                 ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]);
                 {
                     if s.consensus_on_attestation_data[cid].decided_value.isPresent()
@@ -1151,5 +1151,90 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
                 assert pred_4_1_f_a(s');
         }        
-    }  
+    } 
+
+    lemma lemma_pred_4_1_f_b_helper(
+        s: DVState,
+        cid: Slot
+    )
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)
+    requires cid in s.consensus_on_attestation_data.Keys
+    requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
+    ensures s.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
+    {
+        var s_consensus := s.consensus_on_attestation_data[cid];
+        assert is_a_valid_decided_value(s_consensus);  
+
+        var h_nodes_a :| is_a_valid_decided_value_according_to_set_of_nodes(s_consensus, h_nodes_a);
+
+        var byz := s.all_nodes - s.honest_nodes_states.Keys;
+
+        assert byz * h_nodes_a == {} by 
+        {
+            assert s.honest_nodes_states.Keys * byz == {};
+        }
+
+        lemmaThereExistsAnHonestInQuorum2(s.all_nodes, byz, h_nodes_a);  
+
+        var h_n :| h_n in h_nodes_a;  
+
+        var vp: AttestationData -> bool :| vp in s_consensus.honest_nodes_validity_functions[h_n] && vp(s_consensus.decided_value.safe_get());  
+
+        var attestation_duty, attestation_slashing_db :|
+                pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+
+        assert s_consensus.decided_value.safe_get().slot == cid;
+    }
+
+    lemma lemma_pred_4_1_f_b(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)  
+    ensures pred_4_1_f_b(s') 
+    {
+        lemma_inv1_dvn_next2(s, event, s');
+        lemma_inv2_dvn_next2(s, event, s');
+        lemma_inv3_dvn_next2(s, event, s');
+        lemma_pred_4_1_f_a(s, event, s');
+        lemma_pred_4_1_f_g_i(s, event, s');
+        lemma_pred_4_1_f_b2(s');   
+    }     
+
+    lemma lemma_pred_4_1_f_b2(
+        s: DVState
+    )
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires inv1(s)
+    requires inv2(s)
+    requires inv3(s)
+    ensures pred_4_1_f_b(s) 
+    {
+        forall cid |
+            && cid in s.consensus_on_attestation_data.Keys
+            && s.consensus_on_attestation_data[cid].decided_value.isPresent()
+        {
+           lemma_pred_4_1_f_b_helper(s, cid);
+        }        
+    }        
+
+    lemma lemma_pred_4_1_f_g_i(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )   
+    requires NextEvent(s, event, s') 
+    requires pred_4_1_g_i(s)
+    ensures pred_4_1_g_i(s')      
 }

@@ -389,7 +389,27 @@ function intsetmax(s:set<int>):int
             >=
             1;
         }        
-    }    
+    }   
+
+    lemma lemmaThereExistsAnHonestInQuorum2<T(==)>(nodes:set<T>, byz: set<T>, hon:set<T>)
+    requires nodes != {}
+    requires hon <= nodes
+    requires byz <= nodes
+    requires |hon| >= quorum(|nodes|) - |byz|
+    requires |byz| <= f(|nodes|)
+    requires hon * byz == {}
+    ensures hon != {}
+    {
+        lemmaEmptyIntersectionImpliesDisjointness(hon, byz);
+        var hon_byz := hon + byz;
+
+
+        assert |hon_byz| >= quorum(|nodes|);
+
+        lemmaThereExistsAnHonestInQuorum(nodes, byz, hon_byz);
+
+        assert hon != {};
+    }       
 
     lemma test_quorum(n: nat)
     ensures quorum(n) * 3 >= 2 * n
