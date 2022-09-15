@@ -1067,9 +1067,49 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires n in dvn.honest_nodes_states.Keys 
     requires cid in dvn.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances
     {
-        exists attestation_duty, attestation_slashing_db ::
-            pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, dvn.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate)        
+        var dvc := dvn.honest_nodes_states[n];
+        var acvc := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[cid];
+
+        pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
+            cid, 
+            acvc.attestation_duty, 
+            acvc.validityPredicate
+        ) 
     }
+
+    predicate pred_4_1_g_i_for_dvc_single_dvc_2_body(
+        dvc: DVCNodeState,
+        cid: Slot
+    )
+    requires cid in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances
+    {
+        var acvc := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[cid];
+        pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
+            cid, 
+            acvc.attestation_duty, 
+            acvc.validityPredicate
+        ) 
+    }     
+
+    predicate pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
+        cid: Slot,
+        attestation_duty: AttestationDuty,
+        vp: AttestationData -> bool
+    )
+    {
+        exists attestation_slashing_db ::
+            pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp)        
+    }         
+
+    predicate pred_4_1_g_i_for_dvc_single_dvc_2(
+        dvc: DVCNodeState
+    )
+    {
+        forall cid | 
+            && cid in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances
+            ::
+            pred_4_1_g_i_for_dvc_single_dvc_2_body(dvc, cid)        
+    }    
 
     predicate pred_4_1_g_i_for_dvc(
         dvn: DVState
@@ -1082,6 +1122,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             pred_4_1_g_i_for_dvc_single_dvc(dvn, n, cid)
     }
 
+   
     predicate pred_4_1_g_i_body(
         s: Slot,
         attestation_duty: AttestationDuty,

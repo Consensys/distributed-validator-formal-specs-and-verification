@@ -486,4 +486,11 @@ function intsetmax(s:set<int>):int
     requires m in S
     ensures m in S1 || m in S2
     {}
+
+    lemma lemmaMapKeysHasOneEntryInItems<K, V>(m: map<K, V>, k: K)  
+    requires k in m.Keys
+    ensures exists i :: i in m.Items && i.0 == k 
+    {
+        assert (k, m[k]) in m.Items;
+    }    
 }
