@@ -7,7 +7,9 @@ include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/fnc_inv.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
-include "../att_spec_proofs/dvn_next_inv.dfy"
+include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
+include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
+include "../att_spec_proofs/proofs_intermediate_steps.dfy"
 
 module Proofs_DVN_Ind_Inv
 {
@@ -21,9 +23,17 @@ module Proofs_DVN_Ind_Inv
     import opened Att_Assumptions
     import opened Fnc_Inv
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Inv
+    import opened DVN_Next_Invs_1_7
+    import opened DVN_Next_Invs_8_18
+    import opened Proofs_Intermediate_Steps
 
     predicate ind_inv(dvn: DVState)       
+    {
+        && invs_1_7(dvn)
+        && invs_8_18(dvn)
+    }
+
+    predicate invs_1_7(dvn: DVState)       
     {
         &&  inv1(dvn)
         &&  inv2(dvn)
@@ -31,14 +41,18 @@ module Proofs_DVN_Ind_Inv
         &&  inv4(dvn)
         &&  inv5(dvn)
         &&  inv6(dvn)
-        &&  inv7(dvn)    
+        &&  inv7(dvn)            
+    }
+
+    predicate invs_8_18(dvn: DVState)       
+    {        
         &&  inv8(dvn)   
         &&  inv9(dvn)  
         &&  inv10(dvn) 
-        &&  inv11(dvn)  
-        &&  inv12(dvn)  
-        &&  inv14(dvn)  
-        &&  inv15(dvn)  
+        &&  inv13(dvn)      
+        &&  inv16(dvn)  
+        &&  inv17(dvn)  
+        &&  inv18(dvn)  
     }
 
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
@@ -49,7 +63,7 @@ module Proofs_DVN_Ind_Inv
     lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires ind_inv(dvn)
-    // ensures ind_inv(dvn')
+    ensures invs_1_7(dvn')
     {
         var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
         lemma_inv1_dvn_next(dvn, e, dvn');
@@ -60,42 +74,39 @@ module Proofs_DVN_Ind_Inv
         lemma_inv6_dvn_next(dvn, e, dvn');
         lemma_inv7_dvn_next(dvn, e, dvn');
         
-        
         /*
         // Error: ... System.Threading.Thread.StartCallback() ...
         lemma_inv10_dvn_next(dvn, e, dvn');       
-        lemma_inv11_dvn_next(dvn, e, dvn');
-        lemma_inv12_dvn_next(dvn, e, dvn');        
-        lemma_inv14_dvn_next(dvn, e, dvn');
         */
-        
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_8_14(dvn: DVState, dvn': DVState)       
+    lemma lemma_ind_inv_dvn_next_invs_8_18(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires ind_inv(dvn)
-    // ensures ind_inv(dvn')
+    ensures invs_8_18(dvn')
     {
         var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
         lemma_inv8_dvn_next(dvn, e, dvn');
         lemma_inv9_dvn_next(dvn, e, dvn');
         lemma_inv10_dvn_next(dvn, e, dvn');        
-        lemma_inv11_dvn_next(dvn, e, dvn');
-        lemma_inv12_dvn_next(dvn, e, dvn');
-        lemma_inv13_dvn_next(dvn, e, dvn');
-        lemma_inv14_dvn_next(dvn, e, dvn');
-        lemma_inv15_dvn_next(dvn, e, dvn');
+        lemma_inv13_dvn_next(dvn, e, dvn');                
+        lemma_inv16_dvn_next(dvn, e, dvn');
+        lemma_inv17_dvn_next(dvn, e, dvn');
+        lemma_inv18_dvn_next(dvn, e, dvn');
     }
 
     lemma lemma_ind_inv_implies_other_invs(dvn: DVState)
     requires ind_inv(dvn)
+    ensures inv11(dvn)
+    ensures inv12(dvn)
+    ensures inv14(dvn)
+    ensures inv15(dvn)
     ensures inv53(dvn)    
     {
         lemma_inv2_inv53(dvn);
+        lemma_inv15_ind_inv(dvn);
+        lemma_inv14_ind_inv(dvn);
+        lemma_inv12_ind_inv(dvn);
+        lemma_inv11_ind_inv(dvn);
     }
-
-    lemma lemma_inv2_inv53(dvn: DVState)
-    requires inv2(dvn)
-    ensures inv53(dvn)
-    { }
 }

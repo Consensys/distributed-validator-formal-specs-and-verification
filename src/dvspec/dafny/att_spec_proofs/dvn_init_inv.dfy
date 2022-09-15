@@ -50,11 +50,10 @@ module DVN_Init_Inv
     ensures inv8(dvn)
     ensures inv9(dvn)
     ensures inv10(dvn)
-    ensures inv11(dvn)
-    ensures inv12(dvn)
-    ensures inv13(dvn)
-    ensures inv14(dvn)    
-    ensures inv15(dvn)    
+    ensures inv13(dvn)        
+    ensures inv16(dvn)    
+    ensures inv17(dvn) 
+    ensures inv18(dvn)   
     {}  
     
 

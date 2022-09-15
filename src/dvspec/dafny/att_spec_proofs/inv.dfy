@@ -1517,15 +1517,22 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && nodes.peers == dvn.all_nodes
     }
 
-    predicate inv4(dvn: DVState)
+    predicate inv4_body(dvn: DVState, n: BLSPubkey, dvc: DVCNodeState)    
+    requires n in dvn.honest_nodes_states.Keys
+    requires dvc == dvn.honest_nodes_states[n]
     {
-        forall n: BLSPubkey | n in dvn.honest_nodes_states.Keys ::            
-            && var nodes := dvn.honest_nodes_states[n];
-            && forall duty: AttestationDuty | duty in nodes.all_rcvd_duties ::
+        forall duty: AttestationDuty | duty in dvc.all_rcvd_duties ::
                 exists k: nat :: 
                     && 0 <= k < dvn.index_next_attestation_duty_to_be_served
                     && dvn.sequence_attestation_duties_to_be_served[k].node == n
                     && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty == duty
+    }
+
+    predicate inv4(dvn: DVState)
+    {
+        forall n: BLSPubkey | n in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[n];
+            && inv4_body(dvn, n, dvc)
     }
 
     predicate inv5_body(dvc: DVCNodeState)
@@ -1619,15 +1626,30 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv10_body(dvc)
     }
 
+    predicate inv11_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    {
+        dvc.current_attestation_duty.isPresent()
+            ==> dvc.current_attestation_duty.safe_get().slot <= next_duty.slot        
+    }
+
     predicate inv11(dvn: DVState)
     {
-        is_sequence_attestation_duties_to_be_served_orders(dvn)
+        && var dvn_duty_queue := dvn.sequence_attestation_duties_to_be_served;
+        && var dvn_index := dvn.index_next_attestation_duty_to_be_served;
+        && var next_duty_and_node := dvn_duty_queue[dvn_index];
+        && forall hn: BLSPubkey | 
+            && hn in dvn.honest_nodes_states.Keys
+            && hn == next_duty_and_node.node 
+            ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && var next_duty := next_duty_and_node.attestation_duty;
+            && inv11_body(dvc, next_duty)
     }
 
     predicate inv12_body(dvc: DVCNodeState, next_duty: AttestationDuty)
     {
-       forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties ::
-            rcvd_duty.slot <= next_duty.slot        
+        dvc.latest_attestation_duty.isPresent()
+            ==> dvc.latest_attestation_duty.safe_get().slot <= next_duty.slot        
     }
 
     predicate inv12(dvn: DVState)
@@ -1644,13 +1666,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv12_body(dvc, next_duty)
     }
 
-    predicate inv13_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    predicate inv13(dvn: DVState)
     {
-       forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.attestation_duties_queue ::
+        is_sequence_attestation_duties_to_be_served_orders(dvn)
+    }
+
+    predicate inv14_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    {
+       forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties ::
             rcvd_duty.slot <= next_duty.slot        
     }
 
-    predicate inv13(dvn: DVState)
+    predicate inv14(dvn: DVState)
     {
         && var dvn_duty_queue := dvn.sequence_attestation_duties_to_be_served;
         && var dvn_index := dvn.index_next_attestation_duty_to_be_served;
@@ -1661,23 +1688,43 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::            
             && var dvc := dvn.honest_nodes_states[hn];
             && var next_duty := next_duty_and_node.attestation_duty;
-            && inv13_body(dvc, next_duty)
+            && inv14_body(dvc, next_duty)
     }
 
-    predicate inv14_body(dvc: DVCNodeState)
+    predicate inv15_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    {
+       forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.attestation_duties_queue ::
+            rcvd_duty.slot <= next_duty.slot        
+    }
+
+    predicate inv15(dvn: DVState)
+    {
+        && var dvn_duty_queue := dvn.sequence_attestation_duties_to_be_served;
+        && var dvn_index := dvn.index_next_attestation_duty_to_be_served;
+        && var next_duty_and_node := dvn_duty_queue[dvn_index];
+        && forall hn: BLSPubkey | 
+            && hn in dvn.honest_nodes_states.Keys
+            && hn == next_duty_and_node.node 
+            ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && var next_duty := next_duty_and_node.attestation_duty;
+            && inv15_body(dvc, next_duty)
+    }
+
+    predicate inv16_body(dvc: DVCNodeState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> |dvc.attestation_duties_queue| == 0
     }
 
-    predicate inv14(dvn: DVState)
+    predicate inv16(dvn: DVState)
     {
         forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
             && var dvc := dvn.honest_nodes_states[hn];
-            && inv14_body(dvc)
+            && inv16_body(dvc)
     }
 
-    predicate inv15_body(dvc: DVCNodeState)
+    predicate inv17_body(dvc: DVCNodeState)
     {
         && var queue := dvc.attestation_duties_queue;
         && ( forall k1: nat, k2: nat |
@@ -1689,12 +1736,33 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
            )
     }
 
-    predicate inv15(dvn: DVState)
+    predicate inv17(dvn: DVState)
     {
         forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
             && var dvc := dvn.honest_nodes_states[hn];
-            && inv15_body(dvc)
+            && inv17_body(dvc)
     }
+
+    predicate inv18_body(dvc: DVCNodeState)
+    {
+        && var queue := dvc.attestation_duties_queue;
+        && dvc.latest_attestation_duty.isPresent()
+        ==>
+        && ( forall k: nat |
+                &&  0 <= k
+                &&  k < |queue|                
+                ::
+                dvc.latest_attestation_duty.safe_get().slot <= queue[k].slot 
+           )
+    }
+
+    predicate inv18(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv18_body(dvc)
+    }
+
 
     predicate invNetwork(
         dvn: DVState
