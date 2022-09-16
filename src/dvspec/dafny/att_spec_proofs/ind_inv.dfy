@@ -5,7 +5,8 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
-include "dvn_next_inv.dfy"
+include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
+include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -17,7 +18,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Inv
+    import opened DVN_Next_Invs_1_7
+    import opened DVN_Next_Invs_8_18
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)

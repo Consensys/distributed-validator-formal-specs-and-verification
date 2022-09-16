@@ -53,7 +53,8 @@ module DVN_Init_Inv
     ensures inv13(dvn)        
     ensures inv16(dvn)    
     ensures inv17(dvn) 
-    ensures inv18(dvn)   
+    ensures inv18(dvn) 
+    ensures inv19(dvn)   
     {}  
     
 

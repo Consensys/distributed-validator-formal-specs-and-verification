@@ -1159,7 +1159,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             // Another invariant to prove the two following lines
             && vp in dvn.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]        
             && vp in hn_state.att_slashing_db_hist[s2].Keys   
-            && inv47_body(dvn, hn, s2) 
+            // && inv47_body(dvn, hn, s2) 
             && db2 == hn_state.att_slashing_db_hist[s2][vp]
             && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
             && dvn.consensus_on_attestation_data[s1].decided_value.isPresent()
@@ -1827,6 +1827,39 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv18_body(dvc)
     }
 
+    predicate inv19_body(dvc: DVCNodeState)
+    {
+        && var dvc_all_instances := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances;
+        && !dvc.latest_attestation_duty.isPresent()
+                ==> dvc_all_instances.Keys == {}
+    }
+
+    predicate inv19(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv19_body(dvc)
+    }
+
+    predicate inv20_body(dvc: DVCNodeState)
+    {
+        dvc.latest_attestation_duty.isPresent()
+        ==> 
+        ( && var dvc_all_instances := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances;
+          && forall k: Slot | k in dvc_all_instances.Keys ::
+                k <= dvc.latest_attestation_duty.safe_get().slot
+        )
+    }
+
+    
+
+
+    predicate inv20(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv20_body(dvc)
+    }
 
     predicate invNetwork(
         dvn: DVState

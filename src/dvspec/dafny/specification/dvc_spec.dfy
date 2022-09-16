@@ -144,12 +144,20 @@ module DVCNode_Spec {
                                 ];
 */
 
+
     function updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<SlashingDBAttestation>>>,
-        new_attestation_slashing_db: set<SlashingDBAttestation>,        
-        seq_of_duties: map<Slot, AttestationDuty>
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        all_rcvd_duties: set<AttestationDuty>        
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<SlashingDBAttestation>>>)
-    requires hist.Keys <= seq_of_duties.Keys
+    requires ( forall k: Slot | k in hist.Keys :: 
+                    exists duty: AttestationDuty | duty in all_rcvd_duties ::
+                        duty.slot == k )
+    requires ( forall ad1, ad2: AttestationDuty :: 
+                    && ad1 in all_rcvd_duties 
+                    && ad2 in all_rcvd_duties 
+                    && ad1.slot == ad2.slot
+                        ==> ad1 == ad2 )
     ensures new_hist.Keys <= hist.Keys
     {
             map k: Slot | k in hist.Keys
@@ -159,7 +167,7 @@ module DVCNode_Spec {
                             => consensus_is_valid_attestation_data(
                                     new_attestation_slashing_db, 
                                     ad,     
-                                    seq_of_duties[k])) 
+                                    get_attestation_duty_with_given_slot(all_rcvd_duties, k))) 
                                         := new_attestation_slashing_db                            
                     ]                 
     }
@@ -204,7 +212,6 @@ module DVCNode_Spec {
         rs: RSState,
         
         ghost all_rcvd_duties: set<AttestationDuty>,
-        ghost seq_of_att_duties: map<Slot, AttestationDuty>,
         ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<SlashingDBAttestation>>>
     )
 
@@ -262,8 +269,7 @@ module DVCNode_Spec {
             bn := s.bn,
             rs := getInitialRS(rs_pubkey),
             all_rcvd_duties := {},
-            att_slashing_db_hist := map[],
-            seq_of_att_duties := map[]
+            att_slashing_db_hist := map[]
         )
     }
 
@@ -335,21 +341,38 @@ module DVCNode_Spec {
         process: DVCNodeState,
         attestation_duty: AttestationDuty
     ): DVCNodeStateAndOuputs
-    // requires forall ad | ad in process.attestation_duties_queue + [attestation_duty] :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
-    requires process.att_slashing_db_hist.Keys <= process.seq_of_att_duties.Keys
+    // requires forall ad | ad in process.attestation_duties_queue + [attestation_duty] :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
+    requires ( forall k: Slot | k in process.att_slashing_db_hist.Keys :: 
+                    exists duty: AttestationDuty | duty in process.all_rcvd_duties ::
+                        duty.slot == k )
+    requires ( forall ad1, ad2: AttestationDuty :: 
+                    && ad1 in process.all_rcvd_duties 
+                    && ad2 in process.all_rcvd_duties 
+                    && ad1.slot == ad2.slot
+                        ==> ad1 == ad2 )
+    requires ( forall ad: AttestationDuty :: 
+                    && ad in process.all_rcvd_duties                     
+                    && ad.slot == attestation_duty.slot
+                        ==> ad == attestation_duty )
     {
         f_check_for_next_queued_duty(
             process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty},
-                seq_of_att_duties := process.seq_of_att_duties[attestation_duty.slot := attestation_duty]
+                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
             )
         )
     }    
 
     function f_check_for_next_queued_duty(process: DVCNodeState): DVCNodeStateAndOuputs
-    // requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-    requires process.att_slashing_db_hist.Keys <= process.seq_of_att_duties.Keys
+    // requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
+    requires ( forall k: Slot | k in process.att_slashing_db_hist.Keys :: 
+                    exists duty: AttestationDuty | duty in process.all_rcvd_duties ::
+                        duty.slot == k )
+    requires ( forall ad1, ad2: AttestationDuty :: 
+                    && ad1 in process.all_rcvd_duties 
+                    && ad2 in process.all_rcvd_duties 
+                    && ad1.slot == ad2.slot
+                        ==> ad1 == ad2 )
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -373,7 +396,7 @@ module DVCNode_Spec {
                         att_slashing_db_hist := updateAttSlashingDBHist(
                             process.att_slashing_db_hist,                             
                             new_attestation_slashing_db,
-                            process.seq_of_att_duties
+                            process.all_rcvd_duties                         
                         )                        
                     ))
                 else
@@ -444,8 +467,15 @@ module DVCNode_Spec {
         decided_attestation_data: AttestationData
     ): DVCNodeStateAndOuputs
     requires process.current_attestation_duty.isPresent()
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
-    requires process.att_slashing_db_hist.Keys == process.seq_of_att_duties.Keys
+    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
+    requires ( forall k: Slot | k in process.att_slashing_db_hist.Keys :: 
+                    exists duty: AttestationDuty | duty in process.all_rcvd_duties ::
+                        duty.slot == k )
+    requires ( forall ad1, ad2: AttestationDuty :: 
+                    && ad1 in process.all_rcvd_duties 
+                    && ad2 in process.all_rcvd_duties 
+                    && ad1.slot == ad2.slot
+                        ==> ad1 == ad2 )
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
@@ -635,8 +665,15 @@ module DVCNode_Spec {
                         && isMyAttestation(a2, process, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-    requires process.att_slashing_db_hist.Keys == process.seq_of_att_duties.Keys
+    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
+    requires ( forall k: Slot | k in process.att_slashing_db_hist.Keys :: 
+                    exists duty: AttestationDuty | duty in process.all_rcvd_duties ::
+                        duty.slot == k )
+    requires ( forall ad1, ad2: AttestationDuty :: 
+                    && ad1 in process.all_rcvd_duties 
+                    && ad2 in process.all_rcvd_duties 
+                    && ad1.slot == ad2.slot
+                        ==> ad1 == ad2 )
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
