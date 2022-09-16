@@ -40,14 +40,11 @@ module Core_Proofs
     requires && is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes_a')
              && m in h_nodes_a'             
     requires a.data.slot < a'.data.slot
-    requires inv48(dvn)
-    requires inv47(dvn)
     requires inv46_a(dvn)
     requires inv46_b(dvn)
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_ii(dvn)
     requires inv50(dvn)
-    requires inv49(dvn)
     requires inv51(dvn)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
@@ -172,12 +169,12 @@ module Core_Proofs
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
     requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
     requires a.data.slot < a'.data.slot 
-    requires inv48(dvn)
-    requires inv47(dvn)
+//     requires inv48(dvn)
+//     requires inv47(dvn)
     requires inv46_a(dvn)
     requires inv46_b(dvn)
     requires inv50(dvn)
-    requires inv49(dvn)
+//     requires inv49(dvn)
     requires inv51(dvn)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
@@ -254,12 +251,9 @@ module Core_Proofs
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
     requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
-    requires inv48(dvn)
-    requires inv47(dvn)
     requires inv46_a(dvn)
     requires inv46_b(dvn)
     requires inv50(dvn)
-    requires inv49(dvn)
     requires inv51(dvn)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)   
