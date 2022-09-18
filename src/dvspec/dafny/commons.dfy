@@ -612,6 +612,23 @@ module CommonFunctions{
 
         slashing_db_attestation
     }
+
+    // Given a set S of attestation and a slot s such that there exists only one attestation att 
+    // such that att.data.slot == s. 
+    // Returns att.
+    function method get_attestation_duty_with_given_slot(adSet: set<AttestationDuty>, s: Slot): AttestationDuty
+    requires exists duty: AttestationDuty :: duty in adSet && duty.slot == s
+    requires ( forall ad1, ad2: AttestationDuty :: 
+                    && ad1 in adSet 
+                    && ad2 in adSet 
+                    && ad1.slot == ad2.slot
+                        ==> ad1 == ad2 )
+    {
+        var ret_att_ad: AttestationDuty :| ret_att_ad in adSet && ret_att_ad.slot == s;
+
+        ret_att_ad
+    }
+
     // Given a set S of attestation and a slot s such that there exists only one attestation att 
     // such that att.data.slot == s. 
     // Returns att.

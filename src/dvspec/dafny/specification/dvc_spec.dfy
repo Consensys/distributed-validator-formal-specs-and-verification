@@ -69,13 +69,15 @@ module DVCNode_Spec {
     )
 
     datatype ConsensusEngineState = ConsensusEngineState(
-        attestation_consensus_active_instances: map<Slot, AttestationConsensusValidityCheckState>
+        attestation_consensus_active_instances: map<Slot, AttestationConsensusValidityCheckState>,
+        ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
     )
 
     function getInitialConensusEngineState(): ConsensusEngineState
     {
         ConsensusEngineState(
-            attestation_consensus_active_instances := map[]
+            attestation_consensus_active_instances := map[],
+            att_slashing_db_hist := map[]
         )
     }
 
@@ -96,7 +98,8 @@ module DVCNode_Spec {
         s.(
             attestation_consensus_active_instances := s.attestation_consensus_active_instances[
                 id := acvc
-            ]
+            ],
+            att_slashing_db_hist := s.att_slashing_db_hist[id := map[acvc.validityPredicate := {attestation_slashing_db}]]
         )
     }
 
@@ -129,17 +132,44 @@ module DVCNode_Spec {
                 )        
     }
 
+  
+    function updateAttSlashingDBHist(
+        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
+        new_attestation_consensus_active_instances : map<Slot, AttestationConsensusValidityCheckState>,
+        new_attestation_slashing_db: set<SlashingDBAttestation>
+    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
+    {
+            var ret 
+                := map k: Slot | k in (new_attestation_consensus_active_instances.Keys + hist.Keys)
+                    ::            
+                    if k in new_attestation_consensus_active_instances.Keys then 
+                        var vp := new_attestation_consensus_active_instances[k].validityPredicate;
+                        var hist_k := getOrDefault(hist, k, map[]);
+                        var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
+                        hist_k[
+                            vp := hist_k_vp
+                        ]
+                    else
+                        hist[k];
+            ret
+    }
+
     function updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (r: ConsensusEngineState)
     {
-        s.(
-            attestation_consensus_active_instances := 
-                updateConsensusInstanceValidityCheckHelper(
+        var new_attestation_consensus_active_instances := updateConsensusInstanceValidityCheckHelper(
                     s.attestation_consensus_active_instances,
                     new_attestation_slashing_db
-                )
+                );
+        s.(
+            attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+            att_slashing_db_hist := updateAttSlashingDBHist(
+                s.att_slashing_db_hist,
+                new_attestation_consensus_active_instances,
+                new_attestation_slashing_db
+            )
         )
     }
 
@@ -168,8 +198,7 @@ module DVCNode_Spec {
         bn: BNState,
         rs: RSState,
         
-        ghost all_rcvd_duties: set<AttestationDuty>,
-        ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<SlashingDBAttestation>>>
+        ghost all_rcvd_duties: set<AttestationDuty>
     )
 
     datatype Outputs = Outputs(
@@ -225,8 +254,7 @@ module DVCNode_Spec {
             future_att_consensus_instances_already_decided := map[],
             bn := s.bn,
             rs := getInitialRS(rs_pubkey),
-            all_rcvd_duties := {},
-            att_slashing_db_hist := map[]
+            all_rcvd_duties := {}
         )
     }
 

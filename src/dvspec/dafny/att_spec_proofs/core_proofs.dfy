@@ -43,9 +43,9 @@ module Core_Proofs
     requires inv46_a(dvn)
     requires inv46_b(dvn)
     requires pred_4_1_g_i(dvn)
-    requires pred_4_1_g_ii(dvn)
+    requires pred_4_1_g_iii(dvn)
     requires inv50(dvn)
-    requires inv51(dvn)
+    // requires inv51(dvn)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {        
@@ -64,12 +64,12 @@ module Core_Proofs
                                              && vpa'(consa'.decided_value.safe_get());
 
         assert inv46_b_body(dvn, m, sa', vpa');
-        assert vpa' in m_state.att_slashing_db_hist[sa'];
+        assert vpa' in m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'];
         
-        var dba': set<SlashingDBAttestation> := m_state.att_slashing_db_hist[sa'][vpa'];  
+        // var dba': set<SlashingDBAttestation> := m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'][vpa'];  
 
-        assert inv51_body(m_state, sa');
-        var duty: AttestationDuty :| duty in m_state.all_rcvd_duties && duty.slot == sa';
+        // assert inv51_body(m_state, sa');
+        var duty: AttestationDuty, dba' :| inv50_body(dvn, m, sa', dba', duty, vpa');
         
         assert inv50_body(dvn, m, sa', dba', duty, vpa');
         assert vpa' == (ad: AttestationData) => consensus_is_valid_attestation_data(dba', ad, duty);
@@ -163,7 +163,7 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
-    requires pred_4_1_g_ii(dvn)
+    requires pred_4_1_g_iii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -201,7 +201,7 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
-    requires pred_4_1_g_ii(dvn)
+    requires pred_4_1_g_iii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
@@ -246,7 +246,7 @@ module Core_Proofs
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
-    requires pred_4_1_g_ii(dvn)
+    requires pred_4_1_g_iii(dvn)
     requires hn in dvn.honest_nodes_states.Keys 
     requires hn' in dvn.honest_nodes_states.Keys
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
