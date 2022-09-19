@@ -2073,6 +2073,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv18_body(dvc)
     }
 
+    /*
     predicate inv19_body(dvc: DVCNodeState)
     {
         && var dvc_all_instances := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances;
@@ -2086,6 +2087,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var dvc := dvn.honest_nodes_states[hn];
             && inv19_body(dvc)
     }
+    
 
     predicate inv20_body(dvc: DVCNodeState)
     {
@@ -2096,16 +2098,14 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 k <= dvc.latest_attestation_duty.safe_get().slot
         )
     }
-
     
-
-
     predicate inv20(dvn: DVState)
     {
         forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
             && var dvc := dvn.honest_nodes_states[hn];
             && inv20_body(dvc)
     }
+    */
 
     predicate invNetwork(
         dvn: DVState
@@ -2158,4 +2158,53 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::
         inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(dvn, n)
     }    
+
+    predicate inv19(dvn: DVState)
+    {
+        /*
+        && ( forall k: nat | 0 <= k ::
+                dvn.sequence_attestation_duties_to_be_served[k].node 
+                    in dvn.honest_nodes_states.Keys
+           )
+           */
+        && ( forall k1: nat, k2: nat ::
+                && 0 <= k1
+                && k1 < k2
+                && dvn.sequence_attestation_duties_to_be_served[k1].node 
+                        in dvn.honest_nodes_states.Keys
+                && dvn.sequence_attestation_duties_to_be_served[k1].node 
+                        == dvn.sequence_attestation_duties_to_be_served[k2].node 
+                ==> 
+                && var duty1 := dvn.sequence_attestation_duties_to_be_served[k1].attestation_duty;
+                && var duty2 := dvn.sequence_attestation_duties_to_be_served[k2].attestation_duty;
+                && duty1.slot < duty2.slot
+           )
+    }
+
+    predicate inv20(dvn: DVState, dvn': DVState)
+    {
+        dvn.sequence_attestation_duties_to_be_served
+                == dvn'.sequence_attestation_duties_to_be_served
+    }
+
+    predicate inv21_body(dvc: DVCNodeState, duty: AttestationDuty)
+    {
+        duty in dvc.all_rcvd_duties
+    }
+
+
+    predicate inv21(dvn: DVState)
+    {
+        forall k: nat ::
+            && 0 <= k < dvn.index_next_attestation_duty_to_be_served
+            && dvn.sequence_attestation_duties_to_be_served[k].node in dvn.honest_nodes_states.Keys
+            ==> 
+            && var duty_and_node: AttestationDutyAndNode := dvn.sequence_attestation_duties_to_be_served[k];
+            && var duty := duty_and_node.attestation_duty;
+            && var hn := duty_and_node.node;
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv21_body(dvc, duty)
+    }
+
+    
 }

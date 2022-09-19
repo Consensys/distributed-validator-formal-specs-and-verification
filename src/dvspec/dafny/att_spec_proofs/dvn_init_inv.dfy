@@ -38,7 +38,7 @@ module DVN_Init_Inv
         }        
     }
 
-    lemma lemma_invs_1_to_15_dvn_init(dvn: DVState)       
+    lemma lemma_invs_1_to_21_dvn_init(dvn: DVState)       
     requires DV.Init(dvn, {})    
     ensures inv1(dvn)
     ensures inv2(dvn)
@@ -54,8 +54,10 @@ module DVN_Init_Inv
     ensures inv16(dvn)    
     ensures inv17(dvn) 
     ensures inv18(dvn) 
-    ensures inv19(dvn)   
-    {}  
+    ensures inv19(dvn)
+    ensures inv20(dvn)   
+    {} 
+
     
 
 

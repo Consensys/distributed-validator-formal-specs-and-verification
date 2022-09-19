@@ -25,8 +25,8 @@ module Incomplete_Proofs
     import opened DVN_Next_Invs_8_18
     import opened Fnc_Inv    
 
-    lemma {:axiom} axiom_inv19(dvc: DVCNodeState)    
-    ensures inv19_body(dvc)
+    lemma {:axiom} axiom_inv21(dvn: DVState)    
+    ensures inv21(dvn)
 
     
 

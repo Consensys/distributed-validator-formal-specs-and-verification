@@ -163,4 +163,12 @@ module Proofs_Intermediate_Steps
         }        
     }
     
+    lemma lemma_inv20_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')    
+    ensures inv20(dvn, dvn')            
+    { }
 }
