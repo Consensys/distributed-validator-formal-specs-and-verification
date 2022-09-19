@@ -41,7 +41,7 @@ module DVN_Next_Invs_1_7
     ensures inv3(dvn')
     { }    
 
-    // It takes more than 60 seconds to prove lemma_inv4_dvn_next.
+    // It takes more than 5 minutes to prove lemma_inv4_dvn_next.
     lemma lemma_inv4_dvn_next(
         dvn: DVState,
         event: DV.Event,

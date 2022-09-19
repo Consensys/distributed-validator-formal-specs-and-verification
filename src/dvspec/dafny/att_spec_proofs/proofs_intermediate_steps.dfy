@@ -95,7 +95,9 @@ module Proofs_Intermediate_Steps
         {
             var dvc := dvn.honest_nodes_states[hn];
 
-            assert inv4_body(dvn, hn, dvc);
+            assert inv4_body( hn, dvc.all_rcvd_duties, 
+                              dvn.sequence_attestation_duties_to_be_served, 
+                              dvn.index_next_attestation_duty_to_be_served);
 
 
             forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties
@@ -135,7 +137,9 @@ module Proofs_Intermediate_Steps
         {
             var dvc := dvn.honest_nodes_states[hn];
 
-            assert inv4_body(dvn, hn, dvc);
+            assert inv4_body(hn, dvc.all_rcvd_duties,
+                             dvn.sequence_attestation_duties_to_be_served,
+                             dvn.index_next_attestation_duty_to_be_served);
             assert inv5_body(dvc);
             assert inv14_body(dvc, next_duty);
 

@@ -18,6 +18,7 @@ module Fnc_Inv
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
 
+    
     lemma lemma_inv4_f_serve_attestation_duty(
         dvc: DVCNodeState,
         attestation_duty: AttestationDuty,
@@ -184,6 +185,16 @@ module Fnc_Inv
         else
         {}
     }   
+
+    lemma lemma_inv4_add_block_to_bn(
+        s: DVCNodeState,
+        block: BeaconBlock,
+        s': DVCNodeState 
+    )
+    requires add_block_to_bn.requires(s, block)
+    requires s' == add_block_to_bn(s, block)
+    requires s.all_rcvd_duties == s'.all_rcvd_duties
+    { } 
 
     lemma lemma_inv5_add_block_to_bn(
         s: DVCNodeState,

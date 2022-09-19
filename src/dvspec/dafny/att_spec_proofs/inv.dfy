@@ -1801,7 +1801,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && nodes.peers == dvn.all_nodes
     }
 
-    predicate inv4_body(dvn: DVState, n: BLSPubkey, dvc: DVCNodeState)    
+    predicate old_inv4_body(dvn: DVState, n: BLSPubkey, dvc: DVCNodeState)    
     requires n in dvn.honest_nodes_states.Keys
     requires dvc == dvn.honest_nodes_states[n]
     {
@@ -1812,11 +1812,37 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty == duty
     }
 
+    predicate old_inv4(dvn: DVState)
+    {
+        forall n: BLSPubkey | n in dvn.honest_nodes_states.Keys ::            
+            && var dvc := dvn.honest_nodes_states[n];
+            && old_inv4_body(dvn, n, dvc)
+    }
+
+
+    predicate inv4_body(
+        hn: BLSPubkey, 
+        all_rcvd_duties: set<AttestationDuty>, 
+        seq_att_duties: iseq<AttestationDutyAndNode>,
+        len: nat
+    )    
+    {
+        forall duty: AttestationDuty | duty in all_rcvd_duties ::
+            exists k: nat :: 
+                && 0 <= k < len
+                && seq_att_duties[k].node == hn
+                && seq_att_duties[k].attestation_duty == duty
+    }
+
     predicate inv4(dvn: DVState)
     {
         forall n: BLSPubkey | n in dvn.honest_nodes_states.Keys ::            
             && var dvc := dvn.honest_nodes_states[n];
-            && inv4_body(dvn, n, dvc)
+            && inv4_body(
+                    n, 
+                    dvc.all_rcvd_duties, 
+                    dvn.sequence_attestation_duties_to_be_served,
+                    dvn.index_next_attestation_duty_to_be_served)
     }
 
     predicate inv5_body(dvc: DVCNodeState)
