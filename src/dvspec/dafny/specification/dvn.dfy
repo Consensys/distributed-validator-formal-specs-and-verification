@@ -216,14 +216,13 @@ module DV
                 ::
                     s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot <= s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
         )
-        /*
-        && ( forall k1: nat, k2: nat :: 
-                s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
-                    == s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
-                ==> 
-                s.sequence_attestation_duties_to_be_served[k1].attestation_duty
-                    == s.sequence_attestation_duties_to_be_served[k2].attestation_duty
-           )
+        // && ( forall k1: nat, k2: nat :: 
+        //         s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
+        //             == s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
+        //         ==> 
+        //         s.sequence_attestation_duties_to_be_served[k1].attestation_duty
+        //             == s.sequence_attestation_duties_to_be_served[k2].attestation_duty
+        //    )
         && ( forall k1: nat, k2: nat :: 
                 && k1 < k2
                 && s.sequence_attestation_duties_to_be_served[k1].node 
@@ -232,7 +231,6 @@ module DV
                 s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
                     < s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
            )
-        */
     }
     
     predicate Next(
