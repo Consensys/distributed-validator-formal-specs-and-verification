@@ -87,7 +87,7 @@ module DVCNode_Spec {
         attestation_duty: AttestationDuty,
         attestation_slashing_db: set<SlashingDBAttestation>
     ): ConsensusEngineState
-    requires id !in s.attestation_consensus_active_instances.Keys
+    // requires id !in s.attestation_consensus_active_instances.Keys
     {
         var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
@@ -327,7 +327,7 @@ module DVCNode_Spec {
         process: DVCNodeState,
         attestation_duty: AttestationDuty
     ): DVCNodeStateAndOuputs
-    requires forall ad | ad in process.attestation_duties_queue + [attestation_duty] :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
+    // requires forall ad | ad in process.attestation_duties_queue + [attestation_duty] :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
     requires ( forall k: Slot | k in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys :: 
                     exists duty: AttestationDuty | duty in process.all_rcvd_duties ::
                         duty.slot == k )
@@ -350,7 +350,7 @@ module DVCNode_Spec {
     }    
 
     function f_check_for_next_queued_duty(process: DVCNodeState): DVCNodeStateAndOuputs
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
+    // requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -387,7 +387,7 @@ module DVCNode_Spec {
     }         
 
     function f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty): DVCNodeStateAndOuputs
-    requires attestation_duty.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+    // requires attestation_duty.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
     {
         var new_vp := (ad: AttestationData) 
                                         => consensus_is_valid_attestation_data(
@@ -396,8 +396,6 @@ module DVCNode_Spec {
                                                 attestation_duty);                
 
         var slot := attestation_duty.slot;
-
-
 
         DVCNodeStateAndOuputs(
             state :=  process.(

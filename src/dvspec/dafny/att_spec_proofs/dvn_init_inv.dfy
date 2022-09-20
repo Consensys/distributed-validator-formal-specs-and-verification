@@ -56,6 +56,9 @@ module DVN_Init_Inv
     ensures inv18(dvn) 
     ensures inv19(dvn)
     ensures inv20(dvn)   
+    ensures inv21(dvn)
+    ensures inv22(dvn)
+    ensures inv23(dvn)
     {} 
 
     

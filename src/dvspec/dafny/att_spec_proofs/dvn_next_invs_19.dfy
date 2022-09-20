@@ -134,6 +134,49 @@ module DVN_Next_Invs_19
         }        
     }   
     
-    
+    lemma lemma_inv22_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')  
+    requires inv22(dvn)  
+    ensures inv22(dvn')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];
+                
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>                                                                     
+                        lemma_inv22_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lemma_inv22_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_inv22_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                       
+                    case ImportedNewBlock(block) => 
+                        var dvc_mod := add_block_to_bn(dvc, block);
+                        lemma_inv22_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv22_body(dvc_mod);
+                        lemma_inv22_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv22_body(dvc');
+                    
+                    case ResendAttestationShares =>                                                                      
+
+                    case NoEvent => 
+                        
+                }
+                
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }   
+    } 
+
 }   
         

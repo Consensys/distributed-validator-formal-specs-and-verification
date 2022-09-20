@@ -1939,7 +1939,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv11_body(dvc: DVCNodeState, next_duty: AttestationDuty)
     {
         dvc.current_attestation_duty.isPresent()
-            ==> dvc.current_attestation_duty.safe_get().slot <= next_duty.slot        
+            ==> dvc.current_attestation_duty.safe_get().slot < next_duty.slot        
     }
 
     predicate inv11(dvn: DVState)
@@ -1984,7 +1984,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv14_body(dvc: DVCNodeState, next_duty: AttestationDuty)
     {
        forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties ::
-            rcvd_duty.slot <= next_duty.slot        
+            rcvd_duty.slot < next_duty.slot        
     }
 
     predicate inv14(dvn: DVState)
@@ -2004,7 +2004,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv15_body(dvc: DVCNodeState, next_duty: AttestationDuty)
     {
        forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.attestation_duties_queue ::
-            rcvd_duty.slot <= next_duty.slot        
+            rcvd_duty.slot < next_duty.slot        
     }
 
     predicate inv15(dvn: DVState)
@@ -2042,7 +2042,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 &&  k1 < k2
                 &&  k2 < |queue|
                 ::
-                    queue[k1].slot <= queue[k2].slot
+                    queue[k1].slot < queue[k2].slot
            )
     }
 
@@ -2192,7 +2192,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         duty in dvc.all_rcvd_duties
     }
 
-
     predicate inv21(dvn: DVState)
     {
         forall k: nat ::
@@ -2204,7 +2203,34 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var hn := duty_and_node.node;
             && var dvc := dvn.honest_nodes_states[hn];
             && inv21_body(dvc, duty)
+    }    
+
+    predicate inv22_body(dvc: DVCNodeState)
+    {
+        !dvc.latest_attestation_duty.isPresent()
+            ==> dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys == {}
     }
 
+    predicate inv22(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv22_body(dvc)
+    }
     
+    predicate inv23_body(dvc: DVCNodeState)
+    {
+        dvc.latest_attestation_duty.isPresent()
+        ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                ::
+                k <= dvc.latest_attestation_duty.safe_get().slot
+            )
+    }
+
+    predicate inv23(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv23_body(dvc)
+    }
 }
