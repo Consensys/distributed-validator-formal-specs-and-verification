@@ -1851,250 +1851,250 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // }
 
 
-    lemma lemma_pred_4_1_f_g_a(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )   
-    requires NextEvent(s, event, s') 
-    requires inv1(s)
-    requires inv2(s)
-    requires inv3(s)      
-    requires inv_g_a(s)  
-    // ensures pred_4_1_g_iii(s')      
-    {
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-                match nodeEvent
-                {
-                    case ServeAttstationDuty(attestation_duty) =>                        
+    // lemma lemma_pred_4_1_f_g_a(
+    //     s: DVState,
+    //     event: DV.Event,
+    //     s': DVState
+    // )   
+    // requires NextEvent(s, event, s') 
+    // requires inv1(s)
+    // requires inv2(s)
+    // requires inv3(s)      
+    // requires inv_g_a(s)  
+    // // ensures pred_4_1_g_iii(s')      
+    // {
+    //     match event 
+    //     {
+    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+    //             var s_node := s.honest_nodes_states[node];
+    //             var s'_node := s'.honest_nodes_states[node];
+    //             match nodeEvent
+    //             {
+    //                 case ServeAttstationDuty(attestation_duty) =>                        
                   
-                    case AttConsensusDecided(id, decided_attestation_data) =>                     
+    //                 case AttConsensusDecided(id, decided_attestation_data) =>                     
               
-                    case ReceviedAttesttionShare(attestation_share) =>   
+    //                 case ReceviedAttesttionShare(attestation_share) =>   
 
-                    case ImportedNewBlock(block) =>                      
+    //                 case ImportedNewBlock(block) =>                      
                
-                    case ResendAttestationShares => 
-                        // assert inv_g_a(s');
+    //                 case ResendAttestationShares => 
+    //                     // assert inv_g_a(s');
  
                    
-                    case NoEvent => 
-                        // assert inv_g_a(s');
+    //                 case NoEvent => 
+    //                     // assert inv_g_a(s');
 
-                }            
-
-
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                // assert inv_g_a(s');
-        }                
-    }
-
-    lemma lemma_pred_4_1_g_c_f_serve_attestation_duty(
-        process: DVCNodeState,
-        attestation_duty: AttestationDuty,
-        s': DVCNodeState,
-        dvn: DVState,
-        n: BLSPubkey,
-        index_next_attestation_duty_to_be_served: nat
-    )
-    requires f_serve_attestation_duty.requires(process, attestation_duty)
-    requires s' == f_serve_attestation_duty(process, attestation_duty).state   
-    requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_a_body_body(dvn, n, process)
-    requires inv_g_a_ii_body_body(dvn, n, process)
-    requires inv_g_a_iii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_d_body_body(dvn, n, process)   
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
-    {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
-
-        assert inv_g_c_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
-        assert inv_g_c_ii_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
-
-        if process.attestation_duties_queue != []
-        {
-            assert inv_g_a_ii_body_body(dvn, n, new_p);
-
-        }
-        else 
-        {
-            assume is_sequence_attestation_duties_to_be_served_orderd(dvn);
-            assert inv_g_a_ii_body_body(dvn, n, new_p);
-        }
-
-        // lemma_pred_4_1_g_c_f_g_for_dvc_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served+1);
-
-    } 
-
-    lemma lemma_pred_4_1_g_c_f_g_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        s': DVCNodeState,
-        dvn: DVState,
-        n: BLSPubkey,
-        index_next_attestation_duty_to_be_served: nat
-    )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state   
-    requires inv_g_a_body_body(dvn, n, process)
-    requires inv_g_a_ii_body_body(dvn, n, process)
-    requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_d_body_body(dvn, n, process)
-    requires (
-        process.latest_attestation_duty.isPresent() && !process.current_attestation_duty.isPresent()
-    ) ==> dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent()
-    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
-    requires inv_attestation_duty_queue_is_ordered_body_body(process)     
-    decreases process.attestation_duties_queue
-    {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
-        {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
-            {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
-
-                assert inv_g_c_body_body(dvn, n, s_mod, index_next_attestation_duty_to_be_served);
+    //             }            
 
 
-            }
-            else 
-            {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );                  
-                assert s'.latest_attestation_duty == Some( process.attestation_duties_queue[0]);
+    //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    //             // assert inv_g_a(s');
+    //     }                
+    // }
+
+    // lemma lemma_pred_4_1_g_c_f_serve_attestation_duty(
+    //     process: DVCNodeState,
+    //     attestation_duty: AttestationDuty,
+    //     s': DVCNodeState,
+    //     dvn: DVState,
+    //     n: BLSPubkey,
+    //     index_next_attestation_duty_to_be_served: nat
+    // )
+    // requires f_serve_attestation_duty.requires(process, attestation_duty)
+    // requires s' == f_serve_attestation_duty(process, attestation_duty).state   
+    // requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_a_body_body(dvn, n, process)
+    // requires inv_g_a_ii_body_body(dvn, n, process)
+    // requires inv_g_a_iii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_d_body_body(dvn, n, process)   
+    // requires 
+    //             var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served];
+    //             && an'.attestation_duty == attestation_duty
+    //             && an'.node == n
+    // {
+    //     var new_p := process.(
+    //             attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
+    //             all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
+    //     );
+
+    //     assert inv_g_c_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
+    //     assert inv_g_c_ii_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
+
+    //     if process.attestation_duties_queue != []
+    //     {
+    //         assert inv_g_a_ii_body_body(dvn, n, new_p);
+
+    //     }
+    //     else 
+    //     {
+    //         assume is_sequence_attestation_duties_to_be_served_orderd(dvn);
+    //         assert inv_g_a_ii_body_body(dvn, n, new_p);
+    //     }
+
+    //     // lemma_pred_4_1_g_c_f_g_for_dvc_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served+1);
+
+    // } 
+
+    // lemma lemma_pred_4_1_g_c_f_g_f_check_for_next_queued_duty(
+    //     process: DVCNodeState,
+    //     s': DVCNodeState,
+    //     dvn: DVState,
+    //     n: BLSPubkey,
+    //     index_next_attestation_duty_to_be_served: nat
+    // )
+    // requires f_check_for_next_queued_duty.requires(process)
+    // requires s' == f_check_for_next_queued_duty(process).state   
+    // requires inv_g_a_body_body(dvn, n, process)
+    // requires inv_g_a_ii_body_body(dvn, n, process)
+    // requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_d_body_body(dvn, n, process)
+    // requires (
+    //     process.latest_attestation_duty.isPresent() && !process.current_attestation_duty.isPresent()
+    // ) ==> dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent()
+    // requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
+    // requires inv_attestation_duty_queue_is_ordered_body_body(process)     
+    // decreases process.attestation_duties_queue
+    // {
+    //     if  && process.attestation_duties_queue != [] 
+    //         && (
+    //             || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+    //             || !process.current_attestation_duty.isPresent()
+    //         )    
+    //     {
+    //         if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+    //         {
+    //             var queue_head := process.attestation_duties_queue[0];
+    //             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
+    //             var s_mod := process.(
+    //                 attestation_duties_queue := process.attestation_duties_queue[1..],
+    //                 future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
+    //                 attestation_slashing_db := new_attestation_slashing_db,
+    //                 attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+    //                     process.attestation_consensus_engine_state,
+    //                     new_attestation_slashing_db
+    //                 )                        
+    //             );
+
+    //             assert inv_g_c_body_body(dvn, n, s_mod, index_next_attestation_duty_to_be_served);
+
+
+    //         }
+    //         else 
+    //         {
+    //             var new_process := process.(
+    //                 attestation_duties_queue := process.attestation_duties_queue[1..]
+    //             );                  
+    //             assert s'.latest_attestation_duty == Some( process.attestation_duties_queue[0]);
       
 
-                if process.latest_attestation_duty.isPresent()
-                {
-                    assert forall i | 0 <= i < |new_process.attestation_duties_queue| :: new_process.attestation_duties_queue[i].slot > process.attestation_duties_queue[0].slot;
+    //             if process.latest_attestation_duty.isPresent()
+    //             {
+    //                 assert forall i | 0 <= i < |new_process.attestation_duties_queue| :: new_process.attestation_duties_queue[i].slot > process.attestation_duties_queue[0].slot;
                         
-                    assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
+    //                 assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
 
-                    assert dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent();
+    //                 assert dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent();
 
-                    // forall an |
-                    //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
-                    //     && an.node == n 
-                    //     && an.attestation_duty.slot < s'.latest_attestation_duty.safe_get().slot  
-                    // {
-                    //     if an.attestation_duty.slot < process.latest_attestation_duty.safe_get().slot
-                    //     {
-                    //         assert && dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent();
-                    //     }
-                    //     // else if !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
-                    //     // {
-                    //     //     assert an.attestation_duty.slot == process.latest_attestation_duty.safe_get().slot;
-                    //     // }
+    //                 // forall an |
+    //                 //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
+    //                 //     && an.node == n 
+    //                 //     && an.attestation_duty.slot < s'.latest_attestation_duty.safe_get().slot  
+    //                 // {
+    //                 //     if an.attestation_duty.slot < process.latest_attestation_duty.safe_get().slot
+    //                 //     {
+    //                 //         assert && dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent();
+    //                 //     }
+    //                 //     // else if !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
+    //                 //     // {
+    //                 //     //     assert an.attestation_duty.slot == process.latest_attestation_duty.safe_get().slot;
+    //                 //     // }
 
-                    // }   
+    //                 // }   
 
-                    assert inv_g_a_body_body(dvn, n, s');               
-                }  
-                else 
-                {
-                    // assume forall i,j | 0 <= i < j < |process.attestation_duties_queue| :: process.attestation_duties_queue[i].slot <  process.attestation_duties_queue[j].slot;
+    //                 assert inv_g_a_body_body(dvn, n, s');               
+    //             }  
+    //             else 
+    //             {
+    //                 // assume forall i,j | 0 <= i < j < |process.attestation_duties_queue| :: process.attestation_duties_queue[i].slot <  process.attestation_duties_queue[j].slot;
 
-                    // assume forall i:nat |
-                    //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    //     && an.node == n 
-                    //     ::
-                    //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    //     process.attestation_duties_queue[0].slot <= an.attestation_duty.slot;
+    //                 // assume forall i:nat |
+    //                 //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 //     && an.node == n 
+    //                 //     ::
+    //                 //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 //     process.attestation_duties_queue[0].slot <= an.attestation_duty.slot;
 
-                    // forall i:nat  |
-                    //     && i < dvn.index_next_attestation_duty_to_be_served
-                    //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
-                    //     && an.node == n 
-                    //     && an.attestation_duty.slot > s'.latest_attestation_duty.safe_get().slot 
-                    //     && !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
-                    // {
-                    //     var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    // }
+    //                 // forall i:nat  |
+    //                 //     && i < dvn.index_next_attestation_duty_to_be_served
+    //                 //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
+    //                 //     && an.node == n 
+    //                 //     && an.attestation_duty.slot > s'.latest_attestation_duty.safe_get().slot 
+    //                 //     && !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
+    //                 // {
+    //                 //     var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 // }
 
-                    assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
-                } 
+    //                 assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
+    //             } 
                 
-            }
-        } 
-        else 
-        {
+    //         }
+    //     } 
+    //     else 
+    //     {
 
-        }       
-    }    
+    //     }       
+    // }    
 
-    lemma lemma_pred_4_1_g_c(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )   
-    requires NextEvent(s, event, s') 
-    requires inv1(s)
-    requires inv2(s)
-    requires inv3(s)      
-    requires inv_g_c(s)  
-    // ensures pred_4_1_g_iii(s')      
-    {
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-                match nodeEvent
-                {
-                    case ServeAttstationDuty(attestation_duty) =>         
-                        assert s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served + 1;  
-                        var an :=  s'.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
+    // lemma lemma_pred_4_1_g_c(
+    //     s: DVState,
+    //     event: DV.Event,
+    //     s': DVState
+    // )   
+    // requires NextEvent(s, event, s') 
+    // requires inv1(s)
+    // requires inv2(s)
+    // requires inv3(s)      
+    // requires inv_g_c(s)  
+    // // ensures pred_4_1_g_iii(s')      
+    // {
+    //     match event 
+    //     {
+    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+    //             var s_node := s.honest_nodes_states[node];
+    //             var s'_node := s'.honest_nodes_states[node];
+    //             match nodeEvent
+    //             {
+    //                 case ServeAttstationDuty(attestation_duty) =>         
+    //                     assert s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served + 1;  
+    //                     var an :=  s'.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
 
-                        assert attestation_duty == an.attestation_duty;  
-                        assert node == an.node;       
+    //                     assert attestation_duty == an.attestation_duty;  
+    //                     assert node == an.node;       
                   
-                    case AttConsensusDecided(id, decided_attestation_data) =>                     
+    //                 case AttConsensusDecided(id, decided_attestation_data) =>                     
               
-                    case ReceviedAttesttionShare(attestation_share) =>   
+    //                 case ReceviedAttesttionShare(attestation_share) =>   
 
-                    case ImportedNewBlock(block) =>                      
+    //                 case ImportedNewBlock(block) =>                      
                
-                    case ResendAttestationShares => 
-                        // assert inv_g_a(s');
+    //                 case ResendAttestationShares => 
+    //                     // assert inv_g_a(s');
  
                    
-                    case NoEvent => 
-                        // assert inv_g_a(s');
+    //                 case NoEvent => 
+    //                     // assert inv_g_a(s');
 
-                }            
+    //             }            
 
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                // assert inv_g_a(s');
-        }                
-    }  
+    //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    //             // assert inv_g_a(s');
+    //     }                
+    // }  
 
     lemma lemma_pred_4_1_g_iii_f_serve_attestation_duty(
         process: DVCNodeState,
