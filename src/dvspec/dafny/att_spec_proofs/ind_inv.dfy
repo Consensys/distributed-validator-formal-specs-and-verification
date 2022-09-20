@@ -252,6 +252,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires f_listen_for_attestation_shares.requires(s, attestation_share)
     requires s' == f_listen_for_attestation_shares(s, attestation_share).state    
     ensures s'.attestation_consensus_engine_state == s.attestation_consensus_engine_state
+    ensures s'.attestation_consensus_engine_state.att_slashing_db_hist == s.attestation_consensus_engine_state.att_slashing_db_hist
     {
 
     }
@@ -1422,6 +1423,147 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }
     }
 
+    lemma lemma_updateConsensusInstanceValidityCheckHelper(
+        m: map<Slot, AttestationConsensusValidityCheckState>,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        m': map<Slot, AttestationConsensusValidityCheckState>
+    )    
+    requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
+    ensures m.Keys == m'.Keys
+    ensures forall slot |
+                && slot in m'.Keys 
+                ::
+                var acvc := m'[slot];
+                && acvc.validityPredicate == ((ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty));
+  
+    {
+        forall k | k in  m 
+        ensures k in m'
+        {
+            lemmaMapKeysHasOneEntryInItems(m, k);
+            assert k in m';
+        }
+
+        assert m.Keys == m'.Keys;
+
+        assert forall slot |
+                && slot in m'.Keys 
+                ::
+                var acvc := m'[slot];
+                && acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty);
+
+    }    
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState
+    )    
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    ensures s'.attestation_consensus_active_instances.Keys == s.attestation_consensus_active_instances.Keys
+    ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;
+    // requires forall k | k in m :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
+    // ensures forall k | k in m' :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m'[k].attestation_duty, m'[k].validityPredicate)    
+    {
+        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;
+
+        assert forall slot, vp: AttestationData -> bool |
+                    && slot in s.att_slashing_db_hist.Keys 
+                    && vp in s.att_slashing_db_hist[slot].Keys
+                    ::
+                    && s.att_slashing_db_hist.Keys <= s'.att_slashing_db_hist.Keys
+                    && s.att_slashing_db_hist[slot].Keys <= s'.att_slashing_db_hist[slot].Keys
+                    && s.att_slashing_db_hist[slot][vp] <= s'.att_slashing_db_hist[slot][vp]
+        ;
+
+        assert forall slot |
+                    && slot in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s.att_slashing_db_hist.Keys
+                    && var vp := s'.attestation_consensus_active_instances[slot].validityPredicate;
+                    && vp in s.att_slashing_db_hist[slot].Keys
+                    ::
+                    var vp := s'.attestation_consensus_active_instances[slot].validityPredicate;
+                    s.att_slashing_db_hist[slot][vp] + {new_attestation_slashing_db} == s'.att_slashing_db_hist[slot][vp];      
+
+        assert forall slot, vp: AttestationData -> bool |
+                    && slot in s'.att_slashing_db_hist.Keys 
+                    && slot !in s.att_slashing_db_hist.Keys 
+                    && vp in s'.att_slashing_db_hist[slot].Keys
+                    ::
+                    && vp == s'.attestation_consensus_active_instances[slot].validityPredicate
+        ;      
+
+        assert forall slot, vp: AttestationData -> bool |
+                    && slot in s.att_slashing_db_hist.Keys 
+                    && vp in s'.att_slashing_db_hist[slot].Keys
+                    && vp !in s.att_slashing_db_hist[slot].Keys
+                    ::
+                    && s'.att_slashing_db_hist[slot][vp] == {new_attestation_slashing_db}
+        ;     
+                   
+    }   
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        slot: nat,
+        vp: AttestationData -> bool 
+    )    
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    requires 
+                    && slot in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s.att_slashing_db_hist.Keys
+                    && vp == s'.attestation_consensus_active_instances[slot].validityPredicate
+                    && vp in s.att_slashing_db_hist[slot].Keys  
+    ensures s.att_slashing_db_hist[slot][vp] + {new_attestation_slashing_db} == s'.att_slashing_db_hist[slot][vp];      
+    {
+        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+    }   
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        slot: nat,
+        vp: AttestationData -> bool 
+    )    
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    requires 
+                    && slot in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s.att_slashing_db_hist.Keys
+                    && vp != s'.attestation_consensus_active_instances[slot].validityPredicate
+                    && vp in s.att_slashing_db_hist[slot].Keys  
+    ensures s.att_slashing_db_hist[slot][vp] == s'.att_slashing_db_hist[slot][vp];      
+    {
+        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+    }      
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        slot: nat,
+        vp: AttestationData -> bool 
+    )    
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    requires 
+                    && slot !in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s.att_slashing_db_hist.Keys
+                    && vp in s.att_slashing_db_hist[slot].Keys  
+    ensures s.att_slashing_db_hist[slot][vp] == s'.att_slashing_db_hist[slot][vp];      
+    {
+        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+    }              
+
     lemma lemma_pred_4_1_f_g_for_dvc_f_serve_attestation_duty(
         process: DVCNodeState,
         attestation_duty: AttestationDuty,
@@ -1711,49 +1853,252 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // }
 
 
-    lemma lemma_pred_4_1_f_g_a(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )   
-    requires NextEvent(s, event, s') 
-    requires inv1(s)
-    requires inv2(s)
-    requires inv3(s)      
-    requires inv_g_a(s)  
-    // ensures pred_4_1_g_iii(s')      
-    {
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-                match nodeEvent
-                {
-                    case ServeAttstationDuty(attestation_duty) =>                        
+    // lemma lemma_pred_4_1_f_g_a(
+    //     s: DVState,
+    //     event: DV.Event,
+    //     s': DVState
+    // )   
+    // requires NextEvent(s, event, s') 
+    // requires inv1(s)
+    // requires inv2(s)
+    // requires inv3(s)      
+    // requires inv_g_a(s)  
+    // // ensures pred_4_1_g_iii(s')      
+    // {
+    //     match event 
+    //     {
+    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+    //             var s_node := s.honest_nodes_states[node];
+    //             var s'_node := s'.honest_nodes_states[node];
+    //             match nodeEvent
+    //             {
+    //                 case ServeAttstationDuty(attestation_duty) =>                        
                   
-                    case AttConsensusDecided(id, decided_attestation_data) =>                     
+    //                 case AttConsensusDecided(id, decided_attestation_data) =>                     
               
-                    case ReceviedAttesttionShare(attestation_share) =>   
+    //                 case ReceviedAttesttionShare(attestation_share) =>   
 
-                    case ImportedNewBlock(block) =>                      
+    //                 case ImportedNewBlock(block) =>                      
                
-                    case ResendAttestationShares => 
-                        // assert inv_g_a(s');
+    //                 case ResendAttestationShares => 
+    //                     // assert inv_g_a(s');
  
                    
-                    case NoEvent => 
-                        // assert inv_g_a(s');
+    //                 case NoEvent => 
+    //                     // assert inv_g_a(s');
 
-                }            
+    //             }            
 
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                // assert inv_g_a(s');
-        }                
-    }
+    //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    //             // assert inv_g_a(s');
+    //     }                
+    // }
 
-    lemma lemma_pred_4_1_g_c_f_serve_attestation_duty(
+    // lemma lemma_pred_4_1_g_c_f_serve_attestation_duty(
+    //     process: DVCNodeState,
+    //     attestation_duty: AttestationDuty,
+    //     s': DVCNodeState,
+    //     dvn: DVState,
+    //     n: BLSPubkey,
+    //     index_next_attestation_duty_to_be_served: nat
+    // )
+    // requires f_serve_attestation_duty.requires(process, attestation_duty)
+    // requires s' == f_serve_attestation_duty(process, attestation_duty).state   
+    // requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_a_body_body(dvn, n, process)
+    // requires inv_g_a_ii_body_body(dvn, n, process)
+    // requires inv_g_a_iii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_d_body_body(dvn, n, process)   
+    // requires 
+    //             var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served];
+    //             && an'.attestation_duty == attestation_duty
+    //             && an'.node == n
+    // {
+    //     var new_p := process.(
+    //             attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
+    //             all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
+    //     );
+
+    //     assert inv_g_c_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
+    //     assert inv_g_c_ii_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
+
+    //     if process.attestation_duties_queue != []
+    //     {
+    //         assert inv_g_a_ii_body_body(dvn, n, new_p);
+
+    //     }
+    //     else 
+    //     {
+    //         assume is_sequence_attestation_duties_to_be_served_orderd(dvn);
+    //         assert inv_g_a_ii_body_body(dvn, n, new_p);
+    //     }
+
+    //     // lemma_pred_4_1_g_c_f_g_for_dvc_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served+1);
+
+    // } 
+
+    // lemma lemma_pred_4_1_g_c_f_g_f_check_for_next_queued_duty(
+    //     process: DVCNodeState,
+    //     s': DVCNodeState,
+    //     dvn: DVState,
+    //     n: BLSPubkey,
+    //     index_next_attestation_duty_to_be_served: nat
+    // )
+    // requires f_check_for_next_queued_duty.requires(process)
+    // requires s' == f_check_for_next_queued_duty(process).state   
+    // requires inv_g_a_body_body(dvn, n, process)
+    // requires inv_g_a_ii_body_body(dvn, n, process)
+    // requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    // requires inv_g_d_body_body(dvn, n, process)
+    // requires (
+    //     process.latest_attestation_duty.isPresent() && !process.current_attestation_duty.isPresent()
+    // ) ==> dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent()
+    // requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
+    // requires inv_attestation_duty_queue_is_ordered_body_body(process)     
+    // decreases process.attestation_duties_queue
+    // {
+    //     if  && process.attestation_duties_queue != [] 
+    //         && (
+    //             || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+    //             || !process.current_attestation_duty.isPresent()
+    //         )    
+    //     {
+    //         if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+    //         {
+    //             var queue_head := process.attestation_duties_queue[0];
+    //             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
+    //             var s_mod := process.(
+    //                 attestation_duties_queue := process.attestation_duties_queue[1..],
+    //                 future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
+    //                 attestation_slashing_db := new_attestation_slashing_db,
+    //                 attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+    //                     process.attestation_consensus_engine_state,
+    //                     new_attestation_slashing_db
+    //                 )                        
+    //             );
+
+    //             assert inv_g_c_body_body(dvn, n, s_mod, index_next_attestation_duty_to_be_served);
+
+
+    //         }
+    //         else 
+    //         {
+    //             var new_process := process.(
+    //                 attestation_duties_queue := process.attestation_duties_queue[1..]
+    //             );                  
+    //             assert s'.latest_attestation_duty == Some( process.attestation_duties_queue[0]);
+      
+
+    //             if process.latest_attestation_duty.isPresent()
+    //             {
+    //                 assert forall i | 0 <= i < |new_process.attestation_duties_queue| :: new_process.attestation_duties_queue[i].slot > process.attestation_duties_queue[0].slot;
+                        
+    //                 assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
+
+    //                 assert dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent();
+
+    //                 // forall an |
+    //                 //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
+    //                 //     && an.node == n 
+    //                 //     && an.attestation_duty.slot < s'.latest_attestation_duty.safe_get().slot  
+    //                 // {
+    //                 //     if an.attestation_duty.slot < process.latest_attestation_duty.safe_get().slot
+    //                 //     {
+    //                 //         assert && dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent();
+    //                 //     }
+    //                 //     // else if !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
+    //                 //     // {
+    //                 //     //     assert an.attestation_duty.slot == process.latest_attestation_duty.safe_get().slot;
+    //                 //     // }
+
+    //                 // }   
+
+    //                 assert inv_g_a_body_body(dvn, n, s');               
+    //             }  
+    //             else 
+    //             {
+    //                 // assume forall i,j | 0 <= i < j < |process.attestation_duties_queue| :: process.attestation_duties_queue[i].slot <  process.attestation_duties_queue[j].slot;
+
+    //                 // assume forall i:nat |
+    //                 //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 //     && an.node == n 
+    //                 //     ::
+    //                 //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 //     process.attestation_duties_queue[0].slot <= an.attestation_duty.slot;
+
+    //                 // forall i:nat  |
+    //                 //     && i < dvn.index_next_attestation_duty_to_be_served
+    //                 //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
+    //                 //     && an.node == n 
+    //                 //     && an.attestation_duty.slot > s'.latest_attestation_duty.safe_get().slot 
+    //                 //     && !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
+    //                 // {
+    //                 //     var an := dvn.sequence_attestation_duties_to_be_served[i];
+    //                 // }
+
+    //                 assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
+    //             } 
+                
+    //         }
+    //     } 
+    //     else 
+    //     {
+
+    //     }       
+    // }    
+
+    // lemma lemma_pred_4_1_g_c(
+    //     s: DVState,
+    //     event: DV.Event,
+    //     s': DVState
+    // )   
+    // requires NextEvent(s, event, s') 
+    // requires inv1(s)
+    // requires inv2(s)
+    // requires inv3(s)      
+    // requires inv_g_c(s)  
+    // // ensures pred_4_1_g_iii(s')      
+    // {
+    //     match event 
+    //     {
+    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+    //             var s_node := s.honest_nodes_states[node];
+    //             var s'_node := s'.honest_nodes_states[node];
+    //             match nodeEvent
+    //             {
+    //                 case ServeAttstationDuty(attestation_duty) =>         
+    //                     assert s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served + 1;  
+    //                     var an :=  s'.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
+
+    //                     assert attestation_duty == an.attestation_duty;  
+    //                     assert node == an.node;       
+                  
+    //                 case AttConsensusDecided(id, decided_attestation_data) =>                     
+              
+    //                 case ReceviedAttesttionShare(attestation_share) =>   
+
+    //                 case ImportedNewBlock(block) =>                      
+               
+    //                 case ResendAttestationShares => 
+    //                     // assert inv_g_a(s');
+ 
+                   
+    //                 case NoEvent => 
+    //                     // assert inv_g_a(s');
+
+    //             }            
+
+
+    //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    //             // assert inv_g_a(s');
+    //     }                
+    // }  
+
+    lemma lemma_pred_4_1_g_iii_f_serve_attestation_duty(
         process: DVCNodeState,
         attestation_duty: AttestationDuty,
         s': DVCNodeState,
@@ -1763,201 +2108,410 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state   
-    requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_a_body_body(dvn, n, process)
-    requires inv_g_a_ii_body_body(dvn, n, process)
-    requires inv_g_a_iii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_d_body_body(dvn, n, process)   
+    requires index_next_attestation_duty_to_be_served > 0    
+    requires inv_g_iii_body_body(dvn, process)
+    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_g_iii_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_g_b_body_body_new(dvn, n, process)    
+    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
+    requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
+    requires inv_attestation_duty_queue_is_ordered_body_body(process) 
+    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)  
     requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served];
+                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
                 && an'.attestation_duty == attestation_duty
                 && an'.node == n
+    ensures inv_g_iii_body_body(dvn, s');  
     {
         var new_p := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
                 all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
         );
 
-        assert inv_g_c_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
-        assert inv_g_c_ii_body_body(dvn, n, new_p, index_next_attestation_duty_to_be_served+1);
-
         if process.attestation_duties_queue != []
         {
-            assert inv_g_a_ii_body_body(dvn, n, new_p);
-
+            assert inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(new_p);
+            assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
         }
         else 
         {
-            assume is_sequence_attestation_duties_to_be_served_orderd(dvn);
-            assert inv_g_a_ii_body_body(dvn, n, new_p);
+            assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
+            assert inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(new_p);
         }
 
-        // lemma_pred_4_1_g_c_f_g_for_dvc_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served+1);
+        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served);
 
-    } 
+    }     
 
-    lemma lemma_pred_4_1_g_c_f_g_f_check_for_next_queued_duty(
+    lemma lemma_pred_4_1_g_iii_f_att_consensus_decided(
         process: DVCNodeState,
+        id: Slot,
+        decided_attestation_data: AttestationData,        
         s': DVCNodeState,
         dvn: DVState,
         n: BLSPubkey,
-        index_next_attestation_duty_to_be_served: nat
+        index_next_attestation_duty_to_be_served: nat        
     )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state   
-    requires inv_g_a_body_body(dvn, n, process)
-    requires inv_g_a_ii_body_body(dvn, n, process)
-    requires inv_g_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_c_ii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_d_body_body(dvn, n, process)
-    requires (
-        process.latest_attestation_duty.isPresent() && !process.current_attestation_duty.isPresent()
-    ) ==> dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent()
-    decreases process.attestation_duties_queue
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
+    requires inv_g_iii_body_body(dvn, process)
+    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_b_body_body_new(dvn, n, process)    
+    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
+    requires inv_attestation_duty_queue_is_ordered_body_body(process) 
+    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
+    requires dvn.consensus_on_attestation_data[id].decided_value.isPresent()
+    requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data
+    requires pred_inv_current_latest_attestation_duty_match_body_body(process)
+    ensures inv_g_iii_body_body(dvn, s');  
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        // TODO: Remove below by changing spec
+        assume id == process.current_attestation_duty.safe_get().slot;        
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+
+        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+        var attestation_with_signature_share := AttestationShare(
+                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                data := decided_attestation_data, 
+                signature := attestation_signature_share
+            ); 
+
+        var s_mod := 
+            process.(
+                current_attestation_duty := None,
+                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                attestation_slashing_db := attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    attestation_slashing_db
+                )
+            );
+
+        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+            process.attestation_consensus_engine_state,
+            attestation_slashing_db,
+            s_mod.attestation_consensus_engine_state
+        );           
+
+        // assert inv_g_b_body_body_new(dvn, n, s_mod);   
+        forall s1: nat, s2: nat, vp, db2 |
+            && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+            && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+            && s1 < s2       
+            && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
+            && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
+        ensures inv_g_iii_body_body_body(dvn, s1, db2)
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+            assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                    || s2 in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+            assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+            assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+            assert dvn.consensus_on_attestation_data[s1].decided_value.isPresent();
+            var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+            var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
+
+            assert 
+                && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
+                && db2 in process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
+                ==>
+                inv_g_iii_body_body_body(dvn, s1, db2);   
+
+            if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
             {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
-
-                assert inv_g_c_body_body(dvn, n, s_mod, index_next_attestation_duty_to_be_served);
-
-
+                assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {attestation_slashing_db};
+                assert sdba in db2;
             }
             else 
             {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );                  
-                assert s'.latest_attestation_duty == Some( process.attestation_duties_queue[0]);
-      
-
-                if process.latest_attestation_duty.isPresent()
+                if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
                 {
-                    assume process.attestation_duties_queue[0].slot > process.latest_attestation_duty.safe_get().slot;       
-                    assume forall i,j | 0 <= i < j < |process.attestation_duties_queue| :: process.attestation_duties_queue[i].slot <  process.attestation_duties_queue[j].slot;
-
-                    assert forall i | 0 <= i < |new_process.attestation_duties_queue| :: new_process.attestation_duties_queue[i].slot > process.attestation_duties_queue[0].slot;
-                        
-                    assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
-
-                    assert dvn.consensus_on_attestation_data[process.latest_attestation_duty.safe_get().slot].decided_value.isPresent();
-
-                    // forall an |
-                    //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
-                    //     && an.node == n 
-                    //     && an.attestation_duty.slot < s'.latest_attestation_duty.safe_get().slot  
-                    // {
-                    //     if an.attestation_duty.slot < process.latest_attestation_duty.safe_get().slot
-                    //     {
-                    //         assert && dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent();
-                    //     }
-                    //     // else if !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
-                    //     // {
-                    //     //     assert an.attestation_duty.slot == process.latest_attestation_duty.safe_get().slot;
-                    //     // }
-
-                    // }   
-
-                    assert inv_g_a_body_body(dvn, n, s');               
-                }  
+                    if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                    {
+                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                            process.attestation_consensus_engine_state,
+                            attestation_slashing_db,
+                            s_mod.attestation_consensus_engine_state,
+                            s2,
+                            vp
+                        );
+                        assert sdba in db2;
+                    }
+                    else 
+                    {
+                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                            process.attestation_consensus_engine_state,
+                            attestation_slashing_db,
+                            s_mod.attestation_consensus_engine_state,
+                            s2,
+                            vp
+                        );
+                        assert sdba in db2;
+                    }
+                }
                 else 
                 {
-                    // assume forall i,j | 0 <= i < j < |process.attestation_duties_queue| :: process.attestation_duties_queue[i].slot <  process.attestation_duties_queue[j].slot;
-
-                    // assume forall i:nat |
-                    //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    //     && an.node == n 
-                    //     ::
-                    //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    //     process.attestation_duties_queue[0].slot <= an.attestation_duty.slot;
-
-                    // forall i:nat  |
-                    //     && i < dvn.index_next_attestation_duty_to_be_served
-                    //     && var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    //     && an in dvn.sequence_attestation_duties_to_be_served.Values 
-                    //     && an.node == n 
-                    //     && an.attestation_duty.slot > s'.latest_attestation_duty.safe_get().slot 
-                    //     && !dvn.consensus_on_attestation_data[an.attestation_duty.slot].decided_value.isPresent()
-                    // {
-                    //     var an := dvn.sequence_attestation_duties_to_be_served[i];
-                    // }
-
-                    assert inv_g_c_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
-                } 
-                
+                    lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                        process.attestation_consensus_engine_state,
+                        attestation_slashing_db,
+                        s_mod.attestation_consensus_engine_state,
+                        s2,
+                        vp
+                    );
+                    assert sdba in db2;
+                }
             }
-        } 
-        else 
-        {
+            assert sdba in db2;
+            assert  inv_g_iii_body_body_body(dvn, s1, db2);
+        }    
 
-        }       
-    }    
+        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);             
+    }  
 
-    lemma lemma_pred_4_1_g_c(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )   
-    requires NextEvent(s, event, s') 
-    requires inv1(s)
-    requires inv2(s)
-    requires inv3(s)      
-    requires inv_g_c(s)  
-    // ensures pred_4_1_g_iii(s')      
+    lemma lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
+        process: DVCNodeState,
+        block: BeaconBlock,
+        s': DVCNodeState,
+        dvn: DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat        
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires s' == f_listen_for_new_imported_blocks(process, block).state       
+    requires inv_g_iii_body_body(dvn, process)
+    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_b_body_body_new(dvn, n, process)    
+    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
+    requires inv_attestation_duty_queue_is_ordered_body_body(process) 
+    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
+    requires inv_g_d_a_body_body(dvn, n, process)  
+    requires inv_g_d_b_body_body(dvn, n, process)   
+    requires pred_inv_current_latest_attestation_duty_match_body_body(process)
+    requires pred_4_1_b(dvn)
+    requires pred_4_1_c(dvn)
+    ensures inv_g_iii_body_body(dvn, s');  
     {
-        match event 
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var future_att_consensus_instances_already_decided := 
+            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
+
+        var new_process :=
+                process.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
+                );                     
+
+        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
         {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-                match nodeEvent
+            // Stop(current_attestation_duty.safe_get().slot);
+            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
+            var s_mod := new_process.(
+                current_attestation_duty := None,
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    new_process.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                
+            );
+
+            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+                new_process.attestation_consensus_engine_state,
+                new_attestation_slashing_db,
+                s_mod.attestation_consensus_engine_state
+            );    
+
+            assert att_consensus_instances_already_decided == process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+            if decided_attestation_data in new_consensus_instances_already_decided.Values
+            {
+                forall an |
+                    && an in dvn.sequence_attestation_duties_to_be_served.Values 
+                    && an.node == n 
+                    && an.attestation_duty.slot < get_upperlimit_decided_instances(s_mod)
+                ensures 
+                    var slot := an.attestation_duty.slot;
+                    && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                    && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db                    
                 {
-                    case ServeAttstationDuty(attestation_duty) =>         
-                        assert s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served + 1;  
-                        var an :=  s'.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
+                    if an.attestation_duty.slot < s_mod.latest_attestation_duty.safe_get().slot 
+                    {
+                        var slot := an.attestation_duty.slot;
+                        assert
+                        && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                        && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                        ;
+                    }
+                    else 
+                    {
+                        // assert an.attestation_duty == de
+                        assert an.attestation_duty.slot == s_mod.latest_attestation_duty.safe_get().slot;
 
-                        assert attestation_duty == an.attestation_duty;  
-                        assert node == an.node;       
-                  
-                    case AttConsensusDecided(id, decided_attestation_data) =>                     
-              
-                    case ReceviedAttesttionShare(attestation_share) =>   
+                        var slot := an.attestation_duty.slot;
+                        assert slot == decided_attestation_data.slot;
 
-                    case ImportedNewBlock(block) =>                      
-               
-                    case ResendAttestationShares => 
-                        // assert inv_g_a(s');
- 
-                   
-                    case NoEvent => 
-                        // assert inv_g_a(s');
+                        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
 
-                }            
+                        var a :| 
+                            && a in block.body.attestations
+                            && isMyAttestation(a, process, block, valIndex)
+                            && a.data == decided_attestation_data
+                        ;
 
+                        var an :| assume
+                            && an in dvn.honest_nodes_states.Keys 
+                            && a in dvn.honest_nodes_states[an].bn.attestations_submitted
+                            
+                            ;
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                // assert inv_g_a(s');
-        }                
-    }    
+                        var hn', att_share: AttestationShare :| pred_4_1_b_exists(dvn, hn', att_share, a);
 
-    lemma lemma_pred_4_1_g_c_f_g_iii_a_f_check_for_next_queued_duty(
+                        assert
+                        && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
+                        && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;
+
+                        // assert slot in process.future_att_consensus_instances_already_decided;
+                        assert
+                        && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                        && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                        ;                        
+                    }
+                } 
+                assert inv_g_b_body_body_new(dvn, n, s_mod);                   
+            }
+            else 
+            {
+                assert decided_attestation_data in process.future_att_consensus_instances_already_decided.Values;
+
+                assert decided_attestation_data == process.future_att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+
+                forall an |
+                    && an in dvn.sequence_attestation_duties_to_be_served.Values 
+                    && an.node == n 
+                    && an.attestation_duty.slot < get_upperlimit_decided_instances(s_mod)
+                ensures 
+                    var slot := an.attestation_duty.slot;
+                    && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                    && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                    ;                      
+                {
+                    if an.attestation_duty.slot < s_mod.latest_attestation_duty.safe_get().slot 
+                    {
+                        var slot := an.attestation_duty.slot;
+                        assert
+                        && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                        && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                        ;
+                    }
+                    else 
+                    {
+                        assert an.attestation_duty.slot == s_mod.latest_attestation_duty.safe_get().slot;
+
+                        var slot := an.attestation_duty.slot;
+                        assert slot in process.future_att_consensus_instances_already_decided;
+                        assert
+                        && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                        && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                        ;                        
+                    }
+                }
+
+                assert inv_g_b_body_body_new(dvn, n, s_mod);
+            }
+
+            forall s1: nat, s2: nat, vp, db2 |
+                && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+                && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+                && s1 < s2       
+                && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
+                && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
+            ensures inv_g_iii_body_body_body(dvn, s1, db2)
+            {
+                assert  || s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                        || s2 in new_process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                assert s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s1 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+                assert dvn.consensus_on_attestation_data[s1].decided_value.isPresent();
+                var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+                var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
+
+                assert 
+                    && vp in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
+                    && db2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
+                    ==>
+                    inv_g_iii_body_body_body(dvn, s1, db2);   
+
+                if vp !in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
+                {
+                    assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                    assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {new_attestation_slashing_db};
+                    assert sdba in db2;
+                }
+                else 
+                {
+                    if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                    {
+                        if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                        {
+                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                                new_process.attestation_consensus_engine_state,
+                                new_attestation_slashing_db,
+                                s_mod.attestation_consensus_engine_state,
+                                s2,
+                                vp
+                            );
+                            assert sdba in db2;
+                        }
+                        else 
+                        {
+                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                                new_process.attestation_consensus_engine_state,
+                                new_attestation_slashing_db,
+                                s_mod.attestation_consensus_engine_state,
+                                s2,
+                                vp
+                            );
+                            assert sdba in db2;
+                        }
+                    }
+                    else 
+                    {
+                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                            new_process.attestation_consensus_engine_state,
+                            new_attestation_slashing_db,
+                            s_mod.attestation_consensus_engine_state,
+                            s2,
+                            vp
+                        );
+                        assert sdba in db2;
+                    }
+                }
+                assert sdba in db2;
+                assert  inv_g_iii_body_body_body(dvn, s1, db2);
+            }                
+
+            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);                    
+        }        
+    }      
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(
         process: DVCNodeState,
         s': DVCNodeState,
         dvn: DVState,
@@ -1968,6 +2522,12 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires s' == f_check_for_next_queued_duty(process).state   
     requires inv_g_iii_body_body(dvn, process)
     requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_b_body_body_new(dvn, n, process)    
+    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
+    requires inv_attestation_duty_queue_is_ordered_body_body(process) 
+    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
+    ensures inv_g_iii_body_body(dvn, s');  
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -1990,7 +2550,91 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     )                        
                 );
 
+                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    new_attestation_slashing_db,
+                    s_mod.attestation_consensus_engine_state
+                );
 
+                // assert 
+
+                forall s1: nat, s2: nat, vp, db2 |
+                    && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+                    && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+                    && s1 < s2       
+                    && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
+                    && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
+                ensures inv_g_iii_body_body_body(dvn, s1, db2)
+                {
+                    assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                            || s2 in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                    assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                    assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+                    assert dvn.consensus_on_attestation_data[s1].decided_value.isPresent();
+                    var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+                    var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
+
+                    assert 
+                        && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
+                        && db2 in process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
+                        ==>
+                        inv_g_iii_body_body_body(dvn, s1, db2);   
+
+                    if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
+                    {
+                        assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                        assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {new_attestation_slashing_db};
+                        assert sdba in db2;
+                    }
+                    else 
+                    {
+                        if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                        {
+                            if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                            {
+                                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                                    process.attestation_consensus_engine_state,
+                                    new_attestation_slashing_db,
+                                    s_mod.attestation_consensus_engine_state,
+                                    s2,
+                                    vp
+                                );
+                                assert sdba in db2;
+                            }
+                            else 
+                            {
+                                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                                    process.attestation_consensus_engine_state,
+                                    new_attestation_slashing_db,
+                                    s_mod.attestation_consensus_engine_state,
+                                    s2,
+                                    vp
+                                );
+                                assert sdba in db2;
+                            }
+                        }
+                        else 
+                        {
+                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                                process.attestation_consensus_engine_state,
+                                new_attestation_slashing_db,
+                                s_mod.attestation_consensus_engine_state,
+                                s2,
+                                vp
+                            );
+                            assert sdba in db2;
+                        }
+                    }
+                    assert sdba in db2;
+                    assert  inv_g_iii_body_body_body(dvn, s1, db2);
+                }                       
+
+                assert inv_g_iii_body_body(dvn, s_mod); 
+
+                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);
+
+                assert inv_g_iii_body_body(dvn, s');
 
             }
             else 
@@ -2000,40 +2644,470 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 );                  
                 assert s'.latest_attestation_duty == Some( process.attestation_duties_queue[0]);
 
-                forall s1: nat, s2: nat, vp |
-                    && s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                    && s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
-                    && s1 < s2       
-                    && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys     
-                {
-                    var s1i: nat :|
-                        && s1i < index_next_attestation_duty_to_be_served
-                        && var an := dvn.sequence_attestation_duties_to_be_served[s1i];
-                        && an.attestation_duty.slot == s1 
-                        && an.node == n;
-
-                    var s2i: nat :|
-                        && s2i < index_next_attestation_duty_to_be_served
-                        && var an := dvn.sequence_attestation_duties_to_be_served[s2i];
-                        && an.attestation_duty.slot == s1 
-                        && an.node == n;                        
-                } 
       
 
                 if process.latest_attestation_duty.isPresent()
                 {
-             
+                    assert inv_g_iii_body_body(dvn, s');           
                 }  
                 else 
                 {
-
+                    assert inv_g_iii_body_body(dvn, s');
                 } 
                 
             }
         } 
         else 
         {
-
+            assert inv_g_iii_body_body(dvn, s');
         }       
-    }       
+    }  
+
+    lemma lemma_pred_4_1_g_iii_helper(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires pred_4_1_g_iii(s)
+    requires invNetwork(s)
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)
+    ensures forall ci: nat ::
+            var s_consensus := s.consensus_on_attestation_data[ci];
+            var s'_consensus := s.consensus_on_attestation_data[ci];
+            && (s_consensus.decided_value.isPresent() ==> s'_consensus.decided_value.isPresent())
+            && (s_consensus.decided_value.isPresent() ==> 
+                    s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get())     
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                forall ci: nat 
+                ensures var s_consensus := s.consensus_on_attestation_data[ci];
+                        var s'_consensus := s.consensus_on_attestation_data[ci];
+                        && (s_consensus.decided_value.isPresent() ==> s'_consensus.decided_value.isPresent())
+                        && (s_consensus.decided_value.isPresent() ==> 
+                                s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get())               
+                {
+                    var s_consensus := s.consensus_on_attestation_data[ci];
+                    var s'_consensus := s.consensus_on_attestation_data[ci];
+                    assert isConditionForSafetyTrue(s_consensus);
+
+                    assert s_consensus.decided_value.isPresent() ==> s'_consensus.decided_value.isPresent();
+                    assert s_consensus.decided_value.isPresent() ==> 
+                                s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get();
+                    
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+
+        }        
+    }
+
+    lemma lemma_pred_4_1_g_iii_helper2(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        ci: nat
+    )
+    requires NextEvent(s, event, s')
+    requires pred_4_1_g_iii(s)
+    requires invNetwork(s)
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)
+    requires s.consensus_on_attestation_data[ci].decided_value.isPresent()
+    ensures 
+            var s_consensus := s.consensus_on_attestation_data[ci];
+            var s'_consensus := s.consensus_on_attestation_data[ci];
+            && (s'_consensus.decided_value.isPresent())
+            && (s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get())     
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+
+                    var s_consensus := s.consensus_on_attestation_data[ci];
+                    var s'_consensus := s.consensus_on_attestation_data[ci];
+                    assert isConditionForSafetyTrue(s_consensus);
+
+                    // assert s_consensus.decided_value.isPresent() ==> s'_consensus.decided_value.isPresent();
+                    // assert s_consensus.decided_value.isPresent() ==> 
+                    //             s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get();
+
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+
+        }        
+    }    
+
+    lemma lemma_pred_4_1_g_iii_helper3(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        s_node: DVCNodeState
+    )
+    requires inv_g_iii_body_body(s, s_node)
+    requires NextEvent(s, event, s')
+    requires pred_4_1_g_iii(s)
+    requires invNetwork(s)
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)  
+    ensures inv_g_iii_body_body(s', s_node)  
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        forall s1: nat, s2: nat, vp, db2 |
+            && s1 in s_node.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+            && s2 in s_node.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+            && s1 < s2       
+            && vp in s_node.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
+            && db2 in s_node.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]           
+        ensures inv_g_iii_body_body_body(s', s1, db2);
+        {
+            assert inv_g_iii_body_body_body(s, s1, db2);
+            lemma_pred_4_1_g_iii_helper2(s, event, s', s1);
+            // assert s.consensus_on_attestation_data[s1].decided_value.isPresent();
+            assert s'.consensus_on_attestation_data[s1].decided_value.isPresent();
+            assert inv_g_iii_body_body_body(s', s1, db2);
+        }           
+        
+    }     
+
+    lemma lemma_pred_4_1_g_iii_helper3a(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        s_node: DVCNodeState,
+        n: BLSPubkey
+    )
+    requires inv_g_b_body_body_new(s, n, s_node)
+    requires NextEvent(s, event, s')
+    requires pred_4_1_g_iii(s)
+    requires invNetwork(s)
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)  
+    ensures inv_g_b_body_body_new(s', n, s_node)  
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        forall an |
+            && an in s'.sequence_attestation_duties_to_be_served.Values 
+            && an.node == n 
+            && an.attestation_duty.slot < get_upperlimit_decided_instances(s_node)    
+        ensures 
+                var slot := an.attestation_duty.slot;
+                && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(s'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_node.attestation_slashing_db
+                                           
+        // ensures inv_g_iii_body_body_body(s', s1, db2);
+        {
+            var slot := an.attestation_duty.slot;
+            lemma_pred_4_1_g_iii_helper2(s, event, s', slot);
+
+            assert
+                && s.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(s.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_node.attestation_slashing_db
+                ;                        
+
+            assert
+                && s'.consensus_on_attestation_data[slot].decided_value.isPresent();
+            assert
+                && construct_SlashingDBAttestation_from_att_data(s'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_node.attestation_slashing_db
+                ;            
+        }           
+        
+    }     
+
+
+    lemma lemma_pred_4_1_g_iii_helper3c(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        s_node: DVCNodeState,
+        n: BLSPubkey
+    )
+    requires inv_g_d_a_body_body(s, n, s_node)
+    requires NextEvent(s, event, s')
+    requires pred_4_1_g_iii(s)
+    requires invNetwork(s)
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)  
+    ensures inv_g_d_a_body_body(s', n, s_node)  
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        forall slot |
+            && slot in s_node.future_att_consensus_instances_already_decided
+        ensures
+            && s'.consensus_on_attestation_data[slot].decided_value.isPresent();
+        ensures
+            && s_node.future_att_consensus_instances_already_decided[slot] == s'.consensus_on_attestation_data[slot].decided_value.safe_get()
+            ;                
+        {
+            lemma_pred_4_1_g_iii_helper2(s, event, s', slot);
+
+            assert
+                && s.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && s_node.future_att_consensus_instances_already_decided[slot] == s.consensus_on_attestation_data[slot].decided_value.safe_get()
+                ;                        
+
+            assert
+                && s'.consensus_on_attestation_data[slot].decided_value.isPresent();
+            assert
+                && s_node.future_att_consensus_instances_already_decided[slot] == s'.consensus_on_attestation_data[slot].decided_value.safe_get()
+                ;                       
+        }           
+        
+    }             
+
+    lemma lemma_pred_4_1_g_iii_helper4(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        s_node: DVCNodeState,
+        n: BLSPubkey
+    )
+    requires NextEvent(s, event, s')    
+    requires inv_g_iii_a_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_a_body_body(s, n, s_node)
+    requires inv_g_iii_b_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_c_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
+    requires inv_g_d_b_body_body(s, n, s_node)
+
+
+    ensures inv_g_iii_a_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
+    ensures inv_g_iii_a_a_body_body(s', n, s_node)
+    ensures inv_g_iii_b_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
+    ensures inv_g_iii_c_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)    
+    ensures inv_g_d_b_body_body(s', n, s_node)    
+
+
+    // requires pred_4_1_g_iii(s)
+    // requires invNetwork(s)
+    // requires inv1(s)
+    // requires inv3(s)
+    // requires inv53(s)  
+    // ensures inv_g_iii_body_body(s', s_node)  
+    {
+        assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;
+
+        assert inv_g_iii_a_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
+        assert inv_g_iii_a_a_body_body(s', n, s_node);
+        assert inv_g_iii_b_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
+        assert inv_g_iii_c_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
+
+        
+    }      
+
+    lemma lemma_pred_4_1_g_iii_helper5(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.AttConsensusDecided?
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)    
+    ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
+    ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
+    {
+    }    
+
+    lemma lemma_pred_4_1_g_iii_helper6(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.AttConsensusDecided?
+    requires inv1(s)
+    requires inv3(s)
+    requires inv53(s)    
+    ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
+    ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
+    {
+    }    
+
+    predicate lemma_pred_4_1_g_iii_precond(
+        s: DVState     
+    ) 
+    {
+        && pred_4_1_g_iii(s)
+        && construct_signed_attestation_signature_assumptions_helper(
+            s.construct_signed_attestation_signature,
+            s.dv_pubkey,
+            s.all_nodes
+        )
+        && invNetwork(s)
+        && inv1(s)
+        && inv2(s)
+        && inv3(s)
+        && inv53(s)
+        && pred_4_1_g_iii_a(s)
+        && pred_4_1_g_iii_a_a(s)
+        && pred_4_1_g_iii_b(s)
+        && pred_4_1_g_iii_c(s)
+        && pred_4_1_g_b_new(s)
+        && inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s) 
+        && is_sequence_attestation_duties_to_be_served_orderd(s)
+        && inv_attestation_duty_queue_is_ordered(s) 
+        && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)      
+        && pred_inv_current_latest_attestation_duty_match(s)
+        && pred_4_1_b(s)
+        && pred_4_1_c(s)
+        && pred_4_1_f_a(s)  
+        && pred_4_1_f_b(s)    
+        && pred_4_1_g_i(s)    
+        && pred_4_1_g_i_for_dvc(s)  
+        && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
+        && inv_g_d_a(s)
+        && inv_g_d_b(s)   
+        && pred_rcvd_attestation_shares_is_in_all_messages_sent(s)     
+    } 
+
+    lemma lemma_inv_sequence_attestation_duties_to_be_served_orderd(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires is_sequence_attestation_duties_to_be_served_orderd(s)
+    ensures is_sequence_attestation_duties_to_be_served_orderd(s')
+    {
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
+            
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
+        }
+        assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
+
+    }
+
+
+    lemma lemma_pred_4_1_g_iii(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires lemma_pred_4_1_g_iii_precond(s)
+    ensures pred_4_1_g_iii(s');  
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                lemma_pred_4_1_g_iii_helper3(s, event, s', s_node);
+                lemma_pred_4_1_g_iii_helper3a(s, event, s', s_node, node);
+                lemma_pred_4_1_g_iii_helper3c(s, event, s', s_node, node);
+                lemma_pred_4_1_g_iii_helper4(s, event, s', s_node, node);
+                lemma_pred_4_1_b(s, event, s');
+                lemma_pred_4_1_c(s, event, s');
+                lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
+
+                assert is_sequence_attestation_duties_to_be_served_orderd(s');
+                assert  inv_g_iii_body_body(s', s_node);
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) => 
+                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+                        lemma_pred_4_1_g_iii_f_serve_attestation_duty(
+                            s_node,
+                            attestation_duty,
+                            s'_node,
+                            s', 
+                            node,
+                            s'.index_next_attestation_duty_to_be_served
+                        );
+                        assert inv_g_iii_body_body(s', s'_node);    
+                              
+
+                
+                    case AttConsensusDecided(id, decided_attestation_data) =>  
+                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
+                        lemma_pred_4_1_g_iii_helper5(s, event, s');                 
+                        lemma_pred_4_1_g_iii_f_att_consensus_decided(
+                            s_node,
+                            id,
+                            decided_attestation_data,
+                            s'_node,
+                            s', 
+                            node,
+                            s.index_next_attestation_duty_to_be_served
+                        ); 
+                        assert inv_g_iii_body_body(s', s'_node);                   
+                   
+                    case ReceviedAttesttionShare(attestation_share) => 
+                        lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
+                        assert s_node.attestation_consensus_engine_state.att_slashing_db_hist == s'_node.attestation_consensus_engine_state.att_slashing_db_hist;
+                        assert inv_g_iii_body_body(s', s'_node);
+        
+
+                    case ImportedNewBlock(block) => 
+                        var s_node := add_block_to_bn(s_node, nodeEvent.block);
+                        lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
+                            s_node,
+                            block,
+                            s'_node,
+                            s', 
+                            node,
+                            s.index_next_attestation_duty_to_be_served
+                        );  
+                        assert inv_g_iii_body_body(s', s'_node);                       
+                 
+                    case ResendAttestationShares => 
+                        assert s_node.attestation_consensus_engine_state.att_slashing_db_hist == s'_node.attestation_consensus_engine_state.att_slashing_db_hist;
+                        assert inv_g_iii_body_body(s', s'_node);
+                   
+                    case NoEvent => 
+                        assert s_node.attestation_consensus_engine_state.att_slashing_db_hist == s'_node.attestation_consensus_engine_state.att_slashing_db_hist;
+                        assert inv_g_iii_body_body(s', s'_node);                    
+
+                }
+                assert inv_g_iii_body_body(s', s'_node);
+                
+
+                forall hn |
+                    && hn in s'.honest_nodes_states.Keys   
+                ensures inv_g_iii_body_body(s', s'.honest_nodes_states[hn]); 
+                {
+                    if hn != node 
+                    {
+                        lemma_pred_4_1_g_iii_helper3(s, event, s', s.honest_nodes_states[hn]);
+                        assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
+                        assert inv_g_iii_body_body(s', s'.honest_nodes_states[hn]);                        
+                    }
+                }     
+                assert pred_4_1_g_iii(s');          
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                forall hn |
+                    && hn in s'.honest_nodes_states.Keys   
+                ensures inv_g_iii_body_body(s', s'.honest_nodes_states[hn]); 
+                {
+                    if hn != node 
+                    {
+                        lemma_pred_4_1_g_iii_helper3(s, event, s', s.honest_nodes_states[hn]);
+                        assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
+                        assert inv_g_iii_body_body(s', s'.honest_nodes_states[hn]);                        
+                    }
+                }                
+                assert pred_4_1_g_iii(s');  
+
+        }
+    }    
+            
 }

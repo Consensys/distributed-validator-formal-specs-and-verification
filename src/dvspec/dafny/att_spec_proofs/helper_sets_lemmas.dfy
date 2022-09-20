@@ -492,5 +492,5 @@ function intsetmax(s:set<int>):int
     ensures exists i :: i in m.Items && i.0 == k 
     {
         assert (k, m[k]) in m.Items;
-    }    
+    }       
 }
