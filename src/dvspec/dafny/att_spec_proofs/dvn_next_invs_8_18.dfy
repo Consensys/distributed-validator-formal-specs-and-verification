@@ -290,7 +290,6 @@ module DVN_Next_Invs_8_18
                 var dvc := dvn.honest_nodes_states[node];
                 var dvc' := dvn'.honest_nodes_states[node];
                 
-                
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                                                                     

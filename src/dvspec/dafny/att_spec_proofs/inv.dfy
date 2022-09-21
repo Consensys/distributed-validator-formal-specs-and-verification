@@ -2256,7 +2256,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv12_body(dvc: DVCNodeState, next_duty: AttestationDuty)
     {
         dvc.latest_attestation_duty.isPresent()
-            ==> dvc.latest_attestation_duty.safe_get().slot <= next_duty.slot        
+            ==> dvc.latest_attestation_duty.safe_get().slot < next_duty.slot        
     }
 
     predicate inv12(dvn: DVState)
@@ -2275,7 +2275,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv13(dvn: DVState)
     {
-        is_sequence_attestation_duties_to_be_served_orders(dvn)
+        is_sequence_attestation_duties_to_be_served_orderd(dvn)
     }
 
     predicate inv14_body(dvc: DVCNodeState, next_duty: AttestationDuty)
@@ -2359,7 +2359,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 &&  0 <= k
                 &&  k < |queue|                
                 ::
-                dvc.latest_attestation_duty.safe_get().slot <= queue[k].slot 
+                dvc.latest_attestation_duty.safe_get().slot < queue[k].slot 
            )
     }
 

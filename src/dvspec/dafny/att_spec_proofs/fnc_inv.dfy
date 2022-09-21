@@ -1824,7 +1824,7 @@ module Fnc_Inv
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires forall queued_duty: AttestationDuty | queued_duty in process.attestation_duties_queue ::
-                        attestation_duty.slot <= queued_duty.slot     
+                        attestation_duty.slot < queued_duty.slot     
     requires inv5_body(process)
     requires inv17_body(process)                        
     requires inv18_body(process)
@@ -1900,6 +1900,8 @@ module Fnc_Inv
     requires inv15_body(process, attestation_duty)  
     requires inv17_body(process)
     requires inv18_body(process)
+    requires forall queued_duty: AttestationDuty | queued_duty in process.attestation_duties_queue ::
+                        queued_duty.slot < attestation_duty.slot
     ensures inv18_body(process')
     {
         var process_mod := process.(
@@ -1912,8 +1914,8 @@ module Fnc_Inv
             assert process_mod.latest_attestation_duty.isPresent();
             assert process.latest_attestation_duty.safe_get()
                         == process_mod.latest_attestation_duty.safe_get();
-            assert process.latest_attestation_duty.safe_get().slot <= attestation_duty.slot;
-            assert process_mod.latest_attestation_duty.safe_get().slot <= attestation_duty.slot;
+            assert process.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
+            assert process_mod.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
             assert inv17_body(process_mod);      
             assert inv18_body(process_mod);      
         }
@@ -2234,5 +2236,298 @@ module Fnc_Inv
             );        
         
         lemma_inv22_f_check_for_next_queued_duty(process_mod, process');        
+    } 
+
+    lemma lemma_inv23_add_block_to_bn(
+        s: DVCNodeState,
+        block: BeaconBlock,
+        s': DVCNodeState 
+    )
+    requires add_block_to_bn.requires(s, block)
+    requires s' == add_block_to_bn(s, block)    
+    requires inv23_body(s)
+    ensures inv23_body(s')
+    { }
+
+    lemma lemma_inv23_f_listen_for_attestation_shares(
+        process: DVCNodeState,
+        attestation_share: AttestationShare,
+        process': DVCNodeState
+    )
+    requires f_listen_for_attestation_shares.requires(process, attestation_share)
+    requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
+    requires inv23_body(process)
+    ensures inv23_body(process')
+    {}
+
+    lemma lemma_inv23_f_resend_attestation_share(
+        process: DVCNodeState,
+        process': DVCNodeState)
+    requires f_resend_attestation_share.requires(process)
+    requires process' == f_resend_attestation_share(process).state        
+    requires inv23_body(process)
+    ensures inv23_body(process')
+    { } 
+
+    lemma lemma_inv23_f_check_for_next_queued_duty(
+        process: DVCNodeState,
+        process': DVCNodeState
+    )
+    requires f_check_for_next_queued_duty.requires(process)
+    requires process' == f_check_for_next_queued_duty(process).state        
+    requires inv17_body(process)
+    requires inv18_body(process)
+    requires inv22_body(process)
+    requires inv23_body(process)
+    ensures inv23_body(process')
+    decreases process.attestation_duties_queue
+    {
+        if  && process.attestation_duties_queue != [] 
+            && (
+                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+                || !process.current_attestation_duty.isPresent()
+            )    
+        {            
+                if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
+                {
+                    var queue_head := process.attestation_duties_queue[0];
+                    var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
+                    var process_mod := process.(
+                        attestation_duties_queue := process.attestation_duties_queue[1..],
+                        future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
+                        attestation_slashing_db := new_attestation_slashing_db,
+                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                            process.attestation_consensus_engine_state,
+                            new_attestation_slashing_db
+                        )                        
+                    );
+
+                    assert inv17_body(process_mod);
+                    assert inv18_body(process_mod);
+                    assert inv23_body(process_mod);
+                }
+                else
+                { 
+                    var process_mod := process.(
+                        attestation_duties_queue := process.attestation_duties_queue[1..]
+                    );     
+
+                    if process_mod.latest_attestation_duty.isPresent()
+                    {
+                        assert inv17_body(process_mod);
+                        assert inv18_body(process_mod);
+                        assert inv23_body(process_mod);
+
+                        assert  process_mod.latest_attestation_duty.isPresent()
+                                    ==> process_mod.latest_attestation_duty.safe_get().slot < process.attestation_duties_queue[0].slot;
+
+                        assert process_mod.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                                    == process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+                        forall k: Slot | k in process_mod.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                        ensures k < process.attestation_duties_queue[0].slot;
+                        {
+                            assert k in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            assert inv23_body(process);
+                            assert k <= process.latest_attestation_duty.safe_get().slot;
+                            assert process.latest_attestation_duty.safe_get().slot < process.attestation_duties_queue[0].slot;
+                            assert k < process.attestation_duties_queue[0].slot;
+                        }
+                        lemma_inv23_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
+                    }
+                    else 
+                    {
+                        assert inv23_body(process');
+                    }
+                }
+        }
+        else
+        { }
+    }
+
+    lemma lemma_inv23_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    requires f_start_next_duty.requires(process, attestation_duty)
+    requires process' == f_start_next_duty(process, attestation_duty).state   
+    requires inv23_body(process)
+    requires ( forall k: Slot | k in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys ::
+                    k < attestation_duty.slot
+            )
+    ensures inv23_body(process')
+    { 
+        var new_vp := (ad: AttestationData) 
+                                        => consensus_is_valid_attestation_data(
+                                                process.attestation_slashing_db, 
+                                                ad, 
+                                                attestation_duty);                
+
+        var slot := attestation_duty.slot;
+
+        assert process' == process.(
+                                    current_attestation_duty := Some(attestation_duty),
+                                    latest_attestation_duty := Some(attestation_duty),
+                                    attestation_consensus_engine_state := startConsensusInstance(
+                                    process.attestation_consensus_engine_state,
+                                    attestation_duty.slot,
+                                    attestation_duty,
+                                    process.attestation_slashing_db
+                                    )
+                            );
+
+        assert process'.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                    == process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                            + {attestation_duty.slot};
+    } 
+
+    lemma lemma_inv23_f_serve_attestation_duty(
+        process: DVCNodeState,
+        attestation_duty: AttestationDuty,
+        process': DVCNodeState
+    )  
+    requires f_serve_attestation_duty.requires(process, attestation_duty)
+    requires process' == f_serve_attestation_duty(process, attestation_duty).state
+    requires inv5_body(process)
+    requires inv7_body(process)
+    requires inv14_body(process, attestation_duty)
+    requires inv17_body(process)
+    requires inv18_body(process)
+    requires inv22_body(process)    
+    requires inv23_body(process)
+    ensures inv23_body(process')
+    {
+        var process_mod := process.(
+                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
+                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
+            );        
+
+        assert inv5_body(process_mod);
+        assert inv7_body(process_mod);
+        assert inv17_body(process_mod);                        
+        assert inv18_body(process_mod);         
+        assert inv22_body(process_mod);         
+        assert inv23_body(process_mod);
+        
+        lemma_inv23_f_check_for_next_queued_duty(process_mod, process');        
+    } 
+
+    lemma lemma_inv23_f_listen_for_new_imported_blocks(
+        process: DVCNodeState,
+        block: BeaconBlock,
+        process': DVCNodeState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state        
+    requires inv17_body(process)
+    requires inv18_body(process)
+    requires inv22_body(process)
+    requires inv23_body(process)
+    ensures inv23_body(process')
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var future_att_consensus_instances_already_decided := 
+            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
+
+        var process_mod :=
+                process.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
+                );    
+        
+        assert inv17_body(process_mod);
+        assert inv18_body(process_mod);
+        assert inv22_body(process_mod);
+        assert inv23_body(process_mod);
+
+        if process_mod.current_attestation_duty.isPresent() && process_mod.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        {
+            var decided_attestation_data := att_consensus_instances_already_decided[process_mod.current_attestation_duty.safe_get().slot];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process_mod.attestation_slashing_db, decided_attestation_data);
+            var temp_process := process_mod.(
+                current_attestation_duty := None,
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process_mod.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                
+            );
+            
+            assert inv17_body(temp_process);
+            assert inv18_body(temp_process);
+            assert inv22_body(temp_process);
+            assert inv23_body(temp_process);
+
+            lemma_inv23_f_check_for_next_queued_duty(temp_process, process');
+
+            assert inv23_body(process');
+        }
+        else
+        {               
+            assert inv23_body(process_mod);
+        }
+    } 
+
+    lemma lemma_inv23_f_att_consensus_decided(
+        process: DVCNodeState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCNodeState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
+    requires inv17_body(process)
+    requires inv18_body(process)
+    requires inv22_body(process)
+    requires inv23_body(process)
+    ensures inv23_body(process')
+    {
+        
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+
+        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+        var attestation_with_signature_share := AttestationShare(
+                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                data := decided_attestation_data, 
+                signature := attestation_signature_share
+            ); 
+
+        var process_mod := 
+            process.(
+                current_attestation_duty := None,
+                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                attestation_slashing_db := attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    attestation_slashing_db
+                )
+            );
+
+        assert inv17_body(process_mod);
+        assert inv18_body(process_mod);
+        assert inv22_body(process_mod);
+        assert inv23_body(process_mod);
+
+        var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process_mod);
+        
+        lemma_inv23_f_check_for_next_queued_duty(process_mod, ret_check_for_next_queued_duty.state);
+
+        var res := ret_check_for_next_queued_duty.(
+                        state := ret_check_for_next_queued_duty.state,
+                        outputs := getEmptyOuputs().(
+                                        att_shares_sent := multicast(attestation_with_signature_share, process.peers)
+                                    )          
+                    );
+
+        assert process' == res.state;
+        assert inv23_body(process');
     } 
 }

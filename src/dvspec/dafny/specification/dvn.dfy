@@ -204,11 +204,11 @@ module DV
         && (forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
         )        
-        && is_sequence_attestation_duties_to_be_served_orders(s)
+        && is_sequence_attestation_duties_to_be_served_orderd(s)
         && s.index_next_attestation_duty_to_be_served == 0        
     }
 
-    predicate is_sequence_attestation_duties_to_be_served_orders(s: DVState)
+    predicate is_sequence_attestation_duties_to_be_served_orderd(s: DVState)
     {
         && (forall i, j | 
                     && 0 <= i < j
