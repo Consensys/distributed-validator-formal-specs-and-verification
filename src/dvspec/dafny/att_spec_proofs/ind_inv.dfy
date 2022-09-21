@@ -251,6 +251,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires s' == f_listen_for_attestation_shares(s, attestation_share).state    
     ensures s'.attestation_consensus_engine_state == s.attestation_consensus_engine_state
     ensures s'.attestation_consensus_engine_state.att_slashing_db_hist == s.attestation_consensus_engine_state.att_slashing_db_hist
+    ensures s'.latest_attestation_duty == s.latest_attestation_duty
+    ensures s'.current_attestation_duty == s.current_attestation_duty
+    ensures s'.attestation_slashing_db == s.attestation_slashing_db
     {
 
     }
@@ -884,13 +887,13 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s': DVState
     )
     requires NextEvent(s, event, s')
-    requires pred_4_1_c(s)
-    requires pred_4_1_f_b(s)
-    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv1(s)
     requires inv2(s)
     requires inv53(s)
     requires inv3(s)
+    requires pred_4_1_c(s)
+    requires pred_4_1_f_b(s)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)      
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)    
     requires pred_4_1_g_i_for_dvc(s)          
@@ -2712,7 +2715,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         ci: nat
     )
     requires NextEvent(s, event, s')
-    requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires inv1(s)
     requires inv3(s)
@@ -3106,6 +3108,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 assert pred_4_1_g_iii(s');  
 
         }
-    }    
-            
+    } 
+
 }
