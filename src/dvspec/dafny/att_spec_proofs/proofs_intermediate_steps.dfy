@@ -171,4 +171,44 @@ module Proofs_Intermediate_Steps
     requires NextEvent(dvn, event, dvn')    
     ensures inv20(dvn, dvn')            
     { }
+
+    lemma lemma_inv24_ind_inv(
+        dvn: DVState
+    )    
+    requires inv18(dvn)
+    requires inv22(dvn)
+    requires inv23(dvn)
+    ensures inv24(dvn)    
+    {   
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys
+        {
+            var dvc := dvn.honest_nodes_states[hn];
+
+            if dvc.latest_attestation_duty.isPresent()
+            {
+                var latest_duty := dvc.latest_attestation_duty.safe_get();
+
+                forall k: Slot, n: nat | 
+                            && k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                            && 0 <= n < |dvc.attestation_duties_queue|
+                ensures k < dvc.attestation_duties_queue[n].slot;            
+                {
+                    calc {
+                        k; 
+                        <= 
+                        latest_duty.slot;
+                        <
+                        dvc.attestation_duties_queue[n].slot;            
+                    } 
+                }
+
+                assert inv24_body(dvc);
+            }
+            else
+            {
+                assert dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys == {};
+                assert inv24_body(dvc);
+            }
+        }
+    } 
 }

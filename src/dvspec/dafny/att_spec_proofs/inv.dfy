@@ -2530,4 +2530,22 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var dvc := dvn.honest_nodes_states[hn];
             && inv23_body(dvc)
     }
+
+    predicate inv24_body(dvc: DVCNodeState)
+    {
+        dvc.latest_attestation_duty.isPresent()
+        ==> ( forall k: Slot, n: nat | 
+                && k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                && 0 <= n < |dvc.attestation_duties_queue|
+                ::
+                k <= dvc.attestation_duties_queue[n].slot
+            )
+    }
+
+    predicate inv24(dvn: DVState)
+    {
+        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv24_body(dvc)
+    }
 }
