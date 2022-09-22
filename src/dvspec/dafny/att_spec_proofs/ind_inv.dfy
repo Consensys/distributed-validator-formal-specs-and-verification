@@ -255,6 +255,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures s'.current_attestation_duty == s.current_attestation_duty
     ensures s'.attestation_slashing_db == s.attestation_slashing_db
     ensures s'.attestation_duties_queue == s.attestation_duties_queue
+    ensures s'.future_att_consensus_instances_already_decided == s.future_att_consensus_instances_already_decided
     {
 
     }
@@ -271,6 +272,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures s'.current_attestation_duty == s.current_attestation_duty
     ensures s'.attestation_slashing_db == s.attestation_slashing_db
     ensures s'.attestation_duties_queue == s.attestation_duties_queue
+    ensures s'.future_att_consensus_instances_already_decided == s.future_att_consensus_instances_already_decided
     {
 
     }    
