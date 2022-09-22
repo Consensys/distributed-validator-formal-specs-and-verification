@@ -5,8 +5,10 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
+include "../att_spec_proofs/fnc_inv.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
+include "../att_spec_proofs/dvn_next_invs_19.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -18,8 +20,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
+    import opened Fnc_Inv   
     import opened DVN_Next_Invs_1_7
     import opened DVN_Next_Invs_8_18
+    import opened DVN_Next_Invs_19
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
@@ -1423,6 +1427,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }
     }
 
+    /*
+     * Move to fnc_inv.dfy
     lemma lemma_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
@@ -1453,6 +1459,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty);
 
     }    
+    */
 
     lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,

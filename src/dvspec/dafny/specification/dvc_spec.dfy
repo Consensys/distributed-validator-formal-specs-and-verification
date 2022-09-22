@@ -113,12 +113,7 @@ module DVCNode_Spec {
         )
     }    
 
-    // While multiple consensus instances might be running,
-    // there exists at most undecided one.
-    // The updated validity predicates for decided consensus instances 
-    // should not change their decisions.
-    // Should we update only the validitiy Predicate for 
-    // the undecided consensus instance?
+
     function updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
@@ -138,7 +133,7 @@ module DVCNode_Spec {
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
         new_attestation_consensus_active_instances : map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
+    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)    
     {
             var ret 
                 := map k: Slot | k in (new_attestation_consensus_active_instances.Keys + hist.Keys)

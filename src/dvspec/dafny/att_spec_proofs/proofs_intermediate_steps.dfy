@@ -23,7 +23,7 @@ module Proofs_Intermediate_Steps
 
     
 
-    lemma lemma_inv2_inv53(dvn: DVState)
+    lemma lemma_inv53_ind_inv(dvn: DVState)
     requires inv2(dvn)
     ensures inv53(dvn)
     { }
@@ -162,15 +162,7 @@ module Proofs_Intermediate_Steps
             
         }        
     }
-    
-    lemma lemma_inv20_dvn_next(
-        dvn: DVState,
-        event: DV.Event,
-        dvn': DVState
-    )    
-    requires NextEvent(dvn, event, dvn')    
-    ensures inv20(dvn, dvn')            
-    { }
+
 
     lemma lemma_inv24_ind_inv(
         dvn: DVState
@@ -210,5 +202,31 @@ module Proofs_Intermediate_Steps
                 assert inv24_body(dvc);
             }
         }
+    } 
+
+    lemma lemma_inv51_ind_inv(
+        dvn: DVState
+    )    
+    requires inv26(dvn)
+    ensures inv51(dvn)    
+    {  
+        forall hn: BLSPubkey, s: Slot 
+        ensures ( ( && is_honest_node(dvn, hn) 
+                    && s in dvn.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                  )
+                  ==> inv51_body(dvn.honest_nodes_states[hn], s)
+                )
+        {
+            if && is_honest_node(dvn, hn) 
+               && s in dvn.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            {
+                var hn_state := dvn.honest_nodes_states[hn];
+                assert inv26_body(hn_state);
+                assert inv51_body(hn_state, s);
+            }
+            else
+            {}
+        }
+            
     } 
 }
