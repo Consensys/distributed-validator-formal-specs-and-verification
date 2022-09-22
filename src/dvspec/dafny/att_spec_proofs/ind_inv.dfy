@@ -254,9 +254,26 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures s'.latest_attestation_duty == s.latest_attestation_duty
     ensures s'.current_attestation_duty == s.current_attestation_duty
     ensures s'.attestation_slashing_db == s.attestation_slashing_db
+    ensures s'.attestation_duties_queue == s.attestation_duties_queue
     {
 
     }
+
+    lemma lemma_f_resend_attestation_share_constants(
+        s: DVCNodeState,
+        s': DVCNodeState
+    )
+    requires f_resend_attestation_share.requires(s)
+    requires s' == f_resend_attestation_share(s).state    
+    ensures s'.attestation_consensus_engine_state == s.attestation_consensus_engine_state
+    ensures s'.attestation_consensus_engine_state.att_slashing_db_hist == s.attestation_consensus_engine_state.att_slashing_db_hist
+    ensures s'.latest_attestation_duty == s.latest_attestation_duty
+    ensures s'.current_attestation_duty == s.current_attestation_duty
+    ensures s'.attestation_slashing_db == s.attestation_slashing_db
+    ensures s'.attestation_duties_queue == s.attestation_duties_queue
+    {
+
+    }    
 
     function recover_bls_signature(
         r: Root,
