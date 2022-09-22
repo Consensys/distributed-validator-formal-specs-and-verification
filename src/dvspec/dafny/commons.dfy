@@ -677,5 +677,11 @@ module CommonFunctions{
             0
     }
 
+    function seq_last<T>(s: seq<T>): T 
+    requires |s| > 0 
+    {
+        s[|s|-1]
+    }
+
     
 }
