@@ -1488,24 +1488,24 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall i,j | 0 <= i < j < |n_state.attestation_duties_queue| :: n_state.attestation_duties_queue[i].slot <  n_state.attestation_duties_queue[j].slot           
     }
 
-    predicate inv_attestation_duty_queue_is_ordered_2_body_body(
-        dvn: DVState, 
-        n: BLSPubkey,
-        n_state: DVCNodeState
-    )
-    {
-        forall i, k, l, t  |
-            && 0 < i < |n_state.attestation_duties_queue|
-            && dvn.sequence_attestation_duties_to_be_served[k].node == n
-            && dvn.sequence_attestation_duties_to_be_served[l].node == n
-            && dvn.sequence_attestation_duties_to_be_served[t].node == n
-            && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty.slot == n_state.attestation_duties_queue[i-1].slot
-            && dvn.sequence_attestation_duties_to_be_served[l].attestation_duty.slot == n_state.attestation_duties_queue[i].slot
-            ::
-            && k < l 
-            && !(k < t < l)
+    // predicate inv_attestation_duty_queue_is_ordered_2_body_body(
+    //     dvn: DVState, 
+    //     n: BLSPubkey,
+    //     n_state: DVCNodeState
+    // )
+    // {
+    //     forall i, k, l, t  |
+    //         && 0 < i < |n_state.attestation_duties_queue|
+    //         && dvn.sequence_attestation_duties_to_be_served[k].node == n
+    //         && dvn.sequence_attestation_duties_to_be_served[l].node == n
+    //         && dvn.sequence_attestation_duties_to_be_served[t].node == n
+    //         && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty.slot == n_state.attestation_duties_queue[i-1].slot
+    //         && dvn.sequence_attestation_duties_to_be_served[l].attestation_duty.slot == n_state.attestation_duties_queue[i].slot
+    //         ::
+    //         && k < l 
+    //         && !(k < t < l)
 
-    } 
+    // } 
 
     predicate inv_attestation_duty_queue_is_ordered_3(dvn: DVState)    
     {
