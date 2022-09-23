@@ -4184,28 +4184,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         }        
     }           
 
-    lemma lemma_inv_g_a_iii_f_check_for_next_queued_duty_fake(
-        process: DVCNodeState,
-        s': DVCNodeState,
-        dvn: DVState,
-        n: BLSPubkey,
-        index_next_attestation_duty_to_be_served: nat
-    )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state  
-    requires inv_g_a_iii_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_a_ii_a_body_body(dvn, n, process)
-    requires inv_g_d_a_body_body(dvn, n, process)
-    requires inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)  
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process)
-
-    requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires inv_g_b_body_body_new(dvn, n, process)
-    requires inv_g_a_iv_a_body_body(dvn, n, process)
-
-    ensures inv_g_a_iii_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
-
     lemma lemma_inv_g_a_iii_f_check_for_next_queued_duty(
         process: DVCNodeState,
         s': DVCNodeState,
