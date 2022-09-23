@@ -1821,7 +1821,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
     }      
 
-    predicate inv_g_a_iv(dvn: DVState)    
+    predicate inv_g_a_iv_a(dvn: DVState)    
     {
         forall hn |
             && hn in dvn.honest_nodes_states.Keys          
