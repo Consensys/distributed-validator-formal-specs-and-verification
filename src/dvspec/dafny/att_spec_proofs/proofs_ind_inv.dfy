@@ -5,12 +5,13 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
-include "../att_spec_proofs/fnc_inv.dfy"
+include "../att_spec_proofs/fnc_invs_1_26.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
 include "../att_spec_proofs/proofs_intermediate_steps.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
-include "../att_spec_proofs/dvn_next_invs_19.dfy"
+include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
+include "../att_spec_proofs/dvn_next_invs_27.dfy"
 
 
 module Proofs_DVN_Ind_Inv
@@ -23,18 +24,20 @@ module Proofs_DVN_Ind_Inv
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
-    import opened Fnc_Inv
+    import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened DVN_Next_Invs_1_7
     import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19
+    import opened DVN_Next_Invs_19_26
     import opened Proofs_Intermediate_Steps
+    import opened DVN_Next_Invs_27
 
     predicate ind_inv(dvn: DVState)       
     {
         && invs_1_7(dvn)
         && invs_8_18(dvn)
-        && invs_19(dvn)
+        && invs_19_26(dvn)
+        && invs_27(dvn)
     }
 
     predicate invs_1_7(dvn: DVState)       
@@ -58,8 +61,8 @@ module Proofs_DVN_Ind_Inv
         &&  inv17(dvn)  
         &&  inv18(dvn)  
     }
-
-    predicate invs_19(dvn: DVState)       
+    
+    predicate invs_19_26(dvn: DVState)       
     {        
         &&  inv19(dvn)           
         &&  inv21(dvn) 
@@ -67,6 +70,14 @@ module Proofs_DVN_Ind_Inv
         &&  inv23(dvn)  
         &&  inv25(dvn)          
         &&  inv26(dvn)  
+    }
+
+    predicate invs_27(dvn: DVState)       
+    {                
+        &&  inv27(dvn)  
+        &&  inv28(dvn)  
+        &&  inv29(dvn)  
+        &&  inv31(dvn)  
     }
 
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
@@ -81,7 +92,8 @@ module Proofs_DVN_Ind_Inv
     {
         lemma_ind_inv_dvn_next_invs_1_7(dvn, dvn');
         lemma_ind_inv_dvn_next_invs_8_18(dvn, dvn');
-        lemma_ind_inv_dvn_next_invs_19(dvn, dvn');
+        lemma_ind_inv_dvn_next_invs_19_26(dvn, dvn');
+        lemma_ind_inv_dvn_next_invs_27(dvn, dvn');
     }
 
     lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, dvn': DVState)       
@@ -99,7 +111,7 @@ module Proofs_DVN_Ind_Inv
         lemma_inv7_dvn_next(dvn, e, dvn');
         
         /*
-        // Error: ... System.Threading.Thread.StartCallback() ...
+        // TODO: Error: ... System.Threading.Thread.StartCallback() ...
         lemma_inv10_dvn_next(dvn, e, dvn');       
         */
     }
@@ -119,10 +131,10 @@ module Proofs_DVN_Ind_Inv
         lemma_inv18_dvn_next(dvn, e, dvn');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_19(dvn: DVState, dvn': DVState)       
+    lemma lemma_ind_inv_dvn_next_invs_19_26(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires ind_inv(dvn)
-    ensures invs_19(dvn')        
+    ensures invs_19_26(dvn')        
     {
         var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
         lemma_inv19_dvn_next(dvn, e, dvn');
@@ -134,22 +146,36 @@ module Proofs_DVN_Ind_Inv
         lemma_inv26_dvn_next(dvn, e, dvn');    
     }
 
+    lemma lemma_ind_inv_dvn_next_invs_27(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    requires ind_inv(dvn)
+    ensures invs_27(dvn')        
+    {
+        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');
+        lemma_inv27_dvn_next(dvn, e, dvn');    
+        lemma_inv28_dvn_next(dvn, e, dvn');  
+        lemma_inv29_dvn_next(dvn, e, dvn');          
+        lemma_inv31_dvn_next(dvn, e, dvn');  
+    }
+
     lemma lemma_ind_inv_implies_other_invs(dvn: DVState)
     requires ind_inv(dvn)
     ensures inv11(dvn)
     ensures inv12(dvn)
     ensures inv14(dvn)
     ensures inv15(dvn)
-    ensures inv24(dvn)
+    ensures inv24(dvn)    
+    ensures inv50(dvn)
+    ensures inv51(dvn)   
     ensures inv53(dvn)    
-    ensures inv51(dvn)    
     {    
-        lemma_inv53_ind_inv(dvn);
-        lemma_inv15_ind_inv(dvn);
-        lemma_inv14_ind_inv(dvn);
-        lemma_inv12_ind_inv(dvn);
         lemma_inv11_ind_inv(dvn);
+        lemma_inv12_ind_inv(dvn);
+        lemma_inv14_ind_inv(dvn);
+        lemma_inv15_ind_inv(dvn);
         lemma_inv24_ind_inv(dvn);
+        lemma_inv50_ind_inv(dvn);
         lemma_inv51_ind_inv(dvn);
+        lemma_inv53_ind_inv(dvn);        
     }
 }

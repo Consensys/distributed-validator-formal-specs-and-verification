@@ -5,7 +5,7 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
-include "../att_spec_proofs/fnc_inv.dfy"
+include "../att_spec_proofs/fnc_invs_1_26.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
 include "../att_spec_proofs/proofs_intermediate_steps.dfy"
 
@@ -19,7 +19,7 @@ module DVN_Next_Invs_1_7
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
-    import opened Fnc_Inv
+    import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
 

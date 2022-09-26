@@ -6,9 +6,9 @@ include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
+include "../att_spec_proofs/common_proofs.dfy"
 
-
-module Fnc_Inv
+module Fnc_Invs_1_26
 {
     import opened Types 
     import opened CommonFunctions
@@ -19,7 +19,7 @@ module Fnc_Inv
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
     import opened Helper_Sets_Lemmas
-
+    import opened Common_Proofs
     
     
     lemma lemma_inv4_f_serve_attestation_duty(
@@ -2788,37 +2788,6 @@ module Fnc_Inv
     ensures inv26_body(process')
     { } 
 
-    lemma lemma_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, AttestationConsensusValidityCheckState>,
-        new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, AttestationConsensusValidityCheckState>
-    )    
-    requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
-    ensures m.Keys == m'.Keys
-    ensures forall slot |
-                && slot in m'.Keys 
-                ::
-                var acvc := m'[slot];
-                && acvc.validityPredicate == ((ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty));
-  
-    {
-        forall k | k in  m 
-        ensures k in m'
-        {
-            lemmaMapKeysHasOneEntryInItems(m, k);
-            assert k in m';
-        }
-
-        assert m.Keys == m'.Keys;
-
-        assert forall slot |
-                && slot in m'.Keys 
-                ::
-                var acvc := m'[slot];
-                && acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty);
-
-    }  
-
     lemma lemma_inv26_f_check_for_next_queued_duty(
         process: DVCNodeState,
         process': DVCNodeState
@@ -2826,7 +2795,6 @@ module Fnc_Inv
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
-    requires inv25_body(process)
     requires inv26_body(process)
     ensures inv26_body(process')
     decreases process.attestation_duties_queue
@@ -2850,21 +2818,7 @@ module Fnc_Inv
                             new_attestation_slashing_db
                         )                        
                     );
-
-                    lemma_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                new_attestation_slashing_db,
-                                process_mod.attestation_consensus_engine_state 
-                                );
-
-                    assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                                == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                        + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-
-                    assert inv25_body(process_mod);
-
                     assert inv5_body(process_mod);
-                    assert inv26_body(process_mod);
                     lemma_inv26_f_check_for_next_queued_duty(process_mod, process');
                 }
                 else
@@ -2872,64 +2826,14 @@ module Fnc_Inv
                     var process_mod := process.(
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     );     
-                    assert inv5_body(process_mod);
                     assert inv26_body(process_mod);
+
                     lemma_inv26_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
                 }
         }
         else
         { 
             assert process'.all_rcvd_duties == process.all_rcvd_duties;
-        }
-    }
-
-    lemma lemma_updateConsensusInstanceValidityCheck(
-        s: ConsensusEngineState,
-        new_attestation_slashing_db: set<SlashingDBAttestation>,
-        r: ConsensusEngineState
-    )
-    requires r == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)        
-    ensures r.att_slashing_db_hist.Keys
-                == s.att_slashing_db_hist.Keys + s.attestation_consensus_active_instances.Keys
-    {
-        var new_attestation_consensus_active_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.attestation_consensus_active_instances,
-                    new_attestation_slashing_db
-                );
-
-        lemma_updateConsensusInstanceValidityCheckHelper(
-                s.attestation_consensus_active_instances,
-                new_attestation_slashing_db,
-                new_attestation_consensus_active_instances);
-
-        assert new_attestation_consensus_active_instances.Keys == s.attestation_consensus_active_instances.Keys;
-
-        var new_att_slashing_db_hist := updateAttSlashingDBHist(
-                                            s.att_slashing_db_hist,
-                                            new_attestation_consensus_active_instances,
-                                            new_attestation_slashing_db
-                                        );
-
-        assert new_att_slashing_db_hist.Keys 
-                    == s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys;
-
-        var t := s.(attestation_consensus_active_instances := new_attestation_consensus_active_instances,
-                    att_slashing_db_hist := new_att_slashing_db_hist
-                   );
-
-        assert r.att_slashing_db_hist.Keys == t.att_slashing_db_hist.Keys;
-
-        calc 
-        {
-            r.att_slashing_db_hist.Keys;
-            ==
-            t.att_slashing_db_hist.Keys;
-            ==
-            new_att_slashing_db_hist.Keys;
-            == 
-            s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys;
-            ==
-            s.att_slashing_db_hist.Keys + s.attestation_consensus_active_instances.Keys;
         }
     }
 
@@ -2942,7 +2846,6 @@ module Fnc_Inv
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
     requires inv5_body(process)
-    requires inv25_body(process)
     requires inv26_body(process)
     ensures inv26_body(process')
     {
@@ -2959,40 +2862,25 @@ module Fnc_Inv
                 signature := attestation_signature_share
             ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
-
-        var process_mod := 
+        var process := 
             process.(
                 current_attestation_duty := None,
                 attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
                 attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    attestation_slashing_db
+                )
             );
-    
-        lemma_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
-                                process_mod.attestation_consensus_engine_state 
-                                );
 
-        assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                    == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        assert inv5_body(process);
+        assert inv26_body(process);
 
-
-        assert inv5_body(process_mod);
-        assert inv25_body(process_mod);
-
-        assert inv26_body(process_mod);
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
-        lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
+        var ret_dvc := f_check_for_next_queued_duty(process).state;
+        lemma_inv5_f_check_for_next_queued_duty(process, ret_dvc);
         assert inv5_body(ret_dvc);
         
-        lemma_inv26_f_check_for_next_queued_duty(process_mod, ret_dvc);
+        lemma_inv26_f_check_for_next_queued_duty(process, ret_dvc);
         assert inv26_body(ret_dvc);
 
         assert process' == ret_dvc;        
@@ -3006,7 +2894,6 @@ module Fnc_Inv
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)
-    requires inv25_body(process)
     requires inv26_body(process)
     ensures inv26_body(process')
     {
@@ -3016,7 +2903,6 @@ module Fnc_Inv
             );        
 
         assert inv5_body(process_mod);
-        assert inv25_body(process_mod);
         assert inv26_body(process_mod);
         
         lemma_inv26_f_check_for_next_queued_duty(process_mod, process');        
@@ -3030,7 +2916,6 @@ module Fnc_Inv
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
     requires inv5_body(process)
-    requires inv25_body(process)
     requires inv26_body(process)
     ensures inv26_body(process')
     {
@@ -3053,43 +2938,31 @@ module Fnc_Inv
                 );    
         
         assert inv5_body(process);
-        assert inv25_body(process);
         assert inv26_body(process);
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
         {
             var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            new_attestation_slashing_db
-                                                          );  
-            var process_mod := process.(
+            var process := process.(
                 current_attestation_duty := None,
                 attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                
             );
-
-            lemma_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                new_attestation_slashing_db,
-                                process_mod.attestation_consensus_engine_state 
-                                );
-
-            assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                    == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-
             
-            assert inv5_body(process_mod);
-            assert inv25_body(process_mod);
-            assert inv26_body(process_mod);
+            assert inv5_body(process);
+            assert inv26_body(process);
 
-            lemma_inv26_f_check_for_next_queued_duty(process_mod, process');
+            lemma_inv26_f_check_for_next_queued_duty(process, process');
         }
         else
         {               
             assert inv26_body(process);
         }
-    }  
+    } 
+
+    
 }

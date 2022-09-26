@@ -8,7 +8,7 @@ include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/fnc_inv.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
-include "../att_spec_proofs/dvn_next_invs_19.dfy"
+include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -20,10 +20,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened Fnc_Inv   
+    import opened Fnc_Invs_1_26   
     import opened DVN_Next_Invs_1_7
     import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19
+    import opened DVN_Next_Invs_19_26
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
@@ -1448,7 +1448,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     /*
-     * Move to fnc_inv.dfy
+     * TODO: Move to common_proofs.dfy
     lemma lemma_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,

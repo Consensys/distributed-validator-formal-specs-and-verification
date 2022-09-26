@@ -207,7 +207,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv51_ind_inv(
         dvn: DVState
     )    
-    requires inv26(dvn)
+    requires inv27(dvn)
     ensures inv51(dvn)    
     {  
         forall hn: BLSPubkey, s: Slot 
@@ -221,7 +221,7 @@ module Proofs_Intermediate_Steps
                && s in dvn.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
             {
                 var hn_state := dvn.honest_nodes_states[hn];
-                assert inv26_body(hn_state);
+                assert inv27_body(hn_state);
                 assert inv51_body(hn_state, s);
             }
             else
@@ -229,4 +229,41 @@ module Proofs_Intermediate_Steps
         }
             
     } 
+
+    lemma lemma_inv50_ind_inv(
+        dvn: DVState
+    )    
+    requires inv28(dvn)
+    ensures inv50(dvn)    
+    { 
+        forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
+            && is_honest_node(dvn, hn)
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s]            
+        ensures ( exists duty, db ::
+                    && var hn_state := dvn.honest_nodes_states[hn];
+                    && inv50_body(dvn, hn, s, db, duty, vp) 
+                )                
+        {
+            var hn_state := dvn.honest_nodes_states[hn];            
+            assert inv28_body(hn_state);
+            assert s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+            assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s];
+
+            assert ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
+                        && duty.slot == s
+                        && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                    );
+
+            var db: set<SlashingDBAttestation>, duty: AttestationDuty :|
+                        && duty.slot == s
+                        && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                    ;
+
+            assert inv50_body(dvn, hn, s, db, duty, vp);
+        }
+    }    
 }
