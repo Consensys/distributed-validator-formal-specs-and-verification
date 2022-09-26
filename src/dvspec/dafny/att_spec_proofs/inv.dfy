@@ -1059,6 +1059,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             dvn.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
     }     
 
+    
     predicate pred_4_1_g_i_for_dvc_single_dvc(
         dvn: DVState,
         n: BLSPubkey,
@@ -1488,27 +1489,25 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall i,j | 0 <= i < j < |n_state.attestation_duties_queue| :: n_state.attestation_duties_queue[i].slot <  n_state.attestation_duties_queue[j].slot           
     }
 
-/*
-    // TODO: Uncomment out this predicate and prove it is infered from Invs 13 and 17.
-    predicate inv_attestation_duty_queue_is_ordered_2_body_body(
-        dvn: DVState, 
-        n: BLSPubkey,
-        n_state: DVCNodeState
-    )
-    {
-        forall i, k, l, t  |
-            && 0 < i < |n_state.attestation_duties_queue|
-            && dvn.sequence_attestation_duties_to_be_served[k].node == n
-            && dvn.sequence_attestation_duties_to_be_served[l].node == n
-            && dvn.sequence_attestation_duties_to_be_served[t].node == n
-            && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty.slot == n_state.attestation_duties_queue[i-1].slot
-            && dvn.sequence_attestation_duties_to_be_served[l].attestation_duty.slot == n_state.attestation_duties_queue[i].slot
-            ::
-            && k < l 
-            && !(k < t < l)
+    // predicate inv_attestation_duty_queue_is_ordered_2_body_body(
+    //     dvn: DVState, 
+    //     n: BLSPubkey,
+    //     n_state: DVCNodeState
+    // )
+    // {
+    //     forall i, k, l, t  |
+    //         && 0 < i < |n_state.attestation_duties_queue|
+    //         && dvn.sequence_attestation_duties_to_be_served[k].node == n
+    //         && dvn.sequence_attestation_duties_to_be_served[l].node == n
+    //         && dvn.sequence_attestation_duties_to_be_served[t].node == n
+    //         && dvn.sequence_attestation_duties_to_be_served[k].attestation_duty.slot == n_state.attestation_duties_queue[i-1].slot
+    //         && dvn.sequence_attestation_duties_to_be_served[l].attestation_duty.slot == n_state.attestation_duties_queue[i].slot
+    //         ::
+    //         && k < l 
+    //         && !(k < t < l)
 
-    } 
-*/ 
+    // } 
+
     predicate inv_attestation_duty_queue_is_ordered_3(dvn: DVState)    
     {
         forall hn |
@@ -1684,43 +1683,43 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 // && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
     }         
 
-    predicate inv_g_b_body_body(
-        dvn: DVState, 
-        n: BLSPubkey,
-        n_state: DVCNodeState
-    )
-    {
-        n_state.latest_attestation_duty.isPresent() ==>
-            forall an |
-                && an in dvn.sequence_attestation_duties_to_be_served.Values 
-                && an.node == n 
-                && an.attestation_duty.slot < n_state.latest_attestation_duty.safe_get().slot
-            ::
-                var slot := an.attestation_duty.slot;
-                && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
-                && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
-    } 
+    // predicate inv_g_b_body_body(
+    //     dvn: DVState, 
+    //     n: BLSPubkey,
+    //     n_state: DVCNodeState
+    // )
+    // {
+    //     n_state.latest_attestation_duty.isPresent() ==>
+    //         forall an |
+    //             && an in dvn.sequence_attestation_duties_to_be_served.Values 
+    //             && an.node == n 
+    //             && an.attestation_duty.slot < n_state.latest_attestation_duty.safe_get().slot
+    //         ::
+    //             var slot := an.attestation_duty.slot;
+    //             && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+    //             && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
+    // } 
 
-    predicate inv_g_a_ii_body_body(
-        dvn: DVState, 
-        n: BLSPubkey,
-        n_state: DVCNodeState
-    )
-    {
-        (
-            &&  |n_state.attestation_duties_queue| > 0 
-            &&   !n_state.current_attestation_duty.isPresent()
-        )
-        ==>
-            forall an |
-                && an in dvn.sequence_attestation_duties_to_be_served.Values 
-                && an.node == n 
-                && an.attestation_duty.slot < n_state.attestation_duties_queue[0].slot
-            ::
-                var slot := an.attestation_duty.slot;
-                && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
-                // && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
-    }    
+    // predicate inv_g_a_ii_body_body(
+    //     dvn: DVState, 
+    //     n: BLSPubkey,
+    //     n_state: DVCNodeState
+    // )
+    // {
+    //     (
+    //         &&  |n_state.attestation_duties_queue| > 0 
+    //         &&   !n_state.current_attestation_duty.isPresent()
+    //     )
+    //     ==>
+    //         forall an |
+    //             && an in dvn.sequence_attestation_duties_to_be_served.Values 
+    //             && an.node == n 
+    //             && an.attestation_duty.slot < n_state.attestation_duties_queue[0].slot
+    //         ::
+    //             var slot := an.attestation_duty.slot;
+    //             && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+    //             // && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
+    // }    
 
     predicate inv_g_a_ii_a(dvn: DVState)    
     {
@@ -1766,7 +1765,16 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 dvn.honest_nodes_states[hn],
                 dvn.index_next_attestation_duty_to_be_served
             )                    
-    }          
+    }  
+
+    predicate inv_g_a_iii_body_body_helper(
+        n_state: DVCNodeState,
+        slot: nat
+    ) 
+    {
+        n_state.current_attestation_duty.isPresent() ==>
+            slot != n_state.current_attestation_duty.safe_get().slot
+    }    
 
     predicate inv_g_a_iii_body_body(
         dvn: DVState, 
@@ -1777,12 +1785,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         (
             &&  |n_state.attestation_duties_queue| == 0 
-            &&   !n_state.current_attestation_duty.isPresent()
+            // &&   !n_state.current_attestation_duty.isPresent()
         ) ==>
             forall i:nat  |
                 && i < index_next_attestation_duty_to_be_served
                 && var an := dvn.sequence_attestation_duties_to_be_served[i];
                 && an.node == n 
+                && inv_g_a_iii_body_body_helper(n_state, an.attestation_duty.slot)
                 ::
                 && var an := dvn.sequence_attestation_duties_to_be_served[i];
                 var slot := an.attestation_duty.slot;
@@ -1790,7 +1799,30 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
     }  
 
-    predicate inv_g_a_iv(dvn: DVState)    
+    predicate inv_g_a_iii_b_body_body(
+        dvn: DVState, 
+        n: BLSPubkey,
+        n_state: DVCNodeState,
+        index_next_attestation_duty_to_be_served: nat
+    )
+    {
+        (
+            &&  |n_state.attestation_duties_queue| == 0 
+            &&   n_state.current_attestation_duty.isPresent()
+        ) ==>
+            forall i:nat  |
+                && i < index_next_attestation_duty_to_be_served
+                && var an := dvn.sequence_attestation_duties_to_be_served[i];
+                && an.node == n 
+                // && an.attestation_duty
+                ::
+                && var an := dvn.sequence_attestation_duties_to_be_served[i];
+                var slot := an.attestation_duty.slot;
+                && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
+    }      
+
+    predicate inv_g_a_iv_a(dvn: DVState)    
     {
         forall hn |
             && hn in dvn.honest_nodes_states.Keys          
