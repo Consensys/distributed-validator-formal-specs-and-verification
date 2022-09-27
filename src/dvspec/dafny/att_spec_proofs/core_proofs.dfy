@@ -41,7 +41,7 @@ module Core_Proofs
              && m in h_nodes_a'             
     requires a.data.slot < a'.data.slot
     requires inv46_a(dvn)
-    requires inv46_b(dvn)
+    requires inv46_b_ii(dvn)
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_iii(dvn)
     requires inv50(dvn)
@@ -63,7 +63,8 @@ module Core_Proofs
         var vpa': AttestationData -> bool :| && vpa' in consa'.honest_nodes_validity_functions[m]
                                              && vpa'(consa'.decided_value.safe_get());
 
-        assert inv46_b_body(dvn, m, sa', vpa');
+        // assert inv46_b_body(dvn, m, sa', vpa');
+        assert inv46_b_ii_body(dvn, m, m_state, sa', vpa');
         assert vpa' in m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'];
         
         // var dba': set<SlashingDBAttestation> := m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'][vpa'];  
@@ -172,7 +173,7 @@ module Core_Proofs
 //     requires inv48(dvn)
 //     requires inv47(dvn)
     requires inv46_a(dvn)
-    requires inv46_b(dvn)
+    requires inv46_b_ii(dvn)
     requires inv50(dvn)
 //     requires inv49(dvn)
     requires inv51(dvn)
@@ -252,7 +253,7 @@ module Core_Proofs
     requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
     requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
     requires inv46_a(dvn)
-    requires inv46_b(dvn)
+    requires inv46_b_ii(dvn)
     requires inv50(dvn)
     requires inv51(dvn)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)

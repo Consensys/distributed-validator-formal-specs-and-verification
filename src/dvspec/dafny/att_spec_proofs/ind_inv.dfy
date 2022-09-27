@@ -1582,7 +1582,23 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
 
         assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
-    }              
+    }   
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        slot: nat    
+    )    
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    requires slot in s.att_slashing_db_hist.Keys
+    ensures slot in s'.att_slashing_db_hist.Keys
+    ensures s.att_slashing_db_hist[slot].Keys <= s'.att_slashing_db_hist[slot].Keys;      
+    {
+        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+    }                
 
     lemma lemma_pred_4_1_f_g_for_dvc_f_serve_attestation_duty(
         process: DVCNodeState,
