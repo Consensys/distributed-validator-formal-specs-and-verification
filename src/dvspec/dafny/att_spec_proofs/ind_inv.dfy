@@ -899,6 +899,19 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');
     }      
 
+    lemma lemma_pred_4_1_c_helper2<M>(
+        allMessagesSent': set<M>,
+        allMessagesSent: set<M>,
+        messagesToBeSent: set<MessaageWithRecipient<M>>
+    )
+    requires allMessagesSent' == allMessagesSent + 
+                                getMessagesFromMessagesWithRecipient(messagesToBeSent);
+    requires messagesToBeSent == {}
+    ensures allMessagesSent' == allMessagesSent
+    {
+
+    }
+
     // Ver time: 1m 35s
     lemma lemma_pred_4_1_c(
         s: DVState,
@@ -938,6 +951,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                                 getMessagesFromMessagesWithRecipient(messagesToBeSent);
                             lemma_f_serve_attestation_duty_constants(s_node, attestation_duty, s'_node);
                             assert messagesToBeSent == {};
+                            lemma_pred_4_1_c_helper2(s'.att_network.allMessagesSent, s.att_network.allMessagesSent, messagesToBeSent);
                             assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;
                             
                                                                     
@@ -956,7 +970,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                                 getMessagesFromMessagesWithRecipient(messagesToBeSent);
                             lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
                             assert messagesToBeSent == {};
-                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;                   
+                            lemma_pred_4_1_c_helper2(s'.att_network.allMessagesSent, s.att_network.allMessagesSent, messagesToBeSent);
+                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;                 
                     
                         case ResendAttestationShares => 
                             var messagesToBeSent := f_resend_attestation_share(s_node).outputs.att_shares_sent;     
@@ -1297,6 +1312,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ;         
     }
 
+    // 2m 40s
     lemma lemma_pred_4_1_f_g_i_helper(
         s: DVState,
         event: DV.Event,
