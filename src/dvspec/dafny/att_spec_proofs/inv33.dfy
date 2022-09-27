@@ -421,7 +421,7 @@ module Inv33
 
     }      
 
-    function lemma_inv_46_b_ii_helper_helper_function(
+    function lemma_inv46_b_helper_helper_function(
         s_w_honest_node_states_updated: DVState,
         cid: Slot
     ) : map<BLSPubkey, AttestationData -> bool>
@@ -433,26 +433,26 @@ module Inv33
                 s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
     }    
 
-    // lemma lemma_inv_46_b_ii_helper_helper(
+    // lemma lemma_inv46_b_helper_helper(
     //     s_w_honest_node_states_updated: DVState,
     //     cid: Slot,
     //     validityPredicates: map<BLSPubkey, AttestationData -> bool>,
     //     n: BLSPubkey
     // ) 
-    // requires validityPredicates == lemma_inv_46_b_ii_helper_helper_function(s_w_honest_node_states_updated, cid)
+    // requires validityPredicates == lemma_inv46_b_helper_helper_function(s_w_honest_node_states_updated, cid)
     // requires n in validityPredicates.Keys
     // // ensures validityPredicates[n] == s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
     // {
 
     // }  
 
-    // // lemma lemma_inv_46_b_ii_helper_helper2(
+    // // lemma lemma_inv46_b_helper_helper2(
     // //     s_w_honest_node_states_updated: DVState,
     // //     cid: Slot,
     // //     validityPredicates: map<BLSPubkey, AttestationData -> bool>,
     // //     n: BLSPubkey
     // // ) 
-    // // requires validityPredicates == lemma_inv_46_b_ii_helper_helper_function(s_w_honest_node_states_updated, cid)
+    // // requires validityPredicates == lemma_inv46_b_helper_helper_function(s_w_honest_node_states_updated, cid)
     // // requires n in validityPredicates.Keys
     // // requires n !in s_w_honest_node_states_updated.honest_nodes_states
     // // ensures cid in 
@@ -668,7 +668,7 @@ module Inv33
         lemma_att_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
     }          
 
-    lemma lemma_inv_46_b_ii_helper(
+    lemma lemma_inv46_b_helper(
         s: DVState,
         event: DV.Event,
         cid: Slot,
@@ -682,10 +682,10 @@ module Inv33
     requires inv3(s)    
     requires hn in s.honest_nodes_states.Keys
     requires inv33_body(s, hn, s.honest_nodes_states[hn], cid)
-    requires inv46_b_ii_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv46_b_body(s, hn, s.honest_nodes_states[hn], cid, vp)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
-    ensures inv46_b_ii_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    ensures inv46_b_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
     {
         // lemma_inv_33_helper(s, event, cid, hn, s');
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -706,7 +706,7 @@ module Inv33
                         None
                     ;
 
-                var validityPredicates := lemma_inv_46_b_ii_helper_helper_function(s_w_honest_node_states_updated, cid);
+                var validityPredicates := lemma_inv46_b_helper_helper_function(s_w_honest_node_states_updated, cid);
                     // map n |
                     //         && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
                     //         && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
@@ -815,7 +815,7 @@ module Inv33
         }
     }  
 
-    lemma lemma_inv_46_b_ii(
+    lemma lemma_inv46_b(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -825,16 +825,16 @@ module Inv33
     requires inv53(s)
     requires inv3(s)    
     requires inv33(s)  
-    requires inv46_b_ii(s) 
+    requires inv46_b(s) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(s)
-    ensures inv46_b_ii(s')   
+    ensures inv46_b(s')   
     {
         forall hn: BLSPubkey, slot: Slot, vp : AttestationData -> bool |
             hn in s'.honest_nodes_states
-        ensures inv46_b_ii_body(s', hn, s'.honest_nodes_states[hn], slot, vp)    
+        ensures inv46_b_body(s', hn, s'.honest_nodes_states[hn], slot, vp)    
         {
-            lemma_inv_46_b_ii_helper(s, event, slot, vp, hn, s');
+            lemma_inv46_b_helper(s, event, slot, vp, hn, s');
         }
     }  
 
