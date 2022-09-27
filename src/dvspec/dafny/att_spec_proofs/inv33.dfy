@@ -459,70 +459,162 @@ module Inv33
     // // // ensures validityPredicates[n] == s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
     // // {
 
-    // // }    
+    // // } 
 
-    // lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty_rec(
-    //     s: DVCNodeState,
-    //     s': DVCNodeState,
-    //     cid: Slot
-    // )
-    // requires f_check_for_next_queued_duty.requires(s)
-    // requires s' == f_check_for_next_queued_duty(s).state
-    // requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    // ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    // ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(
+        process: DVCNodeState,
+        attestation_duty: AttestationDuty,
+        s': DVCNodeState,
+        cid: Slot
+    )
+    requires f_serve_attestation_duty.requires(process, attestation_duty)
+    requires s' == f_serve_attestation_duty(process, attestation_duty).state  
+    requires cid in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures process.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    {
+        var s_mod := process.(
+                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
+                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
+            );
+        lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);        
+    }           
 
-    // lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(
-    //     s: DVCNodeState,
-    //     s': DVCNodeState,
-    //     cid: Slot
-    // )
-    // requires f_check_for_next_queued_duty.requires(s)
-    // requires s' == f_check_for_next_queued_duty(s).state
-    // requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(s)
-    // requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    // ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    // // ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
-    // decreases s.attestation_duties_queue
-    // {
-    //     if  && s.attestation_duties_queue != [] 
-    //         && (
-    //             || s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided
-    //             || !s.current_attestation_duty.isPresent()
-    //         )    
-    //     {
+    lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(
+        s: DVCNodeState,
+        id: Slot,
+        decided_attestation_data: AttestationData,        
+        s': DVCNodeState,
+        cid: Slot
+    )
+    requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
+    requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
+    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    {
+        var local_current_attestation_duty := s.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, decided_attestation_data);
+
+        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s.rs);
+        var attestation_with_signature_share := AttestationShare(
+                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                data := decided_attestation_data, 
+                signature := attestation_signature_share
+            ); 
+
+        var s := 
+            s.(
+                current_attestation_duty := None,
+                attestation_shares_to_broadcast := s.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                attestation_slashing_db := attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    s.attestation_consensus_engine_state,
+                    attestation_slashing_db
+                )
+            );
+
+        lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s, s', cid);             
+    }         
+
+    lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(
+        s: DVCNodeState,
+        block: BeaconBlock,
+        s': DVCNodeState,
+        cid: Slot
+    )
+    requires f_listen_for_new_imported_blocks.requires(s, block)
+    requires s' == f_listen_for_new_imported_blocks(s, block).state
+    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(s, block);
+
+        var att_consensus_instances_already_decided := s.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var future_att_consensus_instances_already_decided := 
+            f_listen_for_new_imported_blocks_helper_2(s, att_consensus_instances_already_decided);
+
+        var s :=
+                s.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    s.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := s.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := s.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
+                );                     
+
+        if s.current_attestation_duty.isPresent() && s.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        {
+            // Stop(current_attestation_duty.safe_get().slot);
+            var decided_attestation_data := att_consensus_instances_already_decided[s.current_attestation_duty.safe_get().slot];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, decided_attestation_data);
+            var s := s.(
+                current_attestation_duty := None,
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    s.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                
+            );
+            assert s' == f_check_for_next_queued_duty(s).state;
+            lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s, s', cid);
+        }
+    }   
+
+    lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(
+        s: DVCNodeState,
+        s': DVCNodeState,
+        cid: Slot
+    )
+    requires f_check_for_next_queued_duty.requires(s)
+    requires s' == f_check_for_next_queued_duty(s).state
+    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    decreases s.attestation_duties_queue
+    {
+        if  && s.attestation_duties_queue != [] 
+            && (
+                || s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided
+                || !s.current_attestation_duty.isPresent()
+            )    
+        {
             
-    //         if s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided.Keys 
-    //         {
-    //             var queue_head := s.attestation_duties_queue[0];
-    //             var new_attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, s.future_att_consensus_instances_already_decided[queue_head.slot]);
-    //             var s_mod := s.(
-    //                 attestation_duties_queue := s.attestation_duties_queue[1..],
-    //                 future_att_consensus_instances_already_decided := s.future_att_consensus_instances_already_decided - {queue_head.slot},
-    //                 attestation_slashing_db := new_attestation_slashing_db,
-    //                 attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-    //                     s.attestation_consensus_engine_state,
-    //                     new_attestation_slashing_db
-    //                 )                        
-    //             );
-    //             lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
-    //                 s.attestation_consensus_engine_state,
-    //                 new_attestation_slashing_db,
-    //                 s_mod.attestation_consensus_engine_state,
-    //                 cid
-    //             );
-    //             assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-    //             lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty_rec(s_mod, s', cid);
-    //             assert s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
-    //         }
-    //         else
-    //         {
-    //             // assert cid !in s.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-    //             assert s.attestation_duties_queue[0].slot !in s.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+            if s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided.Keys 
+            {
+                var queue_head := s.attestation_duties_queue[0];
+                var new_attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, s.future_att_consensus_instances_already_decided[queue_head.slot]);
+                var s_mod := s.(
+                    attestation_duties_queue := s.attestation_duties_queue[1..],
+                    future_att_consensus_instances_already_decided := s.future_att_consensus_instances_already_decided - {queue_head.slot},
+                    attestation_slashing_db := new_attestation_slashing_db,
+                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        s.attestation_consensus_engine_state,
+                        new_attestation_slashing_db
+                    )                        
+                );
+                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
+                    s.attestation_consensus_engine_state,
+                    new_attestation_slashing_db,
+                    s_mod.attestation_consensus_engine_state,
+                    cid
+                );
+                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);
+                assert s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+            }
+            else
+            {
 
-    //         }
-    //     }
-    // }      
+            }
+        }
+    }      
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic(
         s: DVCNodeState,
@@ -534,7 +626,30 @@ module Inv33
     requires DVCNode_Spec.Next(s, event, s', outputs)
     requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys;   
+    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys;  
+    {
+        match event
+        {
+            case ServeAttstationDuty(attestation_duty) => 
+                lemma_att_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(s, attestation_duty, s', cid);
+
+            case AttConsensusDecided(id, decided_attestation_data) => 
+                lemma_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s', cid);
+            
+            case ReceviedAttesttionShare(attestation_share) => 
+                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+            case ImportedNewBlock(block) => 
+                lemma_att_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(s, block, s', cid);
+            
+            case ResendAttestationShares => 
+                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+        
+            case NoEvent => 
+                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+        }           
+    } 
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic_corollary(
         s: DVCNodeState,
@@ -721,6 +836,54 @@ module Inv33
         {
             lemma_inv_46_b_ii_helper(s, event, slot, vp, hn, s');
         }
+    }  
+
+    lemma lemmaStartConsensusInstance(
+        s: ConsensusEngineState,
+        id: Slot,
+        attestation_duty: AttestationDuty,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState        
+    ) 
+    requires id !in s.attestation_consensus_active_instances.Keys 
+    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
+    ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + {id}
+    {    
+    }
+
+    lemma lemmaStartConsensusInstance4(
+        s: ConsensusEngineState,
+        id: Slot,
+        attestation_duty: AttestationDuty,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        vp: AttestationData -> bool
+    ) 
+    requires id !in s.attestation_consensus_active_instances.Keys 
+    requires id in s.att_slashing_db_hist.Keys
+    requires vp in s.att_slashing_db_hist[id].Keys
+    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
+    ensures id in s'.att_slashing_db_hist.Keys
+    ensures vp in s'.att_slashing_db_hist[id]
+    ensures s.att_slashing_db_hist[id][vp] <= s'.att_slashing_db_hist[id][vp]
+    {    
     }       
+
+    lemma lemmaStartConsensusInstance5(
+        s: ConsensusEngineState,
+        id: Slot,
+        attestation_duty: AttestationDuty,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState
+    ) 
+    requires id !in s.attestation_consensus_active_instances.Keys 
+    requires id in s.att_slashing_db_hist.Keys
+    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
+    ensures id in s'.att_slashing_db_hist.Keys
+    ensures s.att_slashing_db_hist[id].Keys <= s'.att_slashing_db_hist[id].Keys
+    // ensures s'.att_slashing_db_hist[id] == {}
+    {    
+    }    
+
 
 }

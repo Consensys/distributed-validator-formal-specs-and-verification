@@ -81,53 +81,6 @@ module DVCNode_Spec {
         )
     }
 
-    lemma lemmaStartConsensusInstance(
-        s: ConsensusEngineState,
-        id: Slot,
-        attestation_duty: AttestationDuty,
-        attestation_slashing_db: set<SlashingDBAttestation>,
-        s': ConsensusEngineState        
-    ) 
-    requires id !in s.attestation_consensus_active_instances.Keys 
-    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
-    ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + {id}
-    {    
-    }
-
-    lemma lemmaStartConsensusInstance4(
-        s: ConsensusEngineState,
-        id: Slot,
-        attestation_duty: AttestationDuty,
-        attestation_slashing_db: set<SlashingDBAttestation>,
-        s': ConsensusEngineState,
-        vp: AttestationData -> bool
-    ) 
-    requires id !in s.attestation_consensus_active_instances.Keys 
-    requires id in s.att_slashing_db_hist.Keys
-    requires vp in s.att_slashing_db_hist[id].Keys
-    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
-    ensures id in s'.att_slashing_db_hist.Keys
-    ensures vp in s'.att_slashing_db_hist[id]
-    ensures s.att_slashing_db_hist[id][vp] <= s'.att_slashing_db_hist[id][vp]
-    {    
-    }       
-
-    lemma lemmaStartConsensusInstance5(
-        s: ConsensusEngineState,
-        id: Slot,
-        attestation_duty: AttestationDuty,
-        attestation_slashing_db: set<SlashingDBAttestation>,
-        s': ConsensusEngineState
-    ) 
-    requires id !in s.attestation_consensus_active_instances.Keys 
-    requires id in s.att_slashing_db_hist.Keys
-    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
-    ensures id in s'.att_slashing_db_hist.Keys
-    ensures s.att_slashing_db_hist[id].Keys <= s'.att_slashing_db_hist[id].Keys
-    // ensures s'.att_slashing_db_hist[id] == {}
-    {    
-    }    
-
     function startConsensusInstance(
         s: ConsensusEngineState,
         id: Slot,
@@ -169,11 +122,11 @@ module DVCNode_Spec {
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
     {
 
-            var  a := getOrDefault(hist, id, map[]);
-            var b := getOrDefault(a, vp, {}) + {new_attestation_slashing_db};
+            var  hist_id := getOrDefault(hist, id, map[]);
+            var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {new_attestation_slashing_db};
             hist[
-                id := a[
-                    vp := b
+                id := hist_id[
+                    vp := new_hist_id_vp
                 ]
             ]
     }  
