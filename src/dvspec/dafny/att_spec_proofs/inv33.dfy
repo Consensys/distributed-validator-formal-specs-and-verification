@@ -335,5 +335,44 @@ module Inv33
         {
             lemma_inv_33_helper(s, event, slot, hn, s');
         }
-    }   
+    }  
+
+    lemma lemma_inv33_implies_46_a(dvn: DVState)
+    requires inv33(dvn)
+    ensures inv46_a(dvn)
+    {
+        forall hn: BLSPubkey, s: Slot | is_honest_node(dvn, hn)
+        ensures
+                var hn_state := dvn.honest_nodes_states[hn];
+                && ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                    ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
+                ;        
+        {
+            assert hn in dvn.honest_nodes_states.Keys;
+            var hn_state := dvn.honest_nodes_states[hn];
+            assert inv33_body(dvn, hn, hn_state, s);
+            assert
+                && ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                    ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
+                ;
+        }
+    }     
+
+    lemma lemma_inv_46_a(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires inv1(s)
+    requires inv53(s)
+    requires inv3(s)   
+    requires inv33(s)   
+    requires inv46_a(s)   
+    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
+    ensures inv46_a(s')   
+    {
+        lemma_inv_33(s, event, s');
+        lemma_inv33_implies_46_a(s');
+    }      
 }
