@@ -19,10 +19,6 @@ module Proofs_Intermediate_Steps
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
     import opened Helper_Sets_Lemmas    
     
-
-
-    
-
     lemma lemma_inv53_ind_inv(dvn: DVState)
     requires inv2(dvn)
     ensures inv53(dvn)
@@ -265,5 +261,44 @@ module Proofs_Intermediate_Steps
 
             assert inv50_body(dvn, hn, s, db, duty, vp);
         }
-    }    
+    }   
+
+    lemma lemma_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(
+        dvn: DVState
+    )    
+    requires inv17(dvn)
+    requires inv18(dvn)
+    ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dvn)    
+    {}
+
+    lemma lemma_inv_attestation_duty_queue_is_ordered(
+        dvn: DVState
+    )    
+    requires inv17(dvn)    
+    ensures inv_attestation_duty_queue_is_ordered(dvn)    
+    {}
+
+    lemma lemma_pred_inv_current_latest_attestation_duty_match(
+        dvn: DVState
+    )    
+    requires inv10(dvn)    
+    ensures pred_inv_current_latest_attestation_duty_match(dvn)    
+    {}
+
+    lemma lemma_construct_signed_attestation_signature_assumptions_helper(
+        dvn: DVState
+    )    
+    requires inv35(dvn)    
+    ensures construct_signed_attestation_signature_assumptions_helper(
+                dvn.construct_signed_attestation_signature,
+                dvn.dv_pubkey,
+                dvn.all_nodes)    
+    {}
+
+    lemma lemma_pred_rcvd_attestation_shares_is_in_all_messages_sent(
+        dvn: DVState
+    )    
+    requires inv37(dvn)    
+    ensures  pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn)
+    {}
 }

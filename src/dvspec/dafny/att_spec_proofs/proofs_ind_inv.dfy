@@ -38,6 +38,7 @@ module Proofs_DVN_Ind_Inv
         && invs_8_18(dvn)
         && invs_19_26(dvn)
         && invs_27(dvn)
+        
     }
 
     predicate invs_1_7(dvn: DVState)       
@@ -78,12 +79,20 @@ module Proofs_DVN_Ind_Inv
         &&  inv28(dvn)  
         &&  inv29(dvn)  
         &&  inv31(dvn)  
+        &&  inv34(dvn)
+        &&  inv35(dvn)
+        &&  inv36(dvn)
+        &&  inv37(dvn)
     }
+
+    
 
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
     requires DV.Init(dvn, {})    
     ensures ind_inv(dvn)
     {}  
+
+    
 
     lemma lemma_ind_inv_dvn_next_ind_inv(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
@@ -94,6 +103,8 @@ module Proofs_DVN_Ind_Inv
         lemma_ind_inv_dvn_next_invs_8_18(dvn, dvn');
         lemma_ind_inv_dvn_next_invs_19_26(dvn, dvn');
         lemma_ind_inv_dvn_next_invs_27(dvn, dvn');
+        lemma_ind_inv_dvn_next_properties(dvn, dvn');
+       
     }
 
     lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, dvn': DVState)       
@@ -156,9 +167,30 @@ module Proofs_DVN_Ind_Inv
         lemma_inv28_dvn_next(dvn, e, dvn');  
         lemma_inv29_dvn_next(dvn, e, dvn');          
         lemma_inv31_dvn_next(dvn, e, dvn');  
+        lemma_inv34_dvn_next(dvn, e, dvn');  
+        lemma_inv35_dvn_next(dvn, e, dvn');  
+        lemma_inv36_dvn_next(dvn, e, dvn');  
+        lemma_inv37_dvn_next(dvn, e, dvn');  
     }
 
-    lemma lemma_ind_inv_implies_other_invs(dvn: DVState)
+    lemma lemma_ind_inv_dvn_next_properties(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    requires ind_inv(dvn)
+    ensures prop_monotonic_set_of_in_transit_messages(dvn, dvn')
+    {
+        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');        
+        lemma_prop_monotonic_set_of_in_transit_messages_ind_inv(dvn, dvn');                  
+    }
+
+    lemma lemma_prop_monotonic_set_of_in_transit_messages_ind_inv(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')    
+    ensures prop_monotonic_set_of_in_transit_messages(dvn, dvn')
+    {
+        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');        
+        assert prop_monotonic_set_of_in_transit_messages(dvn, dvn');
+    }
+
+    lemma lemma_ind_inv_implies_other_properties(dvn: DVState)
     requires ind_inv(dvn)
     ensures inv11(dvn)
     ensures inv12(dvn)
@@ -168,6 +200,10 @@ module Proofs_DVN_Ind_Inv
     ensures inv50(dvn)
     ensures inv51(dvn)   
     ensures inv53(dvn)    
+    ensures construct_signed_attestation_signature_assumptions_helper(
+                dvn.construct_signed_attestation_signature,
+                dvn.dv_pubkey,
+                dvn.all_nodes)  
     {    
         lemma_inv11_ind_inv(dvn);
         lemma_inv12_ind_inv(dvn);
@@ -176,6 +212,7 @@ module Proofs_DVN_Ind_Inv
         lemma_inv24_ind_inv(dvn);
         lemma_inv50_ind_inv(dvn);
         lemma_inv51_ind_inv(dvn);
-        lemma_inv53_ind_inv(dvn);        
+        lemma_inv53_ind_inv(dvn);      
+        lemma_construct_signed_attestation_signature_assumptions_helper(dvn);       
     }
 }

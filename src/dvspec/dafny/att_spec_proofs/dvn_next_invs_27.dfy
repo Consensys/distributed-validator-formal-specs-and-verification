@@ -339,5 +339,156 @@ module DVN_Next_Invs_27
                 
         }   
     }
+
+    
+
+    lemma lemma_inv34_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')  
+    requires inv34(dvn)
+    ensures inv34(dvn')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];                
+                
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>   
+                        lemma_inv34_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv34_body(dvc');
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lemma_inv34_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert inv34_body(dvc');
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_inv34_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv34_body(dvc');
+                       
+                    case ImportedNewBlock(block) => 
+                        var dvc_mod := add_block_to_bn(dvc, block);
+                        lemma_inv34_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv34_body(dvc_mod);
+                        lemma_inv34_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv34_body(dvc');
+
+                    case ResendAttestationShares =>                                                                      
+
+                    case NoEvent => 
+                        
+                }
+                
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }   
+    }
+
+    lemma lemma_inv35_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')  
+    requires inv35(dvn)
+    ensures inv35(dvn')    
+    {
+        assert dvn.construct_signed_attestation_signature == dvn'.construct_signed_attestation_signature;
+    }
+
+    lemma lemma_inv36_body_network_spec_next<M>(
+        e: Network<M>,
+        e': Network<M>,
+        n: BLSPubkey,
+        messagesToBeSent: set<MessaageWithRecipient<M>>,
+        messagesReceived: set<M>
+    )
+    requires NetworkSpec.Next(e, e', n, messagesToBeSent, messagesReceived)
+    requires inv36_body(e)
+    ensures inv36_body(e')
+    {}
+
+    
+
+    lemma lemma_inv36_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')  
+    requires inv36(dvn)
+    ensures inv36(dvn')    
+    {
+        var n: BLSPubkey,
+            messagesToBeSent: set<MessaageWithRecipient<AttestationShare>>,
+            messagesReceived: set<AttestationShare> 
+            :|
+            NetworkSpec.Next<AttestationShare>(
+                dvn.att_network, 
+                dvn'.att_network, 
+                n, 
+                messagesToBeSent, 
+                messagesReceived);
+
+        lemma_inv36_body_network_spec_next<AttestationShare>(
+                dvn.att_network, 
+                dvn'.att_network, 
+                n, 
+                messagesToBeSent, 
+                messagesReceived);  
+    }
+
+    lemma lemma_inv36_invNetwork(dvn: DVState)
+    requires inv36(dvn)
+    ensures invNetwork(dvn)
+    {}
+
+    lemma lemma_inv37_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )       
+    requires NextEvent(dvn, event, dvn')
+    requires inv37(dvn)
+    ensures inv37(dvn')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(att_duty) =>     
+                        lemma_inv37_f_serve_attestation_duty(dvc, att_duty, dvc');
+                        
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lemma_inv37_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_inv37_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
+
+                    case ImportedNewBlock(block) => 
+                        var dvc_mod := add_block_to_bn(dvc, block);
+                        lemma_inv37_add_block_to_bn(dvc, block, dvc_mod);
+                        lemma_inv37_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
+                                                
+                    case ResendAttestationShares =>                         
+                        lemma_inv37_f_resend_attestation_share(dvc, dvc');
+
+                    case NoEvent => 
+                        
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }        
+    }  
 }   
         

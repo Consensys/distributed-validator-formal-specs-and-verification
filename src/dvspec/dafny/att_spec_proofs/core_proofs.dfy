@@ -239,7 +239,7 @@ module Core_Proofs
 
 
     lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
-    requires |dvn.all_nodes| > 0
+    // requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
     requires pred_4_1_b(dvn)

@@ -2943,4 +2943,67 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         forall hn: BLSPubkey :: inv33_body(dvn, hn)        
     }
+
+    predicate prop_monotonic_set_of_in_transit_messages(dvn: DVState, dvn': DVState)
+    {
+        && dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
+    }
+     
+   
+    predicate inv34_body(dvc: DVCNodeState)
+    {
+        dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+        <= 
+        dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    } 
+
+    predicate inv34(dvn: DVState)
+    {
+        forall hn | hn in dvn.honest_nodes_states.Keys ::
+            && var dvc := dvn.honest_nodes_states[hn];
+            && inv34_body(dvc)
+    } 
+
+    predicate inv35(dvn: DVState)
+    {
+        construct_signed_attestation_signature_assumptions_helper(
+            dvn.construct_signed_attestation_signature,
+            dvn.dv_pubkey,
+            dvn.all_nodes)
+    }
+
+    predicate inv36_body<M>(e: Network<M>)
+    {
+         forall m | m in e.messagesInTransit::
+                m.message in e.allMessagesSent       
+    } 
+     
+    predicate inv36(dvn: DVState)
+    {
+         forall m | m in dvn.att_network.messagesInTransit::
+                m.message in dvn.att_network.allMessagesSent       
+    } 
+
+    predicate inv37_body(
+        dvn: DVState,
+        dvc: DVCNodeState
+    )
+    {
+        var rcvd_attestation_shares := dvc.rcvd_attestation_shares;
+
+        forall i, j |
+            && i in rcvd_attestation_shares.Keys 
+            && j in rcvd_attestation_shares[i]
+            ::
+            rcvd_attestation_shares[i][j] <= dvn.att_network.allMessagesSent
+    }    
+
+    predicate inv37(
+        dvn: DVState    
+    )
+    {
+        forall n | n in dvn.honest_nodes_states ::
+            && var dvc := dvn.honest_nodes_states[n];
+            && inv37_body(dvn, dvc)
+    } 
 }
