@@ -10,6 +10,7 @@ include "../att_spec_proofs/fnc_invs_27.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
+include "common_proofs.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -23,6 +24,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Fnc_Invs_1_26   
     import opened Fnc_Invs_27   
+    import opened Common_Proofs
     import opened DVN_Next_Invs_1_7
     import opened DVN_Next_Invs_8_18
     import opened DVN_Next_Invs_19_26
@@ -85,21 +87,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             }
             assert pred_4_1_b(s');
     }
-
-    // lemma lemma_pred_4_1_b_f_start_next_duty()
-    // ensures  
-    //         forall
-    //             s: DVCNodeState,
-    //             attestation_duty: AttestationDuty,
-    //             s': DVCNodeState
-    //         |
-    //             && f_start_next_duty.requires(s, attestation_duty)
-    //             && s' == f_start_next_duty(s, attestation_duty).state
-    //         ::
-    //             s'.bn.attestations_submitted == s.bn.attestations_submitted
-    // {
-
-    // }
 
     lemma lemma_f_serve_attestation_duty_constants(
         s: DVCNodeState,
@@ -706,21 +693,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }
     }     
 
-    // lemma lemma_getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>, message: M)
-    // requires forall m | m in mswr :: m.message == message;   
-    // {
-    //     var r := getMessagesFromMessagesWithRecipient(mswr);
-    //     assert forall e | e in r :: e == message;
-    //     if r != {message}
-    //     {
-    //         if r == {}
-    //         {
-                
-    //         }
-    //     }
-    // } 
-
-
     lemma lemma_pred_4_1_c_helper(
         s: DVState,
         event: DV.Event,
@@ -907,6 +879,19 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');
     }      
 
+    lemma lemma_pred_4_1_c_helper2<M>(
+        allMessagesSent': set<M>,
+        allMessagesSent: set<M>,
+        messagesToBeSent: set<MessaageWithRecipient<M>>
+    )
+    requires allMessagesSent' == allMessagesSent + 
+                                getMessagesFromMessagesWithRecipient(messagesToBeSent);
+    requires messagesToBeSent == {}
+    ensures allMessagesSent' == allMessagesSent
+    {
+
+    }
+
     // Ver time: 1m 35s
     lemma lemma_pred_4_1_c(
         s: DVState,
@@ -946,6 +931,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                                 getMessagesFromMessagesWithRecipient(messagesToBeSent);
                             lemma_f_serve_attestation_duty_constants(s_node, attestation_duty, s'_node);
                             assert messagesToBeSent == {};
+                            lemma_pred_4_1_c_helper2(s'.att_network.allMessagesSent, s.att_network.allMessagesSent, messagesToBeSent);
                             assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;
                             
                                                                     
@@ -964,7 +950,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                                 getMessagesFromMessagesWithRecipient(messagesToBeSent);
                             lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
                             assert messagesToBeSent == {};
-                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;                   
+                            lemma_pred_4_1_c_helper2(s'.att_network.allMessagesSent, s.att_network.allMessagesSent, messagesToBeSent);
+                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;                 
                     
                         case ResendAttestationShares => 
                             var messagesToBeSent := f_resend_attestation_share(s_node).outputs.att_shares_sent;     
@@ -1305,6 +1292,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ;         
     }
 
+    // 2m 40s
     lemma lemma_pred_4_1_f_g_i_helper(
         s: DVState,
         event: DV.Event,
@@ -1451,40 +1439,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }
     }
 
-    /*
-     * TODO: Move to common_proofs.dfy
-    lemma lemma_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, AttestationConsensusValidityCheckState>,
-        new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, AttestationConsensusValidityCheckState>
-    )    
-    requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
-    ensures m.Keys == m'.Keys
-    ensures forall slot |
-                && slot in m'.Keys 
-                ::
-                var acvc := m'[slot];
-                && acvc.validityPredicate == ((ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty));
-  
-    {
-        forall k | k in  m 
-        ensures k in m'
-        {
-            lemmaMapKeysHasOneEntryInItems(m, k);
-            assert k in m';
-        }
-
-        assert m.Keys == m'.Keys;
-
-        assert forall slot |
-                && slot in m'.Keys 
-                ::
-                var acvc := m'[slot];
-                && acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty);
-
-    }    
-    */
-
+    
     lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
@@ -1593,7 +1548,23 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
 
         assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
-    }              
+    }   
+
+    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        slot: nat    
+    )    
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    requires slot in s.att_slashing_db_hist.Keys
+    ensures slot in s'.att_slashing_db_hist.Keys
+    ensures s.att_slashing_db_hist[slot].Keys <= s'.att_slashing_db_hist[slot].Keys;      
+    {
+        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+    }                
 
     lemma lemma_pred_4_1_f_g_for_dvc_f_serve_attestation_duty(
         process: DVCNodeState,

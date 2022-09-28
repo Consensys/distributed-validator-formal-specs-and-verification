@@ -95,13 +95,42 @@ module DVCNode_Spec {
                 );
         
         assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
-        s.(
-            attestation_consensus_active_instances := s.attestation_consensus_active_instances[
+        var new_attestation_consensus_active_instances := s.attestation_consensus_active_instances[
                 id := acvc
-            ],
-            att_slashing_db_hist := s.att_slashing_db_hist[id := map[acvc.validityPredicate := {attestation_slashing_db}]]
+            ];
+        s.(
+            attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+            att_slashing_db_hist := 
+                // s.att_slashing_db_hist[
+                //     id := map[acvc.validityPredicate := {attestation_slashing_db}]
+                // ]
+                addToAttSlashingDBHist(
+                    s.att_slashing_db_hist,
+                    id,
+                    acvc.validityPredicate,
+                    attestation_slashing_db                    
+                )
+                
         )
     }
+
+    function addToAttSlashingDBHist(
+        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
+        id: Slot,
+        vp: AttestationData -> bool,
+        new_attestation_slashing_db: set<SlashingDBAttestation>
+    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
+    {
+
+            var  hist_id := getOrDefault(hist, id, map[]);
+            var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {new_attestation_slashing_db};
+            hist[
+                id := hist_id[
+                    vp := new_hist_id_vp
+                ]
+            ]
+    }  
+
 
     function stopConsensusInstances(
         s: ConsensusEngineState,

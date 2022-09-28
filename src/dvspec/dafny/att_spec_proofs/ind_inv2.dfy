@@ -5,8 +5,13 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
-include "dvn_next_inv.dfy"
+include "dvn_next_invs_1_7.dfy"
+include "dvn_next_invs_8_18.dfy"
+include "dvn_next_invs_19_26.dfy"
+include "dvn_next_invs_27.dfy"
 include "ind_inv.dfy"
+include "common_proofs.dfy"
+
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
 {
@@ -18,8 +23,12 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Inv
+    import opened DVN_Next_Invs_1_7
+    import opened DVN_Next_Invs_8_18
+    import opened DVN_Next_Invs_19_26
+    import opened DVN_Next_Invs_27
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened Common_Proofs
 
     lemma lemma_inv_attestation_duty_queue_is_ordered_3_body_body(
         dvn: DVState, 
@@ -1146,6 +1155,59 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         && attestation_duty == an.attestation_duty
                         && event.node == an.node    
                         && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+
+
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) => 
+                        assert s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served;
+                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+
+                        var an := s'.sequence_attestation_duties_to_be_served[s'.index_next_attestation_duty_to_be_served - 1];
+
+                        assert attestation_duty == an.attestation_duty;
+                        assert node == an.node;
+
+                }
+        }        
+    }
+
+    predicate lemma_ServeAttstationDuty2_predicate(
+        s': DVState,
+        index_next_attestation_duty_to_be_served: nat,
+        attestation_duty: AttestationDuty,
+        node: BLSPubkey
+    )
+    {
+        && index_next_attestation_duty_to_be_served > 0
+        && var an := s'.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served - 1];
+
+        && attestation_duty == an.attestation_duty
+        && node == an.node    
+    }    
+
+    // TODO: Use this in place of lemma_ServeAttstationDuty
+    lemma lemma_ServeAttstationDuty2(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')    
+    requires event.HonestNodeTakingStep?
+    requires event.event.ServeAttstationDuty?
+    ensures             s'.index_next_attestation_duty_to_be_served > 0
+
+    ensures
+            && lemma_ServeAttstationDuty2_predicate(s', s'.index_next_attestation_duty_to_be_served, event.event.attestation_duty, event.node )
+            && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 

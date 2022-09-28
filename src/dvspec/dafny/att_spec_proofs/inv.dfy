@@ -2540,41 +2540,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv18_body(dvc)
     }
 
-    /*
-    predicate inv19_body(dvc: DVCNodeState)
-    {
-        && var dvc_all_instances := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances;
-        && !dvc.latest_attestation_duty.isPresent()
-                ==> dvc_all_instances.Keys == {}
-    }
-
-    predicate inv19(dvn: DVState)
-    {
-        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
-            && var dvc := dvn.honest_nodes_states[hn];
-            && inv19_body(dvc)
-    }
-    
-
-    predicate inv20_body(dvc: DVCNodeState)
-    {
-        dvc.latest_attestation_duty.isPresent()
-        ==> 
-        ( && var dvc_all_instances := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances;
-          && forall k: Slot | k in dvc_all_instances.Keys ::
-                k <= dvc.latest_attestation_duty.safe_get().slot
-        )
-    }
-    
-    predicate inv20(dvn: DVState)
-    {
-        forall hn: BLSPubkey | hn in dvn.honest_nodes_states.Keys ::            
-            && var dvc := dvn.honest_nodes_states[hn];
-            && inv20_body(dvc)
-    }
-    */
-
-    predicate invNetwork(
+        predicate invNetwork(
         dvn: DVState
     )
     {
@@ -2880,7 +2846,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv31_body(dvc)
     }
 
-    
+    /*
 
     predicate inv46_a(dvn: DVState)
     {
@@ -2912,6 +2878,37 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     inv46_b_body(dvn, hn, s, vp)
                 )                    
     }  
+    */
+
+    predicate inv46_a(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot | is_honest_node(dvn, hn) ::
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                    ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
+    }
+
+    predicate inv46_b_body(dvn: DVState, hn: BLSPubkey, s: Slot, vp: AttestationData -> bool)
+    requires is_honest_node(dvn, hn) 
+    requires hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+    requires s in dvn.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    {
+        && var hn_state := dvn.honest_nodes_states[hn];
+        && ( vp in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
+                ==> vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s] )
+    }
+    
+    predicate inv46_b(dvn: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot ::
+            && is_honest_node(dvn, hn) 
+            && var hn_state := dvn.honest_nodes_states[hn];
+            && hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+            && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            ==> ( forall vp: AttestationData -> bool ::
+                    inv46_b_body(dvn, hn, s, vp)
+                )                    
+    }
 
     predicate inv32_body(dvc: DVCNodeState, dvc': DVCNodeState)
     {        
@@ -3031,5 +3028,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )       
     {
         dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
-    }    
+    }
+    
 }

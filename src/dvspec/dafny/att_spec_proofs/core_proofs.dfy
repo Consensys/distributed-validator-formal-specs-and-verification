@@ -63,7 +63,8 @@ module Core_Proofs
         var vpa': AttestationData -> bool :| && vpa' in consa'.honest_nodes_validity_functions[m]
                                              && vpa'(consa'.decided_value.safe_get());
 
-        assert inv46_b_body(dvn, m, sa', vpa');
+        // assert inv46_b_body(dvn, m, sa', vpa');
+        assert inv46_b_body(dvn, m, m_state, sa', vpa');
         assert vpa' in m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'];
         
         // var dba': set<SlashingDBAttestation> := m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'][vpa'];  
