@@ -1171,6 +1171,59 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         }        
     }
 
+    predicate lemma_ServeAttstationDuty2_predicate(
+        s': DVState,
+        index_next_attestation_duty_to_be_served: nat,
+        attestation_duty: AttestationDuty,
+        node: BLSPubkey
+    )
+    {
+        && index_next_attestation_duty_to_be_served > 0
+        && var an := s'.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served - 1];
+
+        && attestation_duty == an.attestation_duty
+        && node == an.node    
+    }    
+
+    // TODO: Use this in place of lemma_ServeAttstationDuty
+    lemma lemma_ServeAttstationDuty2(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')    
+    requires event.HonestNodeTakingStep?
+    requires event.event.ServeAttstationDuty?
+    ensures             s'.index_next_attestation_duty_to_be_served > 0
+
+    ensures
+            && lemma_ServeAttstationDuty2_predicate(s', s'.index_next_attestation_duty_to_be_served, event.event.attestation_duty, event.node )
+            && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+
+
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) => 
+                        assert s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served;
+                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+
+                        var an := s'.sequence_attestation_duties_to_be_served[s'.index_next_attestation_duty_to_be_served - 1];
+
+                        assert attestation_duty == an.attestation_duty;
+                        assert node == an.node;
+
+                }
+        }        
+    }
+
     lemma lemma_NonServeAttstationDuty(
         s: DVState,
         event: DV.Event,
