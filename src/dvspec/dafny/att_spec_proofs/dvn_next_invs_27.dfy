@@ -448,12 +448,86 @@ module DVN_Next_Invs_27
     ensures invNetwork(dvn)
     {}
 
+    lemma lemma_inv38_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )       
+    requires NextEvent(dvn, event, dvn')
+    requires inv1(dvn)
+    requires inv2(dvn)
+    requires inv3(dvn)
+    requires inv38(dvn)    
+    ensures inv38(dvn')
+    {   
+        lemma_inv1_dvn_next(dvn, event, dvn');
+        lemma_inv2_dvn_next(dvn, event, dvn');
+        lemma_inv3_dvn_next(dvn, event, dvn');
+
+        assert && inv1(dvn')
+               && inv2(dvn')
+               && inv3(dvn');
+        
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];
+                assert && dvc.peers == dvc'.peers
+                       && |dvc.peers| > 0 ;
+
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(att_duty) =>     
+                        lemma_inv38_f_serve_attestation_duty(dvc, att_duty, dvc');                        
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        var att_network := dvn.att_network;
+                        var att_network' := dvn'.att_network;
+                        lemma_inv38_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
+                        assert      att_network'.allMessagesSent
+                                ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);                     
+                        assert      dvc'.attestation_shares_to_broadcast.Values 
+                                ==  dvc.attestation_shares_to_broadcast.Values 
+                                        + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);                        
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_inv38_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
+
+                    case ImportedNewBlock(block) => 
+                        var dvc_mod := add_block_to_bn(dvc, block);
+                        lemma_inv38_add_block_to_bn(dvc, block, dvc_mod);
+                        lemma_inv38_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
+                                                
+                    case ResendAttestationShares =>                         
+                        lemma_inv38_f_resend_attestation_share(dvc, dvc');
+
+                    case NoEvent => 
+                        
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }        
+    }  
+
+    lemma lemma_inv39_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )       
+    requires NextEvent(dvn, event, dvn')
+    ensures dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
+    {}
+
     lemma lemma_inv37_dvn_next(
         dvn: DVState,
         event: DV.Event,
         dvn': DVState
     )       
     requires NextEvent(dvn, event, dvn')
+    requires inv36(dvn)
     requires inv37(dvn)
     ensures inv37(dvn')
     {        
@@ -465,14 +539,119 @@ module DVN_Next_Invs_27
                 match nodeEvent
                 {
                     case ServeAttstationDuty(att_duty) =>     
-                        lemma_inv37_f_serve_attestation_duty(dvc, att_duty, dvc');
-                        
+                        lemma_inv37_f_serve_attestation_duty(dvc, att_duty, dvc');                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv37_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+
+                    case ReceviedAttesttionShare(attestation_share) =>    
+                        assert NetworkSpec.Next(dvn.att_network, dvn'.att_network, node, nodeOutputs.att_shares_sent, {attestation_share});
+                        assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= dvn.att_network.messagesInTransit;
+                        assert MessaageWithRecipient(message := attestation_share, receipient := node) in dvn.att_network.messagesInTransit;        
+                        assert attestation_share in dvn.att_network.allMessagesSent;
+                        assert attestation_share in dvn'.att_network.allMessagesSent;
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
-                        lemma_inv37_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
+                        lemma_inv39_dvn_next(dvn, event, dvn');
+                        assert dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent;
+                        
+                        lemma_inv37_f_listen_for_attestation_shares(dvc, attestation_share, dvc');  
+
+                        assert dvc' == f_listen_for_attestation_shares(dvc, attestation_share).state;
+
+                        var k := (attestation_share.data, attestation_share.aggregation_bits);
+                        forall i, j | && i in dvc'.rcvd_attestation_shares.Keys 
+                                      && j in dvc'.rcvd_attestation_shares[i].Keys
+                        ensures dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;
+                        {
+                            if ( || i != attestation_share.data.slot
+                                 || j != k
+                               )
+                            {             
+                                lemma_inv37_f_listen_for_attestation_shares_domain(
+                                    dvc,
+                                    attestation_share,
+                                    dvc'
+                                );
+                                assert && i in dvc.rcvd_attestation_shares.Keys 
+                                       && j in dvc.rcvd_attestation_shares[i].Keys;
+                                assert dvc'.rcvd_attestation_shares[i][j] <= dvc.rcvd_attestation_shares[i][j];                                
+                                assert dvc.rcvd_attestation_shares[i][j] <= dvn.att_network.allMessagesSent;
+                                lemmaSubsetOfSubset(
+                                    dvc'.rcvd_attestation_shares[i][j],
+                                    dvc.rcvd_attestation_shares[i][j],
+                                    dvn.att_network.allMessagesSent
+                                );
+                                assert dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent;
+                                lemmaSubsetOfSubset(
+                                    dvc'.rcvd_attestation_shares[i][j],                                    
+                                    dvn.att_network.allMessagesSent,
+                                    dvn'.att_network.allMessagesSent
+                                );
+                                assert dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;
+                            }
+                            else
+                            {
+                                if  && i == attestation_share.data.slot
+                                    && j == k
+                                    && ( || i !in dvc.rcvd_attestation_shares.Keys
+                                         || j !in dvc.rcvd_attestation_shares[i].Keys
+                                       )                                       
+                                {
+                                    
+                                    assert dvc'.rcvd_attestation_shares[i][j] <= {attestation_share};
+                                    
+                                    
+                                    assert attestation_share in dvn'.att_network.allMessagesSent;                                    
+                                    lemmaFromMemberToSingletonSet(attestation_share, dvn'.att_network.allMessagesSent);
+                                    assert {attestation_share} <= dvn'.att_network.allMessagesSent;
+
+                                    lemmaSubsetOfSubset(
+                                            dvc'.rcvd_attestation_shares[i][j],
+                                            {attestation_share},
+                                            dvn'.att_network.allMessagesSent
+                                        );
+                                    assert dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;                                     
+                                    
+                                }
+                                else
+                                {
+                                    assert  && i == attestation_share.data.slot
+                                            && j == k
+                                            && i in dvc.rcvd_attestation_shares.Keys 
+                                            && j in dvc.rcvd_attestation_shares[i].Keys;
+
+                                    
+                                    assert dvc'.rcvd_attestation_shares[i][j] 
+                                                <= dvc.rcvd_attestation_shares[i][j] + {attestation_share}; 
+
+                                    assert dvc.rcvd_attestation_shares[i][j] 
+                                                <= dvn.att_network.allMessagesSent;                                                
+                                    assert dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent;      
+                                    lemmaSubsetOfSubset(
+                                        dvc.rcvd_attestation_shares[i][j],
+                                        dvn.att_network.allMessagesSent,
+                                        dvn'.att_network.allMessagesSent);                                    
+                                    assert dvc.rcvd_attestation_shares[i][j] 
+                                                <= dvn'.att_network.allMessagesSent;
+
+                                    assert attestation_share in dvn'.att_network.allMessagesSent;                                    
+                                    lemmaFromMemberToSingletonSet(attestation_share, dvn'.att_network.allMessagesSent);
+                                    assert {attestation_share} <= dvn'.att_network.allMessagesSent;
+
+                                    lemmaUnionOfSubsets(dvc.rcvd_attestation_shares[i][j], {attestation_share}, dvn'.att_network.allMessagesSent);                                    
+                                    assert dvc.rcvd_attestation_shares[i][j] + {attestation_share}
+                                                <= dvn'.att_network.allMessagesSent;
+
+                                    lemmaSubsetOfSubset(
+                                        dvc'.rcvd_attestation_shares[i][j],
+                                        dvc.rcvd_attestation_shares[i][j] + {attestation_share},
+                                        dvn'.att_network.allMessagesSent);
+                                    
+                                    assert dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;                                                                         
+                                }
+                            }
+                        }
+                        assert inv37(dvn');
 
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);

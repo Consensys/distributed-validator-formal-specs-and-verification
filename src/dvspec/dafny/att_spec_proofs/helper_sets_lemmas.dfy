@@ -493,4 +493,19 @@ function intsetmax(s:set<int>):int
     {
         assert (k, m[k]) in m.Items;
     }       
+
+    lemma lemmaFromMemberToSingletonSet<T>(e: T, S: set<T>)
+    requires e in S
+    ensures {e} <= S
+    {}
+
+    lemma lemmaUnionOfSubsets<T>(S1: set<T>, S2: set<T>, S: set<T>)
+    requires S1 <= S && S2 <= S
+    ensures S1 + S2 <= S
+    {}
+
+    lemma lemmaSubsetOfSubset<T>(S1: set<T>, S2: set<T>, S3: set<T>)
+    requires S1 <= S2 && S2 <= S3
+    ensures S1  <= S3
+    {}
 }

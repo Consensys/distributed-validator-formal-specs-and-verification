@@ -34,24 +34,11 @@ module Incomplete_Proofs
     lemma {:axiom} axiom_inv37(
         dvn: DVState
     )    
-    ensures inv37(dvn)
+    ensures inv37(dvn)    
 
-     
-
-    
- 
-    
-
-    
-    
-    
 
     
 
     
     
-
-    
-
-      
 }

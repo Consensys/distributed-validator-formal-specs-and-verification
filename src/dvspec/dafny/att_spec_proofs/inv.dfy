@@ -3006,4 +3006,30 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var dvc := dvn.honest_nodes_states[n];
             && inv37_body(dvn, dvc)
     } 
+
+
+    predicate inv38_body(
+        dvn: DVState,
+        dvc: DVCNodeState
+    )    
+    {
+        dvc.attestation_shares_to_broadcast.Values <= dvn.att_network.allMessagesSent
+    }
+
+    predicate inv38(
+        dvn: DVState
+    )
+    {
+        forall n | n in dvn.honest_nodes_states.Keys ::
+            && var dvc := dvn.honest_nodes_states[n];
+            && inv38_body(dvn, dvc)
+    }
+
+    predicate inv39(
+        dvn: DVState,        
+        dvn': DVState
+    )       
+    {
+        dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
+    }    
 }

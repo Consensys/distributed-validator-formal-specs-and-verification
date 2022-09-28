@@ -429,16 +429,10 @@ module DVCNode_Spec {
         id: Slot,
         decided_attestation_data: AttestationData
     ): DVCNodeStateAndOuputs
-    requires process.current_attestation_duty.isPresent()
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
-    requires ( forall k: Slot | k in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys :: 
-                    exists duty: AttestationDuty | duty in process.all_rcvd_duties ::
-                        duty.slot == k )
-    requires ( forall ad1, ad2: AttestationDuty :: 
-                    && ad1 in process.all_rcvd_duties 
-                    && ad2 in process.all_rcvd_duties 
-                    && ad1.slot == ad2.slot
-                        ==> ad1 == ad2 )
+    requires process.current_attestation_duty.isPresent()    
+    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys            
+    requires process.current_attestation_duty.safe_get().slot !in process.attestation_shares_to_broadcast.Keys
+    requires decided_attestation_data.slot == process.current_attestation_duty.safe_get().slot        
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);

@@ -83,6 +83,7 @@ module Proofs_DVN_Ind_Inv
         &&  inv35(dvn)
         &&  inv36(dvn)
         &&  inv37(dvn)
+        &&  inv38(dvn)
     }
 
     
@@ -171,6 +172,7 @@ module Proofs_DVN_Ind_Inv
         lemma_inv35_dvn_next(dvn, e, dvn');  
         lemma_inv36_dvn_next(dvn, e, dvn');  
         lemma_inv37_dvn_next(dvn, e, dvn');  
+        lemma_inv38_dvn_next(dvn, e, dvn');  
     }
 
     lemma lemma_ind_inv_dvn_next_properties(dvn: DVState, dvn': DVState)       
