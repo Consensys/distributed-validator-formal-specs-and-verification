@@ -1277,7 +1277,17 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 hn,
                 dvn.honest_nodes_states[hn]
             )                    
-    }            
+    }   
+
+    function get_upperlimit_active_instances(
+        n_state: DVCNodeState
+    ): nat 
+    {
+        if n_state.latest_attestation_duty.isPresent() then
+            n_state.latest_attestation_duty.safe_get().slot + 1
+        else
+            0
+    }                
 
     predicate inv_g_iii_a_a_body_body(
         dvn: DVState, 
@@ -1361,16 +1371,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         else
             0
     }
-
-    function get_upperlimit_active_instances(
-        n_state: DVCNodeState
-    ): nat 
-    {
-        if n_state.latest_attestation_duty.isPresent() then
-            n_state.latest_attestation_duty.safe_get().slot + 1
-        else
-            0
-    }   
 
     predicate pred_4_1_g_b_new(dvn: DVState)    
     {
