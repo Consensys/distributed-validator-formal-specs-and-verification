@@ -148,54 +148,57 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        lemma_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
-                                process_mod.attestation_consensus_engine_state 
-                                );
-
-        assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                    == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-
-
-        assert inv5_body(process_mod);
-        assert inv25_body(process_mod);
-
-        assert inv27_body(process_mod);
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
-        lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv5_body(ret_dvc);
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv27_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv27_body(ret_dvc);
+            lemma_updateConsensusInstanceValidityCheck(
+                                    process.attestation_consensus_engine_state,
+                                    attestation_slashing_db,
+                                    process_mod.attestation_consensus_engine_state 
+                                    );
 
-        assert process' == ret_dvc;        
+            assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                        == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+                                + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+
+            assert inv5_body(process_mod);
+            assert inv25_body(process_mod);
+
+            assert inv27_body(process_mod);
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv5_body(ret_dvc);
+            
+            lemma_inv27_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv27_body(ret_dvc);
+
+            assert process' == ret_dvc;
+        }      
     }
 
     lemma lemma_inv27_f_serve_attestation_duty(
@@ -428,54 +431,57 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        lemma_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
-                                process_mod.attestation_consensus_engine_state 
-                                );
-
-        assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                    == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-
-
-        assert inv5_body(process_mod);
-        assert inv26_body(process_mod);
-
-        assert inv28_body(process_mod);
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
-        lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv5_body(ret_dvc);
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv28_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv28_body(ret_dvc);
+            lemma_updateConsensusInstanceValidityCheck(
+                                    process.attestation_consensus_engine_state,
+                                    attestation_slashing_db,
+                                    process_mod.attestation_consensus_engine_state 
+                                    );
 
-        assert process' == ret_dvc;        
+            assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                        == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+                                + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+
+            assert inv5_body(process_mod);
+            assert inv26_body(process_mod);
+
+            assert inv28_body(process_mod);
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv5_body(ret_dvc);
+            
+            lemma_inv28_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv28_body(ret_dvc);
+
+            assert process' == ret_dvc;      
+        }
     }
 
     lemma lemma_inv28_f_serve_attestation_duty(
@@ -691,54 +697,57 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot 
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        lemma_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
-                                process_mod.attestation_consensus_engine_state 
-                                );
-
-        assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                    == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-
-
-        assert inv5_body(process_mod);
-        assert inv25_body(process_mod);
-
-        assert inv29_body(process_mod);
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
-        lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv5_body(ret_dvc);
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv29_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv29_body(ret_dvc);
+            lemma_updateConsensusInstanceValidityCheck(
+                                    process.attestation_consensus_engine_state,
+                                    attestation_slashing_db,
+                                    process_mod.attestation_consensus_engine_state 
+                                    );
 
-        assert process' == ret_dvc;        
+            assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                        == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+                                + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+
+
+            assert inv5_body(process_mod);
+            assert inv25_body(process_mod);
+
+            assert inv29_body(process_mod);
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv5_body(ret_dvc);
+            
+            lemma_inv29_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv29_body(ret_dvc);
+
+            assert process' == ret_dvc; 
+        }       
     }
 
     lemma lemma_inv29_f_serve_attestation_duty(
@@ -931,37 +940,40 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot 
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv30_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        
-        assert process' == ret_dvc;        
+            assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            
+            lemma_inv30_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            
+            assert process' == ret_dvc;  
+        }      
     }
 
     lemma lemma_inv30_f_serve_attestation_duty(
@@ -1210,75 +1222,78 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-        assert process.attestation_slashing_db <= attestation_slashing_db;
-        assert inv31_body_ces(process.attestation_consensus_engine_state, 
-                              process.attestation_slashing_db); 
-
-        forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
-                            ( && s  in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                              && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s]
-                              && db in process.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-                            )   
-        ensures db <= attestation_slashing_db               
+        if id == local_current_attestation_duty.slot 
         {
-            calc {
-                db; 
-                <=
-                process.attestation_slashing_db;
-                <=
-                attestation_slashing_db;
-            }                        
-        }
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            assert process.attestation_slashing_db <= attestation_slashing_db;
+            assert inv31_body_ces(process.attestation_consensus_engine_state, 
+                                process.attestation_slashing_db); 
 
-        assert inv31_body_ces(process.attestation_consensus_engine_state, 
-                              attestation_slashing_db);
+            forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
+                                ( && s  in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                                && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s]
+                                && db in process.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                                )   
+            ensures db <= attestation_slashing_db               
+            {
+                calc {
+                    db; 
+                    <=
+                    process.attestation_slashing_db;
+                    <=
+                    attestation_slashing_db;
+                }                        
+            }
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            assert inv31_body_ces(process.attestation_consensus_engine_state, 
+                                attestation_slashing_db);
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        assert inv26_body(process);
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-
-        lemma_inv31_updateConsensusInstanceValidityCheck(
-                                process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
-                                new_attestation_consensus_engine_state
-                                );
+            assert inv26_body(process);
 
 
-        assert inv31_body_ces(new_attestation_consensus_engine_state, attestation_slashing_db);
+            lemma_inv31_updateConsensusInstanceValidityCheck(
+                                    process.attestation_consensus_engine_state,
+                                    attestation_slashing_db,
+                                    new_attestation_consensus_engine_state
+                                    );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
 
-        assert inv31_body(process_mod);
-    
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
-        lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv5_body(ret_dvc);
+            assert inv31_body_ces(new_attestation_consensus_engine_state, attestation_slashing_db);
+
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
+
+            assert inv31_body(process_mod);
         
-        
-        lemma_inv31_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        assert inv31_body(ret_dvc);
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv5_body(ret_dvc);
+            
+            
+            lemma_inv31_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv31_body(ret_dvc);
 
-        assert process' == ret_dvc;        
+            assert process' == ret_dvc;   
+        }     
     }
 
     lemma lemma_inv31_f_serve_attestation_duty(
@@ -1495,37 +1510,40 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot 
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv32_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        
-        assert process' == ret_dvc;        
+            assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            
+            lemma_inv32_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            
+            assert process' == ret_dvc;       
+        } 
     }
 
     lemma lemma_inv32_f_serve_attestation_duty(
@@ -1698,37 +1716,40 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv34_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        
-        assert process' == ret_dvc;        
+            assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            
+            lemma_inv34_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            
+            assert process' == ret_dvc;      
+        }  
     }
 
     lemma lemma_inv34_f_serve_attestation_duty(
@@ -2055,37 +2076,40 @@ module Fnc_Invs_27
     {
         
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot
+        {
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
-    
-        assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
-
-        var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
         
-        lemma_inv37_f_check_for_next_queued_duty(process_mod, ret_dvc);
-        
-        assert process' == ret_dvc;        
+            assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
+
+            var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
+            
+            lemma_inv37_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            
+            assert process' == ret_dvc;      
+        } 
     }
 
     lemma lemma_inv37_f_serve_attestation_duty(
@@ -2302,56 +2326,57 @@ module Fnc_Invs_27
     requires outputs == f_att_consensus_decided(process, id, decided_attestation_data).outputs    
     requires decided_attestation_data.slot == id  
     ensures (process'.attestation_shares_to_broadcast.Values - process.attestation_shares_to_broadcast.Values) <= getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
-    {
-        // TODO: Remove below by changing spec
-        assume id == process.current_attestation_duty.safe_get().slot;          
+    {   
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        assert local_current_attestation_duty.slot == decided_attestation_data.slot;
+        if id == local_current_attestation_duty.slot
+        {
+            assert local_current_attestation_duty.slot == decided_attestation_data.slot;
 
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                                                            process.attestation_consensus_engine_state,
-                                                            attestation_slashing_db
-                                                      );
+            var new_attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                                                                process.attestation_consensus_engine_state,
+                                                                attestation_slashing_db
+                                                        );
 
-        var process_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := new_attestation_consensus_engine_state
-            );
+            var process_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := new_attestation_consensus_engine_state
+                );
 
-        var new_dvc := f_check_for_next_queued_duty(process_mod).state;
-        lemma_inv38_f_check_for_next_queued_duty(process_mod, new_dvc);        
-        assert new_dvc.attestation_shares_to_broadcast == process_mod.attestation_shares_to_broadcast;
-        assert new_dvc.peers == process_mod.peers;
-        
-        var ret_dvc_outputs := DVCNodeStateAndOuputs(
-                                    state := new_dvc,
-                                    outputs := getEmptyOuputs().(
-                                        att_shares_sent := multicast(attestation_with_signature_share, new_dvc.peers)
-                                    )          
-                                );
-        
-        assert && process' == ret_dvc_outputs.state
-               && decided_attestation_data.slot in process'.attestation_shares_to_broadcast.Keys
-               && outputs == ret_dvc_outputs.outputs
-               ;     
+            var new_dvc := f_check_for_next_queued_duty(process_mod).state;
+            lemma_inv38_f_check_for_next_queued_duty(process_mod, new_dvc);        
+            assert new_dvc.attestation_shares_to_broadcast == process_mod.attestation_shares_to_broadcast;
+            assert new_dvc.peers == process_mod.peers;
+            
+            var ret_dvc_outputs := DVCNodeStateAndOuputs(
+                                        state := new_dvc,
+                                        outputs := getEmptyOuputs().(
+                                            att_shares_sent := multicast(attestation_with_signature_share, new_dvc.peers)
+                                        )          
+                                    );
+            
+            assert && process' == ret_dvc_outputs.state
+                && decided_attestation_data.slot in process'.attestation_shares_to_broadcast.Keys
+                && outputs == ret_dvc_outputs.outputs
+                ;     
 
-        lemma_multicast_getMessagesFromMessagesWithRecipient(ret_dvc_outputs.state, attestation_with_signature_share);
+            lemma_multicast_getMessagesFromMessagesWithRecipient(ret_dvc_outputs.state, attestation_with_signature_share);
 
-        assert (process'.attestation_shares_to_broadcast.Values - process.attestation_shares_to_broadcast.Values) <= getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
+            assert (process'.attestation_shares_to_broadcast.Values - process.attestation_shares_to_broadcast.Values) <= getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
+        }
     }
 
     lemma lemma_inv38_f_serve_attestation_duty(

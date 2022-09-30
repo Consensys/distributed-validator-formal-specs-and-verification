@@ -442,36 +442,42 @@ module DVCNode_Spec {
     requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        if id == local_current_attestation_duty.slot then
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-        var process := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    attestation_slashing_db
-                )
-            );
+            var process := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        process.attestation_consensus_engine_state,
+                        attestation_slashing_db
+                    )
+                );
 
-        var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process);
+            var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process);
 
-        ret_check_for_next_queued_duty.(
-            state := ret_check_for_next_queued_duty.state,
-            outputs := getEmptyOuputs().(
-                att_shares_sent := multicast(attestation_with_signature_share, process.peers)
-            )          
-        )        
+            ret_check_for_next_queued_duty.(
+                state := ret_check_for_next_queued_duty.state,
+                outputs := getEmptyOuputs().(
+                    att_shares_sent := multicast(attestation_with_signature_share, process.peers)
+                )          
+            )        
+        else 
+            DVCNodeStateAndOuputs(
+                state := process,
+                outputs := getEmptyOuputs()
+            )               
     }    
 
     function f_listen_for_attestation_shares(

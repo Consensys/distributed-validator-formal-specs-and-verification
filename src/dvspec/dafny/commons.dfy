@@ -683,5 +683,22 @@ module CommonFunctions{
         s[|s|-1]
     }
 
+    lemma lemmaImaptotalElementInDomainIsInKeys<K(!new), V>(m: imaptotal<K, V>, e: K)
+    ensures e in m.Keys
+    {
+
+    }
+
+    lemma lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame<M>(
+        messagesToBeSent: set<MessaageWithRecipient<M>>,
+        message: M
+    )
+    requires forall m | m in messagesToBeSent :: m.message == message 
+    requires messagesToBeSent != {}
+    ensures getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {message}
+    {
+
+    }
+
     
 }

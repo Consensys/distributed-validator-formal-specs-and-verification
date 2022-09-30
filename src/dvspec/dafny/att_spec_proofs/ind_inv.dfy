@@ -155,6 +155,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     decreases s.attestation_duties_queue   
     {
         var local_current_attestation_duty := s.current_attestation_duty.safe_get();
+        if id != local_current_attestation_duty.slot 
+        {
+            return;
+        }
+
         var attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -722,7 +727,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');        
     }     
 
-    // Ver time: 1m 17s
+    // Ver time: 7m
     lemma lemma_pred_4_1_c_att_consensus_decided(
         s: DVState,
         event: DV.Event,
@@ -751,67 +756,78 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 var s'_node := s'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case AttConsensusDecided(id, decided_attestation_data) => 
+                    case AttConsensusDecided(id: Slot, decided_attestation_data) => 
                         assert pred_4_1_c(s') by 
                         {
                             var local_current_attestation_duty := s_node.current_attestation_duty.safe_get();
-                            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-                            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-                            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);
-                            var attestation_with_signature_share := AttestationShare(
-                                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                                    data := decided_attestation_data, 
-                                    signature := attestation_signature_share
-                                ); 
-
-                            var messagesToBeSent := f_att_consensus_decided(s_node, id, decided_attestation_data).outputs.att_shares_sent;
-                            assert messagesToBeSent ==  multicast(attestation_with_signature_share, s_node.peers);     
-                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
-                                getMessagesFromMessagesWithRecipient(messagesToBeSent); 
-                            assert forall m | m in messagesToBeSent :: m.message == attestation_with_signature_share;     
-                            assert getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {attestation_with_signature_share};
-                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
-                                {attestation_with_signature_share}; 
-
-                            assert pred_4_1_c(s') by 
+                            if id == local_current_attestation_duty.slot 
                             {
-                                forall hn, att_share |
-                                        && hn in s'.honest_nodes_states.Keys 
-                                        && att_share in s'.att_network.allMessagesSent
-                                        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                                        && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                                        && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
-                                ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
-                                ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                                 
+                                var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+                                var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+                                var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);
+                                var attestation_with_signature_share := AttestationShare(
+                                        aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                                        data := decided_attestation_data, 
+                                        signature := attestation_signature_share
+                                    ); 
+
+                                var messagesToBeSent := f_att_consensus_decided(s_node, id, decided_attestation_data).outputs.att_shares_sent;
+                                assert messagesToBeSent ==  multicast(attestation_with_signature_share, s_node.peers);     
+                                assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                                    getMessagesFromMessagesWithRecipient(messagesToBeSent); 
+                                assert forall m | m in messagesToBeSent :: m.message == attestation_with_signature_share; 
+                                lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame(messagesToBeSent, attestation_with_signature_share);    
+                                assert getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {attestation_with_signature_share};
+                                assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                                    {attestation_with_signature_share}; 
+
+                                assert pred_4_1_c(s') by 
                                 {
-                                    var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                                    if att_share in s.att_network.allMessagesSent
+                                    forall hn, att_share |
+                                            && hn in s'.honest_nodes_states.Keys 
+                                            && att_share in s'.att_network.allMessagesSent
+                                            && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                                            && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                                            && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                                    ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
+                                    ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                                 
                                     {
-                                        assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
-                                        assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;   
-                                    }
-                                    else
-                                    {
-                                        assert att_share == attestation_with_signature_share;
-                                        assert id in s.consensus_on_attestation_data.Keys ;
+                                        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                                        if att_share in s.att_network.allMessagesSent
+                                        {
+                                            assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
+                                            assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;   
+                                        }
+                                        else
+                                        {
+                                            assert att_share == attestation_with_signature_share;
+                                            lemmaImaptotalElementInDomainIsInKeys(s.consensus_on_attestation_data, id);
+                                            assert id in s.consensus_on_attestation_data.Keys ;
 
-                                        var validityPredicates :| ConsensusSpec.Next(
-                                            s.consensus_on_attestation_data[id],
-                                            validityPredicates,
-                                            s'.consensus_on_attestation_data[id],
-                                            Some(Decided(node, decided_attestation_data))
-                                        );                             
+                                            var validityPredicates :| ConsensusSpec.Next(
+                                                s.consensus_on_attestation_data[id],
+                                                validityPredicates,
+                                                s'.consensus_on_attestation_data[id],
+                                                Some(Decided(node, decided_attestation_data))
+                                            );                             
 
 
-                                        assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
-                                        lemma_pred_4_1_f_b(s, event, s');
-                                        assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id;                                     
-                                        assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                                     
+                                            assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
+                                            lemma_pred_4_1_f_b(s, event, s');
+                                            assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id;                                     
+                                            assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                                     
+                                        }
                                     }
                                 }
+
+                                assert pred_4_1_c(s');
+                            }
+                            else 
+                            {
+                                assert pred_4_1_c(s');
                             }
 
-                            assert pred_4_1_c(s');
+
                         }    
                 }
         }
@@ -1669,6 +1685,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'); 
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        if id != local_current_attestation_duty.slot
+        {
+            return;
+        }
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2161,112 +2181,113 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
     ensures inv_g_iii_body_body(dvn, s');  
-    {
-        // TODO: Remove below by changing spec
-        assume id == process.current_attestation_duty.safe_get().slot;        
+    {     
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
-
-        var s_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    attestation_slashing_db
-                )
-            );
-
-        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
-            process.attestation_consensus_engine_state,
-            attestation_slashing_db,
-            s_mod.attestation_consensus_engine_state
-        );           
-
-        // assert inv_g_b_body_body_new(dvn, n, s_mod);   
-        forall s1: nat, s2: nat, vp, db2 |
-            && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-            && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
-            && s1 < s2       
-            && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
-            && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
-        ensures inv_g_iii_body_body_body(dvn, s1, db2)
+        if id == local_current_attestation_duty.slot
         {
-            assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                    || s2 in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-            assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-            assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-            assert dvn.consensus_on_attestation_data[s1].decided_value.isPresent();
-            var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
-            var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+            var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
 
-            assert 
-                && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
-                && db2 in process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
-                ==>
-                inv_g_iii_body_body_body(dvn, s1, db2);   
+            var s_mod := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        process.attestation_consensus_engine_state,
+                        attestation_slashing_db
+                    )
+                );
 
-            if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
+            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+                process.attestation_consensus_engine_state,
+                attestation_slashing_db,
+                s_mod.attestation_consensus_engine_state
+            );           
+
+            // assert inv_g_b_body_body_new(dvn, n, s_mod);   
+            forall s1: nat, s2: nat, vp, db2 |
+                && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+                && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+                && s1 < s2       
+                && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
+                && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
+            ensures inv_g_iii_body_body_body(dvn, s1, db2)
             {
-                assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
-                assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {attestation_slashing_db};
-                assert sdba in db2;
-            }
-            else 
-            {
-                if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                        || s2 in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+                assert dvn.consensus_on_attestation_data[s1].decided_value.isPresent();
+                var decided_a_data := dvn.consensus_on_attestation_data[s1].decided_value.safe_get();
+                var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
+
+                assert 
+                    && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
+                    && db2 in process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
+                    ==>
+                    inv_g_iii_body_body_body(dvn, s1, db2);   
+
+                if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
                 {
-                    if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
-                    {
-                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
-                            process.attestation_consensus_engine_state,
-                            attestation_slashing_db,
-                            s_mod.attestation_consensus_engine_state,
-                            s2,
-                            vp
-                        );
-                        assert sdba in db2;
-                    }
-                    else 
-                    {
-                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
-                            process.attestation_consensus_engine_state,
-                            attestation_slashing_db,
-                            s_mod.attestation_consensus_engine_state,
-                            s2,
-                            vp
-                        );
-                        assert sdba in db2;
-                    }
+                    assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                    assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {attestation_slashing_db};
+                    assert sdba in db2;
                 }
                 else 
                 {
-                    lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
-                        process.attestation_consensus_engine_state,
-                        attestation_slashing_db,
-                        s_mod.attestation_consensus_engine_state,
-                        s2,
-                        vp
-                    );
-                    assert sdba in db2;
+                    if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                    {
+                        if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                        {
+                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                                process.attestation_consensus_engine_state,
+                                attestation_slashing_db,
+                                s_mod.attestation_consensus_engine_state,
+                                s2,
+                                vp
+                            );
+                            assert sdba in db2;
+                        }
+                        else 
+                        {
+                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                                process.attestation_consensus_engine_state,
+                                attestation_slashing_db,
+                                s_mod.attestation_consensus_engine_state,
+                                s2,
+                                vp
+                            );
+                            assert sdba in db2;
+                        }
+                    }
+                    else 
+                    {
+                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                            process.attestation_consensus_engine_state,
+                            attestation_slashing_db,
+                            s_mod.attestation_consensus_engine_state,
+                            s2,
+                            vp
+                        );
+                        assert sdba in db2;
+                    }
                 }
-            }
-            assert sdba in db2;
-            assert  inv_g_iii_body_body_body(dvn, s1, db2);
-        }    
+                assert sdba in db2;
+                assert  inv_g_iii_body_body_body(dvn, s1, db2);
+            }    
 
-        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);             
+            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);    
+        }         
     }  
 
     lemma lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
