@@ -6,6 +6,17 @@ include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/ind_inv.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
+include "../att_spec_proofs/fnc_invs_1_26.dfy"
+include "../att_spec_proofs/helper_sets_lemmas.dfy"
+include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
+include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
+include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
+include "../att_spec_proofs/dvn_next_invs_27.dfy"
+include "../att_spec_proofs/common_proofs.dfy"
+include "../att_spec_proofs/fnc_invs_27.dfy"
+include "ind_inv.dfy"
+include "ind_inv2.dfy"
+include "ind_inv3.dfy"
 
 module Core_Proofs
 {
