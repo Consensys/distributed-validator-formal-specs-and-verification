@@ -11,7 +11,7 @@ include "../att_spec_proofs/proofs_intermediate_steps.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
-include "../att_spec_proofs/fnc_invs_27.dfy"
+include "../att_spec_proofs/fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 
 module DVN_Next_Invs_27
@@ -30,7 +30,7 @@ module DVN_Next_Invs_27
     import opened DVN_Next_Invs_1_7
     import opened DVN_Next_Invs_8_18
     import opened DVN_Next_Invs_19_26
-    import opened Fnc_Invs_27
+    import opened Fnc_Invs_27_39
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
 
@@ -676,16 +676,6 @@ module DVN_Next_Invs_27
         }        
     }  
 
-    lemma lemma_inv38_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
-        dvn: DVState
-    )
-    requires inv38(dvn)
-    ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dvn)
-    {}  
-
-    lemma lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn: DVState)    
-    requires inv29(dvn)
-    ensures inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn)
-    {}        
+          
 }   
         

@@ -9,7 +9,7 @@ include "../att_spec_proofs/helper_sets_lemmas.dfy"
 include "../att_spec_proofs/common_proofs.dfy"
 include "../att_spec_proofs/fnc_invs_1_26.dfy"
 
-module Fnc_Invs_27
+module Fnc_Invs_27_39
 {
     import opened Types 
     import opened CommonFunctions
