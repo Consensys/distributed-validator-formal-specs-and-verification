@@ -675,5 +675,17 @@ module DVN_Next_Invs_27
                 
         }        
     }  
+
+    lemma lemma_inv38_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
+        dvn: DVState
+    )
+    requires inv38(dvn)
+    ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dvn)
+    {}  
+
+    lemma lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn: DVState)    
+    requires inv29(dvn)
+    ensures inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn)
+    {}        
 }   
         

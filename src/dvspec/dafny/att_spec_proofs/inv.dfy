@@ -1644,9 +1644,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         cid: Slot
     )
     {
-        && cid in n_state.attestation_consensus_engine_state.attestation_consensus_active_instances ==>
-        && cid in n_state.attestation_consensus_engine_state.att_slashing_db_hist
-        && n_state.attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate in n_state.attestation_consensus_engine_state.att_slashing_db_hist[cid] 
+        && cid in n_state.attestation_consensus_engine_state.attestation_consensus_active_instances 
+        ==>
+        (
+            && cid in n_state.attestation_consensus_engine_state.att_slashing_db_hist
+            && n_state.attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate in n_state.attestation_consensus_engine_state.att_slashing_db_hist[cid] 
+        )
     }    
 
     predicate pred_inv_current_latest_attestation_duty_match(dvn: DVState)    
