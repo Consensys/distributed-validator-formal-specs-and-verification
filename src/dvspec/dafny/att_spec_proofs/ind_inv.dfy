@@ -2930,11 +2930,18 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires inv1(s)
+    requires inv2(s)
     requires inv3(s)
     requires inv53(s)    
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires pred_4_1_g_i_for_dvc(s)      
+    requires pred_4_1_f_b(s)      
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
+    ensures event.event.decided_attestation_data.slot == event.event.id
     {
+        lemma_pred_4_1_f_b(s, event, s');
     }    
 
     predicate lemma_pred_4_1_g_iii_precond(

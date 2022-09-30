@@ -2299,20 +2299,12 @@ module Fnc_Invs_27
     requires |process.peers| > 0
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
-    requires outputs == f_att_consensus_decided(process, id, decided_attestation_data).outputs
-    // TODO: add the following precondition to f_att_consensus_decided //
-    requires process.current_attestation_duty.safe_get().slot !in process.attestation_shares_to_broadcast.Keys
-    requires decided_attestation_data.slot == process.current_attestation_duty.safe_get().slot        
-    ensures && decided_attestation_data.slot in process'.attestation_shares_to_broadcast.Keys
-            && { process'.attestation_shares_to_broadcast[decided_attestation_data.slot] }                    
-                == getMessagesFromMessagesWithRecipient(outputs.att_shares_sent)                    
-            && process'.attestation_shares_to_broadcast.Keys 
-                == process.attestation_shares_to_broadcast.Keys + {decided_attestation_data.slot}  
-            && process'.attestation_shares_to_broadcast.Values 
-                == process.attestation_shares_to_broadcast.Values 
-                        + getMessagesFromMessagesWithRecipient(outputs.att_shares_sent)  
+    requires outputs == f_att_consensus_decided(process, id, decided_attestation_data).outputs    
+    requires decided_attestation_data.slot == id  
+    ensures (process'.attestation_shares_to_broadcast.Values - process.attestation_shares_to_broadcast.Values) <= getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
     {
-        
+        // TODO: Remove below by changing spec
+        assume id == process.current_attestation_duty.safe_get().slot;          
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
         assert local_current_attestation_duty.slot == decided_attestation_data.slot;
 
@@ -2340,13 +2332,6 @@ module Fnc_Invs_27
                 attestation_consensus_engine_state := new_attestation_consensus_engine_state
             );
 
-        assert process_mod.attestation_shares_to_broadcast.Keys 
-                == process.attestation_shares_to_broadcast.Keys + {local_current_attestation_duty.slot};
-        assert process_mod.attestation_shares_to_broadcast.Values 
-                == process.attestation_shares_to_broadcast.Values + {attestation_with_signature_share};
-        assert process_mod.peers == process.peers;
-
-
         var new_dvc := f_check_for_next_queued_duty(process_mod).state;
         lemma_inv38_f_check_for_next_queued_duty(process_mod, new_dvc);        
         assert new_dvc.attestation_shares_to_broadcast == process_mod.attestation_shares_to_broadcast;
@@ -2364,24 +2349,9 @@ module Fnc_Invs_27
                && outputs == ret_dvc_outputs.outputs
                ;     
 
-
         lemma_multicast_getMessagesFromMessagesWithRecipient(ret_dvc_outputs.state, attestation_with_signature_share);
 
-        
-        assert { process'.attestation_shares_to_broadcast[decided_attestation_data.slot] }
-                    == { process'.attestation_shares_to_broadcast[local_current_attestation_duty.slot] }
-                    == { attestation_with_signature_share }
-                    == getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
-
-        assert { process'.attestation_shares_to_broadcast[decided_attestation_data.slot] }
-                    == getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
-
-        assert process'.attestation_shares_to_broadcast.Keys 
-                    == process.attestation_shares_to_broadcast.Keys + {decided_attestation_data.slot};
-
-        assert process'.attestation_shares_to_broadcast.Values 
-                == process.attestation_shares_to_broadcast.Values 
-                        + getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
+        assert (process'.attestation_shares_to_broadcast.Values - process.attestation_shares_to_broadcast.Values) <= getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
     }
 
     lemma lemma_inv38_f_serve_attestation_duty(

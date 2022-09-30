@@ -12,6 +12,7 @@ include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
 include "../att_spec_proofs/fnc_invs_27.dfy"
+include "ind_inv.dfy"
 
 module DVN_Next_Invs_27
 {
@@ -30,6 +31,7 @@ module DVN_Next_Invs_27
     import opened DVN_Next_Invs_8_18
     import opened DVN_Next_Invs_19_26
     import opened Fnc_Invs_27
+    import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
 
     lemma lemma_inv27_dvn_next(
@@ -457,6 +459,11 @@ module DVN_Next_Invs_27
     requires inv1(dvn)
     requires inv2(dvn)
     requires inv3(dvn)
+    requires inv53(dvn)    
+    requires pred_4_1_f_a(dvn)    
+    requires pred_4_1_g_i(dvn)
+    requires pred_4_1_g_i_for_dvc(dvn)      
+    requires pred_4_1_f_b(dvn)       
     requires inv38(dvn)    
     ensures inv38(dvn')
     {   
@@ -485,12 +492,11 @@ module DVN_Next_Invs_27
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         var att_network := dvn.att_network;
                         var att_network' := dvn'.att_network;
+                        lemma_pred_4_1_g_iii_helper6(dvn, event, dvn');
                         lemma_inv38_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
                         assert      att_network'.allMessagesSent
-                                ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);                     
-                        assert      dvc'.attestation_shares_to_broadcast.Values 
-                                ==  dvc.attestation_shares_to_broadcast.Values 
-                                        + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);                        
+                                ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
+                    
                         
                     case ReceviedAttesttionShare(attestation_share) =>                         
                         lemma_inv38_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
