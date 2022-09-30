@@ -295,7 +295,14 @@ module Proofs_Intermediate_Steps
                 dvn.all_nodes)    
     {}
 
-    lemma lemma_pred_rcvd_attestation_shares_is_in_all_messages_sent(
+    lemma lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(
+        dvn: DVState
+    )    
+    requires inv34(dvn)    
+    ensures  inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn)
+    {}
+
+    lemma lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(
         dvn: DVState
     )    
     requires inv37(dvn)    

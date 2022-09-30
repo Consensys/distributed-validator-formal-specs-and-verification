@@ -11,7 +11,11 @@ include "../att_spec_proofs/proofs_intermediate_steps.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
-include "../att_spec_proofs/dvn_next_invs_27.dfy"
+include "../att_spec_proofs/dvn_next_invs_27_37.dfy"
+include "ind_inv.dfy"
+include "ind_inv2.dfy"
+include "ind_inv3.dfy"
+include "core_proofs.dfy"
 
 
 module Proofs_DVN_Ind_Inv
@@ -23,6 +27,7 @@ module Proofs_DVN_Ind_Inv
     import opened DVCNode_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
@@ -30,7 +35,9 @@ module Proofs_DVN_Ind_Inv
     import opened DVN_Next_Invs_8_18
     import opened DVN_Next_Invs_19_26
     import opened Proofs_Intermediate_Steps
-    import opened DVN_Next_Invs_27
+    import opened DVN_Next_Invs_27_37
+    import opened Core_Proofs
+    import opened IndInv3
 
     predicate ind_inv(dvn: DVState)       
     {
@@ -38,6 +45,7 @@ module Proofs_DVN_Ind_Inv
         && invs_8_18(dvn)
         && invs_19_26(dvn)
         && invs_27_37(dvn)
+        && invs_other_properties(dvn)
     }
 
     predicate invs_1_7(dvn: DVState)       
@@ -84,6 +92,11 @@ module Proofs_DVN_Ind_Inv
         &&  inv37(dvn)
     }
 
+    predicate invs_other_properties(dvn: DVState)       
+    {                
+        // &&  inv46_b(dvn)
+        && pred_4_1_b(dvn)     
+    }
     
 
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
@@ -101,9 +114,8 @@ module Proofs_DVN_Ind_Inv
         lemma_ind_inv_dvn_next_invs_1_7(dvn, dvn');
         lemma_ind_inv_dvn_next_invs_8_18(dvn, dvn');
         lemma_ind_inv_dvn_next_invs_19_26(dvn, dvn');
-        lemma_ind_inv_dvn_next_invs_27(dvn, dvn');
-        // lemma_ind_inv_dvn_next_properties(dvn, dvn');
-       
+        lemma_ind_inv_dvn_next_invs_27_37(dvn, dvn');
+        lemma_ind_inv_dvn_other_properties(dvn, dvn');       
     }
 
     lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, dvn': DVState)       
@@ -156,7 +168,7 @@ module Proofs_DVN_Ind_Inv
         lemma_inv26_dvn_next(dvn, e, dvn');    
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_27(dvn: DVState, dvn': DVState)       
+    lemma lemma_ind_inv_dvn_next_invs_27_37(dvn: DVState, dvn': DVState)       
     requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
     requires ind_inv(dvn)
     ensures invs_27_37(dvn') 
@@ -170,8 +182,15 @@ module Proofs_DVN_Ind_Inv
         lemma_inv35_dvn_next(dvn, e, dvn');  
         lemma_inv36_dvn_next(dvn, e, dvn');  
         lemma_inv37_dvn_next(dvn, e, dvn');  
-        // lemma_inv39_dvn_next(dvn, e, dvn');
-        // lemma_inv38_dvn_next(dvn, e, dvn');  
+    }
+
+    lemma lemma_ind_inv_dvn_other_properties(dvn: DVState, dvn': DVState)       
+    requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    requires ind_inv(dvn)
+    ensures invs_other_properties(dvn')
+    {
+        var e: DV.Event :| DV.NextEvent(dvn, e, dvn');        
+        lemma_ind_inv_dvn_next_inv_pred_4_1_b(dvn, e, dvn');                  
     }
 
     // TODO
@@ -192,7 +211,7 @@ module Proofs_DVN_Ind_Inv
         assert prop_monotonic_set_of_in_transit_messages(dvn, dvn');
     }
 
-    lemma lemma_ind_inv_implies_other_properties(dvn: DVState)
+    lemma lemma_ind_inv_implies_intermediate_steps(dvn: DVState)
     requires ind_inv(dvn)
     ensures inv11(dvn)
     ensures inv12(dvn)
@@ -216,5 +235,56 @@ module Proofs_DVN_Ind_Inv
         lemma_inv51_ind_inv(dvn);
         lemma_inv53_ind_inv(dvn);      
         lemma_construct_signed_attestation_signature_assumptions_helper(dvn);       
+    }
+
+    // TODO
+    // lemma lemma_ind_inv_dvn_next_inv_46_b(dvn: DVState, dvn': DVState)       
+    // requires exists e: DV.Event :: DV.NextEvent(dvn, e, dvn')
+    // requires ind_inv(dvn)
+    // // ensures 46_b(dvn')
+    // {
+        
+
+    //     lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn);
+    //     assert inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn);
+
+    //     lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn);
+    //     assert inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn);
+
+    //     lemma_ind_inv_implies_intermediate_steps(dvn);
+    //     assert inv53(dvn);
+
+    //     var e: DV.Event :| DV.NextEvent(dvn, e, dvn');  
+
+    //     assert && inv46_b(dvn)
+    //            && inv1(dvn)
+    //            && inv53(dvn)
+    //            && inv3(dvn)    
+    //            && inv33(dvn)  
+    //            && inv46_b(dvn);
+    //     // lemma_inv46_b(dvn, e, dvn');    
+
+    //     //assert inv46_b(dvn');
+    // }
+
+    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_b(dvn: DVState, e: DV.Event, dvn': DVState)       
+    requires DV.NextEvent(dvn, e, dvn')
+    requires ind_inv(dvn)
+    ensures pred_4_1_b(dvn')
+    {
+        lemma_ind_inv_implies_intermediate_steps(dvn);
+        assert construct_signed_attestation_signature_assumptions_helper(
+                dvn.construct_signed_attestation_signature,
+                dvn.dv_pubkey,
+                dvn.all_nodes);
+
+        lemma_inv36_invNetwork(dvn);
+        assert invNetwork(dvn);
+
+        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn);
+        assert pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn);
+
+        lemma_pred_4_1_b(dvn, e, dvn');
+        assert pred_4_1_b(dvn');
     }
 }

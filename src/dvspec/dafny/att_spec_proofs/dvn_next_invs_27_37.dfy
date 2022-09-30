@@ -14,7 +14,7 @@ include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
 include "../att_spec_proofs/fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 
-module DVN_Next_Invs_27
+module DVN_Next_Invs_27_37
 {
     import opened Types 
     import opened CommonFunctions
