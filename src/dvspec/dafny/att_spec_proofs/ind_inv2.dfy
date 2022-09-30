@@ -5,12 +5,7 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
-include "dvn_next_invs_1_7.dfy"
-include "dvn_next_invs_8_18.dfy"
-include "dvn_next_invs_19_26.dfy"
-include "dvn_next_invs_27.dfy"
 include "ind_inv.dfy"
-include "common_proofs.dfy"
 
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
@@ -23,12 +18,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Invs_1_7
-    import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19_26
-    import opened DVN_Next_Invs_27
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Common_Proofs
 
     lemma lemma_inv_attestation_duty_queue_is_ordered_3_body_body(
         dvn: DVState, 
