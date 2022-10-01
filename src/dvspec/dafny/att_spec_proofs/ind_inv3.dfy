@@ -8,7 +8,7 @@ include "../att_spec_proofs/inv.dfy"
 include "dvn_next_invs_1_7.dfy"
 include "dvn_next_invs_8_18.dfy"
 include "dvn_next_invs_19_26.dfy"
-include "dvn_next_invs_27.dfy"
+include "dvn_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "common_proofs.dfy"
@@ -27,11 +27,12 @@ module IndInv3
     import opened DVN_Next_Invs_1_7
     import opened DVN_Next_Invs_8_18
     import opened DVN_Next_Invs_19_26
-    import opened DVN_Next_Invs_27
+    import opened DVN_Next_Invs_27_37
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs
 
+    // TODO
     predicate inv33_body(
         dvn: DVState, 
         hn: BLSPubkey,
