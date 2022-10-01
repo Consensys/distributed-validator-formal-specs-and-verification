@@ -1130,7 +1130,233 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert pred_4_1_c(s');        
     }     
 
-    // Ver time: 7m
+    lemma lemma_consensus_next_under_safety<D(!new, 0)>(
+        s: ConsensusInstance,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
+        s': ConsensusInstance,
+        output: Optional<OutCommand>
+    )
+    requires ConsensusSpec.Next(s, honest_nodes_validity_predicates, s', output)
+    requires isConditionForSafetyTrue(s)
+    requires s.decided_value.isPresent()
+    ensures s'.decided_value.isPresent()
+    ensures s.decided_value.safe_get() == s'.decided_value.safe_get()
+    {
+
+    }
+
+    // TODO: Rewarite the following three lemmas. Not sure how yet. But I think that they should be rewritten in a more "modular" way
+    lemma lemma_pred_4_1_c_att_consensus_decided_helper_1(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        hn: BLSPubkey,
+        att_share: AttestationShare
+    )
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.AttConsensusDecided?
+    requires pred_4_1_c(s)
+    requires pred_4_1_f_b(s)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
+    requires inv1(s)
+    requires inv2(s)
+    requires inv53(s)
+    requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires pred_4_1_g_i_for_dvc(s)          
+    requires |s.all_nodes| > 0    
+    requires
+                && hn in s'.honest_nodes_states.Keys 
+                && att_share in s'.att_network.allMessagesSent
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)   
+    requires att_share in s.att_network.allMessagesSent
+    ensures
+                && s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()                                     
+                && s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
+    {
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case AttConsensusDecided(id: Slot, decided_attestation_data) => 
+
+                        assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
+                        assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;   
+
+                        var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                        var cid := att_share.data.slot;
+
+                        assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+                        var output := 
+                            if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                                Some(Decided(node, nodeEvent.decided_attestation_data))
+                            else
+                                None
+                            ;
+
+                        var validityPredicates := 
+                            map n |
+                                    && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                                ::
+                                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                            ;
+
+                        var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+                        var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+                        assert
+                            ConsensusSpec.Next(
+                                s_consensus,
+                                validityPredicates,
+                                s'_consensus,
+                                output
+                            );      
+
+                        lemma_consensus_next_under_safety(
+                            s_consensus,
+                            validityPredicates,
+                            s'_consensus,
+                            output                                
+                        );                        
+                            
+                        assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
+                        assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get();
+                        assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                              
+                }
+        }
+    }
+
+
+    lemma lemma_pred_4_1_c_att_consensus_decided_helper(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        hn: BLSPubkey,
+        att_share: AttestationShare
+    )
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.AttConsensusDecided?
+    requires pred_4_1_c(s)
+    requires pred_4_1_f_b(s)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
+    requires inv1(s)
+    requires inv2(s)
+    requires inv53(s)
+    requires inv3(s)
+    requires pred_4_1_f_a(s)    
+    requires pred_4_1_g_i(s)
+    requires pred_4_1_g_i_for_dvc(s)          
+    requires |s.all_nodes| > 0    
+    requires
+                && hn in s'.honest_nodes_states.Keys 
+                && att_share in s'.att_network.allMessagesSent
+                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)   
+    requires    var s_node := s.honest_nodes_states[event.node];
+                && s_node.current_attestation_duty.isPresent()
+                && event.event.id == s_node.current_attestation_duty.safe_get().slot
+    ensures
+                && s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()                                     
+                && s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
+    {
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case AttConsensusDecided(id: Slot, decided_attestation_data) => 
+                        var local_current_attestation_duty := s_node.current_attestation_duty.safe_get();
+                        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+                        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+                        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);
+                        var attestation_with_signature_share := AttestationShare(
+                                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                                data := decided_attestation_data, 
+                                signature := attestation_signature_share
+                            ); 
+
+                        var messagesToBeSent := f_att_consensus_decided(s_node, id, decided_attestation_data).outputs.att_shares_sent;
+                        assert messagesToBeSent ==  multicast(attestation_with_signature_share, s_node.peers);     
+                        assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                            getMessagesFromMessagesWithRecipient(messagesToBeSent); 
+                        assert forall m | m in messagesToBeSent :: m.message == attestation_with_signature_share; 
+                        lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame(messagesToBeSent, attestation_with_signature_share);    
+                        assert getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {attestation_with_signature_share};
+                        assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                            {attestation_with_signature_share}; 
+
+ 
+
+                                                                     
+
+                        if att_share in s.att_network.allMessagesSent
+                        {
+                            lemma_pred_4_1_c_att_consensus_decided_helper_1(s, event, s', hn, att_share);                           
+                        }
+                        else
+                        {
+                            assert att_share == attestation_with_signature_share;
+                            lemmaImaptotalElementInDomainIsInKeys(s.consensus_on_attestation_data, id);
+                            assert id in s.consensus_on_attestation_data.Keys ;
+
+                            var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                            var cid := id;
+
+                            assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+                            var output := 
+                                if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                                    Some(Decided(node, nodeEvent.decided_attestation_data))
+                                else
+                                    None
+                                ;
+
+                            var validityPredicates := 
+                                map n |
+                                        && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                                        && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                                    ::
+                                        s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                                ;
+
+                            var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+                            var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+                            assert
+                                ConsensusSpec.Next(
+                                    s_consensus,
+                                    validityPredicates,
+                                    s'_consensus,
+                                    output
+                                );                               
+
+
+                            assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
+                            lemma_pred_4_1_f_b(s, event, s');   
+                            assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id; 
+                            assert  att_share.data.slot == id;
+                            assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();                             
+                            assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data; 
+                        }  
+                }
+        }            
+    }
+
     lemma lemma_pred_4_1_c_att_consensus_decided(
         s: DVState,
         event: DV.Event,
@@ -1160,78 +1386,59 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 match nodeEvent
                 {
                     case AttConsensusDecided(id: Slot, decided_attestation_data) => 
-                        assert pred_4_1_c(s') by 
+                        var local_current_attestation_duty := s_node.current_attestation_duty.safe_get();
+                        if id == local_current_attestation_duty.slot 
                         {
-                            var local_current_attestation_duty := s_node.current_attestation_duty.safe_get();
-                            if id == local_current_attestation_duty.slot 
+                            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+                            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+                            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);
+                            var attestation_with_signature_share := AttestationShare(
+                                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                                    data := decided_attestation_data, 
+                                    signature := attestation_signature_share
+                                ); 
+
+                            var messagesToBeSent := f_att_consensus_decided(s_node, id, decided_attestation_data).outputs.att_shares_sent;
+                            assert messagesToBeSent ==  multicast(attestation_with_signature_share, s_node.peers);     
+                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                                getMessagesFromMessagesWithRecipient(messagesToBeSent); 
+                            assert forall m | m in messagesToBeSent :: m.message == attestation_with_signature_share; 
+                            lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame(messagesToBeSent, attestation_with_signature_share);    
+                            assert getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {attestation_with_signature_share};
+                            assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
+                                {attestation_with_signature_share}; 
+
+                            forall hn, att_share |
+                                    && hn in s'.honest_nodes_states.Keys 
+                                    && att_share in s'.att_network.allMessagesSent
+                                    && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                                    && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                                    && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                            ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
+                            ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;     
                             {
-                                var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-                                var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-                                var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);
-                                var attestation_with_signature_share := AttestationShare(
-                                        aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                                        data := decided_attestation_data, 
-                                        signature := attestation_signature_share
-                                    ); 
+                                lemma_pred_4_1_c_att_consensus_decided_helper(s, event, s', hn, att_share);
+                            }                            
 
-                                var messagesToBeSent := f_att_consensus_decided(s_node, id, decided_attestation_data).outputs.att_shares_sent;
-                                assert messagesToBeSent ==  multicast(attestation_with_signature_share, s_node.peers);     
-                                assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
-                                    getMessagesFromMessagesWithRecipient(messagesToBeSent); 
-                                assert forall m | m in messagesToBeSent :: m.message == attestation_with_signature_share; 
-                                lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame(messagesToBeSent, attestation_with_signature_share);    
-                                assert getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {attestation_with_signature_share};
-                                assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
-                                    {attestation_with_signature_share}; 
-
-                                assert pred_4_1_c(s') by 
-                                {
-                                    forall hn, att_share |
-                                            && hn in s'.honest_nodes_states.Keys 
-                                            && att_share in s'.att_network.allMessagesSent
-                                            && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                                            && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                                            && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
-                                    ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
-                                    ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                                 
-                                    {
-                                        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-                                        if att_share in s.att_network.allMessagesSent
-                                        {
-                                            assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
-                                            assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;   
-                                        }
-                                        else
-                                        {
-                                            assert att_share == attestation_with_signature_share;
-                                            lemmaImaptotalElementInDomainIsInKeys(s.consensus_on_attestation_data, id);
-                                            assert id in s.consensus_on_attestation_data.Keys ;
-
-                                            var validityPredicates :| ConsensusSpec.Next(
-                                                s.consensus_on_attestation_data[id],
-                                                validityPredicates,
-                                                s'.consensus_on_attestation_data[id],
-                                                Some(Decided(node, decided_attestation_data))
-                                            );                             
-
-
-                                            assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
-                                            lemma_pred_4_1_f_b(s, event, s');
-                                            assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id;                                     
-                                            assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                                     
-                                        }
-                                    }
-                                }
-
-                                assert pred_4_1_c(s');
-                            }
-                            else 
+                            assert pred_4_1_c(s');
+                        }
+                        else 
+                        {
+                            forall hn, att_share |
+                                    && hn in s'.honest_nodes_states.Keys 
+                                    && att_share in s'.att_network.allMessagesSent
+                                    && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                                    && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                                    && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                            ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
+                            ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;     
                             {
-                                assert pred_4_1_c(s');
-                            }
+                                assert att_share in s.att_network.allMessagesSent;
+                                lemma_pred_4_1_c_att_consensus_decided_helper_1(s, event, s', hn, att_share);
+                            } 
+                            assert pred_4_1_c(s');
+                        }
 
-
-                        }    
                 }
         }
     }
