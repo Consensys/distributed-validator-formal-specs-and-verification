@@ -97,13 +97,13 @@ module Core_Proofs
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)   
     requires inv2(dvn)
-    requires pred_4_1_b(dvn)
+    requires pred_4_1_b_ex(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
-    requires hn in dvn.honest_nodes_states.Keys 
-    requires hn' in dvn.honest_nodes_states.Keys
-    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
-    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires && a in dvn.all_attestations_created
+             && is_valid_attestation(a, dvn.dv_pubkey)
+    requires && a' in dvn.all_attestations_created
+             && is_valid_attestation(a', dvn.dv_pubkey)
     requires a.data.slot < a'.data.slot 
     ensures && var consa := dvn.consensus_on_attestation_data[a.data.slot];
             && var consa' := dvn.consensus_on_attestation_data[a'.data.slot];   
@@ -171,15 +171,15 @@ module Core_Proofs
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
-    requires pred_4_1_b(dvn)
+    requires pred_4_1_b_ex(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_iii(dvn)
-    requires hn in dvn.honest_nodes_states.Keys 
-    requires hn' in dvn.honest_nodes_states.Keys
-    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
-    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires && a in dvn.all_attestations_created
+             && is_valid_attestation(a, dvn.dv_pubkey)
+    requires && a' in dvn.all_attestations_created
+             && is_valid_attestation(a', dvn.dv_pubkey)
     requires a.data.slot < a'.data.slot 
 //     requires inv48(dvn)
 //     requires inv47(dvn)
@@ -209,15 +209,15 @@ module Core_Proofs
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
-    requires pred_4_1_b(dvn)
+    requires pred_4_1_b_ex(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_iii(dvn)
-    requires hn in dvn.honest_nodes_states.Keys 
-    requires hn' in dvn.honest_nodes_states.Keys
-    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
-    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires && a in dvn.all_attestations_created
+             && is_valid_attestation(a, dvn.dv_pubkey)
+    requires && a' in dvn.all_attestations_created
+             && is_valid_attestation(a', dvn.dv_pubkey)
     requires a.data.slot == a'.data.slot 
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
@@ -254,15 +254,15 @@ module Core_Proofs
     // requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
-    requires pred_4_1_b(dvn)
+    requires pred_4_1_b_ex(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
     requires pred_4_1_g_iii(dvn)
-    requires hn in dvn.honest_nodes_states.Keys 
-    requires hn' in dvn.honest_nodes_states.Keys
-    requires a in dvn.honest_nodes_states[hn].bn.attestations_submitted
-    requires a' in dvn.honest_nodes_states[hn'].bn.attestations_submitted
+    requires && a in dvn.all_attestations_created
+             && is_valid_attestation(a, dvn.dv_pubkey)
+    requires && a' in dvn.all_attestations_created
+             && is_valid_attestation(a', dvn.dv_pubkey)
     requires inv46_a(dvn)
     requires inv46_b(dvn)
     requires inv50(dvn)

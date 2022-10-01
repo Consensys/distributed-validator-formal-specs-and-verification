@@ -1027,6 +1027,25 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dvn, hn', att_share, a)
     }
 
+    predicate is_valid_attestation(
+        a: Attestation,
+        pubkey: BLSPubkey
+    )
+    {
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
+        && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
+        verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
+    }
+
+    predicate pred_4_1_b_ex(dvn: DVState)
+    {
+        forall a |
+            && a in dvn.all_attestations_created
+            && is_valid_attestation(a, dvn.dv_pubkey)
+            ::
+            exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dvn, hn', att_share, a)
+    }
+
     predicate pred_4_1_c(dvn: DVState)
     {
         forall hn, att_share |

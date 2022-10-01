@@ -237,6 +237,13 @@ module CommonFunctions{
             && verify_bls_siganture(d, s2, pk)
             ::
             s1 == s2            
+
+    ensures 
+        forall d1: Root, d2: Root, s, pk |
+            && verify_bls_siganture(d1, s, pk)
+            && verify_bls_siganture(d2, s, pk)
+            ::
+            d1 == d2               
         
 
     function method {:extern} hash_tree_root<T>(data: T): Root 
