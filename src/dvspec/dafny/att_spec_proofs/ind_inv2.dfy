@@ -1284,7 +1284,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_pred_4_1_b_new_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
