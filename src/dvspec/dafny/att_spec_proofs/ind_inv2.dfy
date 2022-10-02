@@ -226,10 +226,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process) 
     requires inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)  
     requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
+    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_b_body_body_new(dvn, n, s');
     {
         var new_p := process.(
@@ -1395,10 +1392,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process) 
     requires inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)  
     requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
+    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_a_ii_a_body_body(dvn, n, s');
     {
         var new_p := process.(
@@ -1919,7 +1913,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_g_a_ii_a_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -2890,7 +2884,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_g_d_a_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -3014,10 +3008,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process) 
     requires inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)  
     requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
+    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, s');
     {
         var new_p := process.(
@@ -3257,7 +3248,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_attestation_duty_queue_is_ordered_3_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -3384,10 +3375,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     // requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process) 
     requires inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)  
     requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
+    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
     {
         var new_p := process.(
@@ -3585,7 +3573,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_attestation_duty_queue_is_ordered_4_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -3804,10 +3792,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
     requires inv_g_b_body_body_new(dvn, n, process)
     requires inv_g_a_iv_a_body_body(dvn, n, process)    
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
+    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_a_iii_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
     {
         var new_p := process.(
@@ -4591,7 +4576,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         // assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_g_a_iii_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -4855,10 +4840,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
 
-    requires 
-                var an' := dvn.sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served-1];
-                && an'.attestation_duty == attestation_duty
-                && an'.node == n
+    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_a_iv_a_body_body(dvn, n, s') 
     {
         var new_p := process.(
@@ -5318,7 +5300,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         // assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_g_a_iv_a_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -5756,7 +5738,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty(s, event, s');
+                        lemma_ServeAttstationDuty2(s, event, s');
                         lemma_inv_g_d_b_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
