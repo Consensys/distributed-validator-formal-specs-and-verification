@@ -295,22 +295,8 @@ module DVCNode_Spec {
             outputs := outputs
         );
 
-        match event 
-            case ServeAttstationDuty(attestation_duty) => 
-                && f_serve_attestation_duty.requires(s, attestation_duty)
-                && f_serve_attestation_duty(s, attestation_duty) == newNodeStateAndOutputs
-            case AttConsensusDecided(id, decided_attestation_data) => 
-                && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
-                && f_att_consensus_decided(s, id,  decided_attestation_data) == newNodeStateAndOutputs
-            case ReceviedAttesttionShare(attestation_share) => 
-                f_listen_for_attestation_shares(s, attestation_share) == newNodeStateAndOutputs
-            case ImportedNewBlock(block) => 
-                f_listen_for_new_imported_blocks.requires(s, block)
-                && f_listen_for_new_imported_blocks(s, block) == newNodeStateAndOutputs
-            case ResendAttestationShares => 
-                f_resend_attestation_share(s) == newNodeStateAndOutputs
-            case NoEvent => 
-                DVCNodeStateAndOuputs(state := s, outputs := getEmptyOuputs() ) == newNodeStateAndOutputs
+        && f_process_event.requires(s, event)
+        && f_process_event(s, event ) == newNodeStateAndOutputs
     }
 
     function f_process_event(

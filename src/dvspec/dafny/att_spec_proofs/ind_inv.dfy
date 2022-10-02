@@ -3536,10 +3536,16 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_g_i_for_dvc(s)      
     requires pred_4_1_f_b(s)      
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
-    ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
+    ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;   
+    ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get().slot == event.event.id;    
     ensures event.event.decided_attestation_data.slot == event.event.id
     {
         lemma_pred_4_1_f_b(s, event, s');
+        assert pred_4_1_f_b(s');
+        assert s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
+        assert  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;   
+        assert  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get().slot == event.event.id;   
+        assert event.event.decided_attestation_data.slot == event.event.id;         
     }    
 
     predicate lemma_pred_4_1_g_iii_precond(
