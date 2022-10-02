@@ -267,12 +267,6 @@ module DV
     )
     {
         && unchanged_fixed_paras(s, s')
-        // NOTE!!!: The following must be proven not stated here
-        && ( forall ci | ci in  s'.consensus_on_attestation_data.Values ::
-                && ci.all_nodes == s'.all_nodes                
-                && ci.honest_nodes_status.Keys == s'.honest_nodes_states.Keys
-                && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
-           )
         && (
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
