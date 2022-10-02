@@ -1263,12 +1263,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
 
-                            var output := 
-                                if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
-                                    Some(Decided(node, nodeEvent.decided_attestation_data))
-                                else
-                                    None
-                                ;
+                            var output := Some(Decided(node, nodeEvent.decided_attestation_data)); 
 
                             var validityPredicates := 
                                 map n |
@@ -1291,8 +1286,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
 
                             assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
+                            assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == decided_attestation_data; 
+                            assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == att_share.data; 
                             lemma_pred_4_1_f_b(s, event, s');   
-                            assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id; 
+                            // assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id; 
+                            
                             assert  att_share.data.slot == id;
                             assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();                             
                             assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data; 
