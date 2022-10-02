@@ -112,6 +112,56 @@ module Att_Assumptions
                             && s1 in S
                             && s2 in S
                                 ==> att_shares_from_same_att_data(s1, s2) ) 
+
+  
+  lemma {:axiom} axiom_is_my_attestation(
+    dvn: DVState,
+    event: DV.Event,
+    dvn': DVState
+  )
+  requires DV.NextEvent(dvn, event, dvn')
+  requires event.HonestNodeTakingStep?
+  requires event.event.ImportedNewBlock?
+  ensures pred_axiom_is_my_attestation(
+    dvn,
+    dvn.honest_nodes_states[event.node],
+    event.event.block
+  )
+
+  predicate pred_axiom_is_my_attestation(
+    dvn: DVState,
+    process: DVCNodeState,
+    block: BeaconBlock
+  )
+  {
+    var new_p := add_block_to_bn(process, block);
+    pred_axiom_is_my_attestation_2(dvn, new_p, block)
+  }
+
+  // TODO: Modify isMyAttestation to include the entirety the forall premise 
+  predicate pred_axiom_is_my_attestation_2(
+    dvn: DVState,
+    new_p: DVCNodeState,
+    block: BeaconBlock
+  )
+  requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
+  {
+    var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
+    forall a | 
+        && a in block.body.attestations 
+        && isMyAttestation(
+          a,
+          new_p,
+          block,
+          valIndex
+        )
+      ::
+      exists a' ::
+        && a' in dvn.all_attestations_created
+        && a'.data == a.data 
+        && is_valid_attestation(a', dvn.dv_pubkey)    
+  }  
+
 }
 
 

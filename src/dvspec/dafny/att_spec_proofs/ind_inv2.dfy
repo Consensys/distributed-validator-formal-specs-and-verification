@@ -6,6 +6,7 @@ include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "ind_inv.dfy"
+include "assump.dfy"
 
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
@@ -19,6 +20,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened Att_Assumptions
 
     lemma lemma_inv_attestation_duty_queue_is_ordered_3_body_body(
         dvn: DVState, 
@@ -394,61 +396,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         }           
     }  
 
-    lemma lemma_f_listen_for_new_imported_blocks_helper_1(
-        dvn: DVState,
-        process: DVCNodeState,
-        block: BeaconBlock,
-        new_consensus_instances_already_decided: map<Slot, AttestationData>
-    )
-    requires f_listen_for_new_imported_blocks_helper_1.requires(process, block)
-    requires new_consensus_instances_already_decided == f_listen_for_new_imported_blocks_helper_1(process, block)
-    requires pred_4_1_b(dvn)
-    requires pred_4_1_c(dvn)
-    ensures 
-        forall slot | 
-                slot in new_consensus_instances_already_decided
-                :: 
-                && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
-                && dvn.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
-                ;  
-    {
-        forall slot | slot in new_consensus_instances_already_decided
-        ensures 
-            && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
-            && dvn.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
-            ;         
-        {
-
-            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
-
-
-            var a :| 
-                && a in block.body.attestations
-                && isMyAttestation(a, process, block, valIndex)
-                && a.data == new_consensus_instances_already_decided[slot]
-            ;
-
-            var an :| assume
-                && an in dvn.honest_nodes_states.Keys 
-                && a in dvn.honest_nodes_states[an].bn.attestations_submitted
-                
-                ;
-
-            var hn', att_share: AttestationShare :| pred_4_1_b_exists(dvn, hn', att_share, a);
-
-            assert
-            && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
-            && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;
-
-            // assert slot in process.future_att_consensus_instances_already_decided;
-            assert
-            && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
-            && dvn.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
-            ;              
-        }
-    }
-
-
     lemma lemma_pred_4_1_b_new_f_listen_for_new_imported_blocks(
         process: DVCNodeState,
         block: BeaconBlock,
@@ -468,6 +415,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires inv_g_a_iv_a_body_body(dvn, n, process)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_b_body_body_new(dvn, n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -1318,6 +1266,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_pred_4_1_b_new_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -1372,7 +1321,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                 assert pred_4_1_g_b_new(s'); 
 
         }
-    }  
+    }      
 
     lemma lemma_inv_g_a_ii_a_f_serve_attestation_duty(
         process: DVCNodeState,
@@ -1578,6 +1527,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires inv_g_a_iv_a_body_body(dvn, n, process)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_a_ii_a_body_body(dvn, n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -1947,6 +1897,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_a_ii_a_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -2203,6 +2154,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires inv_g_a_iv_a_body_body(dvn, n, process)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_iii_b_body_body(dvn, n, s', index_next_attestation_duty_to_be_served);
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -2579,6 +2531,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_iii_b_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -2745,6 +2698,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_d_a_body_body(dvn, n, process)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_d_a_body_body(dvn, n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -2921,6 +2875,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_d_a_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -3916,6 +3871,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)         
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     requires 
             var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -4129,7 +4085,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_a_iv_a_body_body(dvn, n, process)
 
     requires pred_4_1_b(dvn)
-    requires pred_4_1_c(dvn)    
+    requires pred_4_1_c(dvn)  
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
 
     ensures inv_g_a_iii_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
     {
@@ -4667,6 +4624,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
                         lemma2_inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s_node2, s.index_next_attestation_duty_to_be_served);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_a_iii_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -4968,7 +4926,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process)
     requires inv_g_d_a_body_body(dvn, n, process)
     requires pred_4_1_b(dvn)
-    requires pred_4_1_c(dvn)    
+    requires pred_4_1_c(dvn) 
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_a_iv_a_body_body(dvn, n, s')   
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -5409,6 +5368,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_a_iv_a_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -5523,6 +5483,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_d_b_body_body(dvn, n, process)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_d_b_body_body(dvn, n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -5774,6 +5735,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_d_b_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,

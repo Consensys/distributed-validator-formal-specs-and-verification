@@ -1018,15 +1018,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
     }
 
-    predicate pred_4_1_b(dvn: DVState)
-    {
-        forall hn, a |
-            && hn in dvn.honest_nodes_states.Keys 
-            && a in dvn.honest_nodes_states[hn].bn.attestations_submitted
-            ::
-            exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dvn, hn', att_share, a)
-    }
-
     predicate is_valid_attestation(
         a: Attestation,
         pubkey: BLSPubkey
@@ -1037,7 +1028,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
     }
 
-    predicate pred_4_1_b_ex(dvn: DVState)
+    predicate pred_4_1_b(dvn: DVState)
     {
         forall a |
             && a in dvn.all_attestations_created

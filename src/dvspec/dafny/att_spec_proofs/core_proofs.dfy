@@ -97,7 +97,7 @@ module Core_Proofs
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)   
     requires inv2(dvn)
-    requires pred_4_1_b_ex(dvn)
+    requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires && a in dvn.all_attestations_created
@@ -171,7 +171,7 @@ module Core_Proofs
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
-    requires pred_4_1_b_ex(dvn)
+    requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
@@ -209,7 +209,7 @@ module Core_Proofs
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
-    requires pred_4_1_b_ex(dvn)
+    requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)
@@ -254,7 +254,7 @@ module Core_Proofs
     // requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
-    requires pred_4_1_b_ex(dvn)
+    requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
     requires pred_4_1_f_a(dvn)    
     requires pred_4_1_g_i(dvn)

@@ -7,6 +7,7 @@ include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "common_proofs.dfy"
+include "assump.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -20,6 +21,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened DVN_Next_Invs_1_7
+    import opened Att_Assumptions
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
@@ -51,33 +53,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert inv41(s');
         assert NextNodeStep(s', honest_nodes_validity_predicates, output);
         assert inv41(s');
-    }
-
-    lemma lemma_pred_4_1_b_helper(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    // requires NextEvent(s, event, s')
-    requires pred_4_1_b(s)
-    requires s'.all_nodes == s.all_nodes;
-    requires s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys;
-    requires forall n | n in s'.honest_nodes_states.Keys :: s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
-    requires s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;    
-    ensures pred_4_1_b(s');
-    {
-            forall hn, a |
-                && hn in s.honest_nodes_states.Keys 
-                && a in s.honest_nodes_states[hn].bn.attestations_submitted
-            ensures exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);
-            {
-                var hn', att_share: AttestationShare :|
-                    pred_4_1_b_exists(s, hn', att_share, a);
-                
-                assert pred_4_1_b_exists(s', hn', att_share, a);
-                assert exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);
-            }
-            assert pred_4_1_b(s');
     }
 
     lemma lemma_f_serve_attestation_duty_constants(
@@ -679,7 +654,37 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             }   
     }    
 
+    lemma lemma_pred_4_1_b_ex_helper(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires pred_4_1_b(s)
+    // requires event.HonestNodeTakingStep?
+    // requires s'.all_nodes == s.all_nodes;
+    // requires s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys;
+    // requires forall n | n in s'.honest_nodes_states.Keys :: s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
+    requires s'.all_attestations_created == s.all_attestations_created
+    // requires s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;    
+    ensures pred_4_1_b(s');
+    {
+            // assert s.all
+            forall a |
+                && a in s'.all_attestations_created
+                && is_valid_attestation(a, s'.dv_pubkey)
+            ensures exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);
+            {
+                var hn', att_share: AttestationShare :|
+                    pred_4_1_b_exists(s, hn', att_share, a);
+                
+                assert pred_4_1_b_exists(s', hn', att_share, a);
+                assert exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);
+            }
+            // assert pred_4_1_b(s');
+    }    
 
+    // 1m 10s
     lemma lemma_pred_4_1_b(
         s: DVState,
         event: DV.Event,
@@ -707,162 +712,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) => 
-                        // // Proved
-                        forall n | n in s'.honest_nodes_states.Keys
-                        ensures s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
-                        {
-                            if n != node 
-                            {
-                                assert s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
-                            }
-                            else 
-                            {
-                                lemma_f_serve_attestation_duty_constants(s.honest_nodes_states[node], attestation_duty, s'.honest_nodes_states[node]);
-                            }
-                        }
-                        lemma_pred_4_1_b_helper(s, event, s');
-                        assert pred_4_1_b(s');                    
-                    case AttConsensusDecided(id, decided_attestation_data) => 
-                        // Proved
-                        lemma_f_att_consensus_decided_constants(s.honest_nodes_states[node], id, decided_attestation_data, s'.honest_nodes_states[node]);
-                        lemma_pred_4_1_b_helper(s, event, s');
-                        assert pred_4_1_b(s');                    
-                    case ReceviedAttesttionShare(attestation_share) => 
-                        assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= s.att_network.messagesInTransit;
-
-                        assert MessaageWithRecipient(message := attestation_share, receipient := node) in s.att_network.messagesInTransit;        
-
-                        
-                        assert attestation_share in s.att_network.allMessagesSent;
-
-                        forall hn | hn in s.honest_nodes_states.Keys
-                        ensures forall a | 
-                                         a in s'.honest_nodes_states[hn].bn.attestations_submitted
-                                ::
-                                 exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);            
-                        {
-                            if hn != node 
-                            {
-                                assert s'.honest_nodes_states[hn] == s.honest_nodes_states[hn];
-                                forall a | 
-                                         a in s'.honest_nodes_states[hn].bn.attestations_submitted
-                                ensures exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);            
-                                {
-                                    assert a in s.honest_nodes_states[hn].bn.attestations_submitted;
-                                    var hn', att_share: AttestationShare :| pred_4_1_b_exists(s, hn', att_share, a);                                    
-                                    
-                                    assert pred_4_1_b_exists(s', hn', att_share, a);
-
-                                    assert exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);                                    
-                                }
-                            }
-                            else 
-                            {
-                                lemma_pred_4_1_b_f_listen_for_attestation_shares(
-                                    s_node,
-                                    attestation_share,
-                                    s'_node,
-                                    s
-                                );
-
-                                forall a | 
-                                         a in s'.honest_nodes_states[hn].bn.attestations_submitted
-                                ensures exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);            
-                                {
-                                    // assert a in s.honest_nodes_states[hn].bn.attestations_submitted;
-                                    var hn', att_share: AttestationShare :| pred_4_1_b_exists(s, hn', att_share, a);                                    
-                                    
-                                    assert pred_4_1_b_exists(s', hn', att_share, a);
-
-                                    assert exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);                                    
-                                }                                
-
-                                // assert forall a | a in s'_node.bn.attestations_submitted :: exists hn', att_share: AttestationShare, fork_version :: pred_4_1_b_exists(s', hn', att_share, fork_version, a);                                
-                            }
-                        }
-
-                        assert pred_4_1_b(s');         
-
-                    case ImportedNewBlock(block) => 
-                        // Provded
-                        var s_node := add_block_to_bn(s_node, nodeEvent.block);
-                        lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
-                        lemma_pred_4_1_b_helper(s, event, s');
-                        assert pred_4_1_b(s');                    
-                    case ResendAttestationShares => 
-                        // Proved
-                        lemma_pred_4_1_b_helper(s, event, s');
-                        assert pred_4_1_b(s');                    
-                    case NoEvent => 
-                        // Proved
-                        lemma_pred_4_1_b_helper(s, event, s');
-                        assert pred_4_1_b(s');
-                }
-
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                lemma_pred_4_1_b_helper(s, event, s');
-                assert pred_4_1_b(s');
-        }
-    }    
-
-    lemma lemma_pred_4_1_b_ex_helper(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    requires NextEvent(s, event, s')
-    requires pred_4_1_b_ex(s)
-    // requires event.HonestNodeTakingStep?
-    // requires s'.all_nodes == s.all_nodes;
-    // requires s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys;
-    // requires forall n | n in s'.honest_nodes_states.Keys :: s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
-    requires s'.all_attestations_created == s.all_attestations_created
-    // requires s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;    
-    ensures pred_4_1_b_ex(s');
-    {
-            // assert s.all
-            forall a |
-                && a in s'.all_attestations_created
-                && is_valid_attestation(a, s'.dv_pubkey)
-            ensures exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);
-            {
-                var hn', att_share: AttestationShare :|
-                    pred_4_1_b_exists(s, hn', att_share, a);
-                
-                assert pred_4_1_b_exists(s', hn', att_share, a);
-                assert exists hn', att_share: AttestationShare :: pred_4_1_b_exists(s', hn', att_share, a);
-            }
-            // assert pred_4_1_b_ex(s');
-    }    
-
-    // 1m 10s
-    lemma lemma_pred_4_1_b_ex(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    requires NextEvent(s, event, s')
-    requires pred_4_1_b_ex(s)
-    requires construct_signed_attestation_signature_assumptions_helper(
-        s.construct_signed_attestation_signature,
-        s.dv_pubkey,
-        s.all_nodes
-    )
-    requires inv3(s)  
-    requires invNetwork(s)
-    requires inv1(s)
-    requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
-    ensures pred_4_1_b_ex(s')
-    {
-        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-                match nodeEvent
-                {
-                    case ServeAttstationDuty(attestation_duty) => 
                         // // // // Proved
                         // // forall n | n in s'.honest_nodes_states.Keys
                         // // ensures s.honest_nodes_states[n].bn.attestations_submitted == s'.honest_nodes_states[n].bn.attestations_submitted;
@@ -877,13 +726,13 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         // //     }
                         // // }
                         lemma_pred_4_1_b_ex_helper(s, event, s');
-                        assert pred_4_1_b_ex(s');  
+                        assert pred_4_1_b(s');  
 
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         // // Proved
                         lemma_f_att_consensus_decided_constants(s.honest_nodes_states[node], id, decided_attestation_data, s'.honest_nodes_states[node]);
                         lemma_pred_4_1_b_ex_helper(s, event, s');
-                        assert pred_4_1_b_ex(s');            
+                        assert pred_4_1_b(s');            
 
                     case ReceviedAttesttionShare(attestation_share) => 
                         assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= s.att_network.messagesInTransit;
@@ -921,7 +770,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             }                                   
                         }                                
 
-                        assert pred_4_1_b_ex(s');         
+                        assert pred_4_1_b(s');         
 
                     case ImportedNewBlock(block) => 
                         // // Provded
@@ -929,24 +778,24 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
                         assert s'.all_attestations_created == s.all_attestations_created;
                         lemma_pred_4_1_b_ex_helper(s, event, s');
-                        assert pred_4_1_b_ex(s');     
+                        assert pred_4_1_b(s');     
 
                     case ResendAttestationShares => 
                         // // Proved
                         assert s'.all_attestations_created == s.all_attestations_created;
                         lemma_pred_4_1_b_ex_helper(s, event, s');
-                        assert pred_4_1_b_ex(s');
+                        assert pred_4_1_b(s');
 
                     case NoEvent => 
                         // // Proved
                         assert s'.all_attestations_created == s.all_attestations_created;
                         lemma_pred_4_1_b_ex_helper(s, event, s');
-                        assert pred_4_1_b_ex(s');
+                        assert pred_4_1_b(s');
                 }
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
                 // lemma_pred_4_1_b_helper(s, event, s');
-                // assert pred_4_1_b_ex(s');
+                // assert pred_4_1_b(s');
                 forall a | 
                     && a in s'.all_attestations_created
                     && is_valid_attestation(a, s'.dv_pubkey)
@@ -1037,7 +886,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         );                                                                                                                                                 
                     }
                 }
-                assert pred_4_1_b_ex(s');
+                assert pred_4_1_b(s');
         }
     }        
 
@@ -2900,6 +2749,59 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }         
     }  
 
+    lemma lemma_f_listen_for_new_imported_blocks_helper_1(
+        dvn: DVState,
+        process: DVCNodeState,
+        block: BeaconBlock,
+        new_consensus_instances_already_decided: map<Slot, AttestationData>
+    )
+    requires f_listen_for_new_imported_blocks_helper_1.requires(process, block)
+    requires new_consensus_instances_already_decided == f_listen_for_new_imported_blocks_helper_1(process, block)
+    requires pred_4_1_b(dvn)
+    requires pred_4_1_c(dvn)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
+    ensures 
+        forall slot | 
+                slot in new_consensus_instances_already_decided
+                :: 
+                && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && dvn.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
+                ;  
+    {
+        forall slot | slot in new_consensus_instances_already_decided
+        ensures 
+            && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+            && dvn.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
+            ;         
+        {
+
+            var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+
+
+            var a :| 
+                && a in block.body.attestations
+                && isMyAttestation(a, process, block, valIndex)
+                && a.data == new_consensus_instances_already_decided[slot]
+            ;
+
+            var a' :|
+                && a' in dvn.all_attestations_created
+                && a'.data == a.data 
+                && is_valid_attestation(a', dvn.dv_pubkey);    
+
+            var hn', att_share: AttestationShare :| pred_4_1_b_exists(dvn, hn', att_share, a');
+
+            assert
+            && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
+            && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;
+
+            assert
+            && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
+            && dvn.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
+            ;              
+        }
+    }       
+
     lemma lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
         process: DVCNodeState,
         block: BeaconBlock,
@@ -2922,6 +2824,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
+    requires pred_axiom_is_my_attestation_2(dvn, process, block)
     ensures inv_g_iii_body_body(dvn, s');  
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -2985,33 +2888,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     }
                     else 
                     {
-                        // assert an.attestation_duty == de
-                        assert an.attestation_duty.slot == s_mod.latest_attestation_duty.safe_get().slot;
-
                         var slot := an.attestation_duty.slot;
-                        assert slot == decided_attestation_data.slot;
 
-                        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                        lemma_f_listen_for_new_imported_blocks_helper_1(
+                            dvn,
+                            process,
+                            block,
+                            new_consensus_instances_already_decided
+                        );
 
-                        var a :| 
-                            && a in block.body.attestations
-                            && isMyAttestation(a, process, block, valIndex)
-                            && a.data == decided_attestation_data
-                        ;
-
-                        var an :| assume
-                            && an in dvn.honest_nodes_states.Keys 
-                            && a in dvn.honest_nodes_states[an].bn.attestations_submitted
-                            
-                            ;
-
-                        var hn', att_share: AttestationShare :| pred_4_1_b_exists(dvn, hn', att_share, a);
-
-                        assert
-                        && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
-                        && dvn.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;
-
-                        // assert slot in process.future_att_consensus_instances_already_decided;
                         assert
                         && dvn.consensus_on_attestation_data[slot].decided_value.isPresent()
                         && construct_SlashingDBAttestation_from_att_data(dvn.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
@@ -3689,6 +3574,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
                     case ImportedNewBlock(block) => 
                         var s_node := add_block_to_bn(s_node, nodeEvent.block);
+                        axiom_is_my_attestation(s, event, s');
                         lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
                             s_node,
                             block,
