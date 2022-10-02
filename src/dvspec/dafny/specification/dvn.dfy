@@ -2,8 +2,6 @@ include "../commons.dfy"
 include "dvc_spec.dfy"
 include "consensus.dfy"
 include "network.dfy"
-include "../att_spec_proofs/inv.dfy"
-
 
 module DV 
 {
