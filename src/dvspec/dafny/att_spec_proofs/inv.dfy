@@ -3042,5 +3042,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
     }
+
     
 }

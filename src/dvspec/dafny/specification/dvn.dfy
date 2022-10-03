@@ -205,7 +205,11 @@ module DV
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
         )        
         && is_sequence_attestation_duties_to_be_served_orderd(s)
-        && s.index_next_attestation_duty_to_be_served == 0        
+        && s.index_next_attestation_duty_to_be_served == 0   
+        // //
+        && ( forall n | n in s.honest_nodes_states.Keys ::
+                |s.honest_nodes_states[n].bn.attestations_submitted| == 0    
+        )
     }
 
     predicate is_sequence_attestation_duties_to_be_served_orderd(s: DVState)

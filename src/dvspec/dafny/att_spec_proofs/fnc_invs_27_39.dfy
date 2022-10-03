@@ -2239,7 +2239,7 @@ module Fnc_Invs_27_39
         assert getMessagesFromMessagesWithRecipient(mcast_msgs) == { attestation_with_signature_share };
     }
 
-        lemma lemma_inv38_add_block_to_bn(
+    lemma lemma_inv38_add_block_to_bn(
         process: DVCNodeState,
         block: BeaconBlock,
         process': DVCNodeState 
@@ -2737,4 +2737,17 @@ module Fnc_Invs_27_39
             assert process'.rcvd_attestation_shares == process.rcvd_attestation_shares;            
         }
     }  
+
+    lemma lemma_pred_4_1_g_iii_c_add_block_to_bn(
+        process: DVCNodeState,
+        block: BeaconBlock,
+        process': DVCNodeState        
+    )
+    requires add_block_to_bn.requires(process, block)
+    requires process' == add_block_to_bn(process, block)    
+    ensures process.latest_attestation_duty.isPresent()
+                == process'.latest_attestation_duty.isPresent();
+    ensures process.latest_attestation_duty.isPresent()
+                ==> ( process.latest_attestation_duty.safe_get()
+                        == process'.latest_attestation_duty.safe_get() )
 }
