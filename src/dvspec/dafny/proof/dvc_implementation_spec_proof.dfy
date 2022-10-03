@@ -524,7 +524,6 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 && isValidReprExtended()
                 && r.Success?
         {
-            ...;
             if...
             {
                 ...;
@@ -541,6 +540,11 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                     }                
                     ...;
                 }
+            }
+            else 
+            {
+                assert (old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCNodeState()), id, decided_attestation_data)) ==>
+                    f_att_consensus_decided(old(toDVCNodeState()), id, decided_attestation_data) == toDVCNodeStateAndOuputs();
             }
         }
 

@@ -182,9 +182,11 @@ module Spec_Spec_NonInstr_Refinement
         DVCNode_Spec_NonInstr.f_att_consensus_decided(dvcni, id, decided_attestation_data)
     );       
     {
-        var local_current_attestation_duty := dvci.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && dvci.current_attestation_duty.isPresent()
+            && id == dvci.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := dvci.current_attestation_duty.safe_get();
+
             var attestation_slashing_db := DVCNode_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));

@@ -81,11 +81,14 @@ module IndInv3
     requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;   
     {
-        var local_current_attestation_duty := s.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !s.current_attestation_duty.isPresent()
+            || id != s.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := s.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -509,11 +512,14 @@ module IndInv3
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
     {
-        var local_current_attestation_duty := s.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !s.current_attestation_duty.isPresent()
+            || id != s.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := s.current_attestation_duty.safe_get();
+        
         var attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -946,9 +952,10 @@ module IndInv3
     requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)    
     ensures inv_g_iii_a_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
     {   
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -1352,9 +1359,10 @@ module IndInv3
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
     ensures inv_g_iii_a_a_body_body(dvn, n, s') 
     {    
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));

@@ -168,9 +168,12 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            var local_current_attestation_duty :- current_attestation_duty.get();        
-            if local_current_attestation_duty.slot == id
+              
+            if  && current_attestation_duty.isPresent()
+                && current_attestation_duty.safe_get().slot == id
             {
+                var local_current_attestation_duty := current_attestation_duty.safe_get();    
+
                 update_attestation_slashing_db(decided_attestation_data);
     
                 var fork_version := bn.get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));

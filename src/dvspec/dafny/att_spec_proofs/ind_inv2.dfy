@@ -317,9 +317,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
     ensures inv_g_b_body_body_new(dvn, n, s'); 
     {     
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -1335,9 +1336,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
     ensures inv_g_a_ii_a_body_body(dvn, n, s'); 
     {
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -1963,9 +1965,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
     ensures inv_g_iii_b_body_body(dvn, n, s', index_next_attestation_duty_to_be_served); 
     {  
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2562,9 +2565,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_d_a_body_body(dvn, n, process)
     ensures inv_g_d_a_body_body(dvn, n, s'); 
     {
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();  
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2946,9 +2950,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, process)
     ensures inv_attestation_duty_queue_is_ordered_3_body_body(dvn, n, s'); 
     { 
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -3264,9 +3269,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
     ensures inv_attestation_duty_queue_is_ordered_4_body_body(dvn, n, s', index_next_attestation_duty_to_be_served); 
     {       
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -3733,6 +3739,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)    
     requires dvn.consensus_on_attestation_data[id].decided_value.isPresent()
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
+    requires process.current_attestation_duty.isPresent()
     requires id == process.current_attestation_duty.safe_get().slot;        
     requires 
             var local_current_attestation_duty := process.current_attestation_duty.safe_get();
@@ -3885,9 +3892,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
     ensures inv_g_a_iii_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
     {     
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -4787,9 +4795,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires dvn.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
     ensures inv_g_a_iv_a_body_body(dvn, n, s')       
     {     
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -5450,9 +5459,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_d_b_body_body(dvn, n, process)
     ensures inv_g_d_b_body_body(dvn, n, s'); 
     { 
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id == local_current_attestation_duty.slot
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
         {
+            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
