@@ -8,6 +8,7 @@ include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
 include "../att_spec_proofs/common_proofs.dfy"
 include "../att_spec_proofs/fnc_invs_1_26.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module Fnc_Invs_27_39
 {
@@ -22,6 +23,7 @@ module Fnc_Invs_27_39
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened Fnc_Invs_1_26
+    import opened DVCNode_Spec_Axioms
     
     
     

@@ -13,6 +13,7 @@ include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
 include "../att_spec_proofs/fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module DVN_Next_Invs_27_37
 {
@@ -32,6 +33,7 @@ module DVN_Next_Invs_27_37
     import opened DVN_Next_Invs_19_26
     import opened Fnc_Invs_27_39
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened DVCNode_Spec_Axioms
     
 
     lemma lemma_inv27_dvn_next(

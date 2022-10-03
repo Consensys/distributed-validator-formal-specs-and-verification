@@ -1,9 +1,11 @@
 include "../commons.dfy"
 include "../specification/dvc_spec.dfy"
+include "../specification/dvc_spec_non_instr.dfy"
 include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module Att_Assumptions
 {
@@ -14,6 +16,7 @@ module Att_Assumptions
     import opened DVCNode_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened DVCNode_Spec_Axioms
     
     // Assumption 4a
     // Let a be a new attestation duty served to an honest node n. Then
@@ -149,9 +152,9 @@ module Att_Assumptions
     var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
     forall a | 
         && a in block.body.attestations 
-        && isMyAttestation(
+        && DVCNode_Spec_NonInstr.isMyAttestation(
           a,
-          new_p,
+          new_p.bn,
           block,
           valIndex
         )

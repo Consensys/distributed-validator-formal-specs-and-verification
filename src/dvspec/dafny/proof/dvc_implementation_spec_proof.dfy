@@ -1,10 +1,12 @@
 include "../commons.dfy"
-include "../specification/dvc_spec.dfy"
+include "../specification/dvc_spec_non_instr.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module DVCNode_Implementation_Proofs refines DVCNode_Implementation
 {
-    import opened DVCNode_Spec
+    import opened DVCNode_Spec_NonInstr
     import opened DVCNode_Externs = DVCNode_Externs_Proofs
+    import opened DVCNode_Spec_Axioms
 
     function toAttestationConsensusValidityCheckState(
         acvc: ConsensusValidityCheck<AttestationData>
@@ -151,8 +153,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 dv_pubkey := dv_pubkey,
                 future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
                 bn := toBNState(bn),
-                rs := toRSState(rs),
-                all_rcvd_duties := {}
+                rs := toRSState(rs)
             )
         }  
 
@@ -524,20 +525,23 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 && r.Success?
         {
             ...;
+            if...
             {
-                if old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCNodeState()), id, decided_attestation_data)
-                {
-                    var r := f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data);
-                    var s := old(current_attestation_duty).safe_get().slot;
-                    var rs := r.state;
-
-                    lemmaAttestationHasBeenAddedToSlashingDb(decided_attestation_data, rs); 
-
-                    assert f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data).state == toDVCNodeStateAndOuputs().state; 
-                }                
                 ...;
+                {
+                    if old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCNodeState()), id, decided_attestation_data)
+                    {
+                        var r := f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data);
+                        var s := old(current_attestation_duty).safe_get().slot;
+                        var rs := r.state;
+
+                        lemmaAttestationHasBeenAddedToSlashingDb(decided_attestation_data, rs); 
+
+                        assert f_att_consensus_decided_helper(old(toDVCNodeState()), id, decided_attestation_data).state == toDVCNodeStateAndOuputs().state; 
+                    }                
+                    ...;
+                }
             }
-            ...;
         }
 
         function method get_aggregation_bits...
@@ -618,9 +622,6 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 }
                 assert old(isValidReprExtended()) ==> 
                         && isValidReprExtended()
-                        && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share).state == f_listen_for_attestation_shares_helper(old(toDVCNodeState()), attestation_share);
-                assert old(isValidReprExtended()) ==> 
-                        && isValidReprExtended()
                         && f_listen_for_attestation_shares(old(toDVCNodeState()), attestation_share).state == toDVCNodeState();                          
             }
             else
@@ -642,7 +643,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         {            
             map a |
                     && a in block.body.attestations[..i]
-                    && isMyAttestation(a, process, block, bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey))
+                    && isMyAttestation(a, process.bn, block, bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey))
                 ::
                     a.data.slot := a.data
         }  
@@ -670,7 +671,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         requires f_listen_for_new_imported_blocks.requires(process, block)        
         requires var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 && a1 == process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1_for_loop_inv(process, block, i)
-                && var a := block.body.attestations[i]; a2 == if isMyAttestation(a,process, block, valIndex) then 
+                && var a := block.body.attestations[i]; a2 == if isMyAttestation(a,process.bn, block, valIndex) then 
                             a1[a.data.slot := a.data]
                         else 
                             a1
@@ -678,7 +679,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
         {
             // Yes!!! The following is needed to allow Dafny prove the lemma!!!
             var a := block.body.attestations[i];
-            if isMyAttestation(a,process, block, bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey)) 
+            if isMyAttestation(a,process.bn, block, bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey)) 
             {
                 
             }
@@ -720,7 +721,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 
             map a |
                     && a in block.body.attestations
-                    && isMyAttestation(a, process, block, valIndex)
+                    && isMyAttestation(a, process.bn, block, valIndex)
                 ::
                     a.data.slot := a.data
 
@@ -736,7 +737,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 
             var s := map a |
                     && a in block.body.attestations
-                    && isMyAttestation(a, process, block, valIndex)
+                    && isMyAttestation(a, process.bn, block, valIndex)
                 ::
                     a.data.slot := a.data;
 
@@ -763,7 +764,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 
             var s := map a |
                     && a in block.body.attestations
-                    && isMyAttestation(a, process, block, valIndex)
+                    && isMyAttestation(a, process.bn, block, valIndex)
                 ::
                     a.data.slot := a.data;
 
@@ -806,7 +807,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                 
             var s := map a |
                     && a in block.body.attestations
-                    && isMyAttestation(a, process, block, valIndex)
+                    && isMyAttestation(a, process.bn, block, valIndex)
                 ::
                     a.data.slot := a.data;
 
@@ -958,7 +959,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             
             var s := map a |
                     && a in block.body.attestations
-                    && isMyAttestation(a, process, block, valIndex)
+                    && isMyAttestation(a, process.bn, block, valIndex)
                 ::
                     a.data.slot := a.data;
 

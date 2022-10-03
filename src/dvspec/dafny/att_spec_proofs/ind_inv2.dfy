@@ -7,6 +7,7 @@ include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "ind_inv.dfy"
 include "assump.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
@@ -21,6 +22,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Helper_Sets_Lemmas
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
+    import opened DVCNode_Spec_Axioms
 
     lemma lemma_inv_attestation_duty_queue_is_ordered_3_body_body(
         dvn: DVState, 

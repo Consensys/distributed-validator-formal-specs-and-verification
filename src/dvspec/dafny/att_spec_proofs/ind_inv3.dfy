@@ -12,6 +12,7 @@ include "dvn_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "common_proofs.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 
 module IndInv3
@@ -31,6 +32,7 @@ module IndInv3
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs
+    import opened DVCNode_Spec_Axioms
 
     // TODO
     predicate inv33_body(

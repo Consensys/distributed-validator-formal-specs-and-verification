@@ -1,37 +1,28 @@
 include "../commons.dfy"
 include "../implementation/dvc_implementation.dfy"
-include "../specification/dvc_spec_non_instr.dfy"
 include "dvc_spec_axioms.dfy"
 
 
-module DVCNode_Spec {
+module DVCNode_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
     import opened DVCNode_Externs
-    import DVCNode_Spec_NonInstr
     import opened DVCNode_Spec_Axioms
-    
 
 
-    // function getInitialBN(): BNState
-    // {
-    //     BNState(
-    //         state_roots_of_imported_blocks := {}
-    //     )
-    // }    
-
-
+    datatype AttestationConsensusValidityCheckState = AttestationConsensusValidityCheckState(
+        attestation_duty: AttestationDuty,
+        validityPredicate: AttestationData -> bool
+    )
 
     datatype ConsensusEngineState = ConsensusEngineState(
-        attestation_consensus_active_instances: map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
-        ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
+        attestation_consensus_active_instances: map<Slot, AttestationConsensusValidityCheckState>
     )
 
     function getInitialConensusEngineState(): ConsensusEngineState
     {
         ConsensusEngineState(
-            attestation_consensus_active_instances := map[],
-            att_slashing_db_hist := map[]
+            attestation_consensus_active_instances := map[]
         )
     }
 
@@ -43,7 +34,7 @@ module DVCNode_Spec {
     ): ConsensusEngineState
     requires id !in s.attestation_consensus_active_instances.Keys
     {
-        var acvc := DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState(
+        var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );
@@ -53,18 +44,7 @@ module DVCNode_Spec {
                 id := acvc
             ];
         s.(
-            attestation_consensus_active_instances := new_attestation_consensus_active_instances,
-            att_slashing_db_hist := 
-                // s.att_slashing_db_hist[
-                //     id := map[acvc.validityPredicate := {attestation_slashing_db}]
-                // ]
-                addToAttSlashingDBHist(
-                    s.att_slashing_db_hist,
-                    id,
-                    acvc.validityPredicate,
-                    attestation_slashing_db                    
-                )
-                
+            attestation_consensus_active_instances := new_attestation_consensus_active_instances
         )
     }
 
@@ -98,9 +78,9 @@ module DVCNode_Spec {
 
 
     function updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (r: map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>)
+    ): (r: map<Slot, AttestationConsensusValidityCheckState>)
     // Questions: It seems r.Keys == m.Keys, not <=
     ensures r.Keys <= m.Keys
     {
@@ -114,7 +94,7 @@ module DVCNode_Spec {
   
     function updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_attestation_consensus_active_instances : map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        new_attestation_consensus_active_instances : map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
     {
@@ -143,15 +123,18 @@ module DVCNode_Spec {
                     new_attestation_slashing_db
                 );
         s.(
-            attestation_consensus_active_instances := new_attestation_consensus_active_instances,
-            att_slashing_db_hist := updateAttSlashingDBHist(
-                s.att_slashing_db_hist,
-                new_attestation_consensus_active_instances,
-                new_attestation_slashing_db
-            )
+            attestation_consensus_active_instances := new_attestation_consensus_active_instances
         )
     }
 
+    function getInitialRS(
+        pubkey: BLSPubkey
+    ): RSState
+    {
+        RSState(
+            pubkey := pubkey
+        )
+    }  
 
     datatype DVCNodeState = DVCNodeState(
         current_attestation_duty: Optional<AttestationDuty>,
@@ -167,21 +150,17 @@ module DVCNode_Spec {
         dv_pubkey: BLSPubkey,
         future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
         bn: BNState,
-        rs: RSState,
-        
-        ghost all_rcvd_duties: set<AttestationDuty>
+        rs: RSState
     )
 
-    // datatype Outputs = Outputs(
-    //     att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
-    //     attestations_submitted: set<Attestation>
-    // )    
-
-    type Outputs = DVCNode_Spec_NonInstr.Outputs
+    datatype Outputs = Outputs(
+        att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
+        attestations_submitted: set<Attestation>
+    )    
 
     function getEmptyOuputs(): Outputs
     {
-        DVCNode_Spec_NonInstr.Outputs(
+        Outputs(
             {},
             {}
         )
@@ -226,8 +205,7 @@ module DVCNode_Spec {
             dv_pubkey := dv_pubkey,
             future_att_consensus_instances_already_decided := map[],
             bn := s.bn,
-            rs := DVCNode_Spec_NonInstr.getInitialRS(rs_pubkey),
-            all_rcvd_duties := {}
+            rs := getInitialRS(rs_pubkey)
         )
     }
 
@@ -289,8 +267,7 @@ module DVCNode_Spec {
     {
         f_check_for_next_queued_duty(
             process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
+                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty]
             )
         )
     }    
@@ -476,6 +453,22 @@ module DVCNode_Spec {
                 outputs := getEmptyOuputs()
             )         
     }
+ 
+    predicate isMyAttestation(
+        a: Attestation,
+        bn: BNState,
+        block: BeaconBlock,
+        valIndex: Optional<ValidatorIndex>
+    )
+    requires block.body.state_root in bn.state_roots_of_imported_blocks
+    {
+            && var committee := bn_get_epoch_committees(bn, block.body.state_root, a.data.index);
+            && valIndex.Some?
+            && valIndex.v in committee
+            && var i:nat :| i < |committee| && committee[i] == valIndex.v;
+            && i < |a.aggregation_bits|
+            && a.aggregation_bits[i]         
+    }
 
     function f_listen_for_new_imported_blocks_compute_att_consensus_instances_already_decided(
         process: DVCNodeState,
@@ -494,7 +487,7 @@ module DVCNode_Spec {
         else
             var a := attestations[i];
             var new_att_consensus_instances_already_decided := 
-                if DVCNode_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex) then
+                if isMyAttestation(a, process.bn, block, valIndex) then
                     att_consensus_instances_already_decided[a.data.slot := a.data]
                 else
                     att_consensus_instances_already_decided
@@ -510,16 +503,16 @@ module DVCNode_Spec {
     requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && DVCNode_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && isMyAttestation(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && DVCNode_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && isMyAttestation(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2    
     {
         var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
         map a |
                 && a in block.body.attestations
-                && DVCNode_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex)
+                && isMyAttestation(a, process.bn, block, valIndex)
             ::
                 a.data.slot := a.data        
     }
@@ -548,9 +541,9 @@ module DVCNode_Spec {
     requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && DVCNode_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && isMyAttestation(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && DVCNode_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && isMyAttestation(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2
     requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
@@ -618,46 +611,47 @@ module DVCNode_Spec {
     }
 }
 
-// module DVCNode_Externs_Proofs refines DVCNode_Externs
-// {
-//     import opened DVCNode_Spec
+module DVCNode_Externs_Proofs refines DVCNode_Externs
+{
+    import opened DVCNode_Spec_NonInstr
+    import opened DVCNode_Spec_Axioms
 
-//     function toBNState(bn: BeaconNode): BNState
-//     reads bn
-//     {
-//         BNState(
-//             state_roots_of_imported_blocks := bn.state_roots_of_imported_blocks,
-//             attestations_submitted := bn.attestations_submitted
-//         )
-//     }
+    function toBNState(bn: BeaconNode): BNState
+    reads bn
+    {
+        BNState(
+            state_roots_of_imported_blocks := bn.state_roots_of_imported_blocks,
+            attestations_submitted := bn.attestations_submitted
+        )
+    }
 
-//     trait BeaconNode...
-//     {
-//         method get_fork_version...
-//         ensures bn_get_fork_version(s) == v
+    trait BeaconNode...
+    {
+        method get_fork_version...
+        ensures bn_get_fork_version(s) == v
 
-//         method get_validator_index...
-//         ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_validator_index(toBNState(this),state_id, validator_id) == vi
+        method get_validator_index...
+        ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_validator_index(toBNState(this),state_id, validator_id) == vi
 
-//         method get_epoch_committees...
-//         ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_epoch_committees(toBNState(this), state_id, index) == sv
-//     }
+        method get_epoch_committees...
+        ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_epoch_committees(toBNState(this), state_id, index) == sv
+    }
 
 
-//     trait RemoteSigner...
-//     {
-//         method sign_attestation...
-//         ensures rs_sign_attestation(attestation_data, fork_version, signing_root, toRSState(this)) == s
-//     }
+    trait RemoteSigner...
+    {
+        method sign_attestation...
+        ensures rs_sign_attestation(attestation_data, fork_version, signing_root, toRSState(this)) == s
+    }
 
-//     function toRSState(
-//         rs: RemoteSigner
-//     ): RSState
-//     reads rs 
-//     {
-//         RSState(
-//             pubkey := rs.pubkey
-//         )
-//     }
+    function toRSState(
+        rs: RemoteSigner
+    ): RSState
+    reads rs 
+    {
+        RSState(
+            pubkey := rs.pubkey
+        )
+    }
 
-// }
+}

@@ -168,23 +168,26 @@ abstract module DVCNode_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            var local_current_attestation_duty :- current_attestation_duty.get();            
-            update_attestation_slashing_db(decided_attestation_data);
- 
-            var fork_version := bn.get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-            var attestation_signature_share := rs.sign_attestation(decided_attestation_data, fork_version, attestation_signing_root);
-            var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature :=attestation_signature_share
-            ); 
+            var local_current_attestation_duty :- current_attestation_duty.get();        
+            if local_current_attestation_duty.slot == id
+            {
+                update_attestation_slashing_db(decided_attestation_data);
+    
+                var fork_version := bn.get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+                var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+                var attestation_signature_share := rs.sign_attestation(decided_attestation_data, fork_version, attestation_signing_root);
+                var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature :=attestation_signature_share
+                ); 
 
-            attestation_shares_to_broadcast := attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share];
-            network.send_att_share(attestation_with_signature_share, peers);  
-            current_attestation_duty := None;
-            
-            { :- check_for_next_queued_duty(); }
+                attestation_shares_to_broadcast := attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share];
+                network.send_att_share(attestation_with_signature_share, peers);  
+                current_attestation_duty := None;
+                
+                { :- check_for_next_queued_duty(); }
+            }
 
             return Success;         
         }

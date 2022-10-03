@@ -1,11 +1,13 @@
 include "../commons.dfy"
 include "../specification/dvc_spec.dfy"
+include "../specification/dvc_spec_non_instr.dfy"
 include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 
 module Common_Proofs
@@ -19,6 +21,8 @@ module Common_Proofs
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Assumptions
     import opened Helper_Sets_Lemmas
+    import opened DVCNode_Spec_Axioms
+    import DVCNode_Spec_NonInstr
 
     // TODO: Moved from ind_inv.dfy
     lemma lemma_updateConsensusInstanceValidityCheck(
@@ -73,9 +77,9 @@ module Common_Proofs
 
     // TODO: Moved from ind_inv.dfy
     lemma lemma_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, AttestationConsensusValidityCheckState>,
+        m: map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, AttestationConsensusValidityCheckState>
+        m': map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>
     )    
     requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
     ensures m.Keys == m'.Keys
@@ -105,7 +109,7 @@ module Common_Proofs
 
     lemma lemma_inv28_updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_attestation_consensus_active_instances : map<Slot, AttestationConsensusValidityCheckState>,
+        new_attestation_consensus_active_instances : map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
     )    

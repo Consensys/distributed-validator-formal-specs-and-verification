@@ -17,6 +17,7 @@ include "../att_spec_proofs/fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module Core_Proofs
 {
@@ -29,6 +30,7 @@ module Core_Proofs
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
+    import opened DVCNode_Spec_Axioms
 
 
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)

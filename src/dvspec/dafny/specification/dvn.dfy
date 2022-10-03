@@ -2,6 +2,7 @@ include "../commons.dfy"
 include "dvc_spec.dfy"
 include "consensus.dfy"
 include "network.dfy"
+include "dvc_spec_axioms.dfy"
 
 module DV 
 {
@@ -11,6 +12,7 @@ module DV
     import opened ConsensusSpec
     import opened DVCNode_Spec
     import opened DVCNode_Externs_Proofs
+    import opened DVCNode_Spec_Axioms
     
 
     datatype Adversary = Adversary(

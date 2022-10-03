@@ -8,6 +8,8 @@ include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "common_proofs.dfy"
 include "assump.dfy"
+include "../specification/dvc_spec_non_instr.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -22,6 +24,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Common_Proofs
     import opened DVN_Next_Invs_1_7
     import opened Att_Assumptions
+    import DVCNode_Spec_NonInstr
+    import opened DVCNode_Spec_Axioms
 
     lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
     requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
@@ -1180,6 +1184,65 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         }
     }
 
+    lemma lemma_pred_4_1_c_att_consensus_decided_helper_helper(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.AttConsensusDecided?
+    requires inv1(s)
+    requires inv2(s)        
+    requires |s.all_nodes| > 0    
+    ensures s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data; 
+    {
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case AttConsensusDecided(id: Slot, decided_attestation_data) => 
+
+                        var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                        var cid := id;
+
+                        assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+                        var output := Some(Decided(node, nodeEvent.decided_attestation_data)); 
+
+                        var validityPredicates := 
+                            map n |
+                                    && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                                ::
+                                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                            ;
+
+                        var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+                        var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+                        assert
+                            ConsensusSpec.Next(
+                                s_consensus,
+                                validityPredicates,
+                                s'_consensus,
+                                output
+                            );                               
+
+
+                        assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
+                        assert isConditionForSafetyTrue(s'_consensus);
+                        assert s'_consensus.decided_value.safe_get() == decided_attestation_data; 
+                        assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == decided_attestation_data; 
+                }
+        }            
+    }
+
+
 
     lemma lemma_pred_4_1_c_att_consensus_decided_helper(
         s: DVState,
@@ -1256,40 +1319,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             assert att_share == attestation_with_signature_share;
                             lemmaImaptotalElementInDomainIsInKeys(s.consensus_on_attestation_data, id);
                             assert id in s.consensus_on_attestation_data.Keys ;
+                            lemma_pred_4_1_c_att_consensus_decided_helper_helper(s, event, s');
 
-                            var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
-                            var cid := id;
-
-                            assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
-
-
-                            var output := Some(Decided(node, nodeEvent.decided_attestation_data)); 
-
-                            var validityPredicates := 
-                                map n |
-                                        && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                                        && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
-                                    ::
-                                        s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
-                                ;
-
-                            var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
-                            var s'_consensus := s'.consensus_on_attestation_data[cid];                
-
-                            assert
-                                ConsensusSpec.Next(
-                                    s_consensus,
-                                    validityPredicates,
-                                    s'_consensus,
-                                    output
-                                );                               
-
-
-                            assert s'.consensus_on_attestation_data[id].decided_value.isPresent();
                             assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == decided_attestation_data; 
                             assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == att_share.data; 
                             lemma_pred_4_1_f_b(s, event, s');   
-                            // assert s'.consensus_on_attestation_data[id].decided_value.safe_get().slot == id; 
                             
                             assert  att_share.data.slot == id;
                             assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();                             
@@ -1972,9 +2006,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }   
 
     lemma lemma_pred_4_1_f_g_for_dvc_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, AttestationConsensusValidityCheckState>,
+        m: map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, AttestationConsensusValidityCheckState>
+        m': map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>
     )    
     requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
     requires forall k | k in m :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
@@ -2188,7 +2222,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 var attestation_duty := process.attestation_duties_queue[0];
                 var attestation_slashing_db := process.attestation_slashing_db;
 
-                var acvc := AttestationConsensusValidityCheckState(
+                var acvc := DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );     
@@ -2870,7 +2904,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
             var a :| 
                 && a in block.body.attestations
-                && isMyAttestation(a, process, block, valIndex)
+                && DVCNode_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex)
                 && a.data == new_consensus_instances_already_decided[slot]
             ;
 
