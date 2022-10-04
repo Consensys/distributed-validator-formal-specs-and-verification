@@ -15,6 +15,7 @@ include "../att_spec_proofs/dvn_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
+include "ind_inv4.dfy"
 include "core_proofs.dfy"
 
 
@@ -128,7 +129,8 @@ module Proofs_DVN_Ind_Inv
     
 
     lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_1_7(dvn')
     {    
@@ -142,7 +144,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_invs_8_18(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_8_18(dvn')
     {
@@ -156,7 +159,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_invs_19_26(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_19_26(dvn')        
     {
@@ -170,7 +174,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_invs_27_37(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_27_37(dvn') 
     {
@@ -272,7 +277,8 @@ module Proofs_DVN_Ind_Inv
     }
    
     lemma lemma_ind_inv_dvn_next_inv_46_b(dvn: DVState, e: DV.Event, dvn': DVState)  
-    requires DV.NextEvent(dvn, e, dvn')     
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')       
     requires ind_inv(dvn)
     ensures inv46_b(dvn')
     {
@@ -300,7 +306,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_b(dvn')
     {
@@ -335,7 +342,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_f_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_f_a(dvn')
     {
@@ -343,7 +351,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_i_for_dvc(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_g_i_for_dvc(dvn')
     {
@@ -351,7 +360,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_i(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_g_i(dvn')
     {
@@ -359,7 +369,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_f_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_f_b(dvn')
     {
@@ -377,7 +388,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_invs_other_properties_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_1(dvn')
     {
@@ -389,7 +401,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_invNetwork(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invNetwork(dvn')
     {
@@ -398,7 +411,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_38(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures inv38(dvn')
     {
@@ -408,7 +422,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_iii_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_g_iii_a(dvn')
     {
@@ -424,7 +439,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_invs_other_properties_2(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_2(dvn')
     {
@@ -439,6 +455,7 @@ module Proofs_DVN_Ind_Inv
         event: DV.Event,
         dvn': DVState
     )
+    requires NextEvent.requires(dvn, event, dvn')
     requires NextEvent(dvn, event, dvn')
     requires ind_inv(dvn)
     ensures pred_4_1_g_iii(dvn')
@@ -457,7 +474,8 @@ module Proofs_DVN_Ind_Inv
     }
     
     lemma lemma_ind_inv_dvn_next_invs_other_properties_3(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_3(dvn')
     {        
@@ -475,7 +493,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_invs_other_properties_4(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_4(dvn')
     {        
@@ -484,7 +503,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_iii_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_g_iii_b(dvn')
     {
@@ -493,7 +513,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_b_new(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures pred_4_1_g_b_new(dvn')
     {
@@ -502,7 +523,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_g_d_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures inv_g_d_a(dvn')
     {
@@ -511,7 +533,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_g_d_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures inv_g_d_b(dvn')
     {
@@ -520,7 +543,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_inv_g_a_ii_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures inv_g_a_ii_a(dvn')
     {
@@ -531,7 +555,8 @@ module Proofs_DVN_Ind_Inv
 
 
     lemma lemma_ind_inv_dvn_next_invs_other_properties_5(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_5(dvn')
     {
@@ -565,7 +590,8 @@ module Proofs_DVN_Ind_Inv
 
           
     lemma lemma_ind_inv_dvn_next_invs_other_properties_6(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_6(dvn')
     {
@@ -585,7 +611,8 @@ module Proofs_DVN_Ind_Inv
     // // ensures ind_inv(dvn')
 
     lemma lemma_ind_inv_dvn_next_ind_inv_helper_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_1_7(dvn')
     ensures invs_8_18(dvn')
@@ -599,7 +626,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_ind_inv_helper_2(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)
     ensures invs_other_properties_1(dvn')
     ensures invs_other_properties_2(dvn')
@@ -614,7 +642,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_ind_inv_helper_3(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)    
     ensures invs_other_properties_5(dvn')
     ensures invs_other_properties_6(dvn')
@@ -624,7 +653,8 @@ module Proofs_DVN_Ind_Inv
     }
 
     lemma lemma_ind_inv_dvn_next_ind_inv(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, e, dvn')
+    requires DV.NextEventPreCond(dvn, e)
+    requires DV.NextEvent(dvn, e, dvn')  
     requires ind_inv(dvn)    
     ensures ind_inv(dvn')    
     {   

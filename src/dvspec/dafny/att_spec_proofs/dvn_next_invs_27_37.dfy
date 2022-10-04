@@ -695,6 +695,7 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
+    requires NextEvent.requires(dvn, event, dvn')  
     requires NextEvent(dvn, event, dvn')  
     requires pred_4_1_g_iii_b(dvn)
     requires pred_4_1_g_iii_c(dvn)
