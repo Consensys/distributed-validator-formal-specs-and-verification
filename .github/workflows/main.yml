@@ -26,3 +26,9 @@ jobs:
       - name: Run verification
         continue-on-error: true
         run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:600 /verifyAllModules repo/src/dvspec/dafny/att_spec_proofs/core_proofs.dfy | tee output.log
+
+      - name: Check For Non Verification Errors
+        run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
+
+      - name: Check For Non Missing Bodies
+        run: ! grep -q 'has no body' output.log
