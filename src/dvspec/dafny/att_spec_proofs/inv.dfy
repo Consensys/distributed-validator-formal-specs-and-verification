@@ -2886,9 +2886,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     predicate inv30(dvn: DVState, event: DV.Event, dvn': DVState)    
-    requires NextEvent(dvn, event, dvn')  
+    // requires NextEventPreCond(dvn, event)
+    // requires NextEvent(dvn, event, dvn')    
     {
         forall hn: BLSPubkey | is_honest_node(dvn, hn) ::
+            && hn in dvn'.honest_nodes_states
             && var dvc := dvn.honest_nodes_states[hn];
             && var dvc' := dvn'.honest_nodes_states[hn];
             && inv30_body(dvc, dvc')
@@ -2931,9 +2933,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     predicate inv32(dvn: DVState, event: DV.Event, dvn': DVState)    
-    requires NextEvent(dvn, event, dvn')  
+    // requires NextEventPreCond(dvn, event)
+    // requires NextEvent(dvn, event, dvn')    
     {
         forall hn: BLSPubkey | is_honest_node(dvn, hn) ::
+            && hn in dvn'.honest_nodes_states
             && var dvc := dvn.honest_nodes_states[hn];
             && var dvc' := dvn'.honest_nodes_states[hn];
             && inv32_body(dvc, dvc')

@@ -59,47 +59,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         assert inv41(s');
     }
 
-    lemma lemma_ServeAttstationDuty(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    requires NextEvent(s, event, s')    
-    requires event.HonestNodeTakingStep?
-    requires event.event.ServeAttstationDuty?
-    ensures             s'.index_next_attestation_duty_to_be_served > 0
-
-    ensures
-                        var attestation_duty := event.event.attestation_duty;
-                        var an := s'.sequence_attestation_duties_to_be_served[s'.index_next_attestation_duty_to_be_served - 1];
-
-                        && attestation_duty == an.attestation_duty
-                        && event.node == an.node    
-                        && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-    {
-        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
-        match event 
-        {
-            
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-
-
-                match nodeEvent
-                {
-                    case ServeAttstationDuty(attestation_duty) => 
-                        assert s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served;
-                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-
-                        var an := s'.sequence_attestation_duties_to_be_served[s'.index_next_attestation_duty_to_be_served - 1];
-
-                        assert attestation_duty == an.attestation_duty;
-                        assert node == an.node;
-
-                }
-        }        
-    }
 
     predicate lemma_ServeAttstationDuty2_predicate(
         s': DVState,
@@ -115,12 +74,50 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && node == an.node    
     }    
 
-    // TODO: Use this in place of lemma_ServeAttstationDuty
+    lemma lemma_ServeAttstationDuty2_helper(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event,
+        nodeOutputs: DVCNode_Spec.Outputs,
+        s': DVState
+    )
+    requires NextHonestAfterAddingBlockToBn.requires(s, node, nodeEvent, nodeOutputs, s' );
+    requires NextHonestAfterAddingBlockToBn(s, node, nodeEvent, nodeOutputs, s' );  
+    requires nodeEvent.ServeAttstationDuty?
+    ensures  s'.index_next_attestation_duty_to_be_served > 0
+
+    ensures
+            && lemma_ServeAttstationDuty2_predicate(s', s'.index_next_attestation_duty_to_be_served, nodeEvent.attestation_duty, node )
+            && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+    {
+
+        var s_node := s.honest_nodes_states[node];
+        var s'_node := s'.honest_nodes_states[node];
+        assert  NextHonestAfterAddingBlockToBn.requires(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+        assert  NextHonestAfterAddingBlockToBn(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+        // assert validNodeEvent(s, node, nodeEvent);
+
+
+        match nodeEvent
+        {
+            case ServeAttstationDuty(attestation_duty) => 
+                assert s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served;
+                assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+
+                var an := s'.sequence_attestation_duties_to_be_served[s'.index_next_attestation_duty_to_be_served - 1];
+
+                assert attestation_duty == an.attestation_duty;
+                assert node == an.node;
+        }
+    }     
+
+    // TODO: Rename to lemma_ServeAttstationDuty
     lemma lemma_ServeAttstationDuty2(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
+    requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires event.HonestNodeTakingStep?
     requires event.event.ServeAttstationDuty?
@@ -137,20 +134,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-
-
-                match nodeEvent
-                {
-                    case ServeAttstationDuty(attestation_duty) => 
-                        assert s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served;
-                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-
-                        var an := s'.sequence_attestation_duties_to_be_served[s'.index_next_attestation_duty_to_be_served - 1];
-
-                        assert attestation_duty == an.attestation_duty;
-                        assert node == an.node;
-
-                }
+                assert  NextHonestAfterAddingBlockToBn.requires(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+                assert  NextHonestAfterAddingBlockToBn(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+                lemma_ServeAttstationDuty2_helper(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
         }        
     }    
 
@@ -760,7 +746,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_b(s)
     // requires event.HonestNodeTakingStep?
     // requires s'.all_nodes == s.all_nodes;
@@ -791,7 +778,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_b(s)
     requires construct_signed_attestation_signature_assumptions_helper(
         s.construct_signed_attestation_signature,
@@ -996,7 +984,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires invNetwork(s)
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)
     ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(s')
@@ -1048,7 +1037,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_c(s)
     requires pred_4_1_f_b(s)
     requires inv1(s)
@@ -1103,7 +1093,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         hn: BLSPubkey,
         att_share: AttestationShare
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires pred_4_1_c(s)
@@ -1191,7 +1182,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires inv1(s)
@@ -1253,7 +1245,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         hn: BLSPubkey,
         att_share: AttestationShare
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires pred_4_1_c(s)
@@ -1340,7 +1333,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires pred_4_1_c(s)
@@ -1428,7 +1422,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.AdeversaryTakingStep?
     requires pred_4_1_c(s)
     requires pred_4_1_f_b(s)
@@ -1496,7 +1491,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv2(s)
     requires inv53(s)
@@ -1620,7 +1616,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         cid: Slot,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires cid in s'.consensus_on_attestation_data.Keys
     requires inv1(s)
@@ -1738,7 +1735,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv53(s)
     requires inv3(s)
@@ -1825,7 +1823,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)  
@@ -1868,14 +1867,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         nodeEvent: Types.Event
     ) returns (s_w_honest_node_states_updated: DVState)
     requires node in s.honest_nodes_states
-    ensures s_w_honest_node_states_updated ==
-                if nodeEvent.ImportedNewBlock? then 
-                    s.(
-                        honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
-                    )
-                else 
-                    s 
-                ;  
+    ensures s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
     ensures s_w_honest_node_states_updated == s.(honest_nodes_states := s_w_honest_node_states_updated.honest_nodes_states)
     ensures s_w_honest_node_states_updated.honest_nodes_states == s.honest_nodes_states[node := s_w_honest_node_states_updated.honest_nodes_states[node]]
     ensures s_w_honest_node_states_updated.honest_nodes_states[node] == s.honest_nodes_states[node].(bn := s_w_honest_node_states_updated.honest_nodes_states[node].bn)
@@ -1890,7 +1882,20 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ;         
     }
 
-    // 2m 40s
+    lemma lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated_2(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event,
+        node': BLSPubkey,
+        s_w_honest_node_states_updated: DVState
+    ) 
+    requires node in s.honest_nodes_states
+    requires node' in s.honest_nodes_states
+    requires s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
+    ensures s_w_honest_node_states_updated.honest_nodes_states[node'].attestation_consensus_engine_state == s.honest_nodes_states[node'].attestation_consensus_engine_state
+    {      
+    }    
+
     lemma lemma_pred_4_1_f_g_i_helper(
         s: DVState,
         event: DV.Event,
@@ -1899,7 +1904,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         hn: BLSPubkey,
         vp: AttestationData -> bool
     )   returns (attestation_duty: AttestationDuty, attestation_slashing_db: set<SlashingDBAttestation>)
-    requires NextEvent(s, event, s') 
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')    
     requires inv1(s)
     requires inv2(s)
     requires inv3(s)      
@@ -1966,6 +1972,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 assert vpn in s.honest_nodes_states.Keys;
                 assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
 
+                lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
+
                 assert s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state == s.honest_nodes_states[vpn].attestation_consensus_engine_state;
                 assert pred_4_1_g_i_for_dvc_single_dvc(s, vpn, cid);
 
@@ -1984,7 +1992,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )   
-    requires NextEvent(s, event, s') 
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')    
     requires pred_4_1_g_i(s)
     requires inv1(s)
     requires inv2(s)
@@ -2371,7 +2380,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )   
-    requires NextEvent(s, event, s') 
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')    
     requires inv1(s)
     requires inv2(s)
     requires inv3(s)      
@@ -3310,7 +3320,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')    
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires inv1(s)
@@ -3355,7 +3366,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s': DVState,
         ci: nat
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires invNetwork(s)
     requires inv1(s)
     requires inv3(s)
@@ -3393,7 +3405,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s_node: DVCNodeState
     )
     requires inv_g_iii_body_body(s, s_node)
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires inv1(s)
@@ -3427,7 +3440,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         n: BLSPubkey
     )
     requires inv_g_b_body_body_new(s, n, s_node)
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires inv1(s)
@@ -3473,7 +3487,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         n: BLSPubkey
     )
     requires inv_g_d_a_body_body(s, n, s_node)
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires inv1(s)
@@ -3513,6 +3528,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s_node: DVCNodeState,
         n: BLSPubkey
     )
+    requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires inv_g_iii_a_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires inv_g_iii_a_a_body_body(s, n, s_node)
@@ -3550,7 +3566,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires inv1(s)
@@ -3566,7 +3583,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires inv1(s)
@@ -3632,7 +3650,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
     ensures is_sequence_attestation_duties_to_be_served_orderd(s')
     {
@@ -3654,7 +3673,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_g_iii_precond(s)
     ensures pred_4_1_g_iii(s');  
     {

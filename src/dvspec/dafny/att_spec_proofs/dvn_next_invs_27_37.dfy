@@ -41,7 +41,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv25(dvn)
     requires inv27(dvn)  
@@ -95,7 +96,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv26(dvn)
     requires inv28(dvn)  
@@ -149,7 +151,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv25(dvn)
     requires inv29(dvn)  
@@ -203,7 +206,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     ensures inv30(dvn, event, dvn')
     {        
         match event 
@@ -249,7 +253,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv26(dvn)
     requires inv31(dvn)  
@@ -303,7 +308,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     ensures inv32(dvn, event, dvn')
     {        
         match event 
@@ -351,7 +357,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv34(dvn)
     ensures inv34(dvn')
     {        
@@ -398,7 +405,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv35(dvn)
     ensures inv35(dvn')    
     {
@@ -424,7 +432,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv36(dvn)
     ensures inv36(dvn')    
     {
@@ -457,7 +466,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )       
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv1(dvn)
     requires inv2(dvn)
     requires inv3(dvn)
@@ -525,7 +535,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )       
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     ensures dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
     {}
 
@@ -534,7 +545,8 @@ module DVN_Next_Invs_27_37
         event: DV.Event,
         dvn': DVState
     )       
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv36(dvn)
     requires inv37(dvn)
     ensures inv37(dvn')

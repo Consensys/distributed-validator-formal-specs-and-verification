@@ -32,7 +32,8 @@ module DVN_Next_Invs_19_26
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')    
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')      
     requires inv19(dvn')    
     ensures inv19(dvn')    
     { }
@@ -42,7 +43,8 @@ module DVN_Next_Invs_19_26
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')    
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')      
     ensures inv20(dvn, dvn')
     { }
 
@@ -52,7 +54,8 @@ module DVN_Next_Invs_19_26
         dvn': DVState
     )
     requires inv1(dvn)    
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv20(dvn, dvn')
     requires inv21(dvn)
     ensures inv21(dvn')
@@ -139,7 +142,8 @@ module DVN_Next_Invs_19_26
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv22(dvn)  
     ensures inv22(dvn')
     {        
@@ -183,7 +187,8 @@ module DVN_Next_Invs_19_26
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv7(dvn)
     requires inv13(dvn)
@@ -257,7 +262,8 @@ module DVN_Next_Invs_19_26
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv25(dvn)  
     ensures inv25(dvn')
@@ -309,7 +315,8 @@ module DVN_Next_Invs_19_26
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv5(dvn)
     requires inv26(dvn)  
     ensures inv26(dvn')

@@ -209,6 +209,7 @@ module IndInv3
         s': DVCNodeState,
         outputs: Outputs        
     )
+    requires DVCNode_Spec.Next.requires(s, event, s', outputs)
     requires DVCNode_Spec.Next(s, event, s', outputs)
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
     {
@@ -235,6 +236,22 @@ module IndInv3
         }        
     }
 
+    lemma lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVCNode_Spec_Next(
+        s: DVState,
+        event: DV.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
+    requires event.HonestNodeTakingStep?
+    ensures NextHonestAfterAddingBlockToBn.requires(add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
+    ensures NextHonestAfterAddingBlockToBn(add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
+    ensures DVCNode_Spec.Next.requires(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
+    ensures DVCNode_Spec.Next(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
+    {
+
+    } 
+
     lemma lemma_inv_33_helper(
         s: DVState,
         event: DV.Event,
@@ -242,7 +259,8 @@ module IndInv3
         hn: BLSPubkey,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv53(s)
     requires inv3(s)    
@@ -306,6 +324,8 @@ module IndInv3
 
                     if hn == node 
                     {
+                        lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVCNode_Spec_Next(s, event, s');
+                        assert DVCNode_Spec.Next.requires(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         assert DVCNode_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         lemma_att_slashing_db_hist_is_monotonic(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
@@ -340,7 +360,8 @@ module IndInv3
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv53(s)
     requires inv3(s)    
@@ -382,7 +403,8 @@ module IndInv3
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv53(s)
     requires inv3(s)   
@@ -649,6 +671,7 @@ module IndInv3
         outputs: Outputs,
         cid: Slot       
     )
+    requires DVCNode_Spec.Next.requires(s, event, s', outputs)
     requires DVCNode_Spec.Next(s, event, s', outputs)
     requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -685,6 +708,7 @@ module IndInv3
         cid: Slot,
         vp: AttestationData -> bool       
     )
+    requires DVCNode_Spec.Next.requires(s, event, s', outputs)    
     requires DVCNode_Spec.Next(s, event, s', outputs)
     requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     requires vp in s.attestation_consensus_engine_state.att_slashing_db_hist[cid]
@@ -702,7 +726,8 @@ module IndInv3
         hn: BLSPubkey,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv53(s)
     requires inv3(s)    
@@ -805,6 +830,7 @@ module IndInv3
 
                     if hn == node 
                     {
+                        lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVCNode_Spec_Next(s, event, s');
                         assert DVCNode_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         lemma_att_slashing_db_hist_cid_is_monotonic_corollary(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs, cid, vp);
                         // assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
@@ -846,7 +872,8 @@ module IndInv3
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires inv1(s)
     requires inv53(s)
     requires inv3(s)    
@@ -1163,7 +1190,8 @@ module IndInv3
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_iii_a_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires inv_g_iii_b_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     // requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(s_node)
@@ -1185,7 +1213,8 @@ module IndInv3
     requires pred_4_1_g_iii_a(s)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires pred_4_1_g_iii_b(s)    
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     ensures inv_g_iii_a_body_body(s', event.node, s'.honest_nodes_states[event.node], s'.index_next_attestation_duty_to_be_served); 
     {
@@ -1274,7 +1303,8 @@ module IndInv3
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_g_iii_a(s)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires pred_4_1_g_iii_b(s) 
@@ -1517,7 +1547,8 @@ module IndInv3
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_iii_a_a_body_body(s, n, s_node)
     ensures inv_g_iii_a_a_body_body(s', n, s_node)
     {
@@ -1532,7 +1563,8 @@ module IndInv3
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_iii_b_body_body(s, n, s_node, index_next_attestation_duty_to_be_served)
     requires inv_g_iii_c_body_body(s, n, s_node, index_next_attestation_duty_to_be_served)
     requires is_sequence_attestation_duties_to_be_served_orderd(s);
@@ -1556,7 +1588,8 @@ module IndInv3
     requires pred_4_1_g_iii_b(s)
     requires pred_4_1_g_iii_c(s)
     requires is_sequence_attestation_duties_to_be_served_orderd(s);    
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     ensures inv_g_iii_a_a_body_body(s', event.node, s'.honest_nodes_states[event.node]); 
     {
@@ -1640,7 +1673,8 @@ module IndInv3
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires pred_4_1_g_iii_a_a(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)
     requires inv_attestation_duty_queue_is_ordered(s) 

@@ -17,6 +17,7 @@ include "../att_spec_proofs/fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
+include "ind_inv4.dfy"
 include "../specification/dvc_spec_axioms.dfy"
 
 module Core_Proofs

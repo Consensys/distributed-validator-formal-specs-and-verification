@@ -1055,7 +1055,8 @@ module Fnc_Invs_27_39
         dvn: DVState,
         event: DV.Event,
         dvn': DVState
-    )    
+    ) 
+    requires NextEvent.requires(dvn, event, dvn')    
     requires NextEvent(dvn, event, dvn')  
     ensures inv30(dvn, event, dvn')
     {        

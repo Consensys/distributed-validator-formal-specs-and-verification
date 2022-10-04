@@ -24,19 +24,22 @@ module DVN_Next_Invs_1_7
     import opened Proofs_Intermediate_Steps
 
     lemma lemma_inv1_dvn_next(dvn: DVState, event: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv1(dvn)
     ensures inv1(dvn')
     { }    
 
     lemma lemma_inv2_dvn_next(dvn: DVState, event: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv2(dvn)
     ensures inv2(dvn')
     { }    
 
     lemma lemma_inv3_dvn_next(dvn: DVState, event: DV.Event, dvn': DVState)       
-    requires DV.NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv3(dvn)
     ensures inv3(dvn')
     { }    
@@ -47,7 +50,8 @@ module DVN_Next_Invs_1_7
         dvn': DVState
     )
     requires inv1(dvn)    
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv4(dvn)    
     requires event.HonestNodeTakingStep?
     requires dvn.honest_nodes_states[event.node].all_rcvd_duties == dvn'.honest_nodes_states[event.node].all_rcvd_duties
@@ -62,7 +66,8 @@ module DVN_Next_Invs_1_7
         dvn': DVState
     )
     requires inv1(dvn)    
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv4(dvn)
     ensures inv4(dvn')
     {        
@@ -174,7 +179,8 @@ module DVN_Next_Invs_1_7
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv5(dvn)
     ensures inv5(dvn')
     {        
@@ -214,7 +220,8 @@ module DVN_Next_Invs_1_7
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv5(dvn)
     requires inv6(dvn)
     ensures inv6(dvn')
@@ -255,7 +262,8 @@ module DVN_Next_Invs_1_7
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')  
     requires inv5(dvn)
     requires inv7(dvn)
     ensures inv7(dvn')

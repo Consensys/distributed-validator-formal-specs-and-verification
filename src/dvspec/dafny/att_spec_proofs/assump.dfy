@@ -122,6 +122,7 @@ module Att_Assumptions
     event: DV.Event,
     dvn': DVState
   )
+  requires DV.NextEvent.requires(dvn, event, dvn')
   requires DV.NextEvent(dvn, event, dvn')
   requires event.HonestNodeTakingStep?
   requires event.event.ImportedNewBlock?

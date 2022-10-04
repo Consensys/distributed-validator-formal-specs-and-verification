@@ -716,7 +716,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_a_ii_a_body_body(s, n, s_node)
     requires invNetwork(s)
     requires inv1(s)
@@ -765,7 +766,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_a_iii_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires invNetwork(s)
     requires inv1(s)
@@ -819,7 +821,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_attestation_duty_queue_is_ordered_3_body_body(s, n, s_node)
     requires inv_attestation_duty_queue_is_ordered_4_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)    
 
@@ -891,7 +894,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_a_iv_a_body_body(s, n, s_node)
     requires invNetwork(s)
     requires inv1(s)
@@ -944,7 +948,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires inv_g_iii_b_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     // requires inv_attestation_duty_queue_is_ordered_3_body_body(s, n, s_node)
     // requires inv_attestation_duty_queue_is_ordered_4_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
@@ -1039,7 +1044,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState        
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires lemma_pred_4_1_b_new_precond(s)
     {
@@ -1082,7 +1088,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
     requires event.HonestNodeTakingStep?
     requires !event.event.ServeAttstationDuty?
     ensures s'.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;
@@ -1096,7 +1103,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures pred_4_1_g_b_new(s');  
     {
@@ -1731,7 +1739,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures inv_g_a_ii_a(s');  
     {
@@ -2361,7 +2370,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     requires event.HonestNodeTakingStep?
     ensures inv_g_iii_b_body_body(s', event.node, s'.honest_nodes_states[event.node], s'.index_next_attestation_duty_to_be_served); 
@@ -2485,7 +2495,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures pred_4_1_g_iii_b(s');  
     {
@@ -2707,7 +2718,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')   
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')     
     requires lemma_pred_4_1_b_new_precond(s)  
     requires event.HonestNodeTakingStep?
     ensures inv_g_d_a_body_body(s', event.node, s'.honest_nodes_states[event.node]); 
@@ -2819,7 +2831,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures inv_g_d_a(s');  
     {
@@ -3089,7 +3102,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')   
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')     
     requires 
         && inv_attestation_duty_queue_is_ordered_3(s) //  
         && inv_attestation_duty_queue_is_ordered_4(s) //    
@@ -3184,7 +3198,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires 
         && inv_attestation_duty_queue_is_ordered_3(s) //  
         && inv_attestation_duty_queue_is_ordered_4(s) //    
@@ -3416,7 +3431,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')   
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')     
     requires 
         && inv_attestation_duty_queue_is_ordered_3(s) //  
         && inv_attestation_duty_queue_is_ordered_4(s) //  
@@ -3510,7 +3526,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s': DVState,
         hn: BLSPubkey
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires 
         && inv_attestation_duty_queue_is_ordered_3(s) //  
         && inv_attestation_duty_queue_is_ordered_4(s) //    
@@ -3587,7 +3604,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires 
         && inv_attestation_duty_queue_is_ordered_3(s) //  
         && inv_attestation_duty_queue_is_ordered_4(s) //    
@@ -4405,7 +4423,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     requires event.HonestNodeTakingStep?
     requires event.event.ServeAttstationDuty?
@@ -4467,7 +4486,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     requires event.HonestNodeTakingStep?
     ensures inv_g_a_iii_body_body(s', event.node, s'.honest_nodes_states[event.node], s'.index_next_attestation_duty_to_be_served); 
@@ -4573,7 +4593,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s': DVState,
         hn: BLSPubkey
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires 
         lemma_pred_4_1_b_new_precond(s)    
     requires event.HonestNodeTakingStep?
@@ -4635,7 +4656,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures inv_g_a_iii(s');  
     {
@@ -5129,7 +5151,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     requires event.HonestNodeTakingStep?
     requires event.event.ServeAttstationDuty?
@@ -5213,7 +5236,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     requires event.HonestNodeTakingStep?
     ensures inv_g_a_iv_a_body_body(s', event.node, s'.honest_nodes_states[event.node]); 
@@ -5319,7 +5343,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures inv_g_a_iv_a(s');  
     {
@@ -5541,7 +5566,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         s_node: DVCNodeState,
         n: BLSPubkey
     )
-    requires NextEvent(s, event, s')    
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')      
 
     requires inv_g_d_b_body_body(s, n, s_node)
 
@@ -5571,7 +5597,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')   
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')     
     requires inv_g_d_b(s)
     requires lemma_pred_4_1_b_new_precond(s)  
     requires event.HonestNodeTakingStep?
@@ -5685,7 +5712,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         event: DV.Event,
         s': DVState
     )
-    requires NextEvent(s, event, s')
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
     ensures inv_g_d_b(s');  
     {

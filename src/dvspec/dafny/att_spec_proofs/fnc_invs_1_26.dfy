@@ -1282,11 +1282,13 @@ module Fnc_Invs_1_26
     ensures inv10_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
 
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
@@ -1490,11 +1492,14 @@ module Fnc_Invs_1_26
     ensures inv16_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -1763,11 +1768,14 @@ module Fnc_Invs_1_26
     ensures inv17_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2040,11 +2048,14 @@ module Fnc_Invs_1_26
     ensures inv18_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2175,11 +2186,14 @@ module Fnc_Invs_1_26
     ensures inv22_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2533,11 +2547,14 @@ module Fnc_Invs_1_26
     ensures inv23_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2681,11 +2698,14 @@ module Fnc_Invs_1_26
     ensures inv25_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -2900,11 +2920,14 @@ module Fnc_Invs_1_26
     ensures inv26_body(process')
     {
         
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        if id != local_current_attestation_duty.slot
+        if  || !process.current_attestation_duty.isPresent()
+            || id != process.current_attestation_duty.safe_get().slot 
         {
             return;
         }
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));

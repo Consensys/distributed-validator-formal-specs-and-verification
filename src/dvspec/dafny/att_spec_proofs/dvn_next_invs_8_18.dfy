@@ -32,7 +32,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')    
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')      
     requires inv8(dvn)
     ensures inv8(dvn')
     {        
@@ -76,7 +77,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')    
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')      
     requires inv9(dvn)
     ensures inv9(dvn')
     {        
@@ -120,7 +122,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')        
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')          
     requires inv10(dvn)
     ensures inv10(dvn')
     {        
@@ -165,7 +168,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')    
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')      
     requires inv13(dvn)
     ensures inv13(dvn')
     { 
@@ -179,7 +183,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')    
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')      
     requires inv8(dvn)
     requires inv16(dvn)
     ensures inv16(dvn')
@@ -224,7 +229,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv1(dvn)  
     requires inv2(dvn)
     requires inv4(dvn)
@@ -264,8 +270,19 @@ module DVN_Next_Invs_8_18
                     case NoEvent => 
                         
                 }
+                assert inv17_body(dvc');
+                forall n | n in dvn'.honest_nodes_states.Keys 
+                ensures inv17_body(dvn'.honest_nodes_states[n]);
+                {
+                    if n != node 
+                    {
+                        assert dvn.honest_nodes_states[n] == dvn'.honest_nodes_states[n];
+                        assert inv17_body(dvn'.honest_nodes_states[n]);
+                    }
+                }
                 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert inv17(dvn');
                 
         }   
     }  
@@ -275,7 +292,8 @@ module DVN_Next_Invs_8_18
         event: DV.Event,
         dvn': DVState
     )    
-    requires NextEvent(dvn, event, dvn')  
+    requires NextEventPreCond(dvn, event)
+    requires NextEvent(dvn, event, dvn')    
     requires inv1(dvn)  
     requires inv2(dvn)  
     requires inv4(dvn)
@@ -323,8 +341,25 @@ module DVN_Next_Invs_8_18
                     case NoEvent => 
                         
                 }
+                assert inv18_body(dvc');
+
+                forall n | n in dvn'.honest_nodes_states.Keys 
+                ensures inv18_body(dvn'.honest_nodes_states[n]);
+                {
+                    if n != node 
+                    {
+                        assert dvn.honest_nodes_states[n] == dvn'.honest_nodes_states[n];
+                        assert inv18_body(dvn'.honest_nodes_states[n]);
+                    }
+                }                
                 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                forall n | n in dvn'.honest_nodes_states.Keys 
+                ensures inv18_body(dvn'.honest_nodes_states[n]);
+                {
+                    assert dvn.honest_nodes_states[n] == dvn'.honest_nodes_states[n];
+                    assert inv18_body(dvn'.honest_nodes_states[n]);
+                }   
                 
         }   
     }  
