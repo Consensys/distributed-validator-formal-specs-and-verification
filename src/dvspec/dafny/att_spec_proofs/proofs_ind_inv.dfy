@@ -665,7 +665,7 @@ module Proofs_DVN_Ind_Inv
 
     lemma lemma_ind_inv_4_1_general(dvn: DVState)
     requires ind_inv(dvn)    
-    ensures forall a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey
+    ensures forall a: Attestation, a': Attestation
                     | 
                     && a in dvn.all_attestations_created
                     && is_valid_attestation(a, dvn.dv_pubkey)
@@ -677,7 +677,7 @@ module Proofs_DVN_Ind_Inv
     {   
         lemma_ind_inv_implies_intermediate_steps(dvn);
 
-        forall a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey
+        forall a: Attestation, a': Attestation
                     | 
                     && a in dvn.all_attestations_created
                     && is_valid_attestation(a, dvn.dv_pubkey)
@@ -703,7 +703,7 @@ module Proofs_DVN_Ind_Inv
             && inv50(dvn)
             && inv51(dvn)
             ;
-            lemma_4_1_general(dvn, a, a', hn, hn');
+            lemma_4_1_general(dvn, a, a');
         }
     }
 }

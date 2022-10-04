@@ -96,7 +96,7 @@ module Core_Proofs
     }
 
 
-    lemma lemma_4_1_a_i(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    lemma lemma_4_1_a_i(dvn: DVState, a: Attestation, a': Attestation)
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)   
     requires inv2(dvn)
@@ -170,7 +170,7 @@ module Core_Proofs
                                 pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
     }
 
-    lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation)
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
@@ -194,7 +194,7 @@ module Core_Proofs
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
-        lemma_4_1_a_i(dvn, a, a', hn, hn');
+        lemma_4_1_a_i(dvn, a, a');
 
         
         var consa := dvn.consensus_on_attestation_data[a.data.slot];
@@ -208,7 +208,7 @@ module Core_Proofs
         
     }    
 
-    lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation)
     requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
@@ -253,7 +253,7 @@ module Core_Proofs
     }      
 
 
-    lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation, hn: BLSPubkey, hn': BLSPubkey)
+    lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation)
     // requires |dvn.all_nodes| > 0
     requires inv1(dvn)
     requires inv2(dvn)
@@ -275,14 +275,14 @@ module Core_Proofs
     {
         if a.data.slot == a'.data.slot 
         {
-            lemma_4_1_b(dvn, a, a', hn, hn');
+            lemma_4_1_b(dvn, a, a');
         }
         else if a.data.slot < a'.data.slot 
         {
-            lemma_4_1_a(dvn, a, a', hn, hn');
+            lemma_4_1_a(dvn, a, a');
         }
         else {
-            lemma_4_1_a(dvn, a', a, hn', hn);
+            lemma_4_1_a(dvn, a', a);
         }
     } 
 
