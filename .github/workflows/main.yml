@@ -2,9 +2,6 @@
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches:
-      - 'master'
-      - 'main'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -20,9 +17,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        path: 'repo'
 
       - name: Build docker images
         run: docker build -t dafny .      
 
       - name: Run verification
-        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:600 /verifyAllModules src/dvspec/dafny/att_spec_proofs/core_proofs.dfy
+        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:600 /verifyAllModules repo/src/dvspec/dafny/att_spec_proofs/core_proofs.dfy
