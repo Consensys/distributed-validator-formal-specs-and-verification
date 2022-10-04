@@ -1,3 +1,5 @@
+[![Attestation Non-Slashability](https://github.com/ConsenSys/distributed-validator-specs-internal/actions/workflows/main.yml/badge.svg)]([https://github.com/ConsenSys/qbft-formal-spec-and-verification/actions/workflows/Dafny-L1-Safety-Verification.yml](https://github.com/ConsenSys/distributed-validator-specs-internal/actions/workflows/main.yml)
+
 # Ethereum Distributed Validator Specification
 
 Distributed Validators (DV) are a technique for distributing the job of an Ethereum validator among a set of distributed nodes in order to improve resilience (safety, liveness, or both) as compared to running a validator client on a single machine.
