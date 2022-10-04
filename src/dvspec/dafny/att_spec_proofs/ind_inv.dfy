@@ -3576,7 +3576,34 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
     {
+        var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, event.node, event.event);           
+        var cid := event.event.id;
+
+        assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+
+
+        var output := Some(Decided(event.node, event.event.decided_attestation_data)); 
+
+        var validityPredicates := 
+            map n |
+                    && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                ::
+                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+            ;
+
+        var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+        var s'_consensus := s'.consensus_on_attestation_data[cid];                
+
+        assert
+            ConsensusSpec.Next(
+                s_consensus,
+                validityPredicates,
+                s'_consensus,
+                output
+            );                                       
     }    
+
 
     lemma lemma_pred_4_1_g_iii_helper6(
         s: DVState,
@@ -3733,7 +3760,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
                     case ImportedNewBlock(block) => 
                         var s_node := add_block_to_bn(s_node, nodeEvent.block);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
                             s_node,
                             block,

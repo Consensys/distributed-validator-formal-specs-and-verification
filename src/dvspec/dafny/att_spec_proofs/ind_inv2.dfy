@@ -1182,7 +1182,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_pred_4_1_b_new_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -1815,7 +1814,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_a_ii_a_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -2451,7 +2449,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_iii_b_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -2798,7 +2795,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_d_a_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -4559,7 +4555,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
                         lemma2_inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s_node2, s.index_next_attestation_duty_to_be_served);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_a_iii_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -5308,7 +5303,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s_node2);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_a_iv_a_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
@@ -5679,7 +5673,6 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                     case ImportedNewBlock(block) => 
                         lemma_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
-                        axiom_is_my_attestation(s, event, s');
                         lemma_inv_g_d_b_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,

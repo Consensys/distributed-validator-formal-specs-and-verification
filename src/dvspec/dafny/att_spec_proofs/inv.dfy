@@ -1020,16 +1020,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
     }
 
-    predicate is_valid_attestation(
-        a: Attestation,
-        pubkey: BLSPubkey
-    )
-    {
-        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
-        && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
-        verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
-    }
-
     predicate pred_4_1_b(dvn: DVState)
     {
         forall a |

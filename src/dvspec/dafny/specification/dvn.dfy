@@ -270,28 +270,66 @@ module DV
     }
 
     predicate blockIsValid(
+        dvn: DVState,
         process: DVCNodeState,
         block: BeaconBlock
     )
     {
         var new_p := add_block_to_bn(process, block);
-        blockIsValidAfterAdd(new_p, block)
+        blockIsValidAfterAdd(dvn, new_p, block)
     }
 
+    predicate is_valid_attestation(
+        a: Attestation,
+        pubkey: BLSPubkey
+    )
+    {
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
+        && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
+        verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
+    }    
+
+      // TODO: Modify isMyAttestation to include the entirety the forall premise 
+    predicate pred_axiom_is_my_attestation_2(
+        dvn: DVState,
+        new_p: DVCNodeState,
+        block: BeaconBlock
+    )
+    requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
+    {
+        var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
+        forall a | 
+            && a in block.body.attestations 
+            && DVCNode_Spec_NonInstr.isMyAttestation(
+            a,
+            new_p.bn,
+            block,
+            valIndex
+            )
+        ::
+        exists a' ::
+            && a' in dvn.all_attestations_created
+            && a'.data == a.data 
+            && is_valid_attestation(a', dvn.dv_pubkey)    
+    }  
+
     predicate blockIsValidAfterAdd(
+        dvn: DVState,
         process: DVCNodeState,
         block: BeaconBlock
     )
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     {
         var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
-        forall a1, a2 | 
+        && (forall a1, a2 | 
                 && a1 in block.body.attestations
                 && DVCNode_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
                 && a2 in block.body.attestations
                 && DVCNode_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
             ::
-                a1.data.slot == a2.data.slot ==> a1 == a2        
+                a1.data.slot == a2.data.slot ==> a1 == a2  
+        )      
+        && pred_axiom_is_my_attestation_2(dvn, process, block)
     }        
 
 
@@ -309,7 +347,7 @@ module DV
                     && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
             )
             && (nodeEvent.ImportedNewBlock? ==>
-                    blockIsValidAfterAdd(s.honest_nodes_states[node], nodeEvent.block)
+                    blockIsValidAfterAdd(s, s.honest_nodes_states[node], nodeEvent.block)
             )
     }
 
