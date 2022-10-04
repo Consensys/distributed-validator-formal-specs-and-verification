@@ -1,4 +1,4 @@
-[![Attestation Non-Slashability](https://github.com/ConsenSys/distributed-validator-specs-internal/actions/workflows/main.yml/badge.svg)]([https://github.com/ConsenSys/qbft-formal-spec-and-verification/actions/workflows/Dafny-L1-Safety-Verification.yml](https://github.com/ConsenSys/distributed-validator-specs-internal/actions/workflows/main.yml)
+[![Attestation Non-Slashability](https://github.com/ConsenSys/distributed-validator-specs-internal/actions/workflows/main.yml/badge.svg)](https://github.com/ConsenSys/distributed-validator-specs-internal/actions/workflows/main.yml)
 
 # Ethereum Distributed Validator Specification
 
