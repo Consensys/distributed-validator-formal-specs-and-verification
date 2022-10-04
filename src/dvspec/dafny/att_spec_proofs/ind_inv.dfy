@@ -1368,7 +1368,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             && id == s_node.current_attestation_duty.safe_get().slot
                         {
                             var local_current_attestation_duty := s_node.current_attestation_duty.safe_get();
-                            
+
                             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
                             var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
                             var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, s_node.rs);

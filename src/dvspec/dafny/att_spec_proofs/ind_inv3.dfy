@@ -519,7 +519,7 @@ module IndInv3
         }
 
         var local_current_attestation_duty := s.current_attestation_duty.safe_get();
-        
+
         var attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
@@ -876,6 +876,20 @@ module IndInv3
     ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + {id}
     {    
     }
+
+    lemma lemmaStartConsensusInstance2(
+        s: ConsensusEngineState,
+        id: Slot,
+        attestation_duty: AttestationDuty,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState        
+    ) 
+    requires id !in s.attestation_consensus_active_instances.Keys 
+    requires s' ==   startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
+    ensures s'.attestation_consensus_active_instances.Keys == s.attestation_consensus_active_instances.Keys + {id}
+    // ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + {id}
+    {    
+    }    
 
     lemma lemmaStartConsensusInstance4(
         s: ConsensusEngineState,

@@ -52,7 +52,7 @@ module DV
         data: AttestationData 
     )
     {
-        && (forall att_share | att_share in att_shares ::att_share.data == data)            
+    && (forall att_share | att_share in att_shares ::att_share.data == data)            
     }
 
     predicate signer_threshold(
@@ -232,14 +232,23 @@ module DV
                     < s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
            )
     }
-    
+
+    predicate NextPreCond(
+        s: DVState
+    )
+    {
+        forall e |  validEvent(s, e) :: NextEventPreCond(s, e)
+    }
+ 
     predicate Next(
         s: DVState,
         s': DVState 
     )
+    requires NextPreCond(s)
     {
         exists e ::
-            NextEvent(s, e, s')
+            && validEvent(s, e)
+            && NextEvent(s, e, s')
     }
 
     predicate unchanged_fixed_paras(dvn: DVState, dvn': DVState)
@@ -260,11 +269,121 @@ module DV
            )
     }
 
+    predicate blockIsValid(
+        process: DVCNodeState,
+        block: BeaconBlock
+    )
+    {
+        var new_p := add_block_to_bn(process, block);
+        blockIsValidAfterAdd(new_p, block)
+    }
+
+    predicate blockIsValidAfterAdd(
+        process: DVCNodeState,
+        block: BeaconBlock
+    )
+    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+    {
+        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+        forall a1, a2 | 
+                && a1 in block.body.attestations
+                && DVCNode_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                && a2 in block.body.attestations
+                && DVCNode_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+            ::
+                a1.data.slot == a2.data.slot ==> a1 == a2        
+    }        
+
+
+    predicate validNodeEvent(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event
+    )
+    requires node in s.honest_nodes_states.Keys
+    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
+    {
+            && (nodeEvent.ServeAttstationDuty? ==>
+                    var attestation_duty_to_be_served := s.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
+                    && node == attestation_duty_to_be_served.node 
+                    && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
+            )
+            && (nodeEvent.ImportedNewBlock? ==>
+                    blockIsValidAfterAdd(s.honest_nodes_states[node], nodeEvent.block)
+            )
+    }
+
+    predicate validEvent(
+        s: DVState,
+        event: Event
+    )
+    {
+        event.HonestNodeTakingStep? ==>
+            (
+            var nodeEvent := event.event;
+            && event.node in s.honest_nodes_states.Keys
+            && validNodeEvent(
+                add_block_to_bn_with_event(s, event.node, event.event),
+                event.node,
+                event.event
+            )
+        )  
+    }    
+
+    predicate NextEventPreCond(
+        s: DVState,
+        event: Event
+    )
+    {
+        && validEvent(s, event)         
+        && (event.HonestNodeTakingStep? ==> NextHonestNodePrecond(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event))      
+    }
+
+    predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(
+        dvn: DVState
+    )
+    {
+        forall n | n in dvn.honest_nodes_states.Keys ::
+            inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(dvn.honest_nodes_states[n])
+    }
+
+    predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(
+        process: DVCNodeState
+    )
+    {
+        forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+    }    
+
+
+
+
+    predicate NextHonestNodePrecond(
+        s: DVCNodeState,
+        event: Types.Event
+    )
+    {
+            match event 
+            case ServeAttstationDuty(attestation_duty) => 
+                && f_serve_attestation_duty.requires(s, attestation_duty)
+            case AttConsensusDecided(id, decided_attestation_data) => 
+                && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s)
+            case ReceviedAttesttionShare(attestation_share) => 
+                true
+            case ImportedNewBlock(block) => 
+                && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s)
+            case ResendAttestationShares => 
+                true
+            case NoEvent => 
+                true        
+    }
+
     predicate NextEvent(
         s: DVState,
         event: Event,
         s': DVState
     )
+    requires validEvent(s, event)
+    requires NextEventPreCond(s, event)  
     {
         && unchanged_fixed_paras(s, s')
         && (
@@ -275,6 +394,22 @@ module DV
                     NextAdversary(s, node, new_attestation_share_sent, messagesReceivedByTheNode, s')
         )
 
+    }
+
+    function add_block_to_bn_with_event(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event
+    ): DVState
+    requires node in s.honest_nodes_states
+    {
+        if nodeEvent.ImportedNewBlock? then 
+            s.(
+                honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+            )
+        else 
+            s 
+                  
     }
 
     function add_block_to_bn(
@@ -297,16 +432,13 @@ module DV
         s': DVState        
     ) 
     requires unchanged_fixed_paras(s, s')
+    requires 
+            && node in s.honest_nodes_states.Keys     
+            && validNodeEvent( add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
+            && NextHonestNodePrecond(add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
     {
         && node in s.honest_nodes_states.Keys        
-        && var s_w_honest_node_states_updated :=
-            if nodeEvent.ImportedNewBlock? then 
-                s.(
-                    honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
-                )
-            else 
-                s 
-            ;
+        && var s_w_honest_node_states_updated := add_block_to_bn_with_event(s, node, nodeEvent);
         && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )                
     }
 
@@ -318,13 +450,12 @@ module DV
         s': DVState
     )
     requires unchanged_fixed_paras(s, s')
+    requires node in s.honest_nodes_states.Keys 
+    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
+    requires    && validNodeEvent(s, node, nodeEvent)
+                && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
     {
-        && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
-        && DVCNode_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
-        && s'.honest_nodes_states == s.honest_nodes_states[
-            node := new_node_state
-        ]
         && s'.all_attestations_created == s.all_attestations_created + nodeOutputs.attestations_submitted
         && (
             if nodeEvent.ServeAttstationDuty? then
@@ -335,6 +466,10 @@ module DV
             else 
                 s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served
         )
+        && DVCNode_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
+        && s'.honest_nodes_states == s.honest_nodes_states[
+            node := new_node_state
+        ]        
         && var messagesReceivedByTheNode :=
             match nodeEvent
                 case ReceviedAttesttionShare(attestation_share) => {attestation_share}

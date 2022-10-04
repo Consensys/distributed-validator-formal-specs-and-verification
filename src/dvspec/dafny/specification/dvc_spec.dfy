@@ -237,13 +237,13 @@ module DVCNode_Spec {
         s': DVCNodeState,
         outputs: Outputs
     )
+    requires f_process_event.requires(s, event)
     {
         var newNodeStateAndOutputs := DVCNodeStateAndOuputs(
             state := s',
             outputs := outputs
         );
 
-        && f_process_event.requires(s, event)
         && f_process_event(s, event ) == newNodeStateAndOutputs
     }
 
@@ -377,7 +377,7 @@ module DVCNode_Spec {
         
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot then
-            
+
             var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
