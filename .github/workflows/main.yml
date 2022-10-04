@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build docker images
-        run: docker build -t dafny < Dockerfile      
+        run: docker build -t dafny .      
 
       - name: Run verification
         run: docker run --r-tm  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:600 /verifyAllModules src/dvspec/dafny/att_spec_proofs/core_proofs.dfy
