@@ -31,4 +31,4 @@ jobs:
         run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
 
       - name: Check For Non Missing Bodies
-        run: ! grep -q 'has no body' output.log
+        run: bash -c "! grep -q 'has no body' output.txt"
