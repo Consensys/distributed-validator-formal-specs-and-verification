@@ -4,7 +4,6 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
-include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
 include "../att_spec_proofs/common_proofs.dfy"
 include "../specification/dvc_spec_axioms.dfy"
@@ -18,7 +17,6 @@ module Fnc_Invs_1_26
     import opened DVCNode_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Assumptions
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened DVCNode_Spec_Axioms

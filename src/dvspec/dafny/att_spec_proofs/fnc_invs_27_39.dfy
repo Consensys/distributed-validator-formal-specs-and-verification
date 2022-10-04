@@ -4,7 +4,6 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
-include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
 include "../att_spec_proofs/common_proofs.dfy"
 include "../att_spec_proofs/fnc_invs_1_26.dfy"
@@ -19,7 +18,6 @@ module Fnc_Invs_27_39
     import opened DVCNode_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Assumptions
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened Fnc_Invs_1_26
@@ -3094,77 +3092,6 @@ module Fnc_Invs_27_39
             assert process' == process;
         }
     } 
-
-    // lemma lemma_pred_4_1_g_iii_c_f_listen_for_new_imported_blocks(
-    //     process: DVCNodeState,
-    //     block: BeaconBlock,
-    //     process': DVCNodeState,
-    //     hn: BLSPubkey,
-    //     sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
-    //     index_next_attestation_duty_to_be_served: nat
-    // )
-    // requires f_listen_for_new_imported_blocks.requires(process, block)
-    // requires process' == f_listen_for_new_imported_blocks(process, block).state        
-    // requires inv_g_iii_b_new_body(
-    //                 hn, 
-    //                 process, 
-    //                 sequence_attestation_duties_to_be_served, 
-    //                 index_next_attestation_duty_to_be_served
-    //          )
-    // requires inv_g_iii_c_new_body(
-    //                 hn, 
-    //                 process, 
-    //                 sequence_attestation_duties_to_be_served, 
-    //                 index_next_attestation_duty_to_be_served
-    //          )
-    // // ensures inv_g_iii_c_new_body(
-    // //                 hn, 
-    // //                 process', 
-    // //                 sequence_attestation_duties_to_be_served, 
-    // //                 index_next_attestation_duty_to_be_served)
-    // {
-    //     var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
-
-    //     var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
-
-    //     var future_att_consensus_instances_already_decided := 
-    //         f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
-    //     var process_1 :=
-    //             process.(
-    //                 future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-    //                 attestation_consensus_engine_state := stopConsensusInstances(
-    //                                 process.attestation_consensus_engine_state,
-    //                                 att_consensus_instances_already_decided.Keys
-    //                 ),
-    //                 attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-    //                 rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-    //             );                    
-
-    //     if process_1.current_attestation_duty.isPresent() && process_1.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided 
-    //     {
-    //         // var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-    //         // var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-    //         // var process := process.(
-    //         //     current_attestation_duty := None,
-    //         //     attestation_slashing_db := new_attestation_slashing_db,
-    //         //     attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-    //         //         process.attestation_consensus_engine_state,
-    //         //         new_attestation_slashing_db
-    //         //     )                
-    //         // );
-    //         // f_check_for_next_queued_duty(process)
-    //     }
-    //     else
-    //     {
-    //         var temp := DVCNodeStateAndOuputs(
-    //                         state := process,
-    //                         outputs := getEmptyOuputs()
-    //                     );
-    //         assert temp.state == process;
-    //         assert process' == temp.state;
-    //     }
-    // } 
 
     lemma lemma_pred_4_1_g_iii_c_f_listen_for_new_imported_blocks(
         process: DVCNodeState,
