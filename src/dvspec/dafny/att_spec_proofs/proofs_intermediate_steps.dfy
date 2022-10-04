@@ -4,7 +4,6 @@ include "../specification/consensus.dfy"
 include "../specification/network.dfy"
 include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
-include "../att_spec_proofs/assump.dfy"
 include "../att_spec_proofs/helper_sets_lemmas.dfy"
 
 

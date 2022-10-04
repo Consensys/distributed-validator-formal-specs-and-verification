@@ -7,7 +7,6 @@ include "../specification/dvn.dfy"
 include "../att_spec_proofs/inv.dfy"
 include "../att_spec_proofs/dvn_next_invs_1_7.dfy"
 include "common_proofs.dfy"
-include "assump.dfy"
 include "../specification/dvc_spec_non_instr.dfy"
 include "../specification/dvc_spec_axioms.dfy"
 
@@ -23,42 +22,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened DVN_Next_Invs_1_7
-    import opened Att_Assumptions
     import DVCNode_Spec_NonInstr
     import opened DVCNode_Spec_Axioms
-
-    lemma ConsensusSpec_Init_implies_inv41<D(!new, 0)>(dvn: DVState, ci: ConsensusInstance<D>)
-    requires ConsensusSpec.Init(ci, dvn.all_nodes, dvn.honest_nodes_states.Keys)
-    ensures inv41(ci)
-    { } 
-
-    lemma NextConsensusDecides_implies_inv41<D(!new, 0)>(
-            s: ConsensusInstance,
-            honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
-            s': ConsensusInstance
-        )
-    requires inv41(s) && isConditionForSafetyTrue(s)
-    requires ConsensusSpec.NextConsensusDecides(s, honest_nodes_validity_predicates, s')
-    ensures inv41(s')
-    { } 
-
-    lemma ConsensusSpec_Next_implies_inv41<D(!new, 0)>(
-            s: ConsensusInstance,
-            honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
-            s': ConsensusInstance,
-            output: Optional<OutCommand>
-        )
-    requires inv41(s) && isConditionForSafetyTrue(s)
-    requires ConsensusSpec.Next(s, honest_nodes_validity_predicates, s', output)
-    ensures inv41(s')
-    { 
-        assert NextConsensusDecides(s, honest_nodes_validity_predicates, s');
-        NextConsensusDecides_implies_inv41(s, honest_nodes_validity_predicates, s');
-        assert inv41(s');
-        assert NextNodeStep(s', honest_nodes_validity_predicates, output);
-        assert inv41(s');
-    }
-
 
     predicate lemma_ServeAttstationDuty2_predicate(
         s': DVState,
