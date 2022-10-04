@@ -2759,6 +2759,9 @@ module Fnc_Invs_27_39
                     process', 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
+    {
+        
+    }
     
     lemma lemma_pred_4_1_g_iii_c_f_listen_for_attestation_shares(
         process: DVCNodeState,

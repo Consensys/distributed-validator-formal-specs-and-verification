@@ -76,7 +76,7 @@ module Types
     )
 
     datatype BlockSlashingDB = BlockSlashingDB
-    type SlashingDBBlock(==, !new)
+    type {:extern "SlashingDBBlock"} SlashingDBBlock(==, !new)
 
     datatype  SlashingDBAttestation = SlashingDBAttestation(
         source_epoch: Epoch,
@@ -521,7 +521,7 @@ module CommonFunctions{
         slashing_db_attestation
     }
 
-    function method get_slot_from_slashing_db_attestation(a: SlashingDBAttestation): Slot
+    function get_slot_from_slashing_db_attestation(a: SlashingDBAttestation): Slot
     requires exists att_data: AttestationData ::  a.signing_root == Some(hash_tree_root(att_data))
     {        
         hash_tree_root_properties<AttestationData>();

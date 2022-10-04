@@ -794,8 +794,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                            )          
     }
 
-    predicate isSignedByDV(dvn: DVState, signed_att: Attestation)
-
     predicate isMaxSlotWithSignedAtt(dvn: DVState, s: Slot)
     {
         && ( forall att: Attestation ::
