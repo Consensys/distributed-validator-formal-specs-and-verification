@@ -24,4 +24,5 @@ jobs:
         run: docker build -t dafny repo     
 
       - name: Run verification
-        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:600 /verifyAllModules repo/src/dvspec/dafny/att_spec_proofs/core_proofs.dfy
+        continue-on-error: true
+        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:600 /verifyAllModules repo/src/dvspec/dafny/att_spec_proofs/core_proofs.dfy | tee output.log
