@@ -1,4 +1,4 @@
-name: Formal Verification of Attestations Non-Slashability
+name: Formal Verification of Attestation Non-Slashability
 
 # Controls when the workflow will run
 on:
