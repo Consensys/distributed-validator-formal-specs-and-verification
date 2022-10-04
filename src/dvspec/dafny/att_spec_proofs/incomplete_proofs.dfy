@@ -12,6 +12,7 @@ include "../att_spec_proofs/dvn_next_invs_8_18.dfy"
 include "../att_spec_proofs/dvn_next_invs_19_26.dfy"
 include "../att_spec_proofs/common_proofs.dfy"
 include "../att_spec_proofs/fnc_invs_27_39.dfy"
+include "../specification/dvc_spec_axioms.dfy"
 
 module Incomplete_Proofs 
 {
@@ -29,10 +30,15 @@ module Incomplete_Proofs
     import opened Fnc_Invs_1_26    
     import opened Fnc_Invs_27_39
     import opened Common_Proofs
+    import opened DVCNode_Spec_Axioms
     
 
-    lemma {:axiom} axiom_inv37(
+    lemma {:axiom} axiom_lemma_pred_4_1_g_iii_c_dvn_next(
         dvn: DVState
     )    
-    ensures inv37(dvn)    
+    ensures pred_4_1_g_iii_c(dvn)    
+
+
+    
+    
 }

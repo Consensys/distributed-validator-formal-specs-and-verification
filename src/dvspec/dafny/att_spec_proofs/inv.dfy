@@ -1315,7 +1315,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 dvn.honest_nodes_states[hn],
                 dvn.index_next_attestation_duty_to_be_served
             )                    
-    }      
+    }     
+
+    
 
     predicate inv_g_iii_b_body_body(
         dvn: DVState, 
@@ -1333,6 +1335,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && an.attestation_duty == ad
                 && an.node == n
     }   
+
+    
 
     predicate pred_4_1_g_iii_c(dvn: DVState)    
     {
@@ -1360,7 +1364,39 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && var an := dvn.sequence_attestation_duties_to_be_served[i];
                 && an.attestation_duty == n_state.latest_attestation_duty.safe_get()
                 && an.node == n
-    }            
+    }     
+
+    predicate inv_g_iii_c_new_body(  
+        n: BLSPubkey,
+        n_state: DVCNodeState,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    {
+        n_state.latest_attestation_duty.isPresent() ==>
+            exists i: nat :: 
+                && i < index_next_attestation_duty_to_be_served
+                && var an := sequence_attestation_duties_to_be_served[i];
+                && an.attestation_duty == n_state.latest_attestation_duty.safe_get()
+                && an.node == n
+    }  
+
+    predicate inv_g_iii_b_new_body(        
+        n: BLSPubkey,
+        n_state: DVCNodeState,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    {
+        forall ad  |
+            && ad in n_state.attestation_duties_queue
+            ::
+            exists i: nat :: 
+                && i < index_next_attestation_duty_to_be_served
+                && var an := sequence_attestation_duties_to_be_served[i];
+                && an.attestation_duty == ad
+                && an.node == n
+    }          
 
     function get_upperlimit_decided_instances(
         n_state: DVCNodeState
@@ -3036,5 +3072,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
     }
+
     
 }

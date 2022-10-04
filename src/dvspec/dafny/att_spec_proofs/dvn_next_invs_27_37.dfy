@@ -690,6 +690,139 @@ module DVN_Next_Invs_27_37
         }        
     }  
 
-          
+    lemma lemma_pred_4_1_g_iii_c_dvn_next(
+        dvn: DVState,
+        event: DV.Event,
+        dvn': DVState
+    )    
+    requires NextEvent(dvn, event, dvn')  
+    requires pred_4_1_g_iii_b(dvn)
+    requires pred_4_1_g_iii_c(dvn)
+    ensures pred_4_1_g_iii_c(dvn')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dvn.honest_nodes_states[node];
+                var dvc' := dvn'.honest_nodes_states[node];   
+                
+                assert inv_g_iii_b_body_body(
+                            dvn,
+                            node,
+                            dvc,
+                            dvn.index_next_attestation_duty_to_be_served
+                );
+
+                assert inv_g_iii_b_new_body(
+                            node,
+                            dvc,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served
+                );
+
+                assert inv_g_iii_c_body_body(
+                            dvn,
+                            node,
+                            dvc,
+                            dvn.index_next_attestation_duty_to_be_served
+                );
+
+                assert inv_g_iii_c_new_body(
+                            node,
+                            dvc,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served
+                );
+                
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>                           
+                        lemma_pred_4_1_g_iii_c_f_serve_attestation_duty(
+                            dvc, 
+                            attestation_duty, 
+                            dvc',
+                            node,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served
+                        );
+                        assert inv_g_iii_c_body_body(
+                                    dvn',
+                                    node,
+                                    dvc',
+                                    dvn'.index_next_attestation_duty_to_be_served
+                        );
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lemma_pred_4_1_g_iii_c_f_att_consensus_decided(
+                            dvc, 
+                            id, 
+                            decided_attestation_data, 
+                            dvc',
+                            node,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served);
+                        assert inv_g_iii_c_body_body(
+                                    dvn',
+                                    node,
+                                    dvc',
+                                    dvn'.index_next_attestation_duty_to_be_served
+                        );
+                        
+                    case ReceviedAttesttionShare(attestation_share) =>                         
+                        lemma_pred_4_1_g_iii_c_f_listen_for_attestation_shares(
+                            dvc, 
+                            attestation_share, 
+                            dvc',
+                            node,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served);
+                        assert inv_g_iii_c_body_body(
+                                    dvn',
+                                    node,
+                                    dvc',
+                                    dvn'.index_next_attestation_duty_to_be_served
+                        );
+                       
+                    case ImportedNewBlock(block) => 
+                        var dvc_mod := add_block_to_bn(dvc, block);
+                        lemma_pred_4_1_g_iii_c_add_block_to_bn(
+                            dvc, 
+                            block, 
+                            dvc_mod,
+                            node,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served
+                        );
+                        assert inv_g_iii_c_new_body(
+                            node,
+                            dvc_mod,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served
+                        );
+                        lemma_pred_4_1_g_iii_c_f_listen_for_new_imported_blocks(
+                            dvc_mod, 
+                            block, 
+                            dvc',
+                            node,
+                            dvn.sequence_attestation_duties_to_be_served,
+                            dvn.index_next_attestation_duty_to_be_served
+                        );
+                        assert inv_g_iii_c_body_body(
+                                    dvn',
+                                    node,
+                                    dvc',
+                                    dvn'.index_next_attestation_duty_to_be_served
+                        );
+
+                    case ResendAttestationShares =>                                                                      
+
+                    case NoEvent => 
+                        
+                }
+                
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }   
+    }      
 }   
         
