@@ -3624,7 +3624,11 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
         && inv_g_d_a(s)
         && inv_g_d_b(s)   
-        && pred_rcvd_attestation_shares_is_in_all_messages_sent(s)     
+        && pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
+        && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
+        && inv_g_d_a(s)
+        && inv_g_d_b(s)   
+        && pred_rcvd_attestation_shares_is_in_all_messages_sent(s)          
     } 
 
     lemma lemma_inv_sequence_attestation_duties_to_be_served_orderd(
@@ -3656,7 +3660,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     requires NextEvent(s, event, s')
     requires lemma_pred_4_1_g_iii_precond(s)
-    ensures pred_4_1_g_iii(s');  
+    ensures pred_4_1_g_iii(s')
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
