@@ -40,6 +40,7 @@ module Proofs_DVN_Ind_Inv
     import opened DVN_Next_Invs_27_37
     import opened Core_Proofs
     import opened IndInv3
+    import opened IndInv4
 
     predicate ind_inv(dvn: DVState)       
     {
@@ -53,6 +54,7 @@ module Proofs_DVN_Ind_Inv
         && invs_other_properties_4(dvn)
         && invs_other_properties_5(dvn)
         && invs_other_properties_6(dvn)
+        && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(dvn)
     }
 
     predicate invs_1_7(dvn: DVState)       
@@ -105,6 +107,7 @@ module Proofs_DVN_Ind_Inv
     lemma lemma_ind_inv_dvn_init(dvn: DVState)       
     requires DV.Init(dvn, {})    
     ensures ind_inv(dvn)
+    ensures NextPreCond(dvn)
     {
         assert  DV.Init(dvn, {})  
                 ==>                 
@@ -660,20 +663,43 @@ module Proofs_DVN_Ind_Inv
     {   
         lemma_ind_inv_dvn_next_ind_inv_helper_1(dvn, e, dvn');                          
         lemma_ind_inv_dvn_next_ind_inv_helper_2(dvn, e, dvn');            
-        lemma_ind_inv_dvn_next_ind_inv_helper_3(dvn, e, dvn');            
+        lemma_ind_inv_dvn_next_ind_inv_helper_3(dvn, e, dvn');     
+        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_next_honest(dvn, e, dvn');       
+    }
+
+    lemma lemma_ind_inv_dvn_ind(dvn: DVState, dvn': DVState)       
+    requires DV.NextPreCond(dvn)
+    requires DV.Next(dvn, dvn')  
+    requires ind_inv(dvn)    
+    ensures ind_inv(dvn')  
+    ensures DV.NextPreCond(dvn')
+    {
+        var e :|
+            && validEvent(dvn, e)
+            && NextEvent(dvn, e, dvn');
+
+        lemma_ind_inv_dvn_next_ind_inv(dvn, e, dvn');
+        lemma_NextPreCond(dvn');
+    }      
+
+    predicate non_slashable_attestations(
+        dvn: DVState
+    )
+    {
+        forall a: Attestation, a': Attestation
+                | 
+                && a in dvn.all_attestations_created
+                && is_valid_attestation(a, dvn.dv_pubkey)
+                && a' in dvn.all_attestations_created
+                && is_valid_attestation(a', dvn.dv_pubkey)     
+                ::
+                && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+                && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     }
 
     lemma lemma_ind_inv_4_1_general(dvn: DVState)
     requires ind_inv(dvn)    
-    ensures forall a: Attestation, a': Attestation
-                    | 
-                    && a in dvn.all_attestations_created
-                    && is_valid_attestation(a, dvn.dv_pubkey)
-                    && a' in dvn.all_attestations_created
-                    && is_valid_attestation(a', dvn.dv_pubkey)     
-                    ::
-                    && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
-                    && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
+    ensures non_slashable_attestations(dvn)
     {   
         lemma_ind_inv_implies_intermediate_steps(dvn);
 
@@ -706,4 +732,52 @@ module Proofs_DVN_Ind_Inv
             lemma_4_1_general(dvn, a, a');
         }
     }
+
+    predicate isValidTrace(
+        trace: iseq<DVState>
+    )  
+    {
+        && DV.Init(trace[0], {})
+        && (
+            forall i: nat ::
+                DV.NextPreCond(trace[i]) ==> DV.Next(trace[i], trace[i+1])
+        )
+    }  
+
+    lemma lemma_non_slashable_attestations_rec(
+        trace: iseq<DVState>,
+        i: nat
+    )
+    requires isValidTrace(trace)
+    ensures forall j | 0 <= j <= i ::
+        && NextPreCond(trace[j])  
+        && ind_inv(trace[j])
+    {
+        if i == 0 
+        {
+            lemma_ind_inv_dvn_init(trace[0]);
+        }
+        else 
+        {
+            lemma_non_slashable_attestations_rec(trace, i-1);
+            lemma_ind_inv_dvn_ind(trace[i-1], trace[i]);
+        }
+    }
+
+    lemma lemma_non_slashable_attestations(
+        trace: iseq<DVState>
+    )
+    requires isValidTrace(trace)
+    ensures forall i:nat :: non_slashable_attestations(trace[i])
+    {
+        forall i:nat
+        ensures ind_inv(trace[i])
+        ensures non_slashable_attestations(trace[i])
+        {
+            lemma_non_slashable_attestations_rec(trace, i);
+            lemma_ind_inv_4_1_general(trace[i]);
+        }
+        
+    }    
+
 }

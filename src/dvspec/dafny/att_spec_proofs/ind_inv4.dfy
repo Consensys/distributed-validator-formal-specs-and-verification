@@ -407,7 +407,6 @@ module IndInv4
     )
     requires NextEventPreCond(s, event) 
     requires NextEvent(s, event, s')
-    requires event.HonestNodeTakingStep?
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s)
     requires inv_attestation_duty_queue_is_ordered(s)
     requires is_sequence_attestation_duties_to_be_served_orderd(s);
