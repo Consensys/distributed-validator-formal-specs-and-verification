@@ -27,7 +27,11 @@ jobs:
 
       - name: Run verification
         continue-on-error: true
-        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/proofs/no_slashable_attestations/main_theorem.dfy | tee output.log
+        run: (
+                docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/proofs/no_slashable_attestations/main_theorem.dfy;
+                docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/proofs/implementation_refinement/attestation_creation/dvc_implementation_spec_proof.dfy;
+                docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/proofs/implementation_refinement/attestation_creation/dvc_spec_spec_instr_refinement.dfy;
+             ) | tee output.log
 
       - name: Check For Non Verification Errors
         run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
