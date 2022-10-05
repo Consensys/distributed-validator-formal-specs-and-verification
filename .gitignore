@@ -6,3 +6,4 @@ src/.DS_Store
 src/dvspec/.DS_Store
 src/dvspec/dafny/.DS_Store
 src/dvspec/dafny-block-dv/.DS_Store
+*.dll
