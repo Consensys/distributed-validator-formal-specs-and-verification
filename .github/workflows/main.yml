@@ -10,8 +10,8 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This workflow contains a single job called "verify"
+  verify:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -27,7 +27,7 @@ jobs:
 
       - name: Run verification
         continue-on-error: true
-        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/dvspec/dafny/att_spec_proofs/core_proofs.dfy | tee output.log
+        run: docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/no_slashable_attestations/main_theorem.dfy | tee output.log
 
       - name: Check For Non Verification Errors
         run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
