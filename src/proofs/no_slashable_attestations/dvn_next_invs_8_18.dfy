@@ -1,5 +1,5 @@
 include "../../common/commons.dfy"
-include "common/dvc_spec.dfy"
+include "common/attestation_creation_instrumented.dfy"
 include "../../specs/consensus/consensus.dfy"
 include "../../specs/network/network.dfy"
 include "../../specs/dvn/dvn.dfy"

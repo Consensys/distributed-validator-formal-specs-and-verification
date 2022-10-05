@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
-include "dvc_spec.dfy"
-include "../../../specs/dvc/dvc_spec_non_instr.dfy"
+include "attestation_creation_instrumented.dfy"
+include "../../../specs/dvc/attestation_creation.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dvn/dvn.dfy"

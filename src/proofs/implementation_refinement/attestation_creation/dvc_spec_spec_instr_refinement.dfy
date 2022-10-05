@@ -1,7 +1,7 @@
 include "../../../common/commons.dfy"
 include "../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
-include "../../../proofs/no_slashable_attestations/common/dvc_spec.dfy"
-include "../../../specs/dvc/dvc_spec_non_instr.dfy"
+include "../../../proofs/no_slashable_attestations/common/attestation_creation_instrumented.dfy"
+include "../../../specs/dvc/attestation_creation.dfy"
 
 module Spec_Spec_NonInstr_Refinement
 {

@@ -1,6 +1,6 @@
 include "../../common/commons.dfy"
 include "helper_sets_lemmas.dfy"
-include "common/dvc_spec.dfy"
+include "common/attestation_creation_instrumented.dfy"
 include "../../specs/consensus/consensus.dfy"
 include "../../specs/network/network.dfy"
 include "../../specs/dvn/dvn.dfy"

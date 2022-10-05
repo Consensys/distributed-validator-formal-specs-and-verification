@@ -1,5 +1,5 @@
 include "../../common/commons.dfy"
-include "../../proofs/no_slashable_attestations/common/dvc_spec.dfy"
+include "../../proofs/no_slashable_attestations/common/attestation_creation_instrumented.dfy"
 include "../consensus/consensus.dfy"
 include "../network/network.dfy"
 include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"

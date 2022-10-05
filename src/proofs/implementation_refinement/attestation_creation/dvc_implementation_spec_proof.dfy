@@ -1,5 +1,5 @@
 include "../../../common/commons.dfy"
-include "../../../specs/dvc/dvc_spec_non_instr.dfy"
+include "../../../specs/dvc/attestation_creation.dfy"
 include "../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
 module DVCNode_Implementation_Proofs refines DVCNode_Implementation

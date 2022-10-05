@@ -1,13 +1,13 @@
 include "../../common/commons.dfy"
 include "helper_sets_lemmas.dfy"
-include "common/dvc_spec.dfy"
+include "common/attestation_creation_instrumented.dfy"
 include "../../specs/consensus/consensus.dfy"
 include "../../specs/network/network.dfy"
 include "../../specs/dvn/dvn.dfy"
 include "inv.dfy"
 include "dvn_next_invs_1_7.dfy"
 include "common/common_proofs.dfy"
-include "../../specs/dvc/dvc_spec_non_instr.dfy"
+include "../../specs/dvc/attestation_creation.dfy"
 include "common/dvc_spec_axioms.dfy"
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
