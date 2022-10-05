@@ -27,10 +27,10 @@ jobs:
 
       - name: Run verification
         continue-on-error: true
-        run: (
+        run: bash -c "(
                 docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/proofs/implementation_refinement/attestation_creation/dvc_spec_spec_instr_refinement.dfy;
                 docker run --rm -t  -v  $PWD:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules repo/src/proofs/implementation_refinement/attestation_creation/dvc_implementation_spec_proof.dfy;
-             ) | tee output.log
+             ) | tee output.log"
         shell: bash
 
       - name: Check For Non Verification Errors
