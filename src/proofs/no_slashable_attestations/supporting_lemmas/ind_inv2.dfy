@@ -1,12 +1,12 @@
-include "../../common/commons.dfy"
-include "helper_sets_lemmas.dfy"
-include "common/attestation_creation_instrumented.dfy"
-include "../../specs/consensus/consensus.dfy"
-include "../../specs/network/network.dfy"
-include "../../specs/dvn/dvn.dfy"
+include "../../../common/commons.dfy"
+include "../../common/helper_sets_lemmas.dfy"
+include "../common/attestation_creation_instrumented.dfy"
+include "../../../specs/consensus/consensus.dfy"
+include "../../../specs/network/network.dfy"
+include "../../../specs/dvn/dvn.dfy"
 include "inv.dfy"
 include "ind_inv.dfy"
-include "common/dvc_spec_axioms.dfy"
+include "../common/dvc_spec_axioms.dfy"
 
 
 module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2

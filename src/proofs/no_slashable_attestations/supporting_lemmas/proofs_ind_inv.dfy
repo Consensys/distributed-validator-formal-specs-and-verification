@@ -1,11 +1,11 @@
-include "../../common/commons.dfy"
-include "common/attestation_creation_instrumented.dfy"
-include "../../specs/consensus/consensus.dfy"
-include "../../specs/network/network.dfy"
-include "../../specs/dvn/dvn.dfy"
+include "../../../common/commons.dfy"
+include "../common/attestation_creation_instrumented.dfy"
+include "../../../specs/consensus/consensus.dfy"
+include "../../../specs/network/network.dfy"
+include "../../../specs/dvn/dvn.dfy"
 include "inv.dfy"
 include "fnc_invs_1_26.dfy"
-include "helper_sets_lemmas.dfy"
+include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
 include "dvn_next_invs_1_7.dfy"
 include "dvn_next_invs_8_18.dfy"
@@ -899,52 +899,5 @@ module Proofs_DVN_Ind_Inv
             lemma_4_1_general(dvn, a, a');
         }
     }
-
-    predicate isValidTrace(
-        trace: iseq<DVState>
-    )  
-    {
-        && DV.Init(trace[0], {})
-        && (
-            forall i: nat ::
-                DV.NextPreCond(trace[i]) ==> DV.Next(trace[i], trace[i+1])
-        )
-    }  
-
-    lemma lemma_non_slashable_attestations_rec(
-        trace: iseq<DVState>,
-        i: nat
-    )
-    requires isValidTrace(trace)
-    ensures forall j | 0 <= j <= i ::
-        && NextPreCond(trace[j])  
-        && ind_inv(trace[j])
-    {
-        if i == 0 
-        {
-            lemma_ind_inv_dvn_init(trace[0]);
-        }
-        else 
-        {
-            lemma_non_slashable_attestations_rec(trace, i-1);
-            lemma_ind_inv_dvn_ind(trace[i-1], trace[i]);
-        }
-    }
-
-    lemma lemma_non_slashable_attestations(
-        trace: iseq<DVState>
-    )
-    requires isValidTrace(trace)
-    ensures forall i:nat :: non_slashable_attestations(trace[i])
-    {
-        forall i:nat
-        ensures ind_inv(trace[i])
-        ensures non_slashable_attestations(trace[i])
-        {
-            lemma_non_slashable_attestations_rec(trace, i);
-            lemma_ind_inv_4_1_general(trace[i]);
-        }
-        
-    }    
 
 }

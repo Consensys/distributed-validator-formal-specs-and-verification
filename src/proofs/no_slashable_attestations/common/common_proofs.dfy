@@ -4,8 +4,8 @@ include "../../../specs/dvc/attestation_creation.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dvn/dvn.dfy"
-include "../inv.dfy"
-include "../helper_sets_lemmas.dfy"
+include "../supporting_lemmas/inv.dfy"
+include "../../common/helper_sets_lemmas.dfy"
 include "dvc_spec_axioms.dfy"
 
 
