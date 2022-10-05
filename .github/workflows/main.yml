@@ -27,9 +27,7 @@ jobs:
 
       - name: Run verification 1
         continue-on-error: true 
-        run: bash -c "(
-                docker run --rm -t  -v  $PWD/repo:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/no_slashable_attestations/main_theorem.dfy;
-             ) | tee output.log"
+        run: docker run --rm -t  -v  $PWD/repo:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/no_slashable_attestations/main_theorem.dfy | tee output.log"
 
       - name: Check For Non Verification Errors 1
         run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
@@ -39,9 +37,7 @@ jobs:
 
       - name: Run verification 2
         continue-on-error: true 
-        run: bash -c "(
--                docker run --rm -t  -v  $PWD/repo:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/implementation_refinement/attestation_creation/dvc_spec_spec_instr_refinement.dfy;
-            ) | tee output.log"
+        run: docker run --rm -t  -v  $PWD/repo:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/implementation_refinement/attestation_creation/dvc_spec_spec_instr_refinement.dfy| tee output.log"
 
       - name: Check For Non Verification Errors 2
         run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
@@ -51,10 +47,8 @@ jobs:
 
       - name: Run verification 3
         continue-on-error: true 
-        run: bash -c "(
-                docker run --rm -t  -v  $PWD/repo:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/implementation_refinement/attestation_creation/dvc_implementation_spec_proof.dfy;
-             ) | tee output.log"
-             
+        run: docker run --rm -t  -v  $PWD/repo:/home/dafny dafny  /noCheating:1  /vcsCores:8 /trace  /timeLimit:10000 /verifyAllModules src/proofs/implementation_refinement/attestation_creation/dvc_implementation_spec_proof.dfy | tee output.log"
+
       - name: Check For Non Verification Errors 3
         run: grep -q 'Dafny program verifier finished with.* 0 errors' output.log
 
