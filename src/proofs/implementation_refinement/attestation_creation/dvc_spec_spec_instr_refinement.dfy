@@ -20,7 +20,7 @@ module Spec_Spec_NonInstr_Refinement
         cei.attestation_consensus_active_instances == ceni.attestation_consensus_active_instances
     }
 
-    predicate dVCNodeStateRel(
+    predicate DVCStateRel(
         dvci: DVC_Spec.DVCState,
         dvcni: DVC_Spec_NonInstr.DVCState
     )
@@ -40,12 +40,12 @@ module Spec_Spec_NonInstr_Refinement
         && dvci.rs == dvcni.rs
     }
 
-    predicate dVCNodeStateAndOuputsRel(
+    predicate DVCStateAndOuputsRel(
         dvcandoi: DVC_Spec.DVCStateAndOuputs,
         dvcandoni: DVC_Spec_NonInstr.DVCStateAndOuputs        
     )
     {
-        && dVCNodeStateRel(dvcandoi.state, dvcandoni.state)
+        && DVCStateRel(dvcandoi.state, dvcandoni.state)
         && dvcandoi.outputs == dvcandoni.outputs
     }
 
@@ -55,9 +55,9 @@ module Spec_Spec_NonInstr_Refinement
         attestation_duty: AttestationDuty
     )
     requires DVC_Spec.f_serve_attestation_duty.requires(dvci, attestation_duty)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_serve_attestation_duty.requires(dvcni, attestation_duty)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_serve_attestation_duty(dvci, attestation_duty), 
         DVC_Spec_NonInstr.f_serve_attestation_duty(dvcni, attestation_duty)
     );    
@@ -79,9 +79,9 @@ module Spec_Spec_NonInstr_Refinement
         dvcni: DVC_Spec_NonInstr.DVCState
     )
     requires DVC_Spec.f_check_for_next_queued_duty.requires(dvci)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_check_for_next_queued_duty.requires(dvcni)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_check_for_next_queued_duty(dvci), 
         DVC_Spec_NonInstr.f_check_for_next_queued_duty(dvcni)
     );     
@@ -125,7 +125,7 @@ module Spec_Spec_NonInstr_Refinement
                     )
                 ); 
 
-                assert  dVCNodeStateRel(dvci_new, dvcni_new);   
+                assert  DVCStateRel(dvci_new, dvcni_new);   
                 refine_f_check_for_next_queued_duty(dvci_new, dvcni_new);             
             }         
         } 
@@ -137,7 +137,7 @@ module Spec_Spec_NonInstr_Refinement
     //     block: BeaconBlock
     // )
     // requires DVC_Spec.f_listen_for_new_imported_blocks.requires(dvci, block)
-    // requires dVCNodeStateRel(dvci, dvcni)    
+    // requires DVCStateRel(dvci, dvcni)    
     // {
     //     assert block.body.state_root in dvcni.bn.state_roots_of_imported_blocks;
     //     var valIndex := bn_get_validator_index(dvcni.bn, block.body.state_root, dvcni.dv_pubkey);
@@ -175,9 +175,9 @@ module Spec_Spec_NonInstr_Refinement
         decided_attestation_data: AttestationData
     )
     requires DVC_Spec.f_att_consensus_decided.requires(dvci, id, decided_attestation_data)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_att_consensus_decided.requires(dvcni, id, decided_attestation_data)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_att_consensus_decided(dvci, id, decided_attestation_data), 
         DVC_Spec_NonInstr.f_att_consensus_decided(dvcni, id, decided_attestation_data)
     );       
@@ -232,7 +232,7 @@ module Spec_Spec_NonInstr_Refinement
                     )
                 );     
 
-            assert dVCNodeStateRel(dvci, dvcni);      
+            assert DVCStateRel(dvci, dvcni);      
 
             refine_f_check_for_next_queued_duty(dvci, dvcni);            
         }
@@ -244,9 +244,9 @@ module Spec_Spec_NonInstr_Refinement
         attestation_share: AttestationShare
     )
     requires DVC_Spec.f_listen_for_attestation_shares.requires(dvci, attestation_share)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_listen_for_attestation_shares.requires(dvcni, attestation_share)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_listen_for_attestation_shares(dvci, attestation_share), 
         DVC_Spec_NonInstr.f_listen_for_attestation_shares(dvcni, attestation_share)
     );    
@@ -260,9 +260,9 @@ module Spec_Spec_NonInstr_Refinement
         block: BeaconBlock
     )
     requires DVC_Spec.f_listen_for_new_imported_blocks.requires(dvci, block)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_listen_for_new_imported_blocks.requires(dvcni, block)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_listen_for_new_imported_blocks(dvci, block), 
         DVC_Spec_NonInstr.f_listen_for_new_imported_blocks(dvcni, block)
     );     
@@ -332,7 +332,7 @@ module Spec_Spec_NonInstr_Refinement
                 )                
             );  
 
-            assert dVCNodeStateRel(dvci, dvcni);    
+            assert DVCStateRel(dvci, dvcni);    
             refine_f_check_for_next_queued_duty(dvci, dvcni);                    
         }
     }
@@ -342,9 +342,9 @@ module Spec_Spec_NonInstr_Refinement
         dvcni: DVC_Spec_NonInstr.DVCState
     )
     requires DVC_Spec.f_resend_attestation_share.requires(dvci)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_resend_attestation_share.requires(dvcni)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_resend_attestation_share(dvci), 
         DVC_Spec_NonInstr.f_resend_attestation_share(dvcni)
     ); 
@@ -358,9 +358,9 @@ module Spec_Spec_NonInstr_Refinement
         event: Event
     )
     requires DVC_Spec.f_process_event.requires(dvci, event)
-    requires dVCNodeStateRel(dvci, dvcni)
+    requires DVCStateRel(dvci, dvcni)
     ensures DVC_Spec_NonInstr.f_process_event.requires(dvcni, event)
-    ensures dVCNodeStateAndOuputsRel(
+    ensures DVCStateAndOuputsRel(
         DVC_Spec.f_process_event(dvci, event), 
         DVC_Spec_NonInstr.f_process_event(dvcni, event)
     ); 
