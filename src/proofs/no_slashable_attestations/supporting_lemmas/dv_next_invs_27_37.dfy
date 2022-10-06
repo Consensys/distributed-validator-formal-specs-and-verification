@@ -467,8 +467,8 @@ module DV_Next_Invs_27_37
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires quorum_constraints(dv)
-    requires inv2(dv)
-    requires inv3(dv)
+    requires unchanged_honesty(dv)
+    requires only_dv_construct_signed_attestation_signature(dv)
     requires inv53(dv)    
     requires pred_4_1_f_a(dv)    
     requires pred_4_1_g_i(dv)
@@ -477,13 +477,13 @@ module DV_Next_Invs_27_37
     requires inv38(dv)    
     ensures inv38(dv')
     {   
-        lemma_inv1_dv_next(dv, event, dv');
-        lemma_inv2_dv_next(dv, event, dv');
-        lemma_inv3_dv_next(dv, event, dv');
+        lemma_quorum_constraints_dv_next(dv, event, dv');
+        lemma_unchanged_honesty_dv_next(dv, event, dv');
+        lemma_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
 
         assert && quorum_constraints(dv')
-               && inv2(dv')
-               && inv3(dv');
+               && unchanged_honesty(dv')
+               && only_dv_construct_signed_attestation_signature(dv');
         
 
         match event 

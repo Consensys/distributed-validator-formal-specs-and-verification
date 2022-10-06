@@ -751,7 +751,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s.dv_pubkey,
         s.all_nodes
     )
-    requires inv3(s)  
+    requires only_dv_construct_signed_attestation_signature(s)  
     requires invNetwork(s)
     requires quorum_constraints(s)
     requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
@@ -1008,7 +1008,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires quorum_constraints(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires |s.all_nodes| > 0
     requires s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
                             getMessagesFromMessagesWithRecipient({});
@@ -1066,9 +1066,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires quorum_constraints(s)
-    requires inv2(s)
+    requires unchanged_honesty(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
@@ -1152,7 +1152,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires quorum_constraints(s)
-    requires inv2(s)        
+    requires unchanged_honesty(s)        
     requires |s.all_nodes| > 0    
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data; 
     {
@@ -1218,9 +1218,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires quorum_constraints(s)
-    requires inv2(s)
+    requires unchanged_honesty(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
@@ -1306,9 +1306,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires quorum_constraints(s)
-    requires inv2(s)
+    requires unchanged_honesty(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
@@ -1395,7 +1395,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires quorum_constraints(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s') 
     {
@@ -1459,9 +1459,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires quorum_constraints(s)
-    requires inv2(s)
+    requires unchanged_honesty(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_c(s)
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)      
@@ -1587,7 +1587,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires cid in s'.consensus_on_attestation_data.Keys
     requires quorum_constraints(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
     ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]); 
@@ -1704,7 +1704,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEvent(s, event, s')  
     requires quorum_constraints(s)
     requires inv53(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     ensures pred_4_1_f_a(s')   
     {
@@ -1753,8 +1753,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires cid in s.consensus_on_attestation_data.Keys
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
     ensures s.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
@@ -1794,13 +1794,13 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)  
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)  
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)  
     ensures pred_4_1_f_b(s') 
     {
-        lemma_inv1_dv_next(s, event, s');
-        lemma_inv2_dv_next(s, event, s');
-        lemma_inv3_dv_next(s, event, s');
+        lemma_quorum_constraints_dv_next(s, event, s');
+        lemma_unchanged_honesty_dv_next(s, event, s');
+        lemma_only_dv_construct_signed_attestation_signature_dv_next(s, event, s');
         lemma_pred_4_1_f_a(s, event, s');
         lemma_pred_4_1_f_g_i(s, event, s');
         lemma_pred_4_1_f_b2(s');   
@@ -1812,8 +1812,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     ensures pred_4_1_f_b(s) 
     {
         forall cid |
@@ -1872,8 +1872,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)      
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)      
     requires
             && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
             && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
@@ -1961,8 +1961,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEvent(s, event, s')    
     requires pred_4_1_g_i(s)
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)      
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)      
     requires pred_4_1_g_i_for_dvc(s)  
     ensures pred_4_1_g_i(s')   
     {
@@ -2348,8 +2348,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)      
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)      
     requires pred_4_1_g_i_for_dvc(s)  
     ensures pred_4_1_g_i_for_dvc(s')    
     {
@@ -2442,8 +2442,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // )   
     // requires NextEvent(s, event, s') 
     // requires quorum_constraints(s)
-    // requires inv2(s)
-    // requires inv3(s)      
+    // requires unchanged_honesty(s)
+    // requires only_dv_construct_signed_attestation_signature(s)      
     // requires inv_g_a(s)  
     // // ensures pred_4_1_g_iii(s')      
     // {
@@ -2640,8 +2640,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // )   
     // requires NextEvent(s, event, s') 
     // requires quorum_constraints(s)
-    // requires inv2(s)
-    // requires inv3(s)      
+    // requires unchanged_honesty(s)
+    // requires only_dv_construct_signed_attestation_signature(s)      
     // requires inv_g_c(s)  
     // // ensures pred_4_1_g_iii(s')      
     // {
@@ -3290,7 +3290,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)
     ensures forall ci: nat ::
             var s_consensus := s.consensus_on_attestation_data[ci];
@@ -3335,7 +3335,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEvent(s, event, s')  
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)
     requires s.consensus_on_attestation_data[ci].decided_value.isPresent()
     ensures 
@@ -3375,7 +3375,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)  
     ensures inv_g_iii_body_body(s', s_node)  
     {
@@ -3410,7 +3410,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)  
     ensures inv_g_b_body_body_new(s', n, s_node)  
     {
@@ -3457,7 +3457,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_g_iii(s)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)  
     ensures inv_g_d_a_body_body(s', n, s_node)  
     {
@@ -3512,7 +3512,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // requires pred_4_1_g_iii(s)
     // requires invNetwork(s)
     // requires quorum_constraints(s)
-    // requires inv3(s)
+    // requires only_dv_construct_signed_attestation_signature(s)
     // requires inv53(s)  
     // ensures inv_g_iii_body_body(s', s_node)  
     {
@@ -3536,7 +3536,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)    
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
@@ -3580,8 +3580,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires quorum_constraints(s)
-    requires inv2(s)
-    requires inv3(s)
+    requires unchanged_honesty(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)    
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
@@ -3612,8 +3612,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         )
         && invNetwork(s)
         && quorum_constraints(s)
-        && inv2(s)
-        && inv3(s)
+        && unchanged_honesty(s)
+        && only_dv_construct_signed_attestation_signature(s)
         && inv53(s)
         && pred_4_1_g_iii_a(s)
         && pred_4_1_g_iii_a_a(s)

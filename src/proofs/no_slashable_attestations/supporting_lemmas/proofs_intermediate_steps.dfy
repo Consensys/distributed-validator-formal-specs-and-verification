@@ -19,7 +19,7 @@ module Proofs_Intermediate_Steps
     import opened Helper_Sets_Lemmas    
     
     lemma lemma_inv53_ind_inv(dv: DVState)
-    requires inv2(dv)
+    requires unchanged_honesty(dv)
     ensures inv53(dv)
     { }
         

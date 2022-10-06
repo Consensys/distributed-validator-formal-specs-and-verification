@@ -21,25 +21,25 @@ module DV_Next_Invs_1_7
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
 
-    lemma lemma_inv1_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lemma_quorum_constraints_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires quorum_constraints(dv)
     ensures quorum_constraints(dv')
     { }    
 
-    lemma lemma_inv2_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lemma_unchanged_honesty_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv2(dv)
-    ensures inv2(dv')
+    requires unchanged_honesty(dv)
+    ensures unchanged_honesty(dv')
     { }    
 
-    lemma lemma_inv3_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lemma_only_dv_construct_signed_attestation_signature_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv3(dv)
-    ensures inv3(dv')
+    requires only_dv_construct_signed_attestation_signature(dv)
+    ensures only_dv_construct_signed_attestation_signature(dv')
     { }    
 
     lemma lemma_inv4_dv_next_helper(

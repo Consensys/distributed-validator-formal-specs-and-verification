@@ -719,7 +719,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_a_ii_a_body_body(s, n, s_node)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)  
     ensures inv_g_a_ii_a_body_body(s', n, s_node)        
     {
@@ -769,7 +769,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_a_iii_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)  
     ensures inv_g_a_iii_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)        
     {
@@ -897,7 +897,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires inv_g_a_iv_a_body_body(s, n, s_node)
     requires invNetwork(s)
     requires quorum_constraints(s)
-    requires inv3(s)
+    requires only_dv_construct_signed_attestation_signature(s)
     requires inv53(s)  
     ensures inv_g_a_iv_a_body_body(s', n, s_node)        
     {
@@ -1004,8 +1004,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     predicate lemma_pred_4_1_b_new_precond(s: DVState) 
     {
         && quorum_constraints(s)
-        && inv2(s)
-        && inv3(s)
+        && unchanged_honesty(s)
+        && only_dv_construct_signed_attestation_signature(s)
         && inv53(s)    
         && invNetwork(s)
         && pred_4_1_g_b_new(s) //
@@ -5574,7 +5574,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     // requires pred_4_1_g_iii(s)
     // requires invNetwork(s)
     // requires quorum_constraints(s)
-    // requires inv3(s)
+    // requires only_dv_construct_signed_attestation_signature(s)
     // requires inv53(s)  
     // ensures inv_g_iii_body_body(s', s_node)  
     {

@@ -59,8 +59,8 @@ module Proofs_DV_Ind_Inv
     predicate invs_1_7(dv: DVState)       
     {
         &&  quorum_constraints(dv)
-        &&  inv2(dv)
-        &&  inv3(dv)
+        &&  unchanged_honesty(dv)
+        &&  only_dv_construct_signed_attestation_signature(dv)
         &&  inv4(dv)
         &&  inv5(dv)
         &&  inv6(dv)
@@ -136,9 +136,9 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures invs_1_7(dv')
     {    
-        lemma_inv1_dv_next(dv, e, dv');
-        lemma_inv2_dv_next(dv, e, dv');
-        lemma_inv3_dv_next(dv, e, dv');
+        lemma_quorum_constraints_dv_next(dv, e, dv');
+        lemma_unchanged_honesty_dv_next(dv, e, dv');
+        lemma_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
         lemma_inv4_dv_next(dv, e, dv');
         lemma_inv5_dv_next(dv, e, dv');
         lemma_inv6_dv_next(dv, e, dv');
@@ -385,7 +385,7 @@ module Proofs_DV_Ind_Inv
         assert && inv46_b(dv)
                && quorum_constraints(dv)
                && inv53(dv)
-               && inv3(dv)    
+               && only_dv_construct_signed_attestation_signature(dv)    
                && IndInv3.inv33(dv)  
                && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
                && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
@@ -420,7 +420,7 @@ module Proofs_DV_Ind_Inv
                     dv.dv_pubkey,
                     dv.all_nodes
                 )
-                && inv3(dv)  
+                && only_dv_construct_signed_attestation_signature(dv)  
                 && invNetwork(dv)
                 && quorum_constraints(dv)
                 && pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
@@ -881,7 +881,7 @@ module Proofs_DV_Ind_Inv
         {
             assert 
             && quorum_constraints(dv)
-            && inv2(dv)
+            && unchanged_honesty(dv)
             && pred_4_1_b(dv)
             && pred_4_1_c(dv)
             && pred_4_1_f_a(dv)    
