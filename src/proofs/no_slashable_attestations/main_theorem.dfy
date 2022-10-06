@@ -7,7 +7,7 @@ module No_Slashable_Attestations_Main_Theorem
 {
     import opened Types 
     import opened DV
-    import opened Proofs_DVN_Ind_Inv
+    import opened Proofs_DV_Ind_Inv
 
 
     predicate isValidTrace(
