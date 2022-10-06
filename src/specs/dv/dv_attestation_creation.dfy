@@ -409,7 +409,7 @@ module DV
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s)
-            case ReceviedAttesttionShare(attestation_share) => 
+            case ReceivedAttestationShare(attestation_share) => 
                 true
             case ImportedNewBlock(block) => 
                 && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s)
@@ -514,7 +514,7 @@ module DV
         ]        
         && var messagesReceivedByTheNode :=
             match nodeEvent
-                case ReceviedAttesttionShare(attestation_share) => {attestation_share}
+                case ReceivedAttestationShare(attestation_share) => {attestation_share}
                 case _ => {}
             ;
         && NetworkSpec.Next(s.att_network, s'.att_network, node, nodeOutputs.att_shares_sent, messagesReceivedByTheNode)

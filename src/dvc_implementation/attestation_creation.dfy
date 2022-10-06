@@ -81,7 +81,7 @@ abstract module DVCNode_Implementation
                     :- serve_attestation_duty(attestation_duty);
                 case AttConsensusDecided(id, decided_attestation_data) => 
                     :- att_consensus_decided(id,  decided_attestation_data);
-                case ReceviedAttesttionShare(attestation_share) => 
+                case ReceivedAttestationShare(attestation_share) => 
                     listen_for_attestation_shares(attestation_share);
                 case ImportedNewBlock(block) => 
                     :- listen_for_new_imported_blocks(block);
@@ -212,7 +212,7 @@ abstract module DVCNode_Implementation
 
             if 
                 || (activate_att_consensus_intances == {} && !latest_attestation_duty.isPresent())
-                || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+                || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
                 || (activate_att_consensus_intances == {} && current_attestation_duty.isPresent() && current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
                 || (activate_att_consensus_intances == {} && !current_attestation_duty.isPresent() && latest_attestation_duty.isPresent() && latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {

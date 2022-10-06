@@ -215,7 +215,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
                         && f_process_event(old(toDVCNodeState()), event) == toDVCNodeStateAndOuputs()
                         && isValidReprExtended();       
                 }         
-                else if event.ReceviedAttesttionShare?
+                else if event.ReceivedAttestationShare?
                 {    
                     assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCNodeState()), event)) ==> 
                         && f_process_event(old(toDVCNodeState()), event) == toDVCNodeStateAndOuputs()
@@ -563,7 +563,7 @@ module DVCNode_Implementation_Proofs refines DVCNode_Implementation
             var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
 
                 || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-                || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+                || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
                 || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
                 || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)     
         } 

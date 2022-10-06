@@ -453,7 +453,7 @@ module IndInv4
                  
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         assert inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s'_node);    

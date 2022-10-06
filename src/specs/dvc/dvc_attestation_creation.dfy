@@ -235,7 +235,7 @@ module DVCNode_Spec_NonInstr {
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
-            case ReceviedAttesttionShare(attestation_share) => 
+            case ReceivedAttestationShare(attestation_share) => 
                 f_listen_for_attestation_shares.requires(s, attestation_share)
             case ImportedNewBlock(block) => 
                 f_listen_for_new_imported_blocks.requires(s, block)
@@ -249,7 +249,7 @@ module DVCNode_Spec_NonInstr {
                 f_serve_attestation_duty(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 f_att_consensus_decided(s, id,  decided_attestation_data)
-            case ReceviedAttesttionShare(attestation_share) => 
+            case ReceivedAttestationShare(attestation_share) => 
                 f_listen_for_attestation_shares(s, attestation_share)
             case ImportedNewBlock(block) => 
                 f_listen_for_new_imported_blocks(s, block)
@@ -401,7 +401,7 @@ module DVCNode_Spec_NonInstr {
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot) then
 

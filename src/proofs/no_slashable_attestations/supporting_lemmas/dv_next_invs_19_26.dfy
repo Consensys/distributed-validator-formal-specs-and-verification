@@ -117,7 +117,7 @@ module DV_Next_Invs_19_26
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv4_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv4_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
@@ -159,7 +159,7 @@ module DV_Next_Invs_19_26
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv22_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv22_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) => 
@@ -223,7 +223,7 @@ module DV_Next_Invs_19_26
                         lemma_inv23_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv23_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv23_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv23_body(dvc');
                        
@@ -284,7 +284,7 @@ module DV_Next_Invs_19_26
                         lemma_inv25_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv25_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv25_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv25_body(dvc');
                        
@@ -337,7 +337,7 @@ module DV_Next_Invs_19_26
                         lemma_inv26_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv26_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv26_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv26_body(dvc');
                        

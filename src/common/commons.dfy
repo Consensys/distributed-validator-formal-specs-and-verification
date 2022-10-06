@@ -100,7 +100,7 @@ module Types
     datatype Event = 
     | ServeAttstationDuty(attestation_duty: AttestationDuty)
     | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
-    | ReceviedAttesttionShare(attestation_share: AttestationShare)
+    | ReceivedAttestationShare(attestation_share: AttestationShare)
     | ImportedNewBlock(block: BeaconBlock)
     | ResendAttestationShares
     | NoEvent    
@@ -182,7 +182,7 @@ module CommonFunctions{
         | DOMAIN_BEACON_ATTESTER
 
 
-    // TDOO: What about the genesis_validator_root parameter?
+    // TODO: What about the genesis_validator_root parameter?
     function method {:extern} compute_domain(
         domain_type: DomainTypes,
         fork_version: Version
@@ -258,7 +258,7 @@ module CommonFunctions{
                     r.signing_root == Some(hash_tree_root(data))
 */
 
-    lemma {:axiom} exists_att_data_for_given_slashingDBattestaion(r: SlashingDBAttestation)
+    lemma {:axiom} exists_att_data_for_given_slashing_db_attestation(r: SlashingDBAttestation)
     ensures exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))
 
     function getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
@@ -289,7 +289,7 @@ module CommonFunctions{
         set e | e in s
     }
 
-    lemma minOfSetOfIntExists(s: set<int>)
+    lemma existsMinOfNonemptySetOfInt(s: set<int>)
     requires s != {}
     ensures exists min :: 
                         && min in s 
@@ -306,16 +306,16 @@ module CommonFunctions{
             assert |s| > 1;
             assert s == sMinusE + {e};
             assert |sMinusE| > 0;
-            minOfSetOfIntExists(sMinusE);
+            existsMinOfNonemptySetOfInt(sMinusE);
             var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' >= mMinusE;
         }    
     }  
 
-    lemma maxOfSetOfIntExists(s: set<int>)
+    lemma existsMaxOfNonemptySetOfInt(s: set<int>)
     requires s != {}
-    ensures exists min :: 
-                        && min in s 
-                        && forall e | e in s :: min >= e 
+    ensures exists max :: 
+                        && max in s 
+                        && forall e | e in s :: max >= e 
     {
         if |s| == 1 {
             var e :| e in s;
@@ -328,27 +328,27 @@ module CommonFunctions{
             assert |s| > 1;
             assert s == sMinusE + {e};
             assert |sMinusE| > 0;
-            maxOfSetOfIntExists(sMinusE);
+            existsMaxOfNonemptySetOfInt(sMinusE);
             var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' <= mMinusE;
         }    
     }    
 
-    function method {:opaque} minSet(s: set<int>): (min: int)
+    function method {:opaque} minInSet(s: set<int>): (min: int)
     requires s != {}
     ensures min in s 
     ensures forall e | e in s :: min <= e 
     {
-        minOfSetOfIntExists(s);
+        existsMinOfNonemptySetOfInt(s);
         var e :| e in s && forall e' | e' in s :: e' >= e;
         e
     }
 
-    function method {:opaque} maxSet(s: set<int>): (max: int)
+    function method {:opaque} maxInSet(s: set<int>): (max: int)
     requires s != {}
     ensures max in s 
     ensures forall e | e in s :: max >= e 
     {
-        maxOfSetOfIntExists(s);
+        existsMaxOfNonemptySetOfInt(s);
         var e :| e in s && forall e' | e' in s :: e' <= e;
         e
     }   
@@ -386,8 +386,8 @@ module CommonFunctions{
         // Check for EIP-3076 conditions:
         // https://eips.ethereum.org/EIPS/eip-3076#conditions
         if att_slashing_db != {} then
-            var min_target := minSet(get_target_epochs(att_slashing_db));
-            var min_source := minSet(get_source_epochs(att_slashing_db));
+            var min_target := minInSet(get_target_epochs(att_slashing_db));
+            var min_source := minInSet(get_source_epochs(att_slashing_db));
             if attestation_data.target.epoch <= min_target then
                 true 
             else if attestation_data.source.epoch < min_source then
@@ -410,8 +410,8 @@ module CommonFunctions{
         // https://eips.ethereum.org/EIPS/eip-3076#conditions
         if att_slashing_db != {} 
         {
-            var min_target := minSet(get_target_epochs(att_slashing_db));
-            var min_source := minSet(get_source_epochs(att_slashing_db));
+            var min_target := minInSet(get_target_epochs(att_slashing_db));
+            var min_source := minInSet(get_source_epochs(att_slashing_db));
             if attestation_data.target.epoch <= min_target
             {
                 assert is_slashable_attestation_data(att_slashing_db, attestation_data);

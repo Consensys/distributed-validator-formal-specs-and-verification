@@ -49,7 +49,7 @@ module DV_Next_Invs_8_18
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv8_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv8_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
@@ -94,7 +94,7 @@ module DV_Next_Invs_8_18
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv9_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv9_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
@@ -139,7 +139,7 @@ module DV_Next_Invs_8_18
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv10_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv10_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
@@ -201,7 +201,7 @@ module DV_Next_Invs_8_18
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv16_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv16_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
@@ -253,7 +253,7 @@ module DV_Next_Invs_8_18
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv17_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv17_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) => 
@@ -319,7 +319,7 @@ module DV_Next_Invs_8_18
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv18_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv18_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) =>                     

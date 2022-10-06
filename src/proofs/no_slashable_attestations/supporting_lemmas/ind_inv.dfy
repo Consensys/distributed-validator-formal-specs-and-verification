@@ -345,7 +345,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
@@ -506,7 +506,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
@@ -661,7 +661,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
@@ -788,7 +788,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         lemma_pred_4_1_b_ex_helper(s, event, s');
                         assert pred_4_1_b(s');            
 
-                    case ReceviedAttesttionShare(attestation_share) => 
+                    case ReceivedAttestationShare(attestation_share) => 
                         assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= s.att_network.messagesInTransit;
 
                         assert MessaageWithRecipient(message := attestation_share, receipient := node) in s.att_network.messagesInTransit;      
@@ -968,7 +968,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_f_att_consensus_decided_constants(s_node, id, decided_attestation_data, s'_node);
                         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
-                    case ReceviedAttesttionShare(attestation_share) => 
+                    case ReceivedAttestationShare(attestation_share) => 
                         assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= s.att_network.messagesInTransit;
 
                         assert MessaageWithRecipient(message := attestation_share, receipient := node) in s.att_network.messagesInTransit;        
@@ -1494,7 +1494,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                             assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;
                             
                                                                     
-                        case ReceviedAttesttionShare(attestation_share) => 
+                        case ReceivedAttestationShare(attestation_share) => 
                             var messagesToBeSent := f_listen_for_attestation_shares(s_node, attestation_share).outputs.att_shares_sent;
                             assert messagesToBeSent == {};                        
                             assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
@@ -2384,7 +2384,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         }
                         assert pred_4_1_g_i_for_dvc(s');                       
               
-                    case ReceviedAttesttionShare(attestation_share) => 
+                    case ReceivedAttestationShare(attestation_share) => 
                         forall n | n in s'.honest_nodes_states
                         ensures s'.honest_nodes_states[n].attestation_consensus_engine_state == s.honest_nodes_states[n].attestation_consensus_engine_state
                         {
@@ -2458,7 +2458,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                   
     //                 case AttConsensusDecided(id, decided_attestation_data) =>                     
               
-    //                 case ReceviedAttesttionShare(attestation_share) =>   
+    //                 case ReceivedAttestationShare(attestation_share) =>   
 
     //                 case ImportedNewBlock(block) =>                      
                
@@ -2661,7 +2661,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                   
     //                 case AttConsensusDecided(id, decided_attestation_data) =>                     
               
-    //                 case ReceviedAttesttionShare(attestation_share) =>   
+    //                 case ReceivedAttestationShare(attestation_share) =>   
 
     //                 case ImportedNewBlock(block) =>                      
                
@@ -3721,7 +3721,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         ); 
                         assert inv_g_iii_body_body(s', s'_node);                   
                    
-                    case ReceviedAttesttionShare(attestation_share) => 
+                    case ReceivedAttestationShare(attestation_share) => 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         assert s_node.attestation_consensus_engine_state.att_slashing_db_hist == s'_node.attestation_consensus_engine_state.att_slashing_db_hist;
                         assert inv_g_iii_body_body(s', s'_node);

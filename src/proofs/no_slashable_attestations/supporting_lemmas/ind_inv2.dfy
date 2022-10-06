@@ -1172,7 +1172,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_b_body_body_new(s', node, s'_node);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) => 
+                    case ReceivedAttestationShare(attestation_share) => 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma_pred_4_1_b_new_helper_easy(s', event, s_node, s'_node, node );
                         
@@ -1804,7 +1804,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_a_ii_a_body_body(s', node, s'_node);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) => 
+                    case ReceivedAttestationShare(attestation_share) => 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma_inv_g_a_ii_a_helper_easy(s', event, s_node, s'_node, node );
                         
@@ -2436,7 +2436,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_iii_b_body_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma_inv_g_iii_b_helper_easy(s', event, s_node, s'_node, node );
@@ -2783,7 +2783,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_d_a_body_body(s', node, s'_node);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         // lemma_inv_g_d_a_helper_easy(s', event, s_node, s'_node, node );
@@ -3149,7 +3149,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s'_node);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node, s'_node);
@@ -3477,7 +3477,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma2_inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s'_node, s'.index_next_attestation_duty_to_be_served);
@@ -4541,7 +4541,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_a_iii_body_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);    
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma_inv_g_a_iii_helper_easy(s', event, s_node, s'_node, node );
@@ -5290,7 +5290,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_a_iv_a_body_body(s', node, s'_node);    
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         lemma_inv_g_a_iv_a_helper_easy(s', event, s_node, s'_node, node );
@@ -5661,7 +5661,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
                         assert inv_g_d_b_body_body(s', node, s'_node);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         // lemma_inv_g_d_b_helper_easy(s', event, s_node, s'_node, node );

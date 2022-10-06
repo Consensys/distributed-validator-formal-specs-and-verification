@@ -221,7 +221,7 @@ module IndInv3
             case AttConsensusDecided(id, decided_attestation_data) => 
                 lemma_att_slashing_db_hist_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s');
             
-            case ReceviedAttesttionShare(attestation_share) => 
+            case ReceivedAttestationShare(attestation_share) => 
                 assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
             case ImportedNewBlock(block) => 
@@ -685,7 +685,7 @@ module IndInv3
             case AttConsensusDecided(id, decided_attestation_data) => 
                 lemma_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s', cid);
             
-            case ReceviedAttesttionShare(attestation_share) => 
+            case ReceivedAttestationShare(attestation_share) => 
                 assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
             case ImportedNewBlock(block) => 
@@ -1261,7 +1261,7 @@ module IndInv3
                         assert inv_g_iii_a_body_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         // lemma_pred_4_1_g_iii_a_helper_easy(s', event, s_node, s'_node, node );
@@ -1633,7 +1633,7 @@ module IndInv3
                         assert inv_g_iii_a_a_body_body(s', node, s'_node);                        
                
                    
-                    case ReceviedAttesttionShare(attestation_share) =>
+                    case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         assert inv_g_iii_a_a_body_body(s', node, s'_node);  

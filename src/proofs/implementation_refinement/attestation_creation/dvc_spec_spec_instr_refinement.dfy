@@ -370,7 +370,7 @@ module Spec_Spec_NonInstr_Refinement
                 refine_f_serve_attestation_duty(dvci, dvcni, attestation_duty);
             case AttConsensusDecided(id, decided_attestation_data) => 
                 refine_f_att_consensus_decided(dvci, dvcni, id,  decided_attestation_data);
-            case ReceviedAttesttionShare(attestation_share) => 
+            case ReceivedAttestationShare(attestation_share) => 
                 refine_f_listen_for_attestation_shares(dvci, dvcni, attestation_share);
             case ImportedNewBlock(block) => 
                 refine_f_listen_for_new_imported_blocks(dvci, dvcni, block);

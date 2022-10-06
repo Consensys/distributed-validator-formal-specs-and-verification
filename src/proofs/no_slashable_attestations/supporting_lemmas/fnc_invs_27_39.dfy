@@ -1072,7 +1072,7 @@ module Fnc_Invs_27_39
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv30_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv30_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                        
                     case ImportedNewBlock(block) => 
@@ -1887,7 +1887,7 @@ module Fnc_Invs_27_39
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
         {
@@ -2500,7 +2500,7 @@ module Fnc_Invs_27_39
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
         {
@@ -2649,7 +2649,7 @@ module Fnc_Invs_27_39
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
             || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
         {

@@ -65,7 +65,7 @@ module DV_Next_Invs_27_37
                         lemma_inv27_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv27_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv27_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv27_body(dvc');
                        
@@ -120,7 +120,7 @@ module DV_Next_Invs_27_37
                         lemma_inv28_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv28_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv28_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv28_body(dvc');
                        
@@ -175,7 +175,7 @@ module DV_Next_Invs_27_37
                         lemma_inv29_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv29_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv29_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv29_body(dvc');
                        
@@ -224,7 +224,7 @@ module DV_Next_Invs_27_37
                         lemma_inv30_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv30_body(dvc, dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv30_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv30_body(dvc, dvc');
                        
@@ -277,7 +277,7 @@ module DV_Next_Invs_27_37
                         lemma_inv31_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv31_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv31_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv31_body(dvc');
                        
@@ -326,7 +326,7 @@ module DV_Next_Invs_27_37
                         lemma_inv32_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv32_body(dvc, dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv32_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv32_body(dvc, dvc');
                        
@@ -376,7 +376,7 @@ module DV_Next_Invs_27_37
                         lemma_inv34_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv34_body(dvc');
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv34_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv34_body(dvc');
                        
@@ -508,7 +508,7 @@ module DV_Next_Invs_27_37
                                 ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
                     
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_inv38_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
 
                     case ImportedNewBlock(block) => 
@@ -562,7 +562,7 @@ module DV_Next_Invs_27_37
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv37_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
 
-                    case ReceviedAttesttionShare(attestation_share) =>    
+                    case ReceivedAttestationShare(attestation_share) =>    
                         assert NetworkSpec.Next(dv.att_network, dv'.att_network, node, nodeOutputs.att_shares_sent, {attestation_share});
                         assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= dv.att_network.messagesInTransit;
                         assert MessaageWithRecipient(message := attestation_share, receipient := node) in dv.att_network.messagesInTransit;        
@@ -767,7 +767,7 @@ module DV_Next_Invs_27_37
                                     dv'.index_next_attestation_duty_to_be_served
                         );
                         
-                    case ReceviedAttesttionShare(attestation_share) =>                         
+                    case ReceivedAttestationShare(attestation_share) =>                         
                         lemma_pred_4_1_g_iii_c_f_listen_for_attestation_shares(
                             dvc, 
                             attestation_share, 
