@@ -7,22 +7,22 @@ module Spec_Spec_NonInstr_Refinement
 {
     import opened Types 
     import opened CommonFunctions
-    import opened DVCNode_Externs
-    import opened DVCNode_Spec_Axioms
-    import DVCNode_Spec_NonInstr
-    import DVCNode_Spec
+    import opened DVC_Externs
+    import opened DVC_Spec_Axioms
+    import DVC_Spec_NonInstr
+    import DVC_Spec
 
     predicate consensusEngineStateRel(
-        cei: DVCNode_Spec.ConsensusEngineState,
-        ceni: DVCNode_Spec_NonInstr.ConsensusEngineState
+        cei: DVC_Spec.ConsensusEngineState,
+        ceni: DVC_Spec_NonInstr.ConsensusEngineState
     )
     {
         cei.attestation_consensus_active_instances == ceni.attestation_consensus_active_instances
     }
 
     predicate dVCNodeStateRel(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState
     )
     {
         && dvci.current_attestation_duty == dvcni.current_attestation_duty
@@ -41,8 +41,8 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     predicate dVCNodeStateAndOuputsRel(
-        dvcandoi: DVCNode_Spec.DVCNodeStateAndOuputs,
-        dvcandoni: DVCNode_Spec_NonInstr.DVCNodeStateAndOuputs        
+        dvcandoi: DVC_Spec.DVCStateAndOuputs,
+        dvcandoni: DVC_Spec_NonInstr.DVCStateAndOuputs        
     )
     {
         && dVCNodeStateRel(dvcandoi.state, dvcandoni.state)
@@ -50,16 +50,16 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     lemma refine_f_serve_attestation_duty(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState,
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState,
         attestation_duty: AttestationDuty
     )
-    requires DVCNode_Spec.f_serve_attestation_duty.requires(dvci, attestation_duty)
+    requires DVC_Spec.f_serve_attestation_duty.requires(dvci, attestation_duty)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_serve_attestation_duty.requires(dvcni, attestation_duty)
+    ensures DVC_Spec_NonInstr.f_serve_attestation_duty.requires(dvcni, attestation_duty)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_serve_attestation_duty(dvci, attestation_duty), 
-        DVCNode_Spec_NonInstr.f_serve_attestation_duty(dvcni, attestation_duty)
+        DVC_Spec.f_serve_attestation_duty(dvci, attestation_duty), 
+        DVC_Spec_NonInstr.f_serve_attestation_duty(dvcni, attestation_duty)
     );    
     {
         var dvci := dvci.(
@@ -75,19 +75,19 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     lemma refine_f_check_for_next_queued_duty(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState
     )
-    requires DVCNode_Spec.f_check_for_next_queued_duty.requires(dvci)
+    requires DVC_Spec.f_check_for_next_queued_duty.requires(dvci)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_check_for_next_queued_duty.requires(dvcni)
+    ensures DVC_Spec_NonInstr.f_check_for_next_queued_duty.requires(dvcni)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_check_for_next_queued_duty(dvci), 
-        DVCNode_Spec_NonInstr.f_check_for_next_queued_duty(dvcni)
+        DVC_Spec.f_check_for_next_queued_duty(dvci), 
+        DVC_Spec_NonInstr.f_check_for_next_queued_duty(dvcni)
     );     
     decreases dvci.attestation_duties_queue
     {
-        assert DVCNode_Spec_NonInstr.f_check_for_next_queued_duty.requires(dvcni);
+        assert DVC_Spec_NonInstr.f_check_for_next_queued_duty.requires(dvcni);
         if  && dvci.attestation_duties_queue != [] 
             && (
                 || dvci.attestation_duties_queue[0].slot in dvci.future_att_consensus_instances_already_decided
@@ -97,12 +97,12 @@ module Spec_Spec_NonInstr_Refinement
             if dvci.attestation_duties_queue[0].slot in dvci.future_att_consensus_instances_already_decided.Keys
             {
                 var queue_head := dvci.attestation_duties_queue[0];
-                var new_attestation_slashing_db := DVCNode_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, dvci.future_att_consensus_instances_already_decided[queue_head.slot]);
+                var new_attestation_slashing_db := DVC_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, dvci.future_att_consensus_instances_already_decided[queue_head.slot]);
                 var dvci_new := dvci.(
                     attestation_duties_queue := dvci.attestation_duties_queue[1..],
                     future_att_consensus_instances_already_decided := dvci.future_att_consensus_instances_already_decided - {queue_head.slot},
                     attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := DVCNode_Spec.updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := DVC_Spec.updateConsensusInstanceValidityCheck(
                         dvci.attestation_consensus_engine_state,
                         new_attestation_slashing_db
                     )
@@ -119,7 +119,7 @@ module Spec_Spec_NonInstr_Refinement
                     attestation_duties_queue := dvcni.attestation_duties_queue[1..],
                     future_att_consensus_instances_already_decided := dvcni.future_att_consensus_instances_already_decided - {queue_head.slot},
                     attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := DVCNode_Spec_NonInstr.updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := DVC_Spec_NonInstr.updateConsensusInstanceValidityCheck(
                         dvcni.attestation_consensus_engine_state,
                         new_attestation_slashing_db
                     )
@@ -132,26 +132,26 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     // lemma refine_f_listen_for_new_imported_blocks_precond(
-    //     dvci: DVCNode_Spec.DVCNodeState,
-    //     dvcni: DVCNode_Spec_NonInstr.DVCNodeState,
+    //     dvci: DVC_Spec.DVCState,
+    //     dvcni: DVC_Spec_NonInstr.DVCState,
     //     block: BeaconBlock
     // )
-    // requires DVCNode_Spec.f_listen_for_new_imported_blocks.requires(dvci, block)
+    // requires DVC_Spec.f_listen_for_new_imported_blocks.requires(dvci, block)
     // requires dVCNodeStateRel(dvci, dvcni)    
     // {
     //     assert block.body.state_root in dvcni.bn.state_roots_of_imported_blocks;
     //     var valIndex := bn_get_validator_index(dvcni.bn, block.body.state_root, dvcni.dv_pubkey);
     //     forall a1, a2 | 
     //             && a1 in block.body.attestations
-    //             && DVCNode_Spec_NonInstr.isMyAttestation(a1, dvcni, block, valIndex)
+    //             && DVC_Spec_NonInstr.isMyAttestation(a1, dvcni, block, valIndex)
     //             && a2 in block.body.attestations
-    //             && DVCNode_Spec_NonInstr.isMyAttestation(a2, dvcni, block, valIndex)                        
+    //             && DVC_Spec_NonInstr.isMyAttestation(a2, dvcni, block, valIndex)                        
     //         // ::
     //         //     a1.data.slot == a2.data.slot ==> a1 == a2
     //     {
     //         assert bn_get_epoch_committees(dvci.bn, block.body.state_root, a1.data.index) == bn_get_epoch_committees(dvcni.bn, block.body.state_root, a1.data.index);
     //         assert valIndex == bn_get_validator_index(dvci.bn, block.body.state_root, dvci.dv_pubkey);
-    //         assert DVCNode_Spec.isMyAttestation(a1, dvci, block, valIndex);
+    //         assert DVC_Spec.isMyAttestation(a1, dvci, block, valIndex);
     //         // assert a1.data.slot == a2.data.slot ==> a1 == a2;
     //     }
     // // assert forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
@@ -169,17 +169,17 @@ module Spec_Spec_NonInstr_Refinement
     // }
 
     lemma refine_f_att_consensus_decided(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState,
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState,
         id: Slot,
         decided_attestation_data: AttestationData
     )
-    requires DVCNode_Spec.f_att_consensus_decided.requires(dvci, id, decided_attestation_data)
+    requires DVC_Spec.f_att_consensus_decided.requires(dvci, id, decided_attestation_data)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_att_consensus_decided.requires(dvcni, id, decided_attestation_data)
+    ensures DVC_Spec_NonInstr.f_att_consensus_decided.requires(dvcni, id, decided_attestation_data)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_att_consensus_decided(dvci, id, decided_attestation_data), 
-        DVCNode_Spec_NonInstr.f_att_consensus_decided(dvcni, id, decided_attestation_data)
+        DVC_Spec.f_att_consensus_decided(dvci, id, decided_attestation_data), 
+        DVC_Spec_NonInstr.f_att_consensus_decided(dvcni, id, decided_attestation_data)
     );       
     {
         if  && dvci.current_attestation_duty.isPresent()
@@ -187,13 +187,13 @@ module Spec_Spec_NonInstr_Refinement
         {
             var local_current_attestation_duty := dvci.current_attestation_duty.safe_get();
 
-            var attestation_slashing_db := DVCNode_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, decided_attestation_data);
+            var attestation_slashing_db := DVC_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, decided_attestation_data);
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
             var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
             var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, dvci.rs);
             var attestation_with_signature_share := AttestationShare(
-                    aggregation_bits := DVCNode_Spec.get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    aggregation_bits := DVC_Spec.get_aggregation_bits(local_current_attestation_duty.validator_index),
                     data := decided_attestation_data, 
                     signature := attestation_signature_share
                 ); 
@@ -203,7 +203,7 @@ module Spec_Spec_NonInstr_Refinement
                     current_attestation_duty := None,
                     attestation_shares_to_broadcast := dvci.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
                     attestation_slashing_db := attestation_slashing_db,
-                    attestation_consensus_engine_state := DVCNode_Spec.updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := DVC_Spec.updateConsensusInstanceValidityCheck(
                         dvci.attestation_consensus_engine_state,
                         attestation_slashing_db
                     )
@@ -213,10 +213,10 @@ module Spec_Spec_NonInstr_Refinement
             assert dvcni.current_attestation_duty.safe_get().slot == id;
 
 
-            var attestation_slashing_db_dvcni := DVCNode_Spec_NonInstr.f_update_attestation_slashing_db(dvcni.attestation_slashing_db, decided_attestation_data);
+            var attestation_slashing_db_dvcni := DVC_Spec_NonInstr.f_update_attestation_slashing_db(dvcni.attestation_slashing_db, decided_attestation_data);
 
             var attestation_with_signature_share_dvcni := AttestationShare(
-                    aggregation_bits := DVCNode_Spec_NonInstr.get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    aggregation_bits := DVC_Spec_NonInstr.get_aggregation_bits(local_current_attestation_duty.validator_index),
                     data := decided_attestation_data, 
                     signature := attestation_signature_share
                 );                    
@@ -226,7 +226,7 @@ module Spec_Spec_NonInstr_Refinement
                     current_attestation_duty := None,
                     attestation_shares_to_broadcast := dvcni.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share_dvcni],
                     attestation_slashing_db := attestation_slashing_db,
-                    attestation_consensus_engine_state := DVCNode_Spec_NonInstr.updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := DVC_Spec_NonInstr.updateConsensusInstanceValidityCheck(
                         dvcni.attestation_consensus_engine_state,
                         attestation_slashing_db
                     )
@@ -239,45 +239,45 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     lemma refine_f_listen_for_attestation_shares(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState,
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState,
         attestation_share: AttestationShare
     )
-    requires DVCNode_Spec.f_listen_for_attestation_shares.requires(dvci, attestation_share)
+    requires DVC_Spec.f_listen_for_attestation_shares.requires(dvci, attestation_share)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_listen_for_attestation_shares.requires(dvcni, attestation_share)
+    ensures DVC_Spec_NonInstr.f_listen_for_attestation_shares.requires(dvcni, attestation_share)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_listen_for_attestation_shares(dvci, attestation_share), 
-        DVCNode_Spec_NonInstr.f_listen_for_attestation_shares(dvcni, attestation_share)
+        DVC_Spec.f_listen_for_attestation_shares(dvci, attestation_share), 
+        DVC_Spec_NonInstr.f_listen_for_attestation_shares(dvcni, attestation_share)
     );    
     {
 
     }     
 
     lemma refine_f_listen_for_new_imported_blocks(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState,
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState,
         block: BeaconBlock
     )
-    requires DVCNode_Spec.f_listen_for_new_imported_blocks.requires(dvci, block)
+    requires DVC_Spec.f_listen_for_new_imported_blocks.requires(dvci, block)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_listen_for_new_imported_blocks.requires(dvcni, block)
+    ensures DVC_Spec_NonInstr.f_listen_for_new_imported_blocks.requires(dvcni, block)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_listen_for_new_imported_blocks(dvci, block), 
-        DVCNode_Spec_NonInstr.f_listen_for_new_imported_blocks(dvcni, block)
+        DVC_Spec.f_listen_for_new_imported_blocks(dvci, block), 
+        DVC_Spec_NonInstr.f_listen_for_new_imported_blocks(dvcni, block)
     );     
     {
-        var new_consensus_instances_already_decided := DVCNode_Spec.f_listen_for_new_imported_blocks_helper_1(dvci, block);
+        var new_consensus_instances_already_decided := DVC_Spec.f_listen_for_new_imported_blocks_helper_1(dvci, block);
 
         var att_consensus_instances_already_decided := dvci.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
         var future_att_consensus_instances_already_decided := 
-            DVCNode_Spec.f_listen_for_new_imported_blocks_helper_2(dvci, att_consensus_instances_already_decided);
+            DVC_Spec.f_listen_for_new_imported_blocks_helper_2(dvci, att_consensus_instances_already_decided);
 
         var dvci :=
                 dvci.(
                     future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := DVCNode_Spec.stopConsensusInstances(
+                    attestation_consensus_engine_state := DVC_Spec.stopConsensusInstances(
                                     dvci.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     ),
@@ -285,19 +285,19 @@ module Spec_Spec_NonInstr_Refinement
                     rcvd_attestation_shares := dvci.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
                 );  
 
-        assert DVCNode_Spec_NonInstr.f_listen_for_new_imported_blocks.requires(dvcni, block); 
+        assert DVC_Spec_NonInstr.f_listen_for_new_imported_blocks.requires(dvcni, block); 
 
-        var new_consensus_instances_already_decided_dvcni := DVCNode_Spec_NonInstr.f_listen_for_new_imported_blocks_helper_1(dvcni, block);
+        var new_consensus_instances_already_decided_dvcni := DVC_Spec_NonInstr.f_listen_for_new_imported_blocks_helper_1(dvcni, block);
 
         var att_consensus_instances_already_decided_dvcni := dvcni.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided_dvcni;
 
         var future_att_consensus_instances_already_decided_dvcni := 
-            DVCNode_Spec_NonInstr.f_listen_for_new_imported_blocks_helper_2(dvcni, att_consensus_instances_already_decided_dvcni);                
+            DVC_Spec_NonInstr.f_listen_for_new_imported_blocks_helper_2(dvcni, att_consensus_instances_already_decided_dvcni);                
 
         var dvcni :=
                 dvcni.(
                     future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided_dvcni,
-                    attestation_consensus_engine_state := DVCNode_Spec_NonInstr.stopConsensusInstances(
+                    attestation_consensus_engine_state := DVC_Spec_NonInstr.stopConsensusInstances(
                                     dvcni.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     ),
@@ -313,11 +313,11 @@ module Spec_Spec_NonInstr_Refinement
         if dvci.current_attestation_duty.isPresent() && dvci.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided    
         {
             var decided_attestation_data := att_consensus_instances_already_decided[dvci.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := DVCNode_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, decided_attestation_data);
+            var new_attestation_slashing_db := DVC_Spec.f_update_attestation_slashing_db(dvci.attestation_slashing_db, decided_attestation_data);
             var dvci := dvci.(
                 current_attestation_duty := None,
                 attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := DVCNode_Spec.updateConsensusInstanceValidityCheck(
+                attestation_consensus_engine_state := DVC_Spec.updateConsensusInstanceValidityCheck(
                     dvci.attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )                
@@ -326,7 +326,7 @@ module Spec_Spec_NonInstr_Refinement
             var dvcni := dvcni.(
                 current_attestation_duty := None,
                 attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := DVCNode_Spec_NonInstr.updateConsensusInstanceValidityCheck(
+                attestation_consensus_engine_state := DVC_Spec_NonInstr.updateConsensusInstanceValidityCheck(
                     dvcni.attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )                
@@ -338,31 +338,31 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     lemma refine_f_resend_attestation_share(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState
     )
-    requires DVCNode_Spec.f_resend_attestation_share.requires(dvci)
+    requires DVC_Spec.f_resend_attestation_share.requires(dvci)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_resend_attestation_share.requires(dvcni)
+    ensures DVC_Spec_NonInstr.f_resend_attestation_share.requires(dvcni)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_resend_attestation_share(dvci), 
-        DVCNode_Spec_NonInstr.f_resend_attestation_share(dvcni)
+        DVC_Spec.f_resend_attestation_share(dvci), 
+        DVC_Spec_NonInstr.f_resend_attestation_share(dvcni)
     ); 
     {
 
     }
 
     lemma refine_f_process_event(
-        dvci: DVCNode_Spec.DVCNodeState,
-        dvcni: DVCNode_Spec_NonInstr.DVCNodeState,
+        dvci: DVC_Spec.DVCState,
+        dvcni: DVC_Spec_NonInstr.DVCState,
         event: Event
     )
-    requires DVCNode_Spec.f_process_event.requires(dvci, event)
+    requires DVC_Spec.f_process_event.requires(dvci, event)
     requires dVCNodeStateRel(dvci, dvcni)
-    ensures DVCNode_Spec_NonInstr.f_process_event.requires(dvcni, event)
+    ensures DVC_Spec_NonInstr.f_process_event.requires(dvcni, event)
     ensures dVCNodeStateAndOuputsRel(
-        DVCNode_Spec.f_process_event(dvci, event), 
-        DVCNode_Spec_NonInstr.f_process_event(dvcni, event)
+        DVC_Spec.f_process_event(dvci, event), 
+        DVC_Spec_NonInstr.f_process_event(dvcni, event)
     ); 
     {
         match event 

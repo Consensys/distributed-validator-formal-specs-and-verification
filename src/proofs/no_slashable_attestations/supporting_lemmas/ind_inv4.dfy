@@ -22,7 +22,7 @@ module IndInv4
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
@@ -33,13 +33,13 @@ module IndInv4
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs
-    import opened DVCNode_Spec_Axioms    
+    import opened DVC_Spec_Axioms    
     import opened IndInv3
 
 
 
     predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body_helper(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duties_queue: seq<AttestationDuty>
     )
     {
@@ -49,7 +49,7 @@ module IndInv4
 
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
         dv: DVState,
         n: BLSPubkey,
@@ -192,9 +192,9 @@ module IndInv4
       
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -226,10 +226,10 @@ module IndInv4
     }  
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat         
@@ -282,9 +282,9 @@ module IndInv4
     }        
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -341,8 +341,8 @@ module IndInv4
     }      
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        s': DVCNodeState,
+        process: DVCState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -387,8 +387,8 @@ module IndInv4
     } 
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_easy(
-        s_node: DVCNodeState,
-        s'_node: DVCNodeState
+        s_node: DVCState,
+        s'_node: DVCState
     )
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s_node)
     requires s_node.attestation_duties_queue == s'_node.attestation_duties_queue

@@ -3,11 +3,11 @@ include "../../dvc_implementation/attestation_creation.dfy"
 include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
 
-module DVCNode_Spec_NonInstr {
+module DVC_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
-    import opened DVCNode_Externs
-    import opened DVCNode_Spec_Axioms
+    import opened DVC_Externs
+    import opened DVC_Spec_Axioms
 
 
     datatype AttestationConsensusValidityCheckState = AttestationConsensusValidityCheckState(
@@ -136,7 +136,7 @@ module DVCNode_Spec_NonInstr {
         )
     }  
 
-    datatype DVCNodeState = DVCNodeState(
+    datatype DVCState = DVCState(
         current_attestation_duty: Optional<AttestationDuty>,
         latest_attestation_duty: Optional<AttestationDuty>,
         attestation_duties_queue: seq<AttestationDuty>,
@@ -178,13 +178,13 @@ module DVCNode_Spec_NonInstr {
         setUnion(setWithRecipient)
     }    
 
-    datatype DVCNodeStateAndOuputs = DVCNodeStateAndOuputs(
-        state: DVCNodeState,
+    datatype DVCStateAndOuputs = DVCStateAndOuputs(
+        state: DVCState,
         outputs: Outputs
     )
 
     predicate Init(
-        s: DVCNodeState,
+        s: DVCState,
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
@@ -192,7 +192,7 @@ module DVCNode_Spec_NonInstr {
         rs_pubkey: BLSPubkey
     )
     {
-        s == DVCNodeState(
+        s == DVCState(
             current_attestation_duty := None,
             latest_attestation_duty := None,
             attestation_duties_queue := [],
@@ -210,13 +210,13 @@ module DVCNode_Spec_NonInstr {
     }
 
     predicate Next(
-        s: DVCNodeState,
+        s: DVCState,
         event: Event,
-        s': DVCNodeState,
+        s': DVCState,
         outputs: Outputs
     )
     {
-        var newNodeStateAndOutputs := DVCNodeStateAndOuputs(
+        var newNodeStateAndOutputs := DVCStateAndOuputs(
             state := s',
             outputs := outputs
         );
@@ -226,9 +226,9 @@ module DVCNode_Spec_NonInstr {
     }
 
     function f_process_event(
-        s: DVCNodeState,
+        s: DVCState,
         event: Event
-    ): DVCNodeStateAndOuputs
+    ): DVCStateAndOuputs
     requires
             match event 
             case ServeAttstationDuty(attestation_duty) => 
@@ -256,13 +256,13 @@ module DVCNode_Spec_NonInstr {
             case ResendAttestationShares => 
                 f_resend_attestation_share(s)
             case NoEvent => 
-                DVCNodeStateAndOuputs(state := s, outputs := getEmptyOuputs() )
+                DVCStateAndOuputs(state := s, outputs := getEmptyOuputs() )
     }    
 
     function f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty
-    ): DVCNodeStateAndOuputs
+    ): DVCStateAndOuputs
     requires forall ad | ad in process.attestation_duties_queue + [attestation_duty]:: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
     {
         f_check_for_next_queued_duty(
@@ -272,7 +272,7 @@ module DVCNode_Spec_NonInstr {
         )
     }    
 
-    function f_check_for_next_queued_duty(process: DVCNodeState): DVCNodeStateAndOuputs
+    function f_check_for_next_queued_duty(process: DVCState): DVCStateAndOuputs
     requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
     decreases process.attestation_duties_queue
     {
@@ -302,17 +302,17 @@ module DVCNode_Spec_NonInstr {
                     f_start_next_duty(new_process, process.attestation_duties_queue[0])
                 
         else 
-            DVCNodeStateAndOuputs(
+            DVCStateAndOuputs(
                 state := process,
                 outputs := getEmptyOuputs()
             )
 
     }         
 
-    function f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty): DVCNodeStateAndOuputs
+    function f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty): DVCStateAndOuputs
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
     {
-        DVCNodeStateAndOuputs(
+        DVCStateAndOuputs(
             state :=  process.(
                         current_attestation_duty := Some(attestation_duty),
                         latest_attestation_duty := Some(attestation_duty),
@@ -345,10 +345,10 @@ module DVCNode_Spec_NonInstr {
     }      
 
     function f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData
-    ): DVCNodeStateAndOuputs
+    ): DVCStateAndOuputs
     requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
     {
         if  && process.current_attestation_duty.isPresent()
@@ -386,16 +386,16 @@ module DVCNode_Spec_NonInstr {
                 )          
             )        
         else 
-            DVCNodeStateAndOuputs(
+            DVCStateAndOuputs(
                 state := process,
                 outputs := getEmptyOuputs()
             )               
     }    
 
     function f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare
-    ): DVCNodeStateAndOuputs
+    ): DVCStateAndOuputs
     {
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
 
@@ -432,7 +432,7 @@ module DVCNode_Spec_NonInstr {
                                 signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
                             );
 
-                    DVCNodeStateAndOuputs(
+                    DVCStateAndOuputs(
                         state := process.(
                             bn := process.bn.(
                                 attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
@@ -444,12 +444,12 @@ module DVCNode_Spec_NonInstr {
                         )
                     ) 
                 else 
-                    DVCNodeStateAndOuputs(
+                    DVCStateAndOuputs(
                         state := process,
                         outputs := getEmptyOuputs()
                     ) 
         else
-            DVCNodeStateAndOuputs(
+            DVCStateAndOuputs(
                 state := process,
                 outputs := getEmptyOuputs()
             )         
@@ -472,7 +472,7 @@ module DVCNode_Spec_NonInstr {
     }
 
     function f_listen_for_new_imported_blocks_compute_att_consensus_instances_already_decided(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
         valIndex: Optional<ValidatorIndex>,
         att_consensus_instances_already_decided: map<Slot, AttestationData>,
@@ -497,7 +497,7 @@ module DVCNode_Spec_NonInstr {
     }
 
     function f_listen_for_new_imported_blocks_helper_1(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock
     ): map<Slot, AttestationData>
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
@@ -519,7 +519,7 @@ module DVCNode_Spec_NonInstr {
     }
 
     function f_listen_for_new_imported_blocks_helper_2(
-        process: DVCNodeState,
+        process: DVCState,
         att_consensus_instances_already_decided: map<Slot, AttestationData>
     ): map<int, AttestationData>
     {
@@ -535,9 +535,9 @@ module DVCNode_Spec_NonInstr {
     }
 
     function f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock
-    ): DVCNodeStateAndOuputs
+    ): DVCStateAndOuputs
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
@@ -581,17 +581,17 @@ module DVCNode_Spec_NonInstr {
             );
             f_check_for_next_queued_duty(process)
         else
-            DVCNodeStateAndOuputs(
+            DVCStateAndOuputs(
                 state := process,
                 outputs := getEmptyOuputs()
             )
     }    
   
     function f_resend_attestation_share(
-        process: DVCNodeState
-    ): DVCNodeStateAndOuputs
+        process: DVCState
+    ): DVCStateAndOuputs
     {
-        DVCNodeStateAndOuputs(
+        DVCStateAndOuputs(
             state := process,
             outputs := getEmptyOuputs().(
                 att_shares_sent :=
@@ -602,7 +602,7 @@ module DVCNode_Spec_NonInstr {
     }        
 
     // Is node n the owner of a given attestation share att
-    predicate is_owner_of_att_share(att_share: AttestationShare, dvc: DVCNodeState)
+    predicate is_owner_of_att_share(att_share: AttestationShare, dvc: DVCState)
     {
         && var data := att_share.data;
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
@@ -612,10 +612,10 @@ module DVCNode_Spec_NonInstr {
     }
 }
 
-module DVCNode_Externs_Proofs refines DVCNode_Externs
+module DVC_Externs_Proofs refines DVC_Externs
 {
-    import opened DVCNode_Spec_NonInstr
-    import opened DVCNode_Spec_Axioms
+    import opened DVC_Spec_NonInstr
+    import opened DVC_Spec_Axioms
 
     function toBNState(bn: BeaconNode): BNState
     reads bn

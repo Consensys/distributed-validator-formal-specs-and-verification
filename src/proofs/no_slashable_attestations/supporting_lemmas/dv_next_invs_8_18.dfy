@@ -15,7 +15,7 @@ module DV_Next_Invs_8_18
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Fnc_Invs_1_26

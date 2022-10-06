@@ -16,14 +16,14 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened DV_Next_Invs_1_7
-    import DVCNode_Spec_NonInstr
-    import opened DVCNode_Spec_Axioms
+    import DVC_Spec_NonInstr
+    import opened DVC_Spec_Axioms
 
     predicate lemma_ServeAttstationDuty2_predicate(
         s': DVState,
@@ -43,7 +43,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Types.Event,
-        nodeOutputs: DVCNode_Spec.Outputs,
+        nodeOutputs: DVC_Spec.Outputs,
         s': DVState
     )
     requires NextHonestAfterAddingBlockToBn.requires(s, node, nodeEvent, nodeOutputs, s' );
@@ -106,9 +106,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }    
 
     lemma lemma_f_serve_attestation_duty_constants(
-        s: DVCNodeState,
+        s: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState
+        s': DVCState
     )  
     requires f_serve_attestation_duty.requires(s, attestation_duty)
     requires s' == f_serve_attestation_duty(s, attestation_duty).state
@@ -124,8 +124,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     lemma lemma_f_check_for_next_queued_duty_constants(
-        s: DVCNodeState,
-        s': DVCNodeState
+        s: DVCState,
+        s': DVCState
     )
     requires f_check_for_next_queued_duty.requires(s)
     requires s' == f_check_for_next_queued_duty(s).state
@@ -168,10 +168,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     lemma lemma_f_att_consensus_decided_constants(
-        s: DVCNodeState,
+        s: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
@@ -214,9 +214,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     // Note: Lemma's name should be revisited due to second postcondition
     lemma lemma_f_listen_for_new_imported_blocks_constants(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
     requires s' == f_listen_for_new_imported_blocks(s, block).state
@@ -262,9 +262,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }  
 
     lemma lemma_f_listen_for_attestation_shares_constants(
-        s: DVCNodeState,
+        s: DVCState,
         attestation_share: AttestationShare,
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_listen_for_attestation_shares.requires(s, attestation_share)
     requires s' == f_listen_for_attestation_shares(s, attestation_share).state    
@@ -280,8 +280,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     lemma lemma_f_resend_attestation_share_constants(
-        s: DVCNodeState,
-        s': DVCNodeState
+        s: DVCState,
+        s': DVCState
     )
     requires f_resend_attestation_share.requires(s)
     requires s' == f_resend_attestation_share(s).state    
@@ -319,10 +319,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
 
     lemma lemma_pred_4_1_b_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
 
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
@@ -477,10 +477,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     lemma lemma_pred_4_1_b_ex_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
 
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
@@ -645,10 +645,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
 
     lemma lemma_pred_rcvd_attestation_shares_is_in_all_messages_sent_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
 
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
@@ -1984,9 +1984,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }   
 
     lemma lemma_pred_4_1_f_g_for_dvc_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        m: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState>
+        m': map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>
     )    
     requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
     requires forall k | k in m :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
@@ -2139,9 +2139,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }                
 
     lemma lemma_pred_4_1_f_g_for_dvc_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
@@ -2157,8 +2157,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }    
 
     lemma lemma_pred_4_1_f_g_for_dvc_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        s': DVCNodeState
+        process: DVCState,
+        s': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state   
@@ -2200,7 +2200,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 var attestation_duty := process.attestation_duties_queue[0];
                 var attestation_slashing_db := process.attestation_slashing_db;
 
-                var acvc := DVCNode_Spec_NonInstr.AttestationConsensusValidityCheckState(
+                var acvc := DVC_Spec_NonInstr.AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );     
@@ -2238,10 +2238,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     lemma lemma_pred_4_1_f_g_for_dvc_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
@@ -2288,9 +2288,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }     
 
     lemma lemma_pred_4_1_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state
@@ -2422,9 +2422,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }   
 
     // lemma  lemma_pred_4_1_f_g_a_f_start_next_duty(
-    //     process: DVCNodeState,
+    //     process: DVCState,
     //     attestation_duty: AttestationDuty,
-    //     s' : DVCNodeState,
+    //     s' : DVCState,
     //     dv: DVState
     // )
     // requires f_start_next_duty.requires(process, attestation_duty)
@@ -2478,9 +2478,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // }
 
     // lemma lemma_pred_4_1_g_c_f_serve_attestation_duty(
-    //     process: DVCNodeState,
+    //     process: DVCState,
     //     attestation_duty: AttestationDuty,
-    //     s': DVCNodeState,
+    //     s': DVCState,
     //     dv: DVState,
     //     n: BLSPubkey,
     //     index_next_attestation_duty_to_be_served: nat
@@ -2522,8 +2522,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // } 
 
     // lemma lemma_pred_4_1_g_c_f_g_f_check_for_next_queued_duty(
-    //     process: DVCNodeState,
-    //     s': DVCNodeState,
+    //     process: DVCState,
+    //     s': DVCState,
     //     dv: DVState,
     //     n: BLSPubkey,
     //     index_next_attestation_duty_to_be_served: nat
@@ -2681,9 +2681,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // }  
 
     lemma lemma_pred_4_1_g_iii_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -2725,10 +2725,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }     
 
     lemma lemma_pred_4_1_g_iii_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -2858,7 +2858,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     lemma lemma_f_listen_for_new_imported_blocks_helper_1(
         dv: DVState,
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
         new_consensus_instances_already_decided: map<Slot, AttestationData>
     )
@@ -2887,7 +2887,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
             var a :| 
                 && a in block.body.attestations
-                && DVCNode_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex)
+                && DVC_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex)
                 && a.data == new_consensus_instances_already_decided[slot]
             ;
 
@@ -2910,9 +2910,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }       
 
     lemma lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -3129,8 +3129,8 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }      
 
     lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        s': DVCNodeState,
+        process: DVCState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -3367,7 +3367,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState
+        s_node: DVCState
     )
     requires inv_g_iii_body_body(s, s_node)
     requires NextEventPreCond(s, event)
@@ -3401,7 +3401,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState,
+        s_node: DVCState,
         n: BLSPubkey
     )
     requires inv_g_b_body_body_new(s, n, s_node)
@@ -3448,7 +3448,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState,
+        s_node: DVCState,
         n: BLSPubkey
     )
     requires inv_g_d_a_body_body(s, n, s_node)
@@ -3490,7 +3490,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState,
+        s_node: DVCState,
         n: BLSPubkey
     )
     requires NextEventPreCond(s, event)

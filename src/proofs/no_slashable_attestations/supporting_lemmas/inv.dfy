@@ -14,10 +14,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV
     import opened Helper_Sets_Lemmas
-    import opened DVCNode_Spec_Axioms
+    import opened DVC_Spec_Axioms
 
 
 //     // For every pair (n1, n2) of honest nodes working for the same attestation duty, 
@@ -129,7 +129,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 //             && old_inv5_body(s)            
 //     }
 
-//     predicate old_inv5_body(hn_state: DVCNodeState)        
+//     predicate old_inv5_body(hn_state: DVCState)        
 //     {
 //         hn_state.current_attestation_duty.isPresent()
 //             ==> ( && hn_state.latest_attestation_duty.isPresent()
@@ -175,7 +175,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 //                             s.bn.attestations_submitted[i].data.slot <= s.current_attestation_duty.safe_get().slot
 //     }
 
-//     predicate old_inv10_body(s: DVCNodeState)
+//     predicate old_inv10_body(s: DVCState)
 //     {
 //         !s.latest_attestation_duty.isPresent()
 //             ==> s.attestation_duties_queue == [] 
@@ -320,7 +320,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 //     predicate existing_share_from_node(
 //         att_shares: set<AttestationShare>, 
 //         att_data: AttestationData, 
-//         s: DVCNodeState,
+//         s: DVCState,
 //         slot: Slot
 //     )
 //     {
@@ -420,7 +420,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 //                                         att_duty: AttestationDuty,
 //                                         pubkey: BLSPubkey, 
 //                                         db: set<SlashingDBAttestation>,
-//                                         s: DVCNodeState ::
+//                                         s: DVCState ::
 //                                             && is_honest_node(dv, pubkey)
 //                                             && s == dv.honest_nodes_states[pubkey]
 //                                             && consensus_is_valid_attestation_data(db, att_data, att_duty) 
@@ -570,12 +570,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 //     }
 // /*
 //     predicate fixed_set_all_nodes_in_sec_3_7<D(!new, 0)>(
-//         s: DVCNodeState, 
+//         s: DVCState, 
 //         e: Types.Event,
-//         s': DVCNodeState)
+//         s': DVCState)
 //     requires f_process_event.requires(s, e)
 //     {
-//         s' == DVCNode_Spec.f_process_event(s, e).state ==> s.peers == s'.peers                
+//         s' == DVC_Spec.f_process_event(s, e).state ==> s.peers == s'.peers                
 //     }
 //     */
 
@@ -896,7 +896,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 //     }
 
 
-//     predicate pred40_body(s: DVCNodeState)
+//     predicate pred40_body(s: DVCState)
 //     {
 //         forall S: set<Attestation>, a: Attestation ::                
 //             && var attSet := seqToSet(s.bn.attestations_submitted);
@@ -930,7 +930,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
         dv: DVState,
-        dvc: DVCNodeState
+        dvc: DVCState
     )
     {
         var rcvd_attestation_shares := dvc.rcvd_attestation_shares;
@@ -1081,7 +1081,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     predicate pred_4_1_g_i_for_dvc_single_dvc_2_body(
-        dvc: DVCNodeState,
+        dvc: DVCState,
         cid: Slot
     )
     requires cid in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances
@@ -1105,7 +1105,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }         
 
     predicate pred_4_1_g_i_for_dvc_single_dvc_2(
-        dvc: DVCNodeState
+        dvc: DVCState
     )
     {
         forall cid | 
@@ -1211,7 +1211,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_g_iii_body_body(
         dv: DVState, 
-        hn_state: DVCNodeState
+        hn_state: DVCState
     ) 
     {
         forall s1: nat, s2: nat, vp, db2 |
@@ -1256,7 +1256,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_iii_a_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1283,7 +1283,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }   
 
     function get_upperlimit_active_instances(
-        n_state: DVCNodeState
+        n_state: DVCState
     ): nat 
     {
         if n_state.latest_attestation_duty.isPresent() then
@@ -1295,7 +1295,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_iii_a_a_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         forall slot  |
@@ -1322,7 +1322,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_iii_b_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1354,7 +1354,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_iii_c_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1368,7 +1368,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_g_iii_c_new_body(  
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
         index_next_attestation_duty_to_be_served: nat
     )
@@ -1383,7 +1383,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_g_iii_b_new_body(        
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
         index_next_attestation_duty_to_be_served: nat
     )
@@ -1399,7 +1399,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }          
 
     function get_upperlimit_decided_instances(
-        n_state: DVCNodeState
+        n_state: DVCState
     ): nat 
     {
         if n_state.latest_attestation_duty.isPresent() then
@@ -1426,7 +1426,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_b_body_body_new(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         // n_state.latest_attestation_duty.isPresent() ==>
@@ -1455,7 +1455,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_d_a_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         forall slot |
@@ -1480,7 +1480,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_d_b_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         forall slot |
@@ -1500,7 +1500,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }                
 
     predicate inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         (
@@ -1521,7 +1521,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }       
 
     predicate inv_attestation_duty_queue_is_ordered_body_body(
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         forall i,j | 0 <= i < j < |n_state.attestation_duties_queue| :: n_state.attestation_duties_queue[i].slot <  n_state.attestation_duties_queue[j].slot           
@@ -1530,7 +1530,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // predicate inv_attestation_duty_queue_is_ordered_2_body_body(
     //     dv: DVState, 
     //     n: BLSPubkey,
-    //     n_state: DVCNodeState
+    //     n_state: DVCState
     // )
     // {
     //     forall i, k, l, t  |
@@ -1561,7 +1561,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_attestation_duty_queue_is_ordered_3_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         forall i, k, l, t  |
@@ -1582,7 +1582,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_attestation_duty_queue_is_ordered_3_body_body_premise(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         i: nat, 
         k: nat,
         l: nat, 
@@ -1614,7 +1614,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_attestation_duty_queue_is_ordered_4_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )  
     {
@@ -1636,7 +1636,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_attestation_duty_queue_is_ordered_4_body_body_premise(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         i: nat, 
         index_next_attestation_duty_to_be_served: nat
     )
@@ -1661,7 +1661,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body
     (
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         n_state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= n_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -1678,7 +1678,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist_body
     (
-        n_state: DVCNodeState,
+        n_state: DVCState,
         cid: Slot
     )
     {
@@ -1701,7 +1701,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }           
 
     predicate pred_inv_current_latest_attestation_duty_match_body_body(
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         (
@@ -1730,7 +1730,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_a_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         n_state.latest_attestation_duty.isPresent() ==>
@@ -1747,7 +1747,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // predicate inv_g_b_body_body(
     //     dv: DVState, 
     //     n: BLSPubkey,
-    //     n_state: DVCNodeState
+    //     n_state: DVCState
     // )
     // {
     //     n_state.latest_attestation_duty.isPresent() ==>
@@ -1764,7 +1764,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // predicate inv_g_a_ii_body_body(
     //     dv: DVState, 
     //     n: BLSPubkey,
-    //     n_state: DVCNodeState
+    //     n_state: DVCState
     // )
     // {
     //     (
@@ -1797,7 +1797,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_a_ii_a_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         (
@@ -1829,7 +1829,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }  
 
     predicate inv_g_a_iii_body_body_helper(
-        n_state: DVCNodeState,
+        n_state: DVCState,
         slot: nat
     ) 
     {
@@ -1840,7 +1840,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_a_iii_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1863,7 +1863,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_a_iii_b_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1898,7 +1898,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_a_iv_a_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         (
@@ -1936,7 +1936,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_c_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1956,7 +1956,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_c_ii_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState,
+        n_state: DVCState,
         index_next_attestation_duty_to_be_served: nat
     )
     {
@@ -1976,7 +1976,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_g_d_body_body(
         dv: DVState, 
         n: BLSPubkey,
-        n_state: DVCNodeState
+        n_state: DVCState
     )
     {
         forall slot |
@@ -2112,13 +2112,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv44_body(dv: DVState, hn: BLSPubkey, s1: Slot, s2: Slot, vp1: AttestationData -> bool, vp2: AttestationData -> bool, db2: set<SlashingDBAttestation>)
     requires is_honest_node(dv, hn)
-    requires && var hn_state: DVCNodeState := dv.honest_nodes_states[hn];
+    requires && var hn_state: DVCState := dv.honest_nodes_states[hn];
              && s1 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
              && s2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
              && s1 < s2
              && vp1 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s1].Keys
              && vp2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys
-    requires && var hn_state: DVCNodeState := dv.honest_nodes_states[hn];
+    requires && var hn_state: DVCState := dv.honest_nodes_states[hn];
             && ( forall db, r: SlashingDBAttestation |
                     && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s1][vp1]
                     && r in db
@@ -2126,7 +2126,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         (exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))) )
     {
         forall T |
-        && var hn_state: DVCNodeState := dv.honest_nodes_states[hn];
+        && var hn_state: DVCState := dv.honest_nodes_states[hn];
         && T in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s1][vp1]
         ::
         && var db1: set<SlashingDBAttestation> :| has_all_slashing_db_attestations_before_slot_s(T, db1, s2);
@@ -2177,7 +2177,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv46_b_body(
         dv: DVState, 
         hn: BLSPubkey,
-        hn_state: DVCNodeState,
+        hn_state: DVCState,
         s: Slot,
         vp: AttestationData -> bool
     )
@@ -2371,7 +2371,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && nodes.peers == dv.all_nodes
     }
 
-    predicate old_inv4_body(dv: DVState, n: BLSPubkey, dvc: DVCNodeState)    
+    predicate old_inv4_body(dv: DVState, n: BLSPubkey, dvc: DVCState)    
     requires n in dv.honest_nodes_states.Keys
     requires dvc == dv.honest_nodes_states[n]
     {
@@ -2415,7 +2415,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     dv.index_next_attestation_duty_to_be_served)
     }
 
-    predicate inv5_body(dvc: DVCNodeState)
+    predicate inv5_body(dvc: DVCState)
     {
         forall k: nat ::
             0 <= k < |dvc.attestation_duties_queue|
@@ -2430,7 +2430,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv5_body(dvc)
     }
 
-    predicate inv6_body(dvc: DVCNodeState)
+    predicate inv6_body(dvc: DVCState)
     {
         dvc.current_attestation_duty.isPresent()
             ==> dvc.current_attestation_duty.safe_get()
@@ -2444,7 +2444,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv6_body(dvc)
     }
 
-    predicate inv7_body(dvc: DVCNodeState)
+    predicate inv7_body(dvc: DVCState)
     {
         dvc.latest_attestation_duty.isPresent()
             ==> dvc.latest_attestation_duty.safe_get()
@@ -2458,7 +2458,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv7_body(dvc)
     }
 
-    predicate inv8_body(dvc: DVCNodeState)
+    predicate inv8_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> !dvc.current_attestation_duty.isPresent()
@@ -2471,7 +2471,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv8_body(dvc)
     }
   
-    predicate inv9_body(dvc: DVCNodeState)
+    predicate inv9_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> ( || !dvc.current_attestation_duty.isPresent()
@@ -2490,7 +2490,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv9_body(dvc)
     }
 
-    predicate inv10_body(dvc: DVCNodeState)
+    predicate inv10_body(dvc: DVCState)
     {
         dvc.current_attestation_duty.isPresent()
             ==> ( && dvc.latest_attestation_duty.isPresent()
@@ -2506,7 +2506,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv10_body(dvc)
     }
 
-    predicate inv11_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    predicate inv11_body(dvc: DVCState, next_duty: AttestationDuty)
     {
         dvc.current_attestation_duty.isPresent()
             ==> dvc.current_attestation_duty.safe_get().slot < next_duty.slot        
@@ -2526,7 +2526,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv11_body(dvc, next_duty)
     }
 
-    predicate inv12_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    predicate inv12_body(dvc: DVCState, next_duty: AttestationDuty)
     {
         dvc.latest_attestation_duty.isPresent()
             ==> dvc.latest_attestation_duty.safe_get().slot < next_duty.slot        
@@ -2551,7 +2551,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         is_sequence_attestation_duties_to_be_served_orderd(dv)
     }
 
-    predicate inv14_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    predicate inv14_body(dvc: DVCState, next_duty: AttestationDuty)
     {
        forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties ::
             rcvd_duty.slot < next_duty.slot        
@@ -2571,7 +2571,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv14_body(dvc, next_duty)
     }
 
-    predicate inv15_body(dvc: DVCNodeState, next_duty: AttestationDuty)
+    predicate inv15_body(dvc: DVCState, next_duty: AttestationDuty)
     {
        forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.attestation_duties_queue ::
             rcvd_duty.slot < next_duty.slot        
@@ -2591,7 +2591,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv15_body(dvc, next_duty)
     }
 
-    predicate inv16_body(dvc: DVCNodeState)
+    predicate inv16_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> |dvc.attestation_duties_queue| == 0
@@ -2604,7 +2604,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv16_body(dvc)
     }
 
-    predicate inv17_body(dvc: DVCNodeState)
+    predicate inv17_body(dvc: DVCState)
     {
         && var queue := dvc.attestation_duties_queue;
         && ( forall k1: nat, k2: nat |
@@ -2623,7 +2623,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv17_body(dvc)
     }
 
-    predicate inv18_body(dvc: DVCNodeState)
+    predicate inv18_body(dvc: DVCState)
     {
         && var queue := dvc.attestation_duties_queue;
         && dvc.latest_attestation_duty.isPresent()
@@ -2723,7 +2723,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 == dv'.sequence_attestation_duties_to_be_served
     }
 
-    predicate inv21_body(dvc: DVCNodeState, duty: AttestationDuty)
+    predicate inv21_body(dvc: DVCState, duty: AttestationDuty)
     {
         duty in dvc.all_rcvd_duties
     }
@@ -2741,7 +2741,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv21_body(dvc, duty)
     }    
 
-    predicate inv22_body(dvc: DVCNodeState)
+    predicate inv22_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys == {}
@@ -2754,7 +2754,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv22_body(dvc)
     }
     
-    predicate inv23_body(dvc: DVCNodeState)
+    predicate inv23_body(dvc: DVCState)
     {
         dvc.latest_attestation_duty.isPresent()
         ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
@@ -2770,7 +2770,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv23_body(dvc)
     }
 
-    predicate inv24_body(dvc: DVCNodeState)
+    predicate inv24_body(dvc: DVCState)
     {
         dvc.latest_attestation_duty.isPresent()
         ==> ( forall k: Slot, n: nat | 
@@ -2788,7 +2788,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv24_body(dvc)
     }
 
-    predicate inv25_body(dvc: DVCNodeState)
+    predicate inv25_body(dvc: DVCState)
     {
         forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys ::
             exists rcvd_duty: AttestationDuty :: 
@@ -2803,7 +2803,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv25_body(dvc)
     }
 
-    predicate inv26_body(dvc: DVCNodeState)
+    predicate inv26_body(dvc: DVCState)
     {
         forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
             ::
@@ -2819,7 +2819,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv26_body(dvc)
     }
 
-    predicate inv51_body(hn_state: DVCNodeState, s: Slot)
+    predicate inv51_body(hn_state: DVCState, s: Slot)
     requires s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     {
         exists duty: AttestationDuty :: 
@@ -2839,7 +2839,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             inv51_body(dv.honest_nodes_states[hn], s)                
     }
 
-    predicate inv27_body(hn_state: DVCNodeState)    
+    predicate inv27_body(hn_state: DVCState)    
     {
         forall k: Slot | k in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys ::
             exists duty: AttestationDuty :: 
@@ -2868,7 +2868,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 )
     }
 
-    predicate inv28_body(hn_state: DVCNodeState)
+    predicate inv28_body(hn_state: DVCState)
     {
         forall s: Slot, vp: AttestationData -> bool |
                 ( && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -2889,7 +2889,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv28_body(dvc)
     }
 
-    predicate inv29_body(hn_state: DVCNodeState)
+    predicate inv29_body(hn_state: DVCState)
     {
         forall k: Slot |
             k in hn_state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys ::
@@ -2906,7 +2906,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv29_body(dvc)
     }
 
-    predicate inv30_body(dvc: DVCNodeState, dvc': DVCNodeState)
+    predicate inv30_body(dvc: DVCState, dvc': DVCState)
     {
         dvc.attestation_slashing_db <= dvc'.attestation_slashing_db
     }
@@ -2933,7 +2933,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 db <= attestation_slashing_db
     }
 
-    predicate inv31_body(hn_state: DVCNodeState)
+    predicate inv31_body(hn_state: DVCState)
     {
         forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
                 ( && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -2951,7 +2951,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv31_body(dvc)
     }
 
-    predicate inv32_body(dvc: DVCNodeState, dvc': DVCNodeState)
+    predicate inv32_body(dvc: DVCState, dvc': DVCState)
     {        
         dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
         <= 
@@ -2990,7 +2990,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
      
    
-    predicate inv34_body(dvc: DVCNodeState)
+    predicate inv34_body(dvc: DVCState)
     {
         dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
         <= 
@@ -3026,7 +3026,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv37_body(
         dv: DVState,
-        dvc: DVCNodeState
+        dvc: DVCState
     )
     {
         var rcvd_attestation_shares := dvc.rcvd_attestation_shares;
@@ -3050,7 +3050,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv38_body(
         dv: DVState,
-        dvc: DVCNodeState
+        dvc: DVCState
     )    
     {
         dvc.attestation_shares_to_broadcast.Values <= dv.att_network.allMessagesSent

@@ -21,7 +21,7 @@ module IndInv3
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
@@ -32,13 +32,13 @@ module IndInv3
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs
-    import opened DVCNode_Spec_Axioms
+    import opened DVC_Spec_Axioms
 
     // TODO
     predicate inv33_body(
         dv: DVState, 
         hn: BLSPubkey,
-        hn_state: DVCNodeState,
+        hn_state: DVCState,
         s: Slot
     )
     {
@@ -56,9 +56,9 @@ module IndInv3
     }  
 
     lemma lemma_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
@@ -72,10 +72,10 @@ module IndInv3
     }       
 
     lemma lemma_att_slashing_db_hist_is_monotonic_f_att_consensus_decided(
-        s: DVCNodeState,
+        s: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
@@ -115,9 +115,9 @@ module IndInv3
     }     
 
     lemma lemma_att_slashing_db_hist_is_monotonic_f_listen_for_new_imported_blocks(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState
+        s': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
     requires s' == f_listen_for_new_imported_blocks(s, block).state
@@ -160,8 +160,8 @@ module IndInv3
     }      
 
     lemma lemma_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(
-        s: DVCNodeState,
-        s': DVCNodeState
+        s: DVCState,
+        s': DVCState
     )
     requires f_check_for_next_queued_duty.requires(s)
     requires s' == f_check_for_next_queued_duty(s).state
@@ -204,13 +204,13 @@ module IndInv3
     }      
 
     lemma lemma_att_slashing_db_hist_is_monotonic(
-        s: DVCNodeState,
+        s: DVCState,
         event: Types.Event,
-        s': DVCNodeState,
+        s': DVCState,
         outputs: Outputs        
     )
-    requires DVCNode_Spec.Next.requires(s, event, s', outputs)
-    requires DVCNode_Spec.Next(s, event, s', outputs)
+    requires DVC_Spec.Next.requires(s, event, s', outputs)
+    requires DVC_Spec.Next(s, event, s', outputs)
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
     {
         match event
@@ -236,7 +236,7 @@ module IndInv3
         }        
     }
 
-    lemma lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVCNode_Spec_Next(
+    lemma lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVC_Spec_Next(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -246,8 +246,8 @@ module IndInv3
     requires event.HonestNodeTakingStep?
     ensures NextHonestAfterAddingBlockToBn.requires(add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
     ensures NextHonestAfterAddingBlockToBn(add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
-    ensures DVCNode_Spec.Next.requires(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
-    ensures DVCNode_Spec.Next(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
+    ensures DVC_Spec.Next.requires(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
+    ensures DVC_Spec.Next(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
     {
 
     } 
@@ -324,9 +324,9 @@ module IndInv3
 
                     if hn == node 
                     {
-                        lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVCNode_Spec_Next(s, event, s');
-                        assert DVCNode_Spec.Next.requires(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
-                        assert DVCNode_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
+                        lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVC_Spec_Next(s, event, s');
+                        assert DVC_Spec.Next.requires(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
+                        assert DVC_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         lemma_att_slashing_db_hist_is_monotonic(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                         assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
@@ -503,9 +503,9 @@ module IndInv3
     // // } 
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState,
+        s': DVCState,
         cid: Slot
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
@@ -522,10 +522,10 @@ module IndInv3
     }           
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(
-        s: DVCNodeState,
+        s: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState,
+        s': DVCState,
         cid: Slot
     )
     requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
@@ -568,9 +568,9 @@ module IndInv3
     }         
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState,
+        s': DVCState,
         cid: Slot
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
@@ -616,8 +616,8 @@ module IndInv3
     }   
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(
-        s: DVCNodeState,
-        s': DVCNodeState,
+        s: DVCState,
+        s': DVCState,
         cid: Slot
     )
     requires f_check_for_next_queued_duty.requires(s)
@@ -665,14 +665,14 @@ module IndInv3
     }      
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic(
-        s: DVCNodeState,
+        s: DVCState,
         event: Types.Event,
-        s': DVCNodeState,
+        s': DVCState,
         outputs: Outputs,
         cid: Slot       
     )
-    requires DVCNode_Spec.Next.requires(s, event, s', outputs)
-    requires DVCNode_Spec.Next(s, event, s', outputs)
+    requires DVC_Spec.Next.requires(s, event, s', outputs)
+    requires DVC_Spec.Next(s, event, s', outputs)
     requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys;  
@@ -701,15 +701,15 @@ module IndInv3
     } 
 
     lemma lemma_att_slashing_db_hist_cid_is_monotonic_corollary(
-        s: DVCNodeState,
+        s: DVCState,
         event: Types.Event,
-        s': DVCNodeState,
+        s': DVCState,
         outputs: Outputs,
         cid: Slot,
         vp: AttestationData -> bool       
     )
-    requires DVCNode_Spec.Next.requires(s, event, s', outputs)    
-    requires DVCNode_Spec.Next(s, event, s', outputs)
+    requires DVC_Spec.Next.requires(s, event, s', outputs)    
+    requires DVC_Spec.Next(s, event, s', outputs)
     requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     requires vp in s.attestation_consensus_engine_state.att_slashing_db_hist[cid]
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -830,8 +830,8 @@ module IndInv3
 
                     if hn == node 
                     {
-                        lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVCNode_Spec_Next(s, event, s');
-                        assert DVCNode_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
+                        lemma_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVC_Spec_Next(s, event, s');
+                        assert DVC_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         lemma_att_slashing_db_hist_cid_is_monotonic_corollary(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs, cid, vp);
                         // assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                         // assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
@@ -953,9 +953,9 @@ module IndInv3
     } 
 
     lemma lemma_pred_4_1_g_iii_a_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -978,10 +978,10 @@ module IndInv3
     }       
 
     lemma lemma_pred_4_1_g_iii_a_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -1026,9 +1026,9 @@ module IndInv3
     }    
 
     lemma lemma_pred_4_1_g_iii_a_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -1078,8 +1078,8 @@ module IndInv3
 
 
     lemma lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        s': DVCNodeState,
+        process: DVCState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -1187,7 +1187,7 @@ module IndInv3
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState,
+        s_node: DVCState,
         n: BLSPubkey
     )
     requires NextEventPreCond(s, event)
@@ -1349,9 +1349,9 @@ module IndInv3
     }  
 
     lemma lemma_pred_4_1_g_iii_a_a_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
@@ -1387,10 +1387,10 @@ module IndInv3
     }  
 
     lemma lemma_pred_4_1_g_iii_a_a_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -1436,9 +1436,9 @@ module IndInv3
     }        
 
     lemma lemma_pred_4_1_g_iii_a_a_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
@@ -1488,8 +1488,8 @@ module IndInv3
     }            
 
     lemma lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        s': DVCNodeState,
+        process: DVCState,
+        s': DVCState,
         dv: DVState,
         n: BLSPubkey
     )
@@ -1544,7 +1544,7 @@ module IndInv3
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState,
+        s_node: DVCState,
         n: BLSPubkey
     )
     requires NextEventPreCond(s, event)
@@ -1559,7 +1559,7 @@ module IndInv3
         s: DVState,
         event: DV.Event,
         s': DVState,
-        s_node: DVCNodeState,
+        s_node: DVCState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )

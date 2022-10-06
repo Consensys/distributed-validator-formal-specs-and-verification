@@ -13,7 +13,7 @@ module Proofs_Intermediate_Steps
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
     import opened Helper_Sets_Lemmas    

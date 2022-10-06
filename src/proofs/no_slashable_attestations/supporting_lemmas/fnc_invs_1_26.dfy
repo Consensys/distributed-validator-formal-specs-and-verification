@@ -14,18 +14,18 @@ module Fnc_Invs_1_26
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVCNode_Spec
+    import opened DVC_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
-    import opened DVCNode_Spec_Axioms
+    import opened DVC_Spec_Axioms
     
     
     lemma lemma_inv4_f_serve_attestation_duty(
-        dvc: DVCNodeState,
+        dvc: DVCState,
         attestation_duty: AttestationDuty,
-        dvc': DVCNodeState
+        dvc': DVCState
     )  
     requires f_serve_attestation_duty.requires(dvc, attestation_duty)
     requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
@@ -40,8 +40,8 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv4_f_check_for_next_queued_duty(
-        dvc: DVCNodeState,
-        dvc': DVCNodeState
+        dvc: DVCState,
+        dvc': DVCState
     )
     requires f_check_for_next_queued_duty.requires(dvc)
     requires dvc' == f_check_for_next_queued_duty(dvc).state
@@ -83,7 +83,7 @@ module Fnc_Invs_1_26
         }
     }
 
-    lemma lemma_inv4_f_start_next_duty(dvc: DVCNodeState, attestation_duty: AttestationDuty, dvc': DVCNodeState)
+    lemma lemma_inv4_f_start_next_duty(dvc: DVCState, attestation_duty: AttestationDuty, dvc': DVCState)
     requires f_start_next_duty.requires(dvc, attestation_duty)
     requires dvc' == f_start_next_duty(dvc, attestation_duty).state
     ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties        
@@ -92,10 +92,10 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv4_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
@@ -138,9 +138,9 @@ module Fnc_Invs_1_26
 
 
     lemma lemma_inv4_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -148,9 +148,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv4_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state
@@ -193,9 +193,9 @@ module Fnc_Invs_1_26
     }   
 
     lemma lemma_inv4_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -203,9 +203,9 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv5_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -213,7 +213,7 @@ module Fnc_Invs_1_26
     ensures inv5_body(s')
     { } 
     
-    lemma lemma_inv5_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv5_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state
     requires inv5_body(process)
@@ -221,8 +221,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv5_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state
@@ -266,9 +266,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv5_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -286,10 +286,10 @@ module Fnc_Invs_1_26
     }    
 
     lemma lemma_inv5_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
@@ -334,9 +334,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv5_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -345,9 +345,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv5_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state
@@ -398,7 +398,7 @@ module Fnc_Invs_1_26
         }
     }  
 
-    lemma lemma_inv6_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv6_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state    
     requires attestation_duty in process.all_rcvd_duties
@@ -407,8 +407,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv6_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state
@@ -454,9 +454,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv6_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -475,10 +475,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv6_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
@@ -524,9 +524,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv6_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -535,9 +535,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv6_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state
@@ -590,7 +590,7 @@ module Fnc_Invs_1_26
         }
     }  
 
-    lemma lemma_inv7_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv7_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state    
     requires attestation_duty in process.all_rcvd_duties
@@ -599,8 +599,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv7_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state
@@ -646,9 +646,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv7_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -667,10 +667,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv7_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
@@ -717,9 +717,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv7_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -728,9 +728,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv7_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state
@@ -783,7 +783,7 @@ module Fnc_Invs_1_26
         }
     }
 
-    lemma lemma_inv8_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv8_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
     requires inv8_body(process)
@@ -791,8 +791,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv8_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -838,9 +838,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv8_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -857,10 +857,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv8_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
@@ -905,9 +905,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv8_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -916,9 +916,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv8_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
@@ -970,8 +970,8 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv8_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv8_body(process)
@@ -979,9 +979,9 @@ module Fnc_Invs_1_26
     { }       
          
     lemma lemma_inv8_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -989,7 +989,7 @@ module Fnc_Invs_1_26
     ensures inv8_body(s')
     { }    
 
-    lemma lemma_inv9_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv9_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
     requires inv9_body(process)
@@ -997,8 +997,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv9_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -1044,9 +1044,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv9_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -1063,10 +1063,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv9_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
@@ -1111,9 +1111,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv9_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -1122,9 +1122,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv9_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
@@ -1176,8 +1176,8 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv9_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv9_body(process)
@@ -1185,9 +1185,9 @@ module Fnc_Invs_1_26
     { }       
          
     lemma lemma_inv9_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -1195,7 +1195,7 @@ module Fnc_Invs_1_26
     ensures inv9_body(s')
     { }
 
-    lemma lemma_inv10_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv10_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
     requires inv10_body(process)
@@ -1203,8 +1203,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv10_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -1250,9 +1250,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv10_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -1269,10 +1269,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv10_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
@@ -1321,9 +1321,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv10_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -1332,9 +1332,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv10_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
@@ -1386,8 +1386,8 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv10_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv10_body(process)
@@ -1395,9 +1395,9 @@ module Fnc_Invs_1_26
     { }       
          
     lemma lemma_inv10_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -1405,7 +1405,7 @@ module Fnc_Invs_1_26
     ensures inv10_body(s')
     { }
 
-    lemma lemma_inv16_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv16_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
     requires inv8_body(process) || inv16_body(process)
@@ -1413,8 +1413,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv16_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -1460,9 +1460,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv16_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -1479,10 +1479,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv16_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
@@ -1531,9 +1531,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv16_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -1542,9 +1542,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv16_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
@@ -1596,8 +1596,8 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv16_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv16_body(process)
@@ -1605,9 +1605,9 @@ module Fnc_Invs_1_26
     { }       
          
     lemma lemma_inv16_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -1615,7 +1615,7 @@ module Fnc_Invs_1_26
     ensures inv16_body(s')
     { }
 
-    lemma lemma_inv17_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv17_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
     requires inv17_body(process)
@@ -1623,8 +1623,8 @@ module Fnc_Invs_1_26
     { }  
 
     lemma lemma_inv17_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -1670,9 +1670,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv17_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
@@ -1681,9 +1681,9 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv17_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
@@ -1735,8 +1735,8 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv17_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv17_body(process)
@@ -1744,9 +1744,9 @@ module Fnc_Invs_1_26
     { }       
          
     lemma lemma_inv17_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -1755,10 +1755,10 @@ module Fnc_Invs_1_26
     { }
 
     lemma lemma_inv17_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
@@ -1807,9 +1807,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv17_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -1827,9 +1827,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv18_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state    
@@ -1840,8 +1840,8 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv18_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv5_body(process)
@@ -1851,9 +1851,9 @@ module Fnc_Invs_1_26
     { }  
     
     lemma lemma_inv18_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
@@ -1863,7 +1863,7 @@ module Fnc_Invs_1_26
     ensures inv18_body(s')
     { }
 
-    lemma lemma_inv18_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv18_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires forall queued_duty: AttestationDuty | queued_duty in process.attestation_duties_queue ::
@@ -1875,8 +1875,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv18_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -1932,9 +1932,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv18_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -1973,9 +1973,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv18_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
@@ -2033,10 +2033,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv18_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
@@ -2088,9 +2088,9 @@ module Fnc_Invs_1_26
     }  
 
     lemma lemma_inv22_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)    
@@ -2099,9 +2099,9 @@ module Fnc_Invs_1_26
     { }
 
     lemma lemma_inv22_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
@@ -2109,7 +2109,7 @@ module Fnc_Invs_1_26
     ensures inv22_body(process')
     {}
 
-    lemma lemma_inv22_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv22_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires inv22_body(process)
@@ -2117,8 +2117,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv22_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state        
     requires inv22_body(process)
@@ -2126,8 +2126,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv22_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -2173,10 +2173,10 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv22_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
@@ -2225,9 +2225,9 @@ module Fnc_Invs_1_26
     } 
     
     lemma lemma_inv22_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
@@ -2278,9 +2278,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv22_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -2296,9 +2296,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv23_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)    
@@ -2307,9 +2307,9 @@ module Fnc_Invs_1_26
     { }
 
     lemma lemma_inv23_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
@@ -2318,8 +2318,8 @@ module Fnc_Invs_1_26
     {}
 
     lemma lemma_inv23_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state        
     requires inv23_body(process)
@@ -2327,8 +2327,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv23_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state        
@@ -2402,7 +2402,7 @@ module Fnc_Invs_1_26
         { }
     }
 
-    lemma lemma_inv23_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv23_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires inv23_body(process)
@@ -2436,9 +2436,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv23_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -2467,9 +2467,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv23_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
@@ -2531,10 +2531,10 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv23_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
@@ -2596,9 +2596,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv25_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)    
@@ -2607,9 +2607,9 @@ module Fnc_Invs_1_26
     { }
 
     lemma lemma_inv25_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
@@ -2617,7 +2617,7 @@ module Fnc_Invs_1_26
     ensures inv25_body(process')
     { }
 
-    lemma lemma_inv25_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv25_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires attestation_duty in process.all_rcvd_duties
@@ -2626,8 +2626,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv25_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state        
     requires inv25_body(process)
@@ -2635,8 +2635,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv25_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -2684,10 +2684,10 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv25_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
@@ -2740,9 +2740,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv25_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -2762,9 +2762,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv25_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
@@ -2818,9 +2818,9 @@ module Fnc_Invs_1_26
     } 
 
     lemma lemma_inv26_add_block_to_bn(
-        s: DVCNodeState,
+        s: DVCState,
         block: BeaconBlock,
-        s': DVCNodeState 
+        s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)    
@@ -2829,9 +2829,9 @@ module Fnc_Invs_1_26
     { }
 
     lemma lemma_inv26_f_listen_for_attestation_shares(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_share: AttestationShare,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
@@ -2839,7 +2839,7 @@ module Fnc_Invs_1_26
     ensures inv26_body(process')
     { }
 
-    lemma lemma_inv26_f_start_next_duty(process: DVCNodeState, attestation_duty: AttestationDuty, process': DVCNodeState)
+    lemma lemma_inv26_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires attestation_duty in process.all_rcvd_duties
@@ -2848,8 +2848,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv26_f_resend_attestation_share(
-        process: DVCNodeState,
-        process': DVCNodeState)
+        process: DVCState,
+        process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state        
     requires inv26_body(process)
@@ -2857,8 +2857,8 @@ module Fnc_Invs_1_26
     { } 
 
     lemma lemma_inv26_f_check_for_next_queued_duty(
-        process: DVCNodeState,
-        process': DVCNodeState
+        process: DVCState,
+        process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
@@ -2906,10 +2906,10 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv26_f_att_consensus_decided(
-        process: DVCNodeState,
+        process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
@@ -2962,9 +2962,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv26_f_serve_attestation_duty(
-        process: DVCNodeState,
+        process: DVCState,
         attestation_duty: AttestationDuty,
-        process': DVCNodeState
+        process': DVCState
     )  
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
@@ -2984,9 +2984,9 @@ module Fnc_Invs_1_26
     }
 
     lemma lemma_inv26_f_listen_for_new_imported_blocks(
-        process: DVCNodeState,
+        process: DVCState,
         block: BeaconBlock,
-        process': DVCNodeState
+        process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
