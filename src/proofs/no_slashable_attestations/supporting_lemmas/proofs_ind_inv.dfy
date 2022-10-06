@@ -58,7 +58,7 @@ module Proofs_DVN_Ind_Inv
 
     predicate invs_1_7(dvn: DVState)       
     {
-        &&  inv1(dvn)
+        &&  quorum_constraints(dvn)
         &&  inv2(dvn)
         &&  inv3(dvn)
         &&  inv4(dvn)
@@ -383,7 +383,7 @@ module Proofs_DVN_Ind_Inv
 
 
         assert && inv46_b(dvn)
-               && inv1(dvn)
+               && quorum_constraints(dvn)
                && inv53(dvn)
                && inv3(dvn)    
                && IndInv3.inv33(dvn)  
@@ -422,7 +422,7 @@ module Proofs_DVN_Ind_Inv
                 )
                 && inv3(dvn)  
                 && invNetwork(dvn)
-                && inv1(dvn)
+                && quorum_constraints(dvn)
                 && pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn)
                 ;
 
@@ -880,7 +880,7 @@ module Proofs_DVN_Ind_Inv
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
         {
             assert 
-            && inv1(dvn)
+            && quorum_constraints(dvn)
             && inv2(dvn)
             && pred_4_1_b(dvn)
             && pred_4_1_c(dvn)

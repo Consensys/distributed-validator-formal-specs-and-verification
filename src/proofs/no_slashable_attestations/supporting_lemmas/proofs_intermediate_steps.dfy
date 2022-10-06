@@ -26,7 +26,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv11_ind_inv(
         dvn: DVState
     )         
-    requires inv1(dvn)      
+    requires quorum_constraints(dvn)      
     requires inv6(dvn)    
     requires inv14(dvn)
     ensures inv11(dvn)
@@ -51,7 +51,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv12_ind_inv(
         dvn: DVState
     )         
-    requires inv1(dvn)      
+    requires quorum_constraints(dvn)      
     requires inv7(dvn)    
     requires inv14(dvn)
     ensures inv12(dvn)
@@ -76,7 +76,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv14_ind_inv(
         dvn: DVState
     )    
-    requires inv1(dvn)  
+    requires quorum_constraints(dvn)  
     requires inv4(dvn)
     requires inv13(dvn)
     ensures inv14(dvn)    
@@ -116,7 +116,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv15_ind_inv(
         dvn: DVState
     )    
-    requires inv1(dvn)  
+    requires quorum_constraints(dvn)  
     requires inv4(dvn)
     requires inv5(dvn)
     requires inv13(dvn)

@@ -24,8 +24,8 @@ module DVN_Next_Invs_1_7
     lemma lemma_inv1_dvn_next(dvn: DVState, event: DV.Event, dvn': DVState)       
     requires NextEventPreCond(dvn, event)
     requires NextEvent(dvn, event, dvn')  
-    requires inv1(dvn)
-    ensures inv1(dvn')
+    requires quorum_constraints(dvn)
+    ensures quorum_constraints(dvn')
     { }    
 
     lemma lemma_inv2_dvn_next(dvn: DVState, event: DV.Event, dvn': DVState)       
@@ -47,7 +47,7 @@ module DVN_Next_Invs_1_7
         event: DV.Event,
         dvn': DVState
     )
-    requires inv1(dvn)    
+    requires quorum_constraints(dvn)    
     requires NextEventPreCond(dvn, event)
     requires NextEvent(dvn, event, dvn')  
     requires inv4(dvn)    
@@ -63,7 +63,7 @@ module DVN_Next_Invs_1_7
         event: DV.Event,
         dvn': DVState
     )
-    requires inv1(dvn)    
+    requires quorum_constraints(dvn)    
     requires NextEventPreCond(dvn, event)
     requires NextEvent(dvn, event, dvn')  
     requires inv4(dvn)

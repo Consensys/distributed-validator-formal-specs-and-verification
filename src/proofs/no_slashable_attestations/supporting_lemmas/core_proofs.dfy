@@ -45,7 +45,7 @@ module Core_Proofs
                         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dvn.all_nodes| > 0
-    requires inv1(dvn)    
+    requires quorum_constraints(dvn)    
     requires pred_4_1_witness(dvn, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
     requires && consa.decided_value.isPresent()
              && consa'.decided_value.isPresent()
@@ -98,7 +98,7 @@ module Core_Proofs
 
     lemma lemma_4_1_a_i(dvn: DVState, a: Attestation, a': Attestation)
     requires |dvn.all_nodes| > 0
-    requires inv1(dvn)   
+    requires quorum_constraints(dvn)   
     requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
@@ -172,7 +172,7 @@ module Core_Proofs
 
     lemma lemma_4_1_a(dvn: DVState, a: Attestation, a': Attestation)
     requires |dvn.all_nodes| > 0
-    requires inv1(dvn)
+    requires quorum_constraints(dvn)
     requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
@@ -210,7 +210,7 @@ module Core_Proofs
 
     lemma lemma_4_1_b(dvn: DVState, a: Attestation, a': Attestation)
     requires |dvn.all_nodes| > 0
-    requires inv1(dvn)
+    requires quorum_constraints(dvn)
     requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)
@@ -255,7 +255,7 @@ module Core_Proofs
 
     lemma lemma_4_1_general(dvn: DVState, a: Attestation, a': Attestation)
     // requires |dvn.all_nodes| > 0
-    requires inv1(dvn)
+    requires quorum_constraints(dvn)
     requires inv2(dvn)
     requires pred_4_1_b(dvn)
     requires pred_4_1_c(dvn)

@@ -2340,7 +2340,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
     
 
-    predicate inv1(dvn: DVState)
+    predicate quorum_constraints(dvn: DVState)
     {        
         && var all_nodes := dvn.all_nodes;
         && var honest_nodes := dvn.honest_nodes_states.Keys;

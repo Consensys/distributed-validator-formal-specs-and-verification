@@ -466,7 +466,7 @@ module DVN_Next_Invs_27_37
     )       
     requires NextEventPreCond(dvn, event)
     requires NextEvent(dvn, event, dvn')  
-    requires inv1(dvn)
+    requires quorum_constraints(dvn)
     requires inv2(dvn)
     requires inv3(dvn)
     requires inv53(dvn)    
@@ -481,7 +481,7 @@ module DVN_Next_Invs_27_37
         lemma_inv2_dvn_next(dvn, event, dvn');
         lemma_inv3_dvn_next(dvn, event, dvn');
 
-        assert && inv1(dvn')
+        assert && quorum_constraints(dvn')
                && inv2(dvn')
                && inv3(dvn');
         
