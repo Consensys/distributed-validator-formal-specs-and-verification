@@ -19,14 +19,14 @@ module Proofs_Intermediate_Steps
     import opened Helper_Sets_Lemmas    
     
     lemma lemma_inv53_ind_inv(dv: DVState)
-    requires unchanged_honesty(dv)
+    requires inv_unchanged_honesty(dv)
     ensures inv53(dv)
     { }
         
     lemma lemma_inv11_ind_inv(
         dv: DVState
     )         
-    requires quorum_constraints(dv)      
+    requires inv_quorum_constraints(dv)      
     requires inv6(dv)    
     requires inv14(dv)
     ensures inv11(dv)
@@ -51,7 +51,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv12_ind_inv(
         dv: DVState
     )         
-    requires quorum_constraints(dv)      
+    requires inv_quorum_constraints(dv)      
     requires inv7(dv)    
     requires inv14(dv)
     ensures inv12(dv)
@@ -76,7 +76,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv14_ind_inv(
         dv: DVState
     )    
-    requires quorum_constraints(dv)  
+    requires inv_quorum_constraints(dv)  
     requires inv4(dv)
     requires inv13(dv)
     ensures inv14(dv)    
@@ -116,7 +116,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv15_ind_inv(
         dv: DVState
     )    
-    requires quorum_constraints(dv)  
+    requires inv_quorum_constraints(dv)  
     requires inv4(dv)
     requires inv5(dv)
     requires inv13(dv)
@@ -301,17 +301,17 @@ module Proofs_Intermediate_Steps
     ensures  inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     {}
 
-    lemma lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(
         dv: DVState
     )    
-    requires inv37(dv)    
+    requires inv_rcvd_attn_shares_are_from_sent_messages(dv)    
     ensures  pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     {}
 
-    lemma lemma_inv38_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
         dv: DVState
     )
-    requires inv38(dv)
+    requires inv_attestation_shares_to_broadcast_are_sent_messages(dv)
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 

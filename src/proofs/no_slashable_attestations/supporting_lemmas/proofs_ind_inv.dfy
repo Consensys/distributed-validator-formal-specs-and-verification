@@ -58,9 +58,9 @@ module Proofs_DV_Ind_Inv
 
     predicate invs_1_7(dv: DVState)       
     {
-        &&  quorum_constraints(dv)
-        &&  unchanged_honesty(dv)
-        &&  only_dv_construct_signed_attestation_signature(dv)
+        &&  inv_quorum_constraints(dv)
+        &&  inv_unchanged_honesty(dv)
+        &&  inv_only_dv_construct_signed_attestation_signature(dv)
         &&  inv4(dv)
         &&  inv5(dv)
         &&  inv6(dv)
@@ -96,8 +96,8 @@ module Proofs_DV_Ind_Inv
         &&  inv31(dv)  
         &&  inv34(dv)
         &&  inv35(dv)
-        &&  inv36(dv)
-        &&  inv37(dv)
+        &&  inv_all_in_transit_messages_were_sent(dv)
+        &&  inv_rcvd_attn_shares_are_from_sent_messages(dv)
         &&  IndInv3.inv33(dv)
     }
 
@@ -136,9 +136,9 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures invs_1_7(dv')
     {    
-        lemma_quorum_constraints_dv_next(dv, e, dv');
-        lemma_unchanged_honesty_dv_next(dv, e, dv');
-        lemma_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
+        lemma_inv_quorum_constraints_dv_next(dv, e, dv');
+        lemma_inv_unchanged_honesty_dv_next(dv, e, dv');
+        lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
         lemma_inv4_dv_next(dv, e, dv');
         lemma_inv5_dv_next(dv, e, dv');
         lemma_inv6_dv_next(dv, e, dv');
@@ -251,8 +251,8 @@ module Proofs_DV_Ind_Inv
         lemma_inv31_dv_next(dv, e, dv');  
         lemma_inv34_dv_next(dv, e, dv');  
         lemma_inv35_dv_next(dv, e, dv');  
-        // lemma_inv36_dv_next(dv, e, dv');  
-        // lemma_inv37_dv_next(dv, e, dv');  
+        // lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
+        // lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
         // IndInv3.lemma_inv_33(dv, e, dv');
     }
 
@@ -260,12 +260,12 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv36(dv') 
-    ensures inv37(dv')
+    ensures inv_all_in_transit_messages_were_sent(dv') 
+    ensures inv_rcvd_attn_shares_are_from_sent_messages(dv')
     ensures IndInv3.inv33(dv')
     {               
-        lemma_inv36_dv_next(dv, e, dv');  
-        lemma_inv37_dv_next(dv, e, dv');  
+        lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
+        lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
         IndInv3.lemma_inv_33(dv, e, dv');
     }
 
@@ -324,7 +324,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_attestation_duty_queue_is_ordered(dv);
         lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
         lemma_pred_inv_current_latest_attestation_duty_match(dv);
-        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
+        lemma_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
     }
 
     lemma lemma_ind_inv_implies_intermediate_steps_helper_4(dv: DVState)
@@ -383,9 +383,9 @@ module Proofs_DV_Ind_Inv
 
 
         assert && inv46_b(dv)
-               && quorum_constraints(dv)
+               && inv_quorum_constraints(dv)
                && inv53(dv)
-               && only_dv_construct_signed_attestation_signature(dv)    
+               && inv_only_dv_construct_signed_attestation_signature(dv)    
                && IndInv3.inv33(dv)  
                && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
                && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
@@ -407,10 +407,10 @@ module Proofs_DV_Ind_Inv
                 dv.dv_pubkey,
                 dv.all_nodes);
 
-        lemma_inv36_invNetwork(dv);
+        lemma_inv_all_in_transit_messages_were_sent_invNetwork(dv);
         assert invNetwork(dv);
 
-        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
+        lemma_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
 
         assert  && DV.NextEvent(dv, e, dv')
@@ -420,9 +420,9 @@ module Proofs_DV_Ind_Inv
                     dv.dv_pubkey,
                     dv.all_nodes
                 )
-                && only_dv_construct_signed_attestation_signature(dv)  
+                && inv_only_dv_construct_signed_attestation_signature(dv)  
                 && invNetwork(dv)
-                && quorum_constraints(dv)
+                && inv_quorum_constraints(dv)
                 && pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
                 ;
 
@@ -496,19 +496,19 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures invNetwork(dv')
     {
-        lemma_inv36_dv_next(dv, e, dv');
-        lemma_inv36_invNetwork(dv');
+        lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');
+        lemma_inv_all_in_transit_messages_were_sent_invNetwork(dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_38(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv38(dv')
+    ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {
         lemma_ind_inv_implies_intermediate_steps(dv);
         assert inv53(dv);
-        lemma_inv38_dv_next(dv, e, dv');
+        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_iii_a(dv: DVState, e: DV.Event, dv': DVState)       
@@ -524,7 +524,7 @@ module Proofs_DV_Ind_Inv
     {                    
         && pred_4_1_f_b(dv) 
         && invNetwork(dv)
-        && inv38(dv)
+        && inv_attestation_shares_to_broadcast_are_sent_messages(dv)
         && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     }
 
@@ -537,7 +537,7 @@ module Proofs_DV_Ind_Inv
         lemma_pred_4_1_f_b(dv, e, dv');
         lemma_ind_inv_dv_next_inv_invNetwork(dv, e, dv');
         lemma_ind_inv_dv_next_inv_38(dv, e, dv');
-        lemma_inv38_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv');
+        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv');
     }
 
     lemma lemma_pred_4_1_g_iii_ind_inv(
@@ -880,8 +880,8 @@ module Proofs_DV_Ind_Inv
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
         {
             assert 
-            && quorum_constraints(dv)
-            && unchanged_honesty(dv)
+            && inv_quorum_constraints(dv)
+            && inv_unchanged_honesty(dv)
             && pred_4_1_b(dv)
             && pred_4_1_c(dv)
             && pred_4_1_f_a(dv)    

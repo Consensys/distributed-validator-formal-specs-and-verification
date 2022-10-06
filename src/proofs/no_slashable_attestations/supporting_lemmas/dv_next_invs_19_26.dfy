@@ -51,7 +51,7 @@ module DV_Next_Invs_19_26
         event: DV.Event,
         dv': DVState
     )
-    requires quorum_constraints(dv)    
+    requires inv_quorum_constraints(dv)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv20(dv, dv')

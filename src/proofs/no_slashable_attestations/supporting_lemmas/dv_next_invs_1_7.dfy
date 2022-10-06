@@ -21,25 +21,25 @@ module DV_Next_Invs_1_7
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
 
-    lemma lemma_quorum_constraints_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lemma_inv_quorum_constraints_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires quorum_constraints(dv)
-    ensures quorum_constraints(dv')
+    requires inv_quorum_constraints(dv)
+    ensures inv_quorum_constraints(dv')
     { }    
 
-    lemma lemma_unchanged_honesty_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lemma_inv_unchanged_honesty_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires unchanged_honesty(dv)
-    ensures unchanged_honesty(dv')
+    requires inv_unchanged_honesty(dv)
+    ensures inv_unchanged_honesty(dv')
     { }    
 
-    lemma lemma_only_dv_construct_signed_attestation_signature_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires only_dv_construct_signed_attestation_signature(dv)
-    ensures only_dv_construct_signed_attestation_signature(dv')
+    requires inv_only_dv_construct_signed_attestation_signature(dv)
+    ensures inv_only_dv_construct_signed_attestation_signature(dv')
     { }    
 
     lemma lemma_inv4_dv_next_helper(
@@ -47,7 +47,7 @@ module DV_Next_Invs_1_7
         event: DV.Event,
         dv': DVState
     )
-    requires quorum_constraints(dv)    
+    requires inv_quorum_constraints(dv)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv4(dv)    
@@ -63,7 +63,7 @@ module DV_Next_Invs_1_7
         event: DV.Event,
         dv': DVState
     )
-    requires quorum_constraints(dv)    
+    requires inv_quorum_constraints(dv)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv4(dv)

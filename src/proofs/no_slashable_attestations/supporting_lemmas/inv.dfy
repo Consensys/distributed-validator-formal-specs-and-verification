@@ -23,8 +23,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate is_honest_node(s: DVState, n: BLSPubkey)
     {
-        // && n in s.all_nodes
-        // && !(n in s.adversary.nodes)
         && n in s.honest_nodes_states.Keys
     }
 
@@ -63,47 +61,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::
             pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node(dv, n)
     }  
-
-    // predicate pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(
-    //     dv: DVState,
-    //     att_share: AttestationShare,
-    //     signing_root: Root,
-    //     signature: BLSSignature
-    // )      
-    // {
-    //     && att_share in dv.att_network.allMessagesSent
-    //     && att_share.signature == signature
-    //     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
-    //     && signing_root == compute_attestation_signing_root(att_share.data, fork_version)
-    // }
-
-    // predicate pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
-    //     dv: DVState,
-    //     att_share: AttestationShare,
-    //     hn: BLSPubkey,
-    //     signing_root: Root
-    // )
-    // {
-    //     && att_share in dv.att_network.allMessagesSent
-    //     && hn in dv.honest_nodes_states.Keys
-    //     && verify_bls_siganture(signing_root, att_share.signature, hn)
-    // }
-
-    // predicate pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data(
-    //     dv: DVState
-    // )
-    // {
-    //     forall att_share, signing_root, hn |
-    //             pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
-    //                 dv,
-    //                 att_share,
-    //                 hn,
-    //                 signing_root
-    //             )
-    //         ::
-    //         exists att_share' :: pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(dv, att_share', signing_root, att_share.signature)
-
-    // }    
 
     predicate pred_4_1_b_exists(
         dv: DVState,
@@ -1377,7 +1334,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
     
 
-    predicate quorum_constraints(dv: DVState)
+    predicate inv_quorum_constraints(dv: DVState)
     {        
         && var all_nodes := dv.all_nodes;
         && var honest_nodes := dv.honest_nodes_states.Keys;
@@ -1389,7 +1346,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && honest_nodes * dishonest_nodes == {}
     }
 
-    predicate unchanged_honesty(dv: DVState)
+    predicate inv_unchanged_honesty(dv: DVState)
     {
         forall ci | ci in dv.consensus_on_attestation_data.Values
             :: && ci.all_nodes == dv.all_nodes
@@ -1399,7 +1356,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 
-    predicate only_dv_construct_signed_attestation_signature(dv: DVState)
+    predicate inv_only_dv_construct_signed_attestation_signature(dv: DVState)
     {
         forall n | n in dv.honest_nodes_states.Keys :: 
             var nodes := dv.honest_nodes_states[n];
@@ -2022,19 +1979,19 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             dv.all_nodes)
     }
 
-    predicate inv36_body<M>(e: Network<M>)
+    predicate inv_all_in_transit_messages_were_sent_body<M>(e: Network<M>)
     {
          forall m | m in e.messagesInTransit::
                 m.message in e.allMessagesSent       
     } 
      
-    predicate inv36(dv: DVState)
+    predicate inv_all_in_transit_messages_were_sent(dv: DVState)
     {
          forall m | m in dv.att_network.messagesInTransit::
                 m.message in dv.att_network.allMessagesSent       
     } 
 
-    predicate inv37_body(
+    predicate inv_rcvd_attn_shares_are_from_sent_messages_body(
         dv: DVState,
         dvc: DVCState
     )
@@ -2048,17 +2005,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             rcvd_attestation_shares[i][j] <= dv.att_network.allMessagesSent
     }    
 
-    predicate inv37(
+    // Received attestation shares are from sent messages.
+    predicate inv_rcvd_attn_shares_are_from_sent_messages(
         dv: DVState    
     )
     {
         forall n | n in dv.honest_nodes_states ::
             && var dvc := dv.honest_nodes_states[n];
-            && inv37_body(dv, dvc)
+            && inv_rcvd_attn_shares_are_from_sent_messages_body(dv, dvc)
     } 
 
 
-    predicate inv38_body(
+    predicate inv_attestation_shares_to_broadcast_are_sent_messages_body(
         dv: DVState,
         dvc: DVCState
     )    
@@ -2066,13 +2024,14 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc.attestation_shares_to_broadcast.Values <= dv.att_network.allMessagesSent
     }
 
-    predicate inv38(
+    // For every honest DVC, its attestation shares to broadcast is a subset of a set of sent messages in DV. 
+    predicate inv_attestation_shares_to_broadcast_are_sent_messages(
         dv: DVState
     )
     {
         forall n | n in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[n];
-            && inv38_body(dv, dvc)
+            && inv_attestation_shares_to_broadcast_are_sent_messages_body(dv, dvc)
     }
 
     predicate inv39(

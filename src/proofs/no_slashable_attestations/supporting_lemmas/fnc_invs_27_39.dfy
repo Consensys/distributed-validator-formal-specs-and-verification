@@ -1831,7 +1831,7 @@ module Fnc_Invs_27_39
         { }
     } 
 
-    lemma lemma_inv37_add_block_to_bn(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState 
@@ -1842,7 +1842,7 @@ module Fnc_Invs_27_39
     { }
 
     /*
-    lemma lemma_inv37_f_listen_for_attestation_shares(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
@@ -2009,13 +2009,13 @@ module Fnc_Invs_27_39
     }
     */
 
-    lemma lemma_inv37_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state       
     ensures process'.rcvd_attestation_shares == process.rcvd_attestation_shares
     { } 
 
-    lemma lemma_inv37_f_resend_attestation_share(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_resend_attestation_share(
         process: DVCState,
         process': DVCState)
     requires f_resend_attestation_share.requires(process)
@@ -2024,7 +2024,7 @@ module Fnc_Invs_27_39
     { } 
 
 
-    lemma lemma_inv37_f_check_for_next_queued_duty(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_check_for_next_queued_duty(
         process: DVCState,
         process': DVCState
     )
@@ -2055,7 +2055,7 @@ module Fnc_Invs_27_39
 
                     assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
                     
-                    lemma_inv37_f_check_for_next_queued_duty(process_mod, process');
+                    lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_check_for_next_queued_duty(process_mod, process');
                 }
                 else
                 { 
@@ -2063,7 +2063,7 @@ module Fnc_Invs_27_39
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     );     
                     assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
-                    lemma_inv37_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
+                    lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
                 }
         }
         else
@@ -2072,7 +2072,7 @@ module Fnc_Invs_27_39
         }
     }
 
-    lemma lemma_inv37_f_att_consensus_decided(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -2115,13 +2115,13 @@ module Fnc_Invs_27_39
 
             var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
             
-            lemma_inv37_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_check_for_next_queued_duty(process_mod, ret_dvc);
             
             assert process' == ret_dvc;      
         } 
     }
 
-    lemma lemma_inv37_f_serve_attestation_duty(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
@@ -2137,11 +2137,11 @@ module Fnc_Invs_27_39
 
         assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
 
-        lemma_inv37_f_check_for_next_queued_duty(process_mod, process');        
+        lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_check_for_next_queued_duty(process_mod, process');        
     }
 
 
-    lemma lemma_inv37_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -2199,7 +2199,7 @@ module Fnc_Invs_27_39
 
             
 
-            lemma_inv37_f_check_for_next_queued_duty(process_mod, process');
+            lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_check_for_next_queued_duty(process_mod, process');
         }
         else
         { }
@@ -2238,7 +2238,7 @@ module Fnc_Invs_27_39
         assert getMessagesFromMessagesWithRecipient(mcast_msgs) == { attestation_with_signature_share };
     }
 
-    lemma lemma_inv38_add_block_to_bn(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_add_block_to_bn(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState 
@@ -2248,7 +2248,7 @@ module Fnc_Invs_27_39
     ensures process'.attestation_shares_to_broadcast == process.attestation_shares_to_broadcast
     { }
 
-    lemma lemma_inv38_f_listen_for_attestation_shares(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
@@ -2259,14 +2259,14 @@ module Fnc_Invs_27_39
     ensures process'.peers == process.peers          
     { }
 
-    lemma lemma_inv38_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state       
     ensures process'.attestation_shares_to_broadcast == process.attestation_shares_to_broadcast                  
     ensures process'.peers == process.peers
     { } 
 
-    lemma lemma_inv38_f_resend_attestation_share(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_resend_attestation_share(
         process: DVCState,
         process': DVCState)
     requires f_resend_attestation_share.requires(process)
@@ -2275,7 +2275,7 @@ module Fnc_Invs_27_39
     ensures process'.peers == process.peers
     { } 
 
-    lemma lemma_inv38_f_check_for_next_queued_duty(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_check_for_next_queued_duty(
         process: DVCState,
         process': DVCState
     )
@@ -2307,7 +2307,7 @@ module Fnc_Invs_27_39
 
                     assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
                     
-                    lemma_inv38_f_check_for_next_queued_duty(process_mod, process');
+                    lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_check_for_next_queued_duty(process_mod, process');
                 }
                 else
                 { 
@@ -2315,14 +2315,14 @@ module Fnc_Invs_27_39
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     );     
                     assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
-                    lemma_inv38_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
+                    lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
                 }
         }
         else
         { }
     }
 
-    lemma lemma_inv38_f_att_consensus_decided(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -2367,7 +2367,7 @@ module Fnc_Invs_27_39
                 );
 
             var new_dvc := f_check_for_next_queued_duty(process_mod).state;
-            lemma_inv38_f_check_for_next_queued_duty(process_mod, new_dvc);        
+            lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_check_for_next_queued_duty(process_mod, new_dvc);        
             assert new_dvc.attestation_shares_to_broadcast == process_mod.attestation_shares_to_broadcast;
             assert new_dvc.peers == process_mod.peers;
             
@@ -2389,7 +2389,7 @@ module Fnc_Invs_27_39
         }
     }
 
-    lemma lemma_inv38_f_serve_attestation_duty(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
@@ -2404,10 +2404,10 @@ module Fnc_Invs_27_39
             );        
 
 
-        lemma_inv38_f_check_for_next_queued_duty(process_mod, process');        
+        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_check_for_next_queued_duty(process_mod, process');        
     }
 
-    lemma lemma_inv38_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -2451,13 +2451,13 @@ module Fnc_Invs_27_39
 
             
 
-            lemma_inv38_f_check_for_next_queued_duty(process_mod, process');
+            lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_check_for_next_queued_duty(process_mod, process');
         }
         else
         { }
     } 
 
-    lemma lemma_inv37_f_listen_for_attestation_shares(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
@@ -2622,7 +2622,7 @@ module Fnc_Invs_27_39
     }
 
     
-    lemma lemma_inv37_f_listen_for_attestation_shares_domain(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_attestation_shares_domain(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState

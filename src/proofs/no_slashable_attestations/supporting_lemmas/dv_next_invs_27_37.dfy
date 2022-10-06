@@ -411,7 +411,7 @@ module DV_Next_Invs_27_37
         assert dv.construct_signed_attestation_signature == dv'.construct_signed_attestation_signature;
     }
 
-    lemma lemma_inv36_body_network_spec_next<M>(
+    lemma lemma_inv_all_in_transit_messages_were_sent_body_network_spec_next<M>(
         e: Network<M>,
         e': Network<M>,
         n: BLSPubkey,
@@ -419,21 +419,21 @@ module DV_Next_Invs_27_37
         messagesReceived: set<M>
     )
     requires NetworkSpec.Next(e, e', n, messagesToBeSent, messagesReceived)
-    requires inv36_body(e)
-    ensures inv36_body(e')
+    requires inv_all_in_transit_messages_were_sent_body(e)
+    ensures inv_all_in_transit_messages_were_sent_body(e')
     {}
 
     
 
-    lemma lemma_inv36_dv_next(
+    lemma lemma_inv_all_in_transit_messages_were_sent_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv36(dv)
-    ensures inv36(dv')    
+    requires inv_all_in_transit_messages_were_sent(dv)
+    ensures inv_all_in_transit_messages_were_sent(dv')    
     {
         var n: BLSPubkey,
             messagesToBeSent: set<MessaageWithRecipient<AttestationShare>>,
@@ -446,7 +446,7 @@ module DV_Next_Invs_27_37
                 messagesToBeSent, 
                 messagesReceived);
 
-        lemma_inv36_body_network_spec_next<AttestationShare>(
+        lemma_inv_all_in_transit_messages_were_sent_body_network_spec_next<AttestationShare>(
                 dv.att_network, 
                 dv'.att_network, 
                 n, 
@@ -454,36 +454,36 @@ module DV_Next_Invs_27_37
                 messagesReceived);  
     }
 
-    lemma lemma_inv36_invNetwork(dv: DVState)
-    requires inv36(dv)
+    lemma lemma_inv_all_in_transit_messages_were_sent_invNetwork(dv: DVState)
+    requires inv_all_in_transit_messages_were_sent(dv)
     ensures invNetwork(dv)
     {}
 
-    lemma lemma_inv38_dv_next(
+    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires quorum_constraints(dv)
-    requires unchanged_honesty(dv)
-    requires only_dv_construct_signed_attestation_signature(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_unchanged_honesty(dv)
+    requires inv_only_dv_construct_signed_attestation_signature(dv)
     requires inv53(dv)    
     requires pred_4_1_f_a(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_i_for_dvc(dv)      
     requires pred_4_1_f_b(dv)       
-    requires inv38(dv)    
-    ensures inv38(dv')
+    requires inv_attestation_shares_to_broadcast_are_sent_messages(dv)    
+    ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {   
-        lemma_quorum_constraints_dv_next(dv, event, dv');
-        lemma_unchanged_honesty_dv_next(dv, event, dv');
-        lemma_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
+        lemma_inv_quorum_constraints_dv_next(dv, event, dv');
+        lemma_inv_unchanged_honesty_dv_next(dv, event, dv');
+        lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
 
-        assert && quorum_constraints(dv')
-               && unchanged_honesty(dv')
-               && only_dv_construct_signed_attestation_signature(dv');
+        assert && inv_quorum_constraints(dv')
+               && inv_unchanged_honesty(dv')
+               && inv_only_dv_construct_signed_attestation_signature(dv');
         
 
         match event 
@@ -497,27 +497,27 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(att_duty) =>     
-                        lemma_inv38_f_serve_attestation_duty(dvc, att_duty, dvc');                        
+                        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_serve_attestation_duty(dvc, att_duty, dvc');                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         var att_network := dv.att_network;
                         var att_network' := dv'.att_network;
                         lemma_pred_4_1_g_iii_helper6(dv, event, dv');
-                        lemma_inv38_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
+                        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
                         assert      att_network'.allMessagesSent
                                 ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
                     
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv38_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
+                        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
 
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv38_add_block_to_bn(dvc, block, dvc_mod);
-                        lemma_inv38_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
+                        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_add_block_to_bn(dvc, block, dvc_mod);
+                        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
                                                 
                     case ResendAttestationShares =>                         
-                        lemma_inv38_f_resend_attestation_share(dvc, dvc');
+                        lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_resend_attestation_share(dvc, dvc');
 
                     case NoEvent => 
                         
@@ -538,16 +538,16 @@ module DV_Next_Invs_27_37
     ensures dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent
     {}
 
-    lemma lemma_inv37_dv_next(
+    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv36(dv)
-    requires inv37(dv)
-    ensures inv37(dv')
+    requires inv_all_in_transit_messages_were_sent(dv)
+    requires inv_rcvd_attn_shares_are_from_sent_messages(dv)
+    ensures inv_rcvd_attn_shares_are_from_sent_messages(dv')
     {        
         match event 
         {
@@ -557,10 +557,10 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(att_duty) =>     
-                        lemma_inv37_f_serve_attestation_duty(dvc, att_duty, dvc');                        
+                        lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_serve_attestation_duty(dvc, att_duty, dvc');                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv37_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                        lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
 
                     case ReceivedAttestationShare(attestation_share) =>    
                         assert NetworkSpec.Next(dv.att_network, dv'.att_network, node, nodeOutputs.att_shares_sent, {attestation_share});
@@ -572,7 +572,7 @@ module DV_Next_Invs_27_37
                         lemma_inv39_dv_next(dv, event, dv');
                         assert dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent;
                         
-                        lemma_inv37_f_listen_for_attestation_shares(dvc, attestation_share, dvc');  
+                        lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_attestation_shares(dvc, attestation_share, dvc');  
 
                         assert dvc' == f_listen_for_attestation_shares(dvc, attestation_share).state;
 
@@ -585,7 +585,7 @@ module DV_Next_Invs_27_37
                                  || j != k
                                )
                             {             
-                                lemma_inv37_f_listen_for_attestation_shares_domain(
+                                lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_attestation_shares_domain(
                                     dvc,
                                     attestation_share,
                                     dvc'
@@ -669,15 +669,15 @@ module DV_Next_Invs_27_37
                                 }
                             }
                         }
-                        assert inv37(dv');
+                        assert inv_rcvd_attn_shares_are_from_sent_messages(dv');
 
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv37_add_block_to_bn(dvc, block, dvc_mod);
-                        lemma_inv37_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
+                        lemma_inv_rcvd_attn_shares_are_from_sent_messages_add_block_to_bn(dvc, block, dvc_mod);
+                        lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
                                                 
                     case ResendAttestationShares =>                         
-                        lemma_inv37_f_resend_attestation_share(dvc, dvc');
+                        lemma_inv_rcvd_attn_shares_are_from_sent_messages_f_resend_attestation_share(dvc, dvc');
 
                     case NoEvent => 
                         

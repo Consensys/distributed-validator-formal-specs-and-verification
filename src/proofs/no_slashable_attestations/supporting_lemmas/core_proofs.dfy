@@ -45,7 +45,7 @@ module Core_Proofs
                         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dv.all_nodes| > 0
-    requires quorum_constraints(dv)    
+    requires inv_quorum_constraints(dv)    
     requires pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
     requires && consa.decided_value.isPresent()
              && consa'.decided_value.isPresent()
@@ -98,8 +98,8 @@ module Core_Proofs
 
     lemma lemma_4_1_a_i(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
-    requires quorum_constraints(dv)   
-    requires unchanged_honesty(dv)
+    requires inv_quorum_constraints(dv)   
+    requires inv_unchanged_honesty(dv)
     requires pred_4_1_b(dv)
     requires pred_4_1_c(dv)
     requires pred_4_1_f_a(dv)    
@@ -172,8 +172,8 @@ module Core_Proofs
 
     lemma lemma_4_1_a(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
-    requires quorum_constraints(dv)
-    requires unchanged_honesty(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_unchanged_honesty(dv)
     requires pred_4_1_b(dv)
     requires pred_4_1_c(dv)
     requires pred_4_1_f_a(dv)    
@@ -210,8 +210,8 @@ module Core_Proofs
 
     lemma lemma_4_1_b(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
-    requires quorum_constraints(dv)
-    requires unchanged_honesty(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_unchanged_honesty(dv)
     requires pred_4_1_b(dv)
     requires pred_4_1_c(dv)
     requires pred_4_1_f_a(dv)    
@@ -255,8 +255,8 @@ module Core_Proofs
 
     lemma lemma_4_1_general(dv: DVState, a: Attestation, a': Attestation)
     // requires |dv.all_nodes| > 0
-    requires quorum_constraints(dv)
-    requires unchanged_honesty(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_unchanged_honesty(dv)
     requires pred_4_1_b(dv)
     requires pred_4_1_c(dv)
     requires pred_4_1_f_a(dv)    
