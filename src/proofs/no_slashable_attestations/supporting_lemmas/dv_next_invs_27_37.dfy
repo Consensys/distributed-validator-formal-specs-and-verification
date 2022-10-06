@@ -2,19 +2,19 @@ include "../../../common/commons.dfy"
 include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
-include "../../../specs/dvn/dvn.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
-include "dvn_next_invs_1_7.dfy"
-include "dvn_next_invs_8_18.dfy"
-include "dvn_next_invs_19_26.dfy"
+include "dv_next_invs_1_7.dfy"
+include "dv_next_invs_8_18.dfy"
+include "dv_next_invs_19_26.dfy"
 include "fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
-module DVN_Next_Invs_27_37
+module DV_Next_Invs_27_37
 {
     import opened Types 
     import opened CommonFunctions
@@ -26,31 +26,31 @@ module DVN_Next_Invs_27_37
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DVN_Next_Invs_1_7
-    import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19_26
+    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_8_18
+    import opened DV_Next_Invs_19_26
     import opened Fnc_Invs_27_39
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DVCNode_Spec_Axioms
     
 
-    lemma lemma_inv27_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv27_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv5(dvn)
-    requires inv25(dvn)
-    requires inv27(dvn)  
-    ensures inv27(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv5(dv)
+    requires inv25(dv)
+    requires inv27(dv)  
+    ensures inv27(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -89,23 +89,23 @@ module DVN_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv28_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv28_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv5(dvn)
-    requires inv26(dvn)
-    requires inv28(dvn)  
-    ensures inv28(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv5(dv)
+    requires inv26(dv)
+    requires inv28(dv)  
+    ensures inv28(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -144,23 +144,23 @@ module DVN_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv29_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv29_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv5(dvn)
-    requires inv25(dvn)
-    requires inv29(dvn)  
-    ensures inv29(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv5(dv)
+    requires inv25(dv)
+    requires inv29(dv)  
+    ensures inv29(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -199,20 +199,20 @@ module DVN_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv30_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv30_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    ensures inv30(dvn, event, dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    ensures inv30(dv, event, dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -246,23 +246,23 @@ module DVN_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv31_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv31_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv5(dvn)
-    requires inv26(dvn)
-    requires inv31(dvn)  
-    ensures inv31(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv5(dv)
+    requires inv26(dv)
+    requires inv31(dv)  
+    ensures inv31(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -301,20 +301,20 @@ module DVN_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv32_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv32_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    ensures inv32(dvn, event, dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    ensures inv32(dv, event, dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -350,21 +350,21 @@ module DVN_Next_Invs_27_37
 
     
 
-    lemma lemma_inv34_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv34_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv34(dvn)
-    ensures inv34(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv34(dv)
+    ensures inv34(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
@@ -398,17 +398,17 @@ module DVN_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv35_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv35_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv35(dvn)
-    ensures inv35(dvn')    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv35(dv)
+    ensures inv35(dv')    
     {
-        assert dvn.construct_signed_attestation_signature == dvn'.construct_signed_attestation_signature;
+        assert dv.construct_signed_attestation_signature == dv'.construct_signed_attestation_signature;
     }
 
     lemma lemma_inv36_body_network_spec_next<M>(
@@ -425,72 +425,72 @@ module DVN_Next_Invs_27_37
 
     
 
-    lemma lemma_inv36_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv36_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires inv36(dvn)
-    ensures inv36(dvn')    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires inv36(dv)
+    ensures inv36(dv')    
     {
         var n: BLSPubkey,
             messagesToBeSent: set<MessaageWithRecipient<AttestationShare>>,
             messagesReceived: set<AttestationShare> 
             :|
             NetworkSpec.Next<AttestationShare>(
-                dvn.att_network, 
-                dvn'.att_network, 
+                dv.att_network, 
+                dv'.att_network, 
                 n, 
                 messagesToBeSent, 
                 messagesReceived);
 
         lemma_inv36_body_network_spec_next<AttestationShare>(
-                dvn.att_network, 
-                dvn'.att_network, 
+                dv.att_network, 
+                dv'.att_network, 
                 n, 
                 messagesToBeSent, 
                 messagesReceived);  
     }
 
-    lemma lemma_inv36_invNetwork(dvn: DVState)
-    requires inv36(dvn)
-    ensures invNetwork(dvn)
+    lemma lemma_inv36_invNetwork(dv: DVState)
+    requires inv36(dv)
+    ensures invNetwork(dv)
     {}
 
-    lemma lemma_inv38_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv38_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )       
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')  
-    requires quorum_constraints(dvn)
-    requires inv2(dvn)
-    requires inv3(dvn)
-    requires inv53(dvn)    
-    requires pred_4_1_f_a(dvn)    
-    requires pred_4_1_g_i(dvn)
-    requires pred_4_1_g_i_for_dvc(dvn)      
-    requires pred_4_1_f_b(dvn)       
-    requires inv38(dvn)    
-    ensures inv38(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires quorum_constraints(dv)
+    requires inv2(dv)
+    requires inv3(dv)
+    requires inv53(dv)    
+    requires pred_4_1_f_a(dv)    
+    requires pred_4_1_g_i(dv)
+    requires pred_4_1_g_i_for_dvc(dv)      
+    requires pred_4_1_f_b(dv)       
+    requires inv38(dv)    
+    ensures inv38(dv')
     {   
-        lemma_inv1_dvn_next(dvn, event, dvn');
-        lemma_inv2_dvn_next(dvn, event, dvn');
-        lemma_inv3_dvn_next(dvn, event, dvn');
+        lemma_inv1_dv_next(dv, event, dv');
+        lemma_inv2_dv_next(dv, event, dv');
+        lemma_inv3_dv_next(dv, event, dv');
 
-        assert && quorum_constraints(dvn')
-               && inv2(dvn')
-               && inv3(dvn');
+        assert && quorum_constraints(dv')
+               && inv2(dv')
+               && inv3(dv');
         
 
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 assert && dvc.peers == dvc'.peers
                        && |dvc.peers| > 0 ;
 
@@ -500,9 +500,9 @@ module DVN_Next_Invs_27_37
                         lemma_inv38_f_serve_attestation_duty(dvc, att_duty, dvc');                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        var att_network := dvn.att_network;
-                        var att_network' := dvn'.att_network;
-                        lemma_pred_4_1_g_iii_helper6(dvn, event, dvn');
+                        var att_network := dv.att_network;
+                        var att_network' := dv'.att_network;
+                        lemma_pred_4_1_g_iii_helper6(dv, event, dv');
                         lemma_inv38_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
                         assert      att_network'.allMessagesSent
                                 ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
@@ -528,32 +528,32 @@ module DVN_Next_Invs_27_37
         }        
     }  
 
-    lemma lemma_inv39_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv39_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )       
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')  
-    ensures dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    ensures dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent
     {}
 
-    lemma lemma_inv37_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv37_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )       
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')  
-    requires inv36(dvn)
-    requires inv37(dvn)
-    ensures inv37(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv36(dv)
+    requires inv37(dv)
+    ensures inv37(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
                     case ServeAttstationDuty(att_duty) =>     
@@ -563,14 +563,14 @@ module DVN_Next_Invs_27_37
                         lemma_inv37_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
 
                     case ReceviedAttesttionShare(attestation_share) =>    
-                        assert NetworkSpec.Next(dvn.att_network, dvn'.att_network, node, nodeOutputs.att_shares_sent, {attestation_share});
-                        assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= dvn.att_network.messagesInTransit;
-                        assert MessaageWithRecipient(message := attestation_share, receipient := node) in dvn.att_network.messagesInTransit;        
-                        assert attestation_share in dvn.att_network.allMessagesSent;
-                        assert attestation_share in dvn'.att_network.allMessagesSent;
+                        assert NetworkSpec.Next(dv.att_network, dv'.att_network, node, nodeOutputs.att_shares_sent, {attestation_share});
+                        assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= dv.att_network.messagesInTransit;
+                        assert MessaageWithRecipient(message := attestation_share, receipient := node) in dv.att_network.messagesInTransit;        
+                        assert attestation_share in dv.att_network.allMessagesSent;
+                        assert attestation_share in dv'.att_network.allMessagesSent;
                         
-                        lemma_inv39_dvn_next(dvn, event, dvn');
-                        assert dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent;
+                        lemma_inv39_dv_next(dv, event, dv');
+                        assert dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent;
                         
                         lemma_inv37_f_listen_for_attestation_shares(dvc, attestation_share, dvc');  
 
@@ -579,7 +579,7 @@ module DVN_Next_Invs_27_37
                         var k := (attestation_share.data, attestation_share.aggregation_bits);
                         forall i, j | && i in dvc'.rcvd_attestation_shares.Keys 
                                       && j in dvc'.rcvd_attestation_shares[i].Keys
-                        ensures dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;
+                        ensures dvc'.rcvd_attestation_shares[i][j] <= dv'.att_network.allMessagesSent;
                         {
                             if ( || i != attestation_share.data.slot
                                  || j != k
@@ -593,19 +593,19 @@ module DVN_Next_Invs_27_37
                                 assert && i in dvc.rcvd_attestation_shares.Keys 
                                        && j in dvc.rcvd_attestation_shares[i].Keys;
                                 assert dvc'.rcvd_attestation_shares[i][j] <= dvc.rcvd_attestation_shares[i][j];                                
-                                assert dvc.rcvd_attestation_shares[i][j] <= dvn.att_network.allMessagesSent;
+                                assert dvc.rcvd_attestation_shares[i][j] <= dv.att_network.allMessagesSent;
                                 lemmaSubsetOfSubset(
                                     dvc'.rcvd_attestation_shares[i][j],
                                     dvc.rcvd_attestation_shares[i][j],
-                                    dvn.att_network.allMessagesSent
+                                    dv.att_network.allMessagesSent
                                 );
-                                assert dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent;
+                                assert dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent;
                                 lemmaSubsetOfSubset(
                                     dvc'.rcvd_attestation_shares[i][j],                                    
-                                    dvn.att_network.allMessagesSent,
-                                    dvn'.att_network.allMessagesSent
+                                    dv.att_network.allMessagesSent,
+                                    dv'.att_network.allMessagesSent
                                 );
-                                assert dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;
+                                assert dvc'.rcvd_attestation_shares[i][j] <= dv'.att_network.allMessagesSent;
                             }
                             else
                             {
@@ -619,16 +619,16 @@ module DVN_Next_Invs_27_37
                                     assert dvc'.rcvd_attestation_shares[i][j] <= {attestation_share};
                                     
                                     
-                                    assert attestation_share in dvn'.att_network.allMessagesSent;                                    
-                                    lemmaFromMemberToSingletonSet(attestation_share, dvn'.att_network.allMessagesSent);
-                                    assert {attestation_share} <= dvn'.att_network.allMessagesSent;
+                                    assert attestation_share in dv'.att_network.allMessagesSent;                                    
+                                    lemmaFromMemberToSingletonSet(attestation_share, dv'.att_network.allMessagesSent);
+                                    assert {attestation_share} <= dv'.att_network.allMessagesSent;
 
                                     lemmaSubsetOfSubset(
                                             dvc'.rcvd_attestation_shares[i][j],
                                             {attestation_share},
-                                            dvn'.att_network.allMessagesSent
+                                            dv'.att_network.allMessagesSent
                                         );
-                                    assert dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;                                     
+                                    assert dvc'.rcvd_attestation_shares[i][j] <= dv'.att_network.allMessagesSent;                                     
                                     
                                 }
                                 else
@@ -643,33 +643,33 @@ module DVN_Next_Invs_27_37
                                                 <= dvc.rcvd_attestation_shares[i][j] + {attestation_share}; 
 
                                     assert dvc.rcvd_attestation_shares[i][j] 
-                                                <= dvn.att_network.allMessagesSent;                                                
-                                    assert dvn.att_network.allMessagesSent <= dvn'.att_network.allMessagesSent;      
+                                                <= dv.att_network.allMessagesSent;                                                
+                                    assert dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent;      
                                     lemmaSubsetOfSubset(
                                         dvc.rcvd_attestation_shares[i][j],
-                                        dvn.att_network.allMessagesSent,
-                                        dvn'.att_network.allMessagesSent);                                    
+                                        dv.att_network.allMessagesSent,
+                                        dv'.att_network.allMessagesSent);                                    
                                     assert dvc.rcvd_attestation_shares[i][j] 
-                                                <= dvn'.att_network.allMessagesSent;
+                                                <= dv'.att_network.allMessagesSent;
 
-                                    assert attestation_share in dvn'.att_network.allMessagesSent;                                    
-                                    lemmaFromMemberToSingletonSet(attestation_share, dvn'.att_network.allMessagesSent);
-                                    assert {attestation_share} <= dvn'.att_network.allMessagesSent;
+                                    assert attestation_share in dv'.att_network.allMessagesSent;                                    
+                                    lemmaFromMemberToSingletonSet(attestation_share, dv'.att_network.allMessagesSent);
+                                    assert {attestation_share} <= dv'.att_network.allMessagesSent;
 
-                                    lemmaUnionOfSubsets(dvc.rcvd_attestation_shares[i][j], {attestation_share}, dvn'.att_network.allMessagesSent);                                    
+                                    lemmaUnionOfSubsets(dvc.rcvd_attestation_shares[i][j], {attestation_share}, dv'.att_network.allMessagesSent);                                    
                                     assert dvc.rcvd_attestation_shares[i][j] + {attestation_share}
-                                                <= dvn'.att_network.allMessagesSent;
+                                                <= dv'.att_network.allMessagesSent;
 
                                     lemmaSubsetOfSubset(
                                         dvc'.rcvd_attestation_shares[i][j],
                                         dvc.rcvd_attestation_shares[i][j] + {attestation_share},
-                                        dvn'.att_network.allMessagesSent);
+                                        dv'.att_network.allMessagesSent);
                                     
-                                    assert dvc'.rcvd_attestation_shares[i][j] <= dvn'.att_network.allMessagesSent;                                                                         
+                                    assert dvc'.rcvd_attestation_shares[i][j] <= dv'.att_network.allMessagesSent;                                                                         
                                 }
                             }
                         }
-                        assert inv37(dvn');
+                        assert inv37(dv');
 
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
@@ -688,49 +688,49 @@ module DVN_Next_Invs_27_37
         }        
     }  
 
-    lemma lemma_pred_4_1_g_iii_c_dvn_next(
-        dvn: DVState,
+    lemma lemma_pred_4_1_g_iii_c_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEvent.requires(dvn, event, dvn')  
-    requires NextEvent(dvn, event, dvn')  
-    requires pred_4_1_g_iii_b(dvn)
-    requires pred_4_1_g_iii_c(dvn)
-    ensures pred_4_1_g_iii_c(dvn')
+    requires NextEvent.requires(dv, event, dv')  
+    requires NextEvent(dv, event, dv')  
+    requires pred_4_1_g_iii_b(dv)
+    requires pred_4_1_g_iii_c(dv)
+    ensures pred_4_1_g_iii_c(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];   
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];   
                 
                 assert inv_g_iii_b_body_body(
-                            dvn,
+                            dv,
                             node,
                             dvc,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.index_next_attestation_duty_to_be_served
                 );
 
                 assert inv_g_iii_b_new_body(
                             node,
                             dvc,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served
                 );
 
                 assert inv_g_iii_c_body_body(
-                            dvn,
+                            dv,
                             node,
                             dvc,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.index_next_attestation_duty_to_be_served
                 );
 
                 assert inv_g_iii_c_new_body(
                             node,
                             dvc,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served
                 );
                 
                 match nodeEvent
@@ -741,14 +741,14 @@ module DVN_Next_Invs_27_37
                             attestation_duty, 
                             dvc',
                             node,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served
                         );
                         assert inv_g_iii_c_body_body(
-                                    dvn',
+                                    dv',
                                     node,
                                     dvc',
-                                    dvn'.index_next_attestation_duty_to_be_served
+                                    dv'.index_next_attestation_duty_to_be_served
                         );
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -758,13 +758,13 @@ module DVN_Next_Invs_27_37
                             decided_attestation_data, 
                             dvc',
                             node,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served);
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served);
                         assert inv_g_iii_c_body_body(
-                                    dvn',
+                                    dv',
                                     node,
                                     dvc',
-                                    dvn'.index_next_attestation_duty_to_be_served
+                                    dv'.index_next_attestation_duty_to_be_served
                         );
                         
                     case ReceviedAttesttionShare(attestation_share) =>                         
@@ -773,13 +773,13 @@ module DVN_Next_Invs_27_37
                             attestation_share, 
                             dvc',
                             node,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served);
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served);
                         assert inv_g_iii_c_body_body(
-                                    dvn',
+                                    dv',
                                     node,
                                     dvc',
-                                    dvn'.index_next_attestation_duty_to_be_served
+                                    dv'.index_next_attestation_duty_to_be_served
                         );
                        
                     case ImportedNewBlock(block) => 
@@ -789,28 +789,28 @@ module DVN_Next_Invs_27_37
                             block, 
                             dvc_mod,
                             node,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served
                         );
                         assert inv_g_iii_c_new_body(
                             node,
                             dvc_mod,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served
                         );
                         lemma_pred_4_1_g_iii_c_f_listen_for_new_imported_blocks(
                             dvc_mod, 
                             block, 
                             dvc',
                             node,
-                            dvn.sequence_attestation_duties_to_be_served,
-                            dvn.index_next_attestation_duty_to_be_served
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served
                         );
                         assert inv_g_iii_c_body_body(
-                                    dvn',
+                                    dv',
                                     node,
                                     dvc',
-                                    dvn'.index_next_attestation_duty_to_be_served
+                                    dv'.index_next_attestation_duty_to_be_served
                         );
 
                     case ResendAttestationShares =>                                                                      

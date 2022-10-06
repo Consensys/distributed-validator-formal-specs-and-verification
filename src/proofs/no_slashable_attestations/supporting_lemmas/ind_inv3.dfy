@@ -3,12 +3,12 @@ include "../../common/helper_sets_lemmas.dfy"
 include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
-include "../../../specs/dvn/dvn.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
-include "dvn_next_invs_1_7.dfy"
-include "dvn_next_invs_8_18.dfy"
-include "dvn_next_invs_19_26.dfy"
-include "dvn_next_invs_27_37.dfy"
+include "dv_next_invs_1_7.dfy"
+include "dv_next_invs_8_18.dfy"
+include "dv_next_invs_19_26.dfy"
+include "dv_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "../common/common_proofs.dfy"
@@ -25,10 +25,10 @@ module IndInv3
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Invs_1_7
-    import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19_26
-    import opened DVN_Next_Invs_27_37
+    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_8_18
+    import opened DV_Next_Invs_19_26
+    import opened DV_Next_Invs_27_37
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs
@@ -36,23 +36,23 @@ module IndInv3
 
     // TODO
     predicate inv33_body(
-        dvn: DVState, 
+        dv: DVState, 
         hn: BLSPubkey,
         hn_state: DVCNodeState,
         s: Slot
     )
     {
-                ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
                     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                 )
     }
 
-    predicate inv33(dvn: DVState)
+    predicate inv33(dv: DVState)
     {
         forall hn: BLSPubkey, s: Slot |
-            hn in dvn.honest_nodes_states
+            hn in dv.honest_nodes_states
             :: 
-            inv33_body(dvn, hn, dvn.honest_nodes_states[hn], s)        
+            inv33_body(dv, hn, dv.honest_nodes_states[hn], s)        
     }  
 
     lemma lemma_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
@@ -377,22 +377,22 @@ module IndInv3
         }
     }  
 
-    lemma lemma_inv33_implies_46_a(dvn: DVState)
-    requires inv33(dvn)
-    ensures inv46_a(dvn)
+    lemma lemma_inv33_implies_46_a(dv: DVState)
+    requires inv33(dv)
+    ensures inv46_a(dv)
     {
-        forall hn: BLSPubkey, s: Slot | is_honest_node(dvn, hn)
+        forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn)
         ensures
-                var hn_state := dvn.honest_nodes_states[hn];
-                && ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                var hn_state := dv.honest_nodes_states[hn];
+                && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
                     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
                 ;        
         {
-            assert hn in dvn.honest_nodes_states.Keys;
-            var hn_state := dvn.honest_nodes_states[hn];
-            assert inv33_body(dvn, hn, hn_state, s);
+            assert hn in dv.honest_nodes_states.Keys;
+            var hn_state := dv.honest_nodes_states[hn];
+            assert inv33_body(dv, hn, hn_state, s);
             assert
-                && ( hn in dvn.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
                     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
                 ;
         }
@@ -956,25 +956,25 @@ module IndInv3
         process: DVCNodeState,
         attestation_duty: AttestationDuty,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
     requires index_next_attestation_duty_to_be_served > 0    
-    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
-    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
-    ensures inv_g_iii_a_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
+    requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
+    ensures inv_g_iii_a_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
         var new_p := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
                 all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
         );
 
-        lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served);
+        lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
     }       
 
     lemma lemma_pred_4_1_g_iii_a_f_att_consensus_decided(
@@ -982,16 +982,16 @@ module IndInv3
         id: Slot,
         decided_attestation_data: AttestationData,        
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)    
-    ensures inv_g_iii_a_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)    
+    ensures inv_g_iii_a_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {   
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot
@@ -1021,7 +1021,7 @@ module IndInv3
 
 
 
-            lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);     
+            lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);     
         }
     }    
 
@@ -1029,16 +1029,16 @@ module IndInv3
         process: DVCNodeState,
         block: BeaconBlock,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)    
-    ensures inv_g_iii_a_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)    
+    ensures inv_g_iii_a_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -1072,7 +1072,7 @@ module IndInv3
                 )                
             );
                    
-            lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);                    
+            lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);                    
         }        
     }        
 
@@ -1080,16 +1080,16 @@ module IndInv3
     lemma lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(
         process: DVCNodeState,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state  
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
-    requires inv_g_iii_a_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_a_body_body(dvn, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    ensures inv_g_iii_a_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -1129,7 +1129,7 @@ module IndInv3
                     assert ad in process.attestation_duties_queue;
                 }                 
 
-                lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);
+                lemma_pred_4_1_g_iii_a_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
             else 
             {        
@@ -1146,7 +1146,7 @@ module IndInv3
                 ensures 
                             exists i: nat :: 
                                 && i < index_next_attestation_duty_to_be_served
-                                && var an := dvn.sequence_attestation_duties_to_be_served[i];
+                                && var an := dv.sequence_attestation_duties_to_be_served[i];
                                 && an.attestation_duty.slot == slot 
                                 && an.node == n
                         ;                                    
@@ -1156,7 +1156,7 @@ module IndInv3
                         assert 
                             exists i: nat :: 
                                 && i < index_next_attestation_duty_to_be_served
-                                && var an := dvn.sequence_attestation_duties_to_be_served[i];
+                                && var an := dv.sequence_attestation_duties_to_be_served[i];
                                 && an.attestation_duty.slot == slot 
                                 && an.node == n
                         ;
@@ -1169,7 +1169,7 @@ module IndInv3
                         assert 
                             exists i: nat :: 
                                 && i < index_next_attestation_duty_to_be_served
-                                && var an := dvn.sequence_attestation_duties_to_be_served[i];
+                                && var an := dv.sequence_attestation_duties_to_be_served[i];
                                 && an.attestation_duty.slot == slot 
                                 && an.node == n
                         ;                        
@@ -1352,22 +1352,22 @@ module IndInv3
         process: DVCNodeState,
         attestation_duty: AttestationDuty,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
     requires index_next_attestation_duty_to_be_served > 0    
-    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_iii_a_a_body_body(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
-    requires inv_g_iii_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served-1)
-    requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served, attestation_duty, n)
-    ensures inv_g_iii_a_a_body_body(dvn, n, s')
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_g_iii_c_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
+    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
+    ensures inv_g_iii_a_a_body_body(dv, n, s')
     {
         var new_p := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
@@ -1383,7 +1383,7 @@ module IndInv3
             assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
         }        
 
-        lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(new_p, s', dvn, n);
+        lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(new_p, s', dv, n);
     }  
 
     lemma lemma_pred_4_1_g_iii_a_a_f_att_consensus_decided(
@@ -1391,17 +1391,17 @@ module IndInv3
         id: Slot,
         decided_attestation_data: AttestationData,        
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_iii_a_a_body_body(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_g_iii_a_a_body_body(dvn, n, s') 
+    ensures inv_g_iii_a_a_body_body(dv, n, s') 
     {    
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot
@@ -1431,7 +1431,7 @@ module IndInv3
 
 
 
-            lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(s_mod, s', dvn, n);   
+            lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(s_mod, s', dv, n);   
         }
     }        
 
@@ -1439,17 +1439,17 @@ module IndInv3
         process: DVCNodeState,
         block: BeaconBlock,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_iii_a_a_body_body(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_g_iii_a_a_body_body(dvn, n, s')
+    ensures inv_g_iii_a_a_body_body(dv, n, s')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -1483,23 +1483,23 @@ module IndInv3
                 )                
             );
                    
-            lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(s_mod, s', dvn, n);                    
+            lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(s_mod, s', dv, n);                    
         }        
     }            
 
     lemma lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(
         process: DVCNodeState,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state  
-    requires inv_g_iii_a_a_body_body(dvn, n, process)
+    requires inv_g_iii_a_a_body_body(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_g_iii_a_a_body_body(dvn, n, s')
+    ensures inv_g_iii_a_a_body_body(dv, n, s')
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -1525,14 +1525,14 @@ module IndInv3
                 lemma_pred_4_1_g_iii_a_a_f_check_for_next_queued_duty(
                     s_mod,
                     s',
-                    dvn,
+                    dv,
                     n
                 );
 
             }
             else 
             {       
-                assert inv_g_iii_a_a_body_body(dvn, n, s'); 
+                assert inv_g_iii_a_a_body_body(dv, n, s'); 
             }
         } 
         else 

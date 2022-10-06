@@ -2,15 +2,15 @@ include "../../../common/commons.dfy"
 include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
-include "../../../specs/dvn/dvn.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
-include "dvn_next_invs_1_7.dfy"
-include "dvn_next_invs_8_18.dfy"
-include "dvn_next_invs_19_26.dfy"
-include "dvn_next_invs_27_37.dfy"
+include "dv_next_invs_1_7.dfy"
+include "dv_next_invs_8_18.dfy"
+include "dv_next_invs_19_26.dfy"
+include "dv_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
@@ -18,7 +18,7 @@ include "ind_inv4.dfy"
 include "core_proofs.dfy"
 
 
-module Proofs_DVN_Ind_Inv
+module Proofs_DV_Ind_Inv
 {
     import opened Types 
     import opened CommonFunctions
@@ -31,98 +31,98 @@ module Proofs_DVN_Ind_Inv
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Invs_1_7
-    import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19_26
+    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_8_18
+    import opened DV_Next_Invs_19_26
     import opened Proofs_Intermediate_Steps
-    import opened DVN_Next_Invs_27_37
+    import opened DV_Next_Invs_27_37
     import opened Core_Proofs
     import opened IndInv3
     import opened IndInv4
 
-    predicate ind_inv(dvn: DVState)       
+    predicate ind_inv(dv: DVState)       
     {
-        && invs_1_7(dvn)
-        && invs_8_18(dvn)
-        && invs_19_26(dvn)
-        && invs_27_37(dvn)
-        && invs_other_properties_1(dvn)
-        && invs_other_properties_2(dvn)
-        && invs_other_properties_3(dvn)
-        && invs_other_properties_4(dvn)
-        && invs_other_properties_5(dvn)
-        && invs_other_properties_6(dvn)
-        && invs_other_properties_7(dvn)
-        && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(dvn)
+        && invs_1_7(dv)
+        && invs_8_18(dv)
+        && invs_19_26(dv)
+        && invs_27_37(dv)
+        && invs_other_properties_1(dv)
+        && invs_other_properties_2(dv)
+        && invs_other_properties_3(dv)
+        && invs_other_properties_4(dv)
+        && invs_other_properties_5(dv)
+        && invs_other_properties_6(dv)
+        && invs_other_properties_7(dv)
+        && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(dv)
     }
 
-    predicate invs_1_7(dvn: DVState)       
+    predicate invs_1_7(dv: DVState)       
     {
-        &&  quorum_constraints(dvn)
-        &&  inv2(dvn)
-        &&  inv3(dvn)
-        &&  inv4(dvn)
-        &&  inv5(dvn)
-        &&  inv6(dvn)
-        &&  inv7(dvn)
+        &&  quorum_constraints(dv)
+        &&  inv2(dv)
+        &&  inv3(dv)
+        &&  inv4(dv)
+        &&  inv5(dv)
+        &&  inv6(dv)
+        &&  inv7(dv)
     }
 
-    predicate invs_8_18(dvn: DVState)       
+    predicate invs_8_18(dv: DVState)       
     {        
-        &&  inv8(dvn)   
-        &&  inv9(dvn)  
-        &&  inv10(dvn) 
-        &&  inv13(dvn)      
-        &&  inv16(dvn)  
-        &&  inv17(dvn)  
-        &&  inv18(dvn)  
+        &&  inv8(dv)   
+        &&  inv9(dv)  
+        &&  inv10(dv) 
+        &&  inv13(dv)      
+        &&  inv16(dv)  
+        &&  inv17(dv)  
+        &&  inv18(dv)  
     }
     
-    predicate invs_19_26(dvn: DVState)       
+    predicate invs_19_26(dv: DVState)       
     {        
-        &&  inv19(dvn)           
-        &&  inv21(dvn) 
-        &&  inv22(dvn)      
-        &&  inv23(dvn)  
-        &&  inv25(dvn)          
-        &&  inv26(dvn)  
+        &&  inv19(dv)           
+        &&  inv21(dv) 
+        &&  inv22(dv)      
+        &&  inv23(dv)  
+        &&  inv25(dv)          
+        &&  inv26(dv)  
     }
 
-    predicate invs_27_37(dvn: DVState)       
+    predicate invs_27_37(dv: DVState)       
     {                
-        &&  inv27(dvn)  
-        &&  inv28(dvn)  
-        &&  inv29(dvn)  
-        &&  inv31(dvn)  
-        &&  inv34(dvn)
-        &&  inv35(dvn)
-        &&  inv36(dvn)
-        &&  inv37(dvn)
-        &&  IndInv3.inv33(dvn)
+        &&  inv27(dv)  
+        &&  inv28(dv)  
+        &&  inv29(dv)  
+        &&  inv31(dv)  
+        &&  inv34(dv)
+        &&  inv35(dv)
+        &&  inv36(dv)
+        &&  inv37(dv)
+        &&  IndInv3.inv33(dv)
     }
 
 
     
-    lemma lemma_ind_inv_dvn_init(dvn: DVState)       
-    requires DV.Init(dvn, {})    
-    ensures ind_inv(dvn)
-    ensures NextPreCond(dvn)
+    lemma lemma_ind_inv_dv_init(dv: DVState)       
+    requires DV.Init(dv, {})    
+    ensures ind_inv(dv)
+    ensures NextPreCond(dv)
     {
-        assert  DV.Init(dvn, {})  
+        assert  DV.Init(dv, {})  
                 ==>                 
-                && invs_1_7(dvn)
-                && invs_8_18(dvn)
-                && invs_19_26(dvn)
-                && invs_27_37(dvn);
+                && invs_1_7(dv)
+                && invs_8_18(dv)
+                && invs_19_26(dv)
+                && invs_27_37(dv);
 
-        assert  DV.Init(dvn, {})    
+        assert  DV.Init(dv, {})    
                 ==>
-                && invs_other_properties_1(dvn)
-                && invs_other_properties_2(dvn)
-                && invs_other_properties_3(dvn)
-                && invs_other_properties_4(dvn)
-                && invs_other_properties_5(dvn)
-                && invs_other_properties_6(dvn)
+                && invs_other_properties_1(dv)
+                && invs_other_properties_2(dv)
+                && invs_other_properties_3(dv)
+                && invs_other_properties_4(dv)
+                && invs_other_properties_5(dv)
+                && invs_other_properties_6(dv)
                 ;
     }  
 
@@ -130,773 +130,773 @@ module Proofs_DVN_Ind_Inv
 
     
 
-    lemma lemma_ind_inv_dvn_next_invs_1_7(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_1_7(dvn')
+    lemma lemma_ind_inv_dv_next_invs_1_7(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_1_7(dv')
     {    
-        lemma_inv1_dvn_next(dvn, e, dvn');
-        lemma_inv2_dvn_next(dvn, e, dvn');
-        lemma_inv3_dvn_next(dvn, e, dvn');
-        lemma_inv4_dvn_next(dvn, e, dvn');
-        lemma_inv5_dvn_next(dvn, e, dvn');
-        lemma_inv6_dvn_next(dvn, e, dvn');
-        lemma_inv7_dvn_next(dvn, e, dvn');        
+        lemma_inv1_dv_next(dv, e, dv');
+        lemma_inv2_dv_next(dv, e, dv');
+        lemma_inv3_dv_next(dv, e, dv');
+        lemma_inv4_dv_next(dv, e, dv');
+        lemma_inv5_dv_next(dv, e, dv');
+        lemma_inv6_dv_next(dv, e, dv');
+        lemma_inv7_dv_next(dv, e, dv');        
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_8_18_helper_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv8(dvn')
-    ensures inv9(dvn')
-    ensures inv10(dvn')
-    ensures inv13(dvn')
+    lemma lemma_ind_inv_dv_next_invs_8_18_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv8(dv')
+    ensures inv9(dv')
+    ensures inv10(dv')
+    ensures inv13(dv')
     {
-        lemma_inv8_dvn_next(dvn, e, dvn');
-        lemma_inv9_dvn_next(dvn, e, dvn');
-        lemma_inv10_dvn_next(dvn, e, dvn');        
-        lemma_inv13_dvn_next(dvn, e, dvn');                
-        // lemma_inv16_dvn_next(dvn, e, dvn');
-        // lemma_inv17_dvn_next(dvn, e, dvn');
-        // lemma_inv18_dvn_next(dvn, e, dvn');
+        lemma_inv8_dv_next(dv, e, dv');
+        lemma_inv9_dv_next(dv, e, dv');
+        lemma_inv10_dv_next(dv, e, dv');        
+        lemma_inv13_dv_next(dv, e, dv');                
+        // lemma_inv16_dv_next(dv, e, dv');
+        // lemma_inv17_dv_next(dv, e, dv');
+        // lemma_inv18_dv_next(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_8_18_helper_2(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv16(dvn')
-    ensures inv17(dvn')
-    ensures inv18(dvn')
+    lemma lemma_ind_inv_dv_next_invs_8_18_helper_2(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv16(dv')
+    ensures inv17(dv')
+    ensures inv18(dv')
     {
-        lemma_inv16_dvn_next(dvn, e, dvn');
-        lemma_inv17_dvn_next(dvn, e, dvn');
-        lemma_inv18_dvn_next(dvn, e, dvn');
+        lemma_inv16_dv_next(dv, e, dv');
+        lemma_inv17_dv_next(dv, e, dv');
+        lemma_inv18_dv_next(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_8_18(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_8_18(dvn')
+    lemma lemma_ind_inv_dv_next_invs_8_18(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_8_18(dv')
     {
-        lemma_ind_inv_dvn_next_invs_8_18_helper_1(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_invs_8_18_helper_2(dvn, e, dvn');
+        lemma_ind_inv_dv_next_invs_8_18_helper_1(dv, e, dv');
+        lemma_ind_inv_dv_next_invs_8_18_helper_2(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_19_26_helper_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv19(dvn')        
-    ensures inv20(dvn, dvn')
-    ensures inv21(dvn')
-    ensures inv22(dvn')
+    lemma lemma_ind_inv_dv_next_invs_19_26_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv19(dv')        
+    ensures inv20(dv, dv')
+    ensures inv21(dv')
+    ensures inv22(dv')
     {
-        lemma_inv19_dvn_next(dvn, e, dvn');
-        lemma_inv20_dvn_next(dvn, e, dvn');
-        lemma_inv21_dvn_next(dvn, e, dvn');        
-        lemma_inv22_dvn_next(dvn, e, dvn');                
-        // lemma_inv23_dvn_next(dvn, e, dvn');                
-        // lemma_inv25_dvn_next(dvn, e, dvn');    
-        // lemma_inv26_dvn_next(dvn, e, dvn');    
+        lemma_inv19_dv_next(dv, e, dv');
+        lemma_inv20_dv_next(dv, e, dv');
+        lemma_inv21_dv_next(dv, e, dv');        
+        lemma_inv22_dv_next(dv, e, dv');                
+        // lemma_inv23_dv_next(dv, e, dv');                
+        // lemma_inv25_dv_next(dv, e, dv');    
+        // lemma_inv26_dv_next(dv, e, dv');    
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_19_26_helper_2(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv23(dvn')        
-    ensures inv25(dvn')
-    ensures inv26(dvn')
+    lemma lemma_ind_inv_dv_next_invs_19_26_helper_2(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv23(dv')        
+    ensures inv25(dv')
+    ensures inv26(dv')
     {
-        lemma_inv23_dvn_next(dvn, e, dvn');                
-        lemma_inv25_dvn_next(dvn, e, dvn');    
-        lemma_inv26_dvn_next(dvn, e, dvn');    
+        lemma_inv23_dv_next(dv, e, dv');                
+        lemma_inv25_dv_next(dv, e, dv');    
+        lemma_inv26_dv_next(dv, e, dv');    
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_19_26(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_19_26(dvn')        
+    lemma lemma_ind_inv_dv_next_invs_19_26(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_19_26(dv')        
     {
-        lemma_ind_inv_dvn_next_invs_19_26_helper_1(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_invs_19_26_helper_2(dvn, e, dvn');
+        lemma_ind_inv_dv_next_invs_19_26_helper_1(dv, e, dv');
+        lemma_ind_inv_dv_next_invs_19_26_helper_2(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_27_37_helper1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv27(dvn') 
-    ensures inv28(dvn')
-    ensures inv29(dvn')
+    lemma lemma_ind_inv_dv_next_invs_27_37_helper1(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv27(dv') 
+    ensures inv28(dv')
+    ensures inv29(dv')
     {
-        lemma_inv27_dvn_next(dvn, e, dvn');    
-        lemma_inv28_dvn_next(dvn, e, dvn');  
-        lemma_inv29_dvn_next(dvn, e, dvn');          
+        lemma_inv27_dv_next(dv, e, dv');    
+        lemma_inv28_dv_next(dv, e, dv');  
+        lemma_inv29_dv_next(dv, e, dv');          
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_27_37_helper2(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv31(dvn') 
-    ensures inv34(dvn')
-    ensures inv35(dvn')
+    lemma lemma_ind_inv_dv_next_invs_27_37_helper2(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv31(dv') 
+    ensures inv34(dv')
+    ensures inv35(dv')
     {       
-        lemma_inv31_dvn_next(dvn, e, dvn');  
-        lemma_inv34_dvn_next(dvn, e, dvn');  
-        lemma_inv35_dvn_next(dvn, e, dvn');  
-        // lemma_inv36_dvn_next(dvn, e, dvn');  
-        // lemma_inv37_dvn_next(dvn, e, dvn');  
-        // IndInv3.lemma_inv_33(dvn, e, dvn');
+        lemma_inv31_dv_next(dv, e, dv');  
+        lemma_inv34_dv_next(dv, e, dv');  
+        lemma_inv35_dv_next(dv, e, dv');  
+        // lemma_inv36_dv_next(dv, e, dv');  
+        // lemma_inv37_dv_next(dv, e, dv');  
+        // IndInv3.lemma_inv_33(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_27_37_helper3(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv36(dvn') 
-    ensures inv37(dvn')
-    ensures IndInv3.inv33(dvn')
+    lemma lemma_ind_inv_dv_next_invs_27_37_helper3(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv36(dv') 
+    ensures inv37(dv')
+    ensures IndInv3.inv33(dv')
     {               
-        lemma_inv36_dvn_next(dvn, e, dvn');  
-        lemma_inv37_dvn_next(dvn, e, dvn');  
-        IndInv3.lemma_inv_33(dvn, e, dvn');
+        lemma_inv36_dv_next(dv, e, dv');  
+        lemma_inv37_dv_next(dv, e, dv');  
+        IndInv3.lemma_inv_33(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_27_37(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_27_37(dvn') 
+    lemma lemma_ind_inv_dv_next_invs_27_37(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_27_37(dv') 
     {
-        lemma_ind_inv_dvn_next_invs_27_37_helper1(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_invs_27_37_helper2(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_invs_27_37_helper3(dvn, e, dvn');
+        lemma_ind_inv_dv_next_invs_27_37_helper1(dv, e, dv');
+        lemma_ind_inv_dv_next_invs_27_37_helper2(dv, e, dv');
+        lemma_ind_inv_dv_next_invs_27_37_helper3(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_implies_intermediate_steps_helper_1(dvn: DVState)
-    requires ind_inv(dvn)
-    ensures inv11(dvn)
-    ensures inv12(dvn)
-    ensures inv14(dvn)
-    ensures inv15(dvn)
-    ensures inv24(dvn)    
+    lemma lemma_ind_inv_implies_intermediate_steps_helper_1(dv: DVState)
+    requires ind_inv(dv)
+    ensures inv11(dv)
+    ensures inv12(dv)
+    ensures inv14(dv)
+    ensures inv15(dv)
+    ensures inv24(dv)    
     {    
-        lemma_inv11_ind_inv(dvn);
-        lemma_inv12_ind_inv(dvn);
-        lemma_inv14_ind_inv(dvn);
-        lemma_inv15_ind_inv(dvn);
-        lemma_inv24_ind_inv(dvn);  
+        lemma_inv11_ind_inv(dv);
+        lemma_inv12_ind_inv(dv);
+        lemma_inv14_ind_inv(dv);
+        lemma_inv15_ind_inv(dv);
+        lemma_inv24_ind_inv(dv);  
     }
 
-    lemma lemma_ind_inv_implies_intermediate_steps_helper_2(dvn: DVState)
-    requires ind_inv(dvn)  
-    ensures inv50(dvn)
-    ensures inv51(dvn)   
-    ensures inv53(dvn)    
+    lemma lemma_ind_inv_implies_intermediate_steps_helper_2(dv: DVState)
+    requires ind_inv(dv)  
+    ensures inv50(dv)
+    ensures inv51(dv)   
+    ensures inv53(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
-                dvn.construct_signed_attestation_signature,
-                dvn.dv_pubkey,
-                dvn.all_nodes)  
+                dv.construct_signed_attestation_signature,
+                dv.dv_pubkey,
+                dv.all_nodes)  
     {    
-        lemma_inv50_ind_inv(dvn);
-        lemma_inv51_ind_inv(dvn);
-        lemma_inv53_ind_inv(dvn);      
-        lemma_construct_signed_attestation_signature_assumptions_helper(dvn);       
+        lemma_inv50_ind_inv(dv);
+        lemma_inv51_ind_inv(dv);
+        lemma_inv53_ind_inv(dv);      
+        lemma_construct_signed_attestation_signature_assumptions_helper(dv);       
     }
 
-    lemma lemma_ind_inv_implies_intermediate_steps_helper_3(dvn: DVState)
-    requires ind_inv(dvn)  
-    ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dvn)  
-    ensures is_sequence_attestation_duties_to_be_served_orderd(dvn)
-    ensures inv_attestation_duty_queue_is_ordered(dvn)
-    ensures inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn)
-    ensures pred_inv_current_latest_attestation_duty_match(dvn)
-    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn)
+    lemma lemma_ind_inv_implies_intermediate_steps_helper_3(dv: DVState)
+    requires ind_inv(dv)  
+    ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)  
+    ensures is_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures inv_attestation_duty_queue_is_ordered(dv)
+    ensures inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+    ensures pred_inv_current_latest_attestation_duty_match(dv)
+    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     {    
-        lemma_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dvn);
-        lemma_inv_attestation_duty_queue_is_ordered(dvn);
-        lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn);
-        lemma_pred_inv_current_latest_attestation_duty_match(dvn);
-        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn);
+        lemma_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv);
+        lemma_inv_attestation_duty_queue_is_ordered(dv);
+        lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
+        lemma_pred_inv_current_latest_attestation_duty_match(dv);
+        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
     }
 
-    lemma lemma_ind_inv_implies_intermediate_steps_helper_4(dvn: DVState)
-    requires ind_inv(dvn)  
-    ensures lemma_pred_4_1_g_iii_precond(dvn)
-    ensures lemma_pred_4_1_b_new_precond(dvn)    
+    lemma lemma_ind_inv_implies_intermediate_steps_helper_4(dv: DVState)
+    requires ind_inv(dv)  
+    ensures lemma_pred_4_1_g_iii_precond(dv)
+    ensures lemma_pred_4_1_b_new_precond(dv)    
     {   
-        lemma_ind_inv_implies_intermediate_steps_helper_1(dvn);
-        lemma_ind_inv_implies_intermediate_steps_helper_2(dvn);
-        lemma_ind_inv_implies_intermediate_steps_helper_3(dvn);        
+        lemma_ind_inv_implies_intermediate_steps_helper_1(dv);
+        lemma_ind_inv_implies_intermediate_steps_helper_2(dv);
+        lemma_ind_inv_implies_intermediate_steps_helper_3(dv);        
     }
 
-    lemma lemma_ind_inv_implies_intermediate_steps(dvn: DVState)
-    requires ind_inv(dvn)
-    ensures inv11(dvn)
-    ensures inv12(dvn)
-    ensures inv14(dvn)
-    ensures inv15(dvn)
-    ensures inv24(dvn)    
-    ensures inv50(dvn)
-    ensures inv51(dvn)   
-    ensures inv53(dvn)    
+    lemma lemma_ind_inv_implies_intermediate_steps(dv: DVState)
+    requires ind_inv(dv)
+    ensures inv11(dv)
+    ensures inv12(dv)
+    ensures inv14(dv)
+    ensures inv15(dv)
+    ensures inv24(dv)    
+    ensures inv50(dv)
+    ensures inv51(dv)   
+    ensures inv53(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
-                dvn.construct_signed_attestation_signature,
-                dvn.dv_pubkey,
-                dvn.all_nodes)  
-    ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dvn)   
-    ensures is_sequence_attestation_duties_to_be_served_orderd(dvn)     
-    ensures inv_attestation_duty_queue_is_ordered(dvn)
-    ensures inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn)
-    ensures pred_inv_current_latest_attestation_duty_match(dvn)
-    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn)
-    ensures lemma_pred_4_1_g_iii_precond(dvn)
-    ensures lemma_pred_4_1_b_new_precond(dvn)
+                dv.construct_signed_attestation_signature,
+                dv.dv_pubkey,
+                dv.all_nodes)  
+    ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)   
+    ensures is_sequence_attestation_duties_to_be_served_orderd(dv)     
+    ensures inv_attestation_duty_queue_is_ordered(dv)
+    ensures inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+    ensures pred_inv_current_latest_attestation_duty_match(dv)
+    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    ensures lemma_pred_4_1_g_iii_precond(dv)
+    ensures lemma_pred_4_1_b_new_precond(dv)
     {   
-        lemma_ind_inv_implies_intermediate_steps_helper_1(dvn); 
-        lemma_ind_inv_implies_intermediate_steps_helper_2(dvn);
-        lemma_ind_inv_implies_intermediate_steps_helper_3(dvn);
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
+        lemma_ind_inv_implies_intermediate_steps_helper_1(dv); 
+        lemma_ind_inv_implies_intermediate_steps_helper_2(dv);
+        lemma_ind_inv_implies_intermediate_steps_helper_3(dv);
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
     }
    
-    lemma lemma_ind_inv_dvn_next_inv_46_b(dvn: DVState, e: DV.Event, dvn': DVState)  
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')       
-    requires ind_inv(dvn)
-    ensures inv46_b(dvn')
+    lemma lemma_ind_inv_dv_next_inv_46_b(dv: DVState, e: DV.Event, dv': DVState)  
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')       
+    requires ind_inv(dv)
+    ensures inv46_b(dv')
     {
-        lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn);
-        assert inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn);
+        lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
+        assert inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
 
-        lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn);
-        assert inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn);
+        lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
+        assert inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
 
-        lemma_ind_inv_implies_intermediate_steps(dvn);
-        assert inv53(dvn);
+        lemma_ind_inv_implies_intermediate_steps(dv);
+        assert inv53(dv);
 
 
-        assert && inv46_b(dvn)
-               && quorum_constraints(dvn)
-               && inv53(dvn)
-               && inv3(dvn)    
-               && IndInv3.inv33(dvn)  
-               && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dvn)
-               && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dvn)
+        assert && inv46_b(dv)
+               && quorum_constraints(dv)
+               && inv53(dv)
+               && inv3(dv)    
+               && IndInv3.inv33(dv)  
+               && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+               && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
                ;
 
-        lemma_inv46_b(dvn, e, dvn');    
-        assert inv46_b(dvn');
+        lemma_inv46_b(dv, e, dv');    
+        assert inv46_b(dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_b(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_b(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_b(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps(dvn);
+        lemma_ind_inv_implies_intermediate_steps(dv);
         assert construct_signed_attestation_signature_assumptions_helper(
-                dvn.construct_signed_attestation_signature,
-                dvn.dv_pubkey,
-                dvn.all_nodes);
+                dv.construct_signed_attestation_signature,
+                dv.dv_pubkey,
+                dv.all_nodes);
 
-        lemma_inv36_invNetwork(dvn);
-        assert invNetwork(dvn);
+        lemma_inv36_invNetwork(dv);
+        assert invNetwork(dv);
 
-        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn);
-        assert pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn);
+        lemma_inv37_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
+        assert pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
 
-        assert  && DV.NextEvent(dvn, e, dvn')
-                && pred_4_1_b(dvn)
+        assert  && DV.NextEvent(dv, e, dv')
+                && pred_4_1_b(dv)
                 && construct_signed_attestation_signature_assumptions_helper(
-                    dvn.construct_signed_attestation_signature,
-                    dvn.dv_pubkey,
-                    dvn.all_nodes
+                    dv.construct_signed_attestation_signature,
+                    dv.dv_pubkey,
+                    dv.all_nodes
                 )
-                && inv3(dvn)  
-                && invNetwork(dvn)
-                && quorum_constraints(dvn)
-                && pred_rcvd_attestation_shares_is_in_all_messages_sent(dvn)
+                && inv3(dv)  
+                && invNetwork(dv)
+                && quorum_constraints(dv)
+                && pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
                 ;
 
         
-        lemma_pred_4_1_b(dvn, e, dvn');
-        assert pred_4_1_b(dvn');
+        lemma_pred_4_1_b(dv, e, dv');
+        assert pred_4_1_b(dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_f_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_f_a(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_f_a(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_f_a(dv')
     {
-        lemma_pred_4_1_f_a(dvn, e, dvn');
+        lemma_pred_4_1_f_a(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_i_for_dvc(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_g_i_for_dvc(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_i_for_dvc(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_g_i_for_dvc(dv')
     {
-        lemma_pred_4_1_f_g_for_dvc(dvn, e, dvn');
+        lemma_pred_4_1_f_g_for_dvc(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_i(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_g_i(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_i(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_g_i(dv')
     {
-        lemma_pred_4_1_f_g_i(dvn, e, dvn');
+        lemma_pred_4_1_f_g_i(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_f_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_f_b(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_f_b(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_f_b(dv')
     {
-        lemma_pred_4_1_f_b(dvn, e, dvn');
+        lemma_pred_4_1_f_b(dv, e, dv');
     }
 
-    predicate invs_other_properties_1(dvn: DVState)       
+    predicate invs_other_properties_1(dv: DVState)       
     {                
-        && inv46_b(dvn)
-        && pred_4_1_b(dvn) 
-        && pred_4_1_f_a(dvn)    
-        && pred_4_1_g_i_for_dvc(dvn)
-        && pred_4_1_g_i(dvn)
+        && inv46_b(dv)
+        && pred_4_1_b(dv) 
+        && pred_4_1_f_a(dv)    
+        && pred_4_1_g_i_for_dvc(dv)
+        && pred_4_1_g_i(dv)
         
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_1(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_1(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_1(dv')
     {
-        lemma_ind_inv_dvn_next_inv_46_b(dvn, e, dvn');  
-        lemma_ind_inv_dvn_next_inv_pred_4_1_b(dvn, e, dvn');             
-        lemma_ind_inv_dvn_next_inv_pred_4_1_f_a(dvn, e, dvn');       
-        lemma_ind_inv_dvn_next_inv_pred_4_1_g_i_for_dvc(dvn, e, dvn');  
-        lemma_ind_inv_dvn_next_inv_pred_4_1_g_i(dvn, e, dvn');   
+        lemma_ind_inv_dv_next_inv_46_b(dv, e, dv');  
+        lemma_ind_inv_dv_next_inv_pred_4_1_b(dv, e, dv');             
+        lemma_ind_inv_dv_next_inv_pred_4_1_f_a(dv, e, dv');       
+        lemma_ind_inv_dv_next_inv_pred_4_1_g_i_for_dvc(dv, e, dv');  
+        lemma_ind_inv_dv_next_inv_pred_4_1_g_i(dv, e, dv');   
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_invNetwork(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invNetwork(dvn')
+    lemma lemma_ind_inv_dv_next_inv_invNetwork(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invNetwork(dv')
     {
-        lemma_inv36_dvn_next(dvn, e, dvn');
-        lemma_inv36_invNetwork(dvn');
+        lemma_inv36_dv_next(dv, e, dv');
+        lemma_inv36_invNetwork(dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_38(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv38(dvn')
+    lemma lemma_ind_inv_dv_next_inv_38(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv38(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps(dvn);
-        assert inv53(dvn);
-        lemma_inv38_dvn_next(dvn, e, dvn');
+        lemma_ind_inv_implies_intermediate_steps(dv);
+        assert inv53(dv);
+        lemma_inv38_dv_next(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_iii_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_g_iii_a(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_iii_a(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_g_iii_a(dv')
     {
-        lemma_pred_4_1_g_iii_a(dvn, e, dvn');
+        lemma_pred_4_1_g_iii_a(dv, e, dv');
     }
 
-    predicate invs_other_properties_2(dvn: DVState)       
+    predicate invs_other_properties_2(dv: DVState)       
     {                    
-        && pred_4_1_f_b(dvn) 
-        && invNetwork(dvn)
-        && inv38(dvn)
-        && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dvn)
+        && pred_4_1_f_b(dv) 
+        && invNetwork(dv)
+        && inv38(dv)
+        && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_2(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_2(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_2(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_2(dv')
     {
-        lemma_pred_4_1_f_b(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_inv_invNetwork(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_inv_38(dvn, e, dvn');
-        lemma_inv38_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dvn');
+        lemma_pred_4_1_f_b(dv, e, dv');
+        lemma_ind_inv_dv_next_inv_invNetwork(dv, e, dv');
+        lemma_ind_inv_dv_next_inv_38(dv, e, dv');
+        lemma_inv38_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv');
     }
 
     lemma lemma_pred_4_1_g_iii_ind_inv(
-        dvn: DVState,
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )
-    requires NextEvent.requires(dvn, event, dvn')
-    requires NextEvent(dvn, event, dvn')
-    requires ind_inv(dvn)
-    ensures pred_4_1_g_iii(dvn')
+    requires NextEvent.requires(dv, event, dv')
+    requires NextEvent(dv, event, dv')
+    requires ind_inv(dv)
+    ensures pred_4_1_g_iii(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
-        assert lemma_pred_4_1_g_iii_precond(dvn);
-        lemma_pred_4_1_g_iii(dvn, event, dvn');
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
+        assert lemma_pred_4_1_g_iii_precond(dv);
+        lemma_pred_4_1_g_iii(dv, event, dv');
     }
 
-    predicate invs_other_properties_3(dvn: DVState)       
+    predicate invs_other_properties_3(dv: DVState)       
     {                
-        && pred_4_1_g_iii_a(dvn)        
-        && pred_4_1_g_iii_c(dvn)
-        && pred_4_1_g_iii_a_a(dvn)        
-        && pred_4_1_c(dvn)                     
+        && pred_4_1_g_iii_a(dv)        
+        && pred_4_1_g_iii_c(dv)
+        && pred_4_1_g_iii_a_a(dv)        
+        && pred_4_1_c(dv)                     
     }
     
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_3(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_3(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_3(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_3(dv')
     {        
-        lemma_ind_inv_dvn_next_inv_pred_4_1_g_iii_a(dvn, e, dvn');
-        lemma_pred_4_1_g_iii_c_dvn_next(dvn, e, dvn');
-        lemma_pred_4_1_g_iii_a_a(dvn, e, dvn');
-        lemma_ind_inv_implies_intermediate_steps(dvn);
-        lemma_pred_4_1_c(dvn, e, dvn');
+        lemma_ind_inv_dv_next_inv_pred_4_1_g_iii_a(dv, e, dv');
+        lemma_pred_4_1_g_iii_c_dv_next(dv, e, dv');
+        lemma_pred_4_1_g_iii_a_a(dv, e, dv');
+        lemma_ind_inv_implies_intermediate_steps(dv);
+        lemma_pred_4_1_c(dv, e, dv');
     }
     
-    predicate invs_other_properties_4(dvn: DVState)       
+    predicate invs_other_properties_4(dv: DVState)       
     {
-        && inv_attestation_duty_queue_is_ordered_3(dvn)
-        && inv_attestation_duty_queue_is_ordered_4(dvn)
+        && inv_attestation_duty_queue_is_ordered_3(dv)
+        && inv_attestation_duty_queue_is_ordered_4(dv)
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_4(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_4(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_4(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_4(dv')
     {        
-        lemma_inv_attestation_duty_queue_is_ordered_3(dvn, e, dvn');
-        lemma_inv_attestation_duty_queue_is_ordered_4(dvn, e, dvn');        
+        lemma_inv_attestation_duty_queue_is_ordered_3(dv, e, dv');
+        lemma_inv_attestation_duty_queue_is_ordered_4(dv, e, dv');        
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_iii_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_g_iii_b(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_iii_b(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_g_iii_b(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
-        lemma_4_1_g_iii_b(dvn, e, dvn');
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
+        lemma_4_1_g_iii_b(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_pred_4_1_g_b_new(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures pred_4_1_g_b_new(dvn')
+    lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_b_new(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures pred_4_1_g_b_new(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
-        lemma_pred_4_1_b_new(dvn, e, dvn');
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
+        lemma_pred_4_1_b_new(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_g_d_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv_g_d_a(dvn')
+    lemma lemma_ind_inv_dv_next_inv_g_d_a(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv_g_d_a(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
-        lemma_inv_g_d_a(dvn, e, dvn');
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
+        lemma_inv_g_d_a(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_g_d_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv_g_d_b(dvn')
+    lemma lemma_ind_inv_dv_next_inv_g_d_b(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv_g_d_b(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
-        lemma_inv_g_d_b(dvn, e, dvn');
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
+        lemma_inv_g_d_b(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_inv_g_a_ii_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures inv_g_a_ii_a(dvn')
+    lemma lemma_ind_inv_dv_next_inv_g_a_ii_a(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures inv_g_a_ii_a(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
-        lemma_inv_g_a_ii_a(dvn, e, dvn');
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
+        lemma_inv_g_a_ii_a(dv, e, dv');
     }
 
 
 
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_5(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_5(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_5(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_5(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
         
-        lemma_4_1_g_iii_b(dvn, e, dvn');
-        lemma_pred_4_1_b_new(dvn, e, dvn');
-        lemma_inv_g_d_a(dvn, e, dvn');
-        lemma_inv_g_d_b(dvn, e, dvn');        
-        lemma_inv_g_a_ii_a(dvn, e, dvn');
+        lemma_4_1_g_iii_b(dv, e, dv');
+        lemma_pred_4_1_b_new(dv, e, dv');
+        lemma_inv_g_d_a(dv, e, dv');
+        lemma_inv_g_d_b(dv, e, dv');        
+        lemma_inv_g_a_ii_a(dv, e, dv');
     }
 
     
-    predicate invs_other_properties_5(dvn: DVState)       
+    predicate invs_other_properties_5(dv: DVState)       
     {                
-        && pred_4_1_g_iii_b(dvn)    
-        && pred_4_1_g_b_new(dvn)    
-        && inv_g_d_a(dvn)
-        && inv_g_d_b(dvn)  
-        && inv_g_a_ii_a(dvn)        
+        && pred_4_1_g_iii_b(dv)    
+        && pred_4_1_g_b_new(dv)    
+        && inv_g_d_a(dv)
+        && inv_g_d_b(dv)  
+        && inv_g_a_ii_a(dv)        
     }
     
-    predicate invs_other_properties_6(dvn: DVState)       
+    predicate invs_other_properties_6(dv: DVState)       
     {                
-        && inv_g_a_iii(dvn)
-        && inv_g_a_iv_a(dvn)
-        && pred_4_1_g_iii(dvn)        
+        && inv_g_a_iii(dv)
+        && inv_g_a_iv_a(dv)
+        && pred_4_1_g_iii(dv)        
     }
 
-    predicate invs_other_properties_7(dvn: DVState)       
+    predicate invs_other_properties_7(dv: DVState)       
     {                
-        && inv46_a(dvn)
-        && inv46_b(dvn)
+        && inv46_a(dv)
+        && inv46_b(dv)
     }
 
           
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_6(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_6(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_6(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_6(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
 
-        lemma_inv_g_a_iii(dvn, e, dvn');
-        lemma_inv_g_a_iv_a(dvn, e, dvn');
-        lemma_pred_4_1_g_iii(dvn, e, dvn');        
+        lemma_inv_g_a_iii(dv, e, dv');
+        lemma_inv_g_a_iv_a(dv, e, dv');
+        lemma_pred_4_1_g_iii(dv, e, dv');        
     }
 
-    lemma lemma_ind_inv_dvn_next_invs_other_properties_7(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_7(dvn')
+    lemma lemma_ind_inv_dv_next_invs_other_properties_7(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_7(dv')
     {
-        lemma_ind_inv_implies_intermediate_steps_helper_4(dvn);
+        lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
 
-        lemma_inv_46_a(dvn, e, dvn');
-        lemma_inv46_b(dvn, e, dvn');
+        lemma_inv_46_a(dv, e, dv');
+        lemma_inv46_b(dv, e, dv');
     }
 
 
-    // Adding DV.NextEventPreCond(dvn, e) makes this lemma too complicated for Dafny on my computer.
-    // lemma lemma_ind_inv_dvn_next_ind_inv_helper_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    // requires DV.NextEventPreCond(dvn, e)
-    // requires DV.NextEvent(dvn, e, dvn')  
-    // requires ind_inv(dvn)
-    // ensures invs_1_7(dvn')
-    // ensures invs_8_18(dvn')
-    // ensures invs_19_26(dvn')
-    // ensures invs_27_37(dvn')
+    // Adding DV.NextEventPreCond(dv, e) makes this lemma too complicated for Dafny on my computer.
+    // lemma lemma_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
+    // requires DV.NextEventPreCond(dv, e)
+    // requires DV.NextEvent(dv, e, dv')  
+    // requires ind_inv(dv)
+    // ensures invs_1_7(dv')
+    // ensures invs_8_18(dv')
+    // ensures invs_19_26(dv')
+    // ensures invs_27_37(dv')
     // {
-    //     lemma_ind_inv_dvn_next_invs_1_7(dvn, e, dvn');
-    //     lemma_ind_inv_dvn_next_invs_8_18(dvn, e, dvn');
-    //     lemma_ind_inv_dvn_next_invs_19_26(dvn, e, dvn');
-    //     lemma_ind_inv_dvn_next_invs_27_37(dvn, e, dvn');         
+    //     lemma_ind_inv_dv_next_invs_1_7(dv, e, dv');
+    //     lemma_ind_inv_dv_next_invs_8_18(dv, e, dv');
+    //     lemma_ind_inv_dv_next_invs_19_26(dv, e, dv');
+    //     lemma_ind_inv_dv_next_invs_27_37(dv, e, dv');         
     // }
     
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper_1(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_1_7(dvn')
-    ensures invs_8_18(dvn')
+    lemma lemma_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_1_7(dv')
+    ensures invs_8_18(dv')
     {
-        lemma_ind_inv_dvn_next_invs_1_7(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_invs_8_18(dvn, e, dvn');
+        lemma_ind_inv_dv_next_invs_1_7(dv, e, dv');
+        lemma_ind_inv_dv_next_invs_8_18(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper_2(dvn: DVState, e: DV.Event, dvn': DVState)  
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)    
-    ensures invs_19_26(dvn')
-    ensures invs_27_37(dvn')     
+    lemma lemma_ind_inv_dv_next_ind_inv_helper_2(dv: DVState, e: DV.Event, dv': DVState)  
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)    
+    ensures invs_19_26(dv')
+    ensures invs_27_37(dv')     
     {
-        lemma_ind_inv_dvn_next_invs_19_26(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_invs_27_37(dvn, e, dvn');
+        lemma_ind_inv_dv_next_invs_19_26(dv, e, dv');
+        lemma_ind_inv_dv_next_invs_27_37(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper_3(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)
-    ensures invs_other_properties_1(dvn')
-    ensures invs_other_properties_2(dvn')
-    ensures invs_other_properties_3(dvn')
-    ensures invs_other_properties_4(dvn')    
+    lemma lemma_ind_inv_dv_next_ind_inv_helper_3(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_other_properties_1(dv')
+    ensures invs_other_properties_2(dv')
+    ensures invs_other_properties_3(dv')
+    ensures invs_other_properties_4(dv')    
     {        
-        lemma_ind_inv_dvn_next_invs_other_properties_1(dvn, e, dvn');       
-        lemma_ind_inv_dvn_next_invs_other_properties_2(dvn, e, dvn');  
-        lemma_ind_inv_dvn_next_invs_other_properties_3(dvn, e, dvn');            
-        lemma_ind_inv_dvn_next_invs_other_properties_4(dvn, e, dvn');                              
+        lemma_ind_inv_dv_next_invs_other_properties_1(dv, e, dv');       
+        lemma_ind_inv_dv_next_invs_other_properties_2(dv, e, dv');  
+        lemma_ind_inv_dv_next_invs_other_properties_3(dv, e, dv');            
+        lemma_ind_inv_dv_next_invs_other_properties_4(dv, e, dv');                              
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper_4(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)    
-    ensures invs_other_properties_5(dvn')
-    ensures invs_other_properties_6(dvn')
-    ensures invs_other_properties_7(dvn')
+    lemma lemma_ind_inv_dv_next_ind_inv_helper_4(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)    
+    ensures invs_other_properties_5(dv')
+    ensures invs_other_properties_6(dv')
+    ensures invs_other_properties_7(dv')
     {                 
-        lemma_ind_inv_dvn_next_invs_other_properties_5(dvn, e, dvn');            
-        lemma_ind_inv_dvn_next_invs_other_properties_6(dvn, e, dvn');            
-        lemma_ind_inv_dvn_next_invs_other_properties_7(dvn, e, dvn');            
+        lemma_ind_inv_dv_next_invs_other_properties_5(dv, e, dv');            
+        lemma_ind_inv_dv_next_invs_other_properties_6(dv, e, dv');            
+        lemma_ind_inv_dv_next_invs_other_properties_7(dv, e, dv');            
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper_a(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn) 
-    ensures invs_1_7(dvn')
-    ensures invs_8_18(dvn')   
-    ensures invs_19_26(dvn')
-    ensures invs_27_37(dvn')  
+    lemma lemma_ind_inv_dv_next_ind_inv_helper_a(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv) 
+    ensures invs_1_7(dv')
+    ensures invs_8_18(dv')   
+    ensures invs_19_26(dv')
+    ensures invs_27_37(dv')  
     {
-        lemma_ind_inv_dvn_next_ind_inv_helper_1(dvn, e, dvn');                          
-        lemma_ind_inv_dvn_next_ind_inv_helper_2(dvn, e, dvn');    
+        lemma_ind_inv_dv_next_ind_inv_helper_1(dv, e, dv');                          
+        lemma_ind_inv_dv_next_ind_inv_helper_2(dv, e, dv');    
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper_b(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn) 
-    ensures invs_other_properties_1(dvn')    
-    ensures invs_other_properties_2(dvn')    
-    ensures invs_other_properties_3(dvn')    
-    ensures invs_other_properties_4(dvn')    
-    ensures invs_other_properties_5(dvn')    
-    ensures invs_other_properties_6(dvn')  
-    ensures invs_other_properties_7(dvn')  
+    lemma lemma_ind_inv_dv_next_ind_inv_helper_b(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv) 
+    ensures invs_other_properties_1(dv')    
+    ensures invs_other_properties_2(dv')    
+    ensures invs_other_properties_3(dv')    
+    ensures invs_other_properties_4(dv')    
+    ensures invs_other_properties_5(dv')    
+    ensures invs_other_properties_6(dv')  
+    ensures invs_other_properties_7(dv')  
     {
-        lemma_ind_inv_dvn_next_ind_inv_helper_3(dvn, e, dvn');     
-        lemma_ind_inv_dvn_next_ind_inv_helper_4(dvn, e, dvn');            
+        lemma_ind_inv_dv_next_ind_inv_helper_3(dv, e, dv');     
+        lemma_ind_inv_dv_next_ind_inv_helper_4(dv, e, dv');            
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv_helper(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn) 
-    ensures invs_1_7(dvn')
-    ensures invs_8_18(dvn')   
-    ensures invs_19_26(dvn')
-    ensures invs_27_37(dvn')  
-    ensures invs_other_properties_1(dvn')    
-    ensures invs_other_properties_2(dvn')    
-    ensures invs_other_properties_3(dvn')    
-    ensures invs_other_properties_4(dvn')    
-    ensures invs_other_properties_5(dvn')    
-    ensures invs_other_properties_6(dvn')    
-    ensures invs_other_properties_7(dvn')    
+    lemma lemma_ind_inv_dv_next_ind_inv_helper(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv) 
+    ensures invs_1_7(dv')
+    ensures invs_8_18(dv')   
+    ensures invs_19_26(dv')
+    ensures invs_27_37(dv')  
+    ensures invs_other_properties_1(dv')    
+    ensures invs_other_properties_2(dv')    
+    ensures invs_other_properties_3(dv')    
+    ensures invs_other_properties_4(dv')    
+    ensures invs_other_properties_5(dv')    
+    ensures invs_other_properties_6(dv')    
+    ensures invs_other_properties_7(dv')    
     {   
-        lemma_ind_inv_dvn_next_ind_inv_helper_a(dvn, e, dvn');
-        lemma_ind_inv_dvn_next_ind_inv_helper_b(dvn, e, dvn');                
+        lemma_ind_inv_dv_next_ind_inv_helper_a(dv, e, dv');
+        lemma_ind_inv_dv_next_ind_inv_helper_b(dv, e, dv');                
     }
 
-    lemma lemma_ind_inv_dvn_next_ind_inv(dvn: DVState, e: DV.Event, dvn': DVState)       
-    requires DV.NextEventPreCond(dvn, e)
-    requires DV.NextEvent(dvn, e, dvn')  
-    requires ind_inv(dvn)    
-    ensures ind_inv(dvn')    
+    lemma lemma_ind_inv_dv_next_ind_inv(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)    
+    ensures ind_inv(dv')    
     {   
-        lemma_ind_inv_dvn_next_ind_inv_helper(dvn, e, dvn');                          
-        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_next_honest(dvn, e, dvn');       
+        lemma_ind_inv_dv_next_ind_inv_helper(dv, e, dv');                          
+        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_next_honest(dv, e, dv');       
     }
 
-    lemma lemma_ind_inv_dvn_ind(dvn: DVState, dvn': DVState)       
-    requires DV.NextPreCond(dvn)
-    requires DV.Next(dvn, dvn')  
-    requires ind_inv(dvn)    
-    ensures ind_inv(dvn')  
-    ensures DV.NextPreCond(dvn')
+    lemma lemma_ind_inv_dv_ind(dv: DVState, dv': DVState)       
+    requires DV.NextPreCond(dv)
+    requires DV.Next(dv, dv')  
+    requires ind_inv(dv)    
+    ensures ind_inv(dv')  
+    ensures DV.NextPreCond(dv')
     {
         var e :|
-            && validEvent(dvn, e)
-            && NextEvent(dvn, e, dvn');
+            && validEvent(dv, e)
+            && NextEvent(dv, e, dv');
 
-        lemma_ind_inv_dvn_next_ind_inv(dvn, e, dvn');
-        lemma_NextPreCond(dvn');
+        lemma_ind_inv_dv_next_ind_inv(dv, e, dv');
+        lemma_NextPreCond(dv');
     }      
 
     predicate non_slashable_attestations(
-        dvn: DVState
+        dv: DVState
     )
     {
         forall a: Attestation, a': Attestation
                 | 
-                && a in dvn.all_attestations_created
-                && is_valid_attestation(a, dvn.dv_pubkey)
-                && a' in dvn.all_attestations_created
-                && is_valid_attestation(a', dvn.dv_pubkey)     
+                && a in dv.all_attestations_created
+                && is_valid_attestation(a, dv.dv_pubkey)
+                && a' in dv.all_attestations_created
+                && is_valid_attestation(a', dv.dv_pubkey)     
                 ::
                 && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     }
 
-    lemma lemma_ind_inv_4_1_general(dvn: DVState)
-    requires ind_inv(dvn)    
-    ensures non_slashable_attestations(dvn)
+    lemma lemma_ind_inv_4_1_general(dv: DVState)
+    requires ind_inv(dv)    
+    ensures non_slashable_attestations(dv)
     {   
-        lemma_ind_inv_implies_intermediate_steps(dvn);
+        lemma_ind_inv_implies_intermediate_steps(dv);
 
         forall a: Attestation, a': Attestation
                     | 
-                    && a in dvn.all_attestations_created
-                    && is_valid_attestation(a, dvn.dv_pubkey)
-                    && a' in dvn.all_attestations_created
-                    && is_valid_attestation(a', dvn.dv_pubkey)     
+                    && a in dv.all_attestations_created
+                    && is_valid_attestation(a, dv.dv_pubkey)
+                    && a' in dv.all_attestations_created
+                    && is_valid_attestation(a', dv.dv_pubkey)     
         ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
         {
             assert 
-            && quorum_constraints(dvn)
-            && inv2(dvn)
-            && pred_4_1_b(dvn)
-            && pred_4_1_c(dvn)
-            && pred_4_1_f_a(dvn)    
-            && pred_4_1_g_i(dvn)
-            && pred_4_1_g_iii(dvn)
-            && a in dvn.all_attestations_created
-            && is_valid_attestation(a, dvn.dv_pubkey)
-            && a' in dvn.all_attestations_created
-            && is_valid_attestation(a', dvn.dv_pubkey)
-            && inv46_a(dvn)
-            && inv46_b(dvn)
-            && inv50(dvn)
-            && inv51(dvn)
+            && quorum_constraints(dv)
+            && inv2(dv)
+            && pred_4_1_b(dv)
+            && pred_4_1_c(dv)
+            && pred_4_1_f_a(dv)    
+            && pred_4_1_g_i(dv)
+            && pred_4_1_g_iii(dv)
+            && a in dv.all_attestations_created
+            && is_valid_attestation(a, dv.dv_pubkey)
+            && a' in dv.all_attestations_created
+            && is_valid_attestation(a', dv.dv_pubkey)
+            && inv46_a(dv)
+            && inv46_b(dv)
+            && inv50(dv)
+            && inv51(dv)
             ;
-            lemma_4_1_general(dvn, a, a');
+            lemma_4_1_general(dv, a, a');
         }
     }
 

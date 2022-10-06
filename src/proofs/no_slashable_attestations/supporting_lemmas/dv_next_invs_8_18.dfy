@@ -2,14 +2,14 @@ include "../../../common/commons.dfy"
 include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
-include "../../../specs/dvn/dvn.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
-include "dvn_next_invs_1_7.dfy"
+include "dv_next_invs_1_7.dfy"
 
-module DVN_Next_Invs_8_18
+module DV_Next_Invs_8_18
 {
     import opened Types 
     import opened CommonFunctions
@@ -21,25 +21,25 @@ module DVN_Next_Invs_8_18
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DVN_Next_Invs_1_7
+    import opened DV_Next_Invs_1_7
 
      
 
-    lemma lemma_inv8_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv8_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')      
-    requires inv8(dvn)
-    ensures inv8(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    requires inv8(dv)
+    ensures inv8(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 assert inv8_body(dvc);
                 match nodeEvent
                 {
@@ -70,21 +70,21 @@ module DVN_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv9_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv9_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')      
-    requires inv9(dvn)
-    ensures inv9(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    requires inv9(dv)
+    ensures inv9(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 assert inv9_body(dvc);
                 match nodeEvent
                 {
@@ -115,21 +115,21 @@ module DVN_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv10_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv10_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')          
-    requires inv10(dvn)
-    ensures inv10(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')          
+    requires inv10(dv)
+    ensures inv10(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 assert inv10_body(dvc);
                 match nodeEvent
                 {
@@ -161,37 +161,37 @@ module DVN_Next_Invs_8_18
     }  
 
     
-    lemma lemma_inv13_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv13_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')      
-    requires inv13(dvn)
-    ensures inv13(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    requires inv13(dv)
+    ensures inv13(dv')
     { 
-        assert dvn.sequence_attestation_duties_to_be_served == dvn'.sequence_attestation_duties_to_be_served;
+        assert dv.sequence_attestation_duties_to_be_served == dv'.sequence_attestation_duties_to_be_served;
     }
     
 
-    // It takes more than 60 seconds to prove lemma_inv16_dvn_next.
-    lemma lemma_inv16_dvn_next(
-        dvn: DVState,
+    // It takes more than 60 seconds to prove lemma_inv16_dv_next.
+    lemma lemma_inv16_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')      
-    requires inv8(dvn)
-    requires inv16(dvn)
-    ensures inv16(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    requires inv8(dv)
+    requires inv16(dv)
+    ensures inv16(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 assert inv16_body(dvc);
                 match nodeEvent
                 {
@@ -222,27 +222,27 @@ module DVN_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv17_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv17_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires quorum_constraints(dvn)  
-    requires inv2(dvn)
-    requires inv4(dvn)
-    requires inv5(dvn)
-    requires inv13(dvn)
-    requires inv15(dvn)
-    requires inv17(dvn)
-    ensures inv17(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires quorum_constraints(dv)  
+    requires inv2(dv)
+    requires inv4(dv)
+    requires inv5(dv)
+    requires inv13(dv)
+    requires inv15(dv)
+    requires inv17(dv)
+    ensures inv17(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 
                 
                 match nodeEvent
@@ -269,44 +269,44 @@ module DVN_Next_Invs_8_18
                         
                 }
                 assert inv17_body(dvc');
-                forall n | n in dvn'.honest_nodes_states.Keys 
-                ensures inv17_body(dvn'.honest_nodes_states[n]);
+                forall n | n in dv'.honest_nodes_states.Keys 
+                ensures inv17_body(dv'.honest_nodes_states[n]);
                 {
                     if n != node 
                     {
-                        assert dvn.honest_nodes_states[n] == dvn'.honest_nodes_states[n];
-                        assert inv17_body(dvn'.honest_nodes_states[n]);
+                        assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
+                        assert inv17_body(dv'.honest_nodes_states[n]);
                     }
                 }
                 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                assert inv17(dvn');
+                assert inv17(dv');
                 
         }   
     }  
 
-    lemma lemma_inv18_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv18_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     )    
-    requires NextEventPreCond(dvn, event)
-    requires NextEvent(dvn, event, dvn')    
-    requires quorum_constraints(dvn)  
-    requires inv2(dvn)  
-    requires inv4(dvn)
-    requires inv5(dvn)
-    requires inv7(dvn)
-    requires inv13(dvn)  
-    requires inv17(dvn)
-    requires inv18(dvn)
-    ensures inv18(dvn')
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')    
+    requires quorum_constraints(dv)  
+    requires inv2(dv)  
+    requires inv4(dv)
+    requires inv5(dv)
+    requires inv7(dv)
+    requires inv13(dv)  
+    requires inv17(dv)
+    requires inv18(dv)
+    ensures inv18(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
                 
                 match nodeEvent
                 {
@@ -341,22 +341,22 @@ module DVN_Next_Invs_8_18
                 }
                 assert inv18_body(dvc');
 
-                forall n | n in dvn'.honest_nodes_states.Keys 
-                ensures inv18_body(dvn'.honest_nodes_states[n]);
+                forall n | n in dv'.honest_nodes_states.Keys 
+                ensures inv18_body(dv'.honest_nodes_states[n]);
                 {
                     if n != node 
                     {
-                        assert dvn.honest_nodes_states[n] == dvn'.honest_nodes_states[n];
-                        assert inv18_body(dvn'.honest_nodes_states[n]);
+                        assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
+                        assert inv18_body(dv'.honest_nodes_states[n]);
                     }
                 }                
                 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                forall n | n in dvn'.honest_nodes_states.Keys 
-                ensures inv18_body(dvn'.honest_nodes_states[n]);
+                forall n | n in dv'.honest_nodes_states.Keys 
+                ensures inv18_body(dv'.honest_nodes_states[n]);
                 {
-                    assert dvn.honest_nodes_states[n] == dvn'.honest_nodes_states[n];
-                    assert inv18_body(dvn'.honest_nodes_states[n]);
+                    assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
+                    assert inv18_body(dv'.honest_nodes_states[n]);
                 }   
                 
         }   

@@ -39,7 +39,7 @@ module DV
         ghost globally_signed_attestations: set<Attestation>,
         ghost globally_slashing_db_attestations: set<SlashingDBAttestation>,
         ghost all_att_shares: set<AttestationShare>,
-        ghost highest_slot_with_dvn_signed_att: Optional<Slot>
+        ghost highest_slot_with_dv_signed_att: Optional<Slot>
     )
 
     datatype Event = 
@@ -255,32 +255,32 @@ module DV
             && NextEvent(s, e, s')
     }
 
-    predicate unchanged_fixed_paras(dvn: DVState, dvn': DVState)
+    predicate unchanged_fixed_paras(dv: DVState, dv': DVState)
     {
-        && dvn.all_nodes == dvn'.all_nodes
-        && dvn.adversary == dvn'.adversary
-        && dvn.honest_nodes_states.Keys == dvn'.honest_nodes_states.Keys        
-        && dvn.dv_pubkey == dvn'.dv_pubkey
-        && dvn.construct_signed_attestation_signature
-                == dvn'.construct_signed_attestation_signature
-        && dvn.sequence_attestation_duties_to_be_served
-                == dvn'.sequence_attestation_duties_to_be_served
-        && ( forall n | n in dvn'.honest_nodes_states.Keys :: 
-                var nodes' := dvn'.honest_nodes_states[n];
-                && nodes'.construct_signed_attestation_signature == dvn'.construct_signed_attestation_signature
-                && nodes'.dv_pubkey == dvn.dv_pubkey       
-                && nodes'.peers == dvn.all_nodes
+        && dv.all_nodes == dv'.all_nodes
+        && dv.adversary == dv'.adversary
+        && dv.honest_nodes_states.Keys == dv'.honest_nodes_states.Keys        
+        && dv.dv_pubkey == dv'.dv_pubkey
+        && dv.construct_signed_attestation_signature
+                == dv'.construct_signed_attestation_signature
+        && dv.sequence_attestation_duties_to_be_served
+                == dv'.sequence_attestation_duties_to_be_served
+        && ( forall n | n in dv'.honest_nodes_states.Keys :: 
+                var nodes' := dv'.honest_nodes_states[n];
+                && nodes'.construct_signed_attestation_signature == dv'.construct_signed_attestation_signature
+                && nodes'.dv_pubkey == dv.dv_pubkey       
+                && nodes'.peers == dv.all_nodes
            )
     }
 
     predicate blockIsValid(
-        dvn: DVState,
+        dv: DVState,
         process: DVCNodeState,
         block: BeaconBlock
     )
     {
         var new_p := add_block_to_bn(process, block);
-        blockIsValidAfterAdd(dvn, new_p, block)
+        blockIsValidAfterAdd(dv, new_p, block)
     }
 
     predicate is_valid_attestation(
@@ -295,7 +295,7 @@ module DV
 
       // TODO: Modify isMyAttestation to include the entirety the forall premise 
     predicate pred_axiom_is_my_attestation_2(
-        dvn: DVState,
+        dv: DVState,
         new_p: DVCNodeState,
         block: BeaconBlock
     )
@@ -312,13 +312,13 @@ module DV
             )
         ::
         exists a' ::
-            && a' in dvn.all_attestations_created
+            && a' in dv.all_attestations_created
             && a'.data == a.data 
-            && is_valid_attestation(a', dvn.dv_pubkey)    
+            && is_valid_attestation(a', dv.dv_pubkey)    
     }  
 
     predicate blockIsValidAfterAdd(
-        dvn: DVState,
+        dv: DVState,
         process: DVCNodeState,
         block: BeaconBlock
     )
@@ -333,7 +333,7 @@ module DV
             ::
                 a1.data.slot == a2.data.slot ==> a1 == a2  
         )      
-        && pred_axiom_is_my_attestation_2(dvn, process, block)
+        && pred_axiom_is_my_attestation_2(dv, process, block)
     }        
 
 
@@ -382,11 +382,11 @@ module DV
     }
 
     predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(
-        dvn: DVState
+        dv: DVState
     )
     {
-        forall n | n in dvn.honest_nodes_states.Keys ::
-            inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(dvn.honest_nodes_states[n])
+        forall n | n in dv.honest_nodes_states.Keys ::
+            inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(dv.honest_nodes_states[n])
     }
 
     predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(

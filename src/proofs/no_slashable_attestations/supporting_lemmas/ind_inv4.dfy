@@ -3,12 +3,12 @@ include "../../common/helper_sets_lemmas.dfy"
 include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
-include "../../../specs/dvn/dvn.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
-include "dvn_next_invs_1_7.dfy"
-include "dvn_next_invs_8_18.dfy"
-include "dvn_next_invs_19_26.dfy"
-include "dvn_next_invs_27_37.dfy"
+include "dv_next_invs_1_7.dfy"
+include "dv_next_invs_8_18.dfy"
+include "dv_next_invs_19_26.dfy"
+include "dv_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
@@ -26,10 +26,10 @@ module IndInv4
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DVN_Next_Invs_1_7
-    import opened DVN_Next_Invs_8_18
-    import opened DVN_Next_Invs_19_26
-    import opened DVN_Next_Invs_27_37
+    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_8_18
+    import opened DV_Next_Invs_19_26
+    import opened DV_Next_Invs_27_37
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs
@@ -51,18 +51,18 @@ module IndInv4
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
         process: DVCNodeState,
         attestation_duty: AttestationDuty,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(process);
-    requires is_sequence_attestation_duties_to_be_served_orderd(dvn)
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_g_iii_c_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires is_sequence_attestation_duties_to_be_served_orderd(dv)
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_iii_c_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv23_body(process)
     requires inv22_body(process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
-    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served + 1, attestation_duty, n)
+    requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served + 1, attestation_duty, n)
     {
         var new_attestation_duties_queue := process.attestation_duties_queue + [attestation_duty];
 
@@ -78,7 +78,7 @@ module IndInv4
             {
                 var i: nat :|
                     && i < index_next_attestation_duty_to_be_served
-                    && var an := dvn.sequence_attestation_duties_to_be_served[i];
+                    && var an := dv.sequence_attestation_duties_to_be_served[i];
                     && an.attestation_duty == ad
                     && an.node == n
                 ;       
@@ -195,16 +195,16 @@ module IndInv4
         process: DVCNodeState,
         attestation_duty: AttestationDuty,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state   
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
-    requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
-    requires lemma_ServeAttstationDuty2_predicate(dvn, index_next_attestation_duty_to_be_served+1, attestation_duty, n)
+    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served+1, attestation_duty, n)
 
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
@@ -222,7 +222,7 @@ module IndInv4
             assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
         }        
 
-        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(new_p, s', dvn, n, index_next_attestation_duty_to_be_served); 
+        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served); 
     }  
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
@@ -230,15 +230,15 @@ module IndInv4
         id: Slot,
         decided_attestation_data: AttestationData,        
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat         
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
-    requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
         if  || !process.current_attestation_duty.isPresent()
@@ -275,7 +275,7 @@ module IndInv4
         lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
             s_mod, 
             s',
-            dvn,
+            dv,
             n,
             index_next_attestation_duty_to_be_served
         );          
@@ -285,15 +285,15 @@ module IndInv4
         process: DVCNodeState,
         block: BeaconBlock,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
-    requires is_sequence_attestation_duties_to_be_served_orderd(dvn);
-    requires inv_g_iii_b_body_body(dvn, n, process, index_next_attestation_duty_to_be_served)
+    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -332,7 +332,7 @@ module IndInv4
             lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
                 s_mod, 
                 s',
-                dvn,
+                dv,
                 n,
                 index_next_attestation_duty_to_be_served
             );             
@@ -343,7 +343,7 @@ module IndInv4
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
         process: DVCNodeState,
         s': DVCNodeState,
-        dvn: DVState,
+        dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
@@ -373,7 +373,7 @@ module IndInv4
                     )                        
                 );
 
-                lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(s_mod, s', dvn, n, index_next_attestation_duty_to_be_served);
+                lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
 
             }
             else 

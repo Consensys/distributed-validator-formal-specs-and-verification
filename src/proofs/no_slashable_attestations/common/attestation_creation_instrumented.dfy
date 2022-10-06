@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
 include "../../../dvc_implementation/attestation_creation.dfy"
-include "../../../specs/dvc/attestation_creation.dfy"
+include "../../../specs/dvc/dvc_attestation_creation.dfy"
 include "dvc_spec_axioms.dfy"
 
 

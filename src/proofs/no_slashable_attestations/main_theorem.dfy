@@ -1,5 +1,5 @@
 include "../../common/commons.dfy"
-include "../../specs/dvn/dvn.dfy"
+include "../../specs/dv/dv_attestation_creation.dfy"
 
 include "supporting_lemmas/proofs_ind_inv.dfy"
 
@@ -32,12 +32,12 @@ module No_Slashable_Attestations_Main_Theorem
     {
         if i == 0 
         {
-            lemma_ind_inv_dvn_init(trace[0]);
+            lemma_ind_inv_dv_init(trace[0]);
         }
         else 
         {
             lemma_non_slashable_attestations_rec(trace, i-1);
-            lemma_ind_inv_dvn_ind(trace[i-1], trace[i]);
+            lemma_ind_inv_dv_ind(trace[i-1], trace[i]);
         }
     }
 

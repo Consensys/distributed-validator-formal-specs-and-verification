@@ -2,7 +2,7 @@ include "../../../common/commons.dfy"
 include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
-include "../../../specs/dvn/dvn.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "../common/common_proofs.dfy"
@@ -1049,20 +1049,20 @@ module Fnc_Invs_27_39
         { }
     } 
 
-    lemma lemma_inv30_dvn_next(
-        dvn: DVState,
+    lemma lemma_inv30_dv_next(
+        dv: DVState,
         event: DV.Event,
-        dvn': DVState
+        dv': DVState
     ) 
-    requires NextEvent.requires(dvn, event, dvn')    
-    requires NextEvent(dvn, event, dvn')  
-    ensures inv30(dvn, event, dvn')
+    requires NextEvent.requires(dv, event, dv')    
+    requires NextEvent(dv, event, dv')  
+    ensures inv30(dv, event, dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dvn.honest_nodes_states[node];
-                var dvc' := dvn'.honest_nodes_states[node];                
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];                
                 
                 match nodeEvent
                 {
