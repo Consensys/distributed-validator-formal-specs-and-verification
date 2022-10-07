@@ -95,7 +95,7 @@ module Proofs_DV_Ind_Inv
         &&  inv29(dv)  
         &&  inv31(dv)  
         &&  inv34(dv)
-        &&  inv35(dv)
+        &&  inv_construct_signed_attestation_signature_assumptions_helper(dv)
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_attn_shares_are_from_sent_messages(dv)
         &&  IndInv3.inv33(dv)
@@ -246,11 +246,11 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv31(dv') 
     ensures inv34(dv')
-    ensures inv35(dv')
+    ensures inv_construct_signed_attestation_signature_assumptions_helper(dv')
     {       
         lemma_inv31_dv_next(dv, e, dv');  
         lemma_inv34_dv_next(dv, e, dv');  
-        lemma_inv35_dv_next(dv, e, dv');  
+        lemma_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
         // lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         // lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
         // IndInv3.lemma_inv_33(dv, e, dv');
@@ -370,7 +370,7 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')       
     requires ind_inv(dv)
-    ensures inv46_b(dv')
+    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv')
     {
         lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
         assert inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
@@ -382,7 +382,7 @@ module Proofs_DV_Ind_Inv
         assert inv53(dv);
 
 
-        assert && inv46_b(dv)
+        assert && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
                && inv_quorum_constraints(dv)
                && inv53(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
@@ -391,8 +391,8 @@ module Proofs_DV_Ind_Inv
                && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
                ;
 
-        lemma_inv46_b(dv, e, dv');    
-        assert inv46_b(dv');
+        lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');    
+        assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_pred_4_1_b(dv: DVState, e: DV.Event, dv': DVState)       
@@ -469,7 +469,7 @@ module Proofs_DV_Ind_Inv
 
     predicate invs_other_properties_1(dv: DVState)       
     {                
-        && inv46_b(dv)
+        && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
         && pred_4_1_b(dv) 
         && pred_4_1_f_a(dv)    
         && pred_4_1_g_i_for_dvc(dv)
@@ -678,8 +678,8 @@ module Proofs_DV_Ind_Inv
 
     predicate invs_other_properties_7(dv: DVState)       
     {                
-        && inv46_a(dv)
-        && inv46_b(dv)
+        && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
+        && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     }
 
           
@@ -705,7 +705,7 @@ module Proofs_DV_Ind_Inv
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
 
         lemma_inv_46_a(dv, e, dv');
-        lemma_inv46_b(dv, e, dv');
+        lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');
     }
 
 
@@ -891,8 +891,8 @@ module Proofs_DV_Ind_Inv
             && is_valid_attestation(a, dv.dv_pubkey)
             && a' in dv.all_attestations_created
             && is_valid_attestation(a', dv.dv_pubkey)
-            && inv46_a(dv)
-            && inv46_b(dv)
+            && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
+            && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
             && inv50(dv)
             && inv51(dv)
             ;

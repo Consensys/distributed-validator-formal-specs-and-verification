@@ -379,7 +379,7 @@ module IndInv3
 
     lemma lemma_inv33_implies_46_a(dv: DVState)
     requires inv33(dv)
-    ensures inv46_a(dv)
+    ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     {
         forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn)
         ensures
@@ -409,9 +409,9 @@ module IndInv3
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)   
     requires inv33(s)   
-    requires inv46_a(s)   
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s)   
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
-    ensures inv46_a(s')   
+    ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s')   
     {
         lemma_inv_33(s, event, s');
         lemma_inv33_implies_46_a(s');
@@ -462,7 +462,7 @@ module IndInv3
 
     }      
 
-    function lemma_inv46_b_helper_helper_function(
+    function lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper_helper_function(
         s_w_honest_node_states_updated: DVState,
         cid: Slot
     ) : map<BLSPubkey, AttestationData -> bool>
@@ -474,26 +474,26 @@ module IndInv3
                 s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
     }    
 
-    // lemma lemma_inv46_b_helper_helper(
+    // lemma lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper_helper(
     //     s_w_honest_node_states_updated: DVState,
     //     cid: Slot,
     //     validityPredicates: map<BLSPubkey, AttestationData -> bool>,
     //     n: BLSPubkey
     // ) 
-    // requires validityPredicates == lemma_inv46_b_helper_helper_function(s_w_honest_node_states_updated, cid)
+    // requires validityPredicates == lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper_helper_function(s_w_honest_node_states_updated, cid)
     // requires n in validityPredicates.Keys
     // // ensures validityPredicates[n] == s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
     // {
 
     // }  
 
-    // // lemma lemma_inv46_b_helper_helper2(
+    // // lemma lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper_helper2(
     // //     s_w_honest_node_states_updated: DVState,
     // //     cid: Slot,
     // //     validityPredicates: map<BLSPubkey, AttestationData -> bool>,
     // //     n: BLSPubkey
     // // ) 
-    // // requires validityPredicates == lemma_inv46_b_helper_helper_function(s_w_honest_node_states_updated, cid)
+    // // requires validityPredicates == lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper_helper_function(s_w_honest_node_states_updated, cid)
     // // requires n in validityPredicates.Keys
     // // requires n !in s_w_honest_node_states_updated.honest_nodes_states
     // // ensures cid in 
@@ -718,7 +718,7 @@ module IndInv3
         lemma_att_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
     }          
 
-    lemma lemma_inv46_b_helper(
+    lemma lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper(
         s: DVState,
         event: DV.Event,
         cid: Slot,
@@ -733,10 +733,10 @@ module IndInv3
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
     requires inv33_body(s, hn, s.honest_nodes_states[hn], cid)
-    requires inv46_b_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
-    ensures inv46_b_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
     {
         // lemma_inv_33_helper(s, event, cid, hn, s');
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -757,7 +757,7 @@ module IndInv3
                         None
                     ;
 
-                var validityPredicates := lemma_inv46_b_helper_helper_function(s_w_honest_node_states_updated, cid);
+                var validityPredicates := lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper_helper_function(s_w_honest_node_states_updated, cid);
                     // map n |
                     //         && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
                     //         && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
@@ -867,7 +867,7 @@ module IndInv3
         }
     }  
 
-    lemma lemma_inv46_b(
+    lemma lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -878,16 +878,16 @@ module IndInv3
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires inv33(s)  
-    requires inv46_b(s) 
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(s)
-    ensures inv46_b(s')   
+    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey, slot: Slot, vp : AttestationData -> bool |
             hn in s'.honest_nodes_states
-        ensures inv46_b_body(s', hn, s'.honest_nodes_states[hn], slot, vp)    
+        ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot, vp)    
         {
-            lemma_inv46_b_helper(s, event, slot, vp, hn, s');
+            lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_helper(s, event, slot, vp, hn, s');
         }
     }  
 
