@@ -1889,7 +1889,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv30_body(dvc, dvc')
     }
 
-    predicate inv31_body_ces(ces: ConsensusEngineState, attestation_slashing_db: set<SlashingDBAttestation>)
+    predicate inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(ces: ConsensusEngineState, attestation_slashing_db: set<SlashingDBAttestation>)
     {
         forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
                 ( && s in ces.att_slashing_db_hist.Keys
@@ -1900,7 +1900,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 db <= attestation_slashing_db
     }
 
-    predicate inv31_body(hn_state: DVCState)
+    predicate inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(hn_state: DVCState)
     {
         forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
                 ( && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -1911,21 +1911,21 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 db <= hn_state.attestation_slashing_db
     }
 
-    predicate inv31(dv: DVState)
+    predicate inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv: DVState)
     {
         forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv31_body(dvc)
+            && inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc)
     }
 
-    predicate inv32_body(dvc: DVCState, dvc': DVCState)
+    predicate inv_monotonic_att_slashing_db_hist_body(dvc: DVCState, dvc': DVCState)
     {        
         dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
         <= 
         dvc'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     }
 
-    predicate inv32(dv: DVState, event: DV.Event, dv': DVState)    
+    predicate inv_monotonic_att_slashing_db_hist(dv: DVState, event: DV.Event, dv': DVState)    
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')    
     {
@@ -1933,10 +1933,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dv'.honest_nodes_states
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
-            && inv32_body(dvc, dvc')
+            && inv_monotonic_att_slashing_db_hist_body(dvc, dvc')
     }
 
-    predicate inv33_body(dv: DVState, hn: BLSPubkey)
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv: DVState, hn: BLSPubkey)
     {
         hn in dv.honest_nodes_states.Keys        
             ==> && var hn_state := dv.honest_nodes_states[hn];
@@ -1946,9 +1946,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         )
     }
 
-    predicate inv33(dv: DVState)
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv: DVState)
     {
-        forall hn: BLSPubkey :: inv33_body(dv, hn)        
+        forall hn: BLSPubkey :: inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn)        
     }
 
     predicate prop_monotonic_set_of_in_transit_messages(dv: DVState, dv': DVState)
@@ -1957,18 +1957,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
      
    
-    predicate inv34_body(dvc: DVCState)
+    predicate inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_body(dvc: DVCState)
     {
         dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
         <= 
         dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     } 
 
-    predicate inv34(dv: DVState)
+    predicate inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv: DVState)
     {
         forall hn | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv34_body(dvc)
+            && inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_body(dvc)
     } 
 
     predicate inv_construct_signed_attestation_signature_assumptions_helper(dv: DVState)
