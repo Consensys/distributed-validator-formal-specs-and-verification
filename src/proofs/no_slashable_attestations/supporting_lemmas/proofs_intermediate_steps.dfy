@@ -315,8 +315,8 @@ module Proofs_Intermediate_Steps
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 
-    lemma lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
-    requires inv29(dv)
+    lemma lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
+    requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
     ensures inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
     {}  
     
