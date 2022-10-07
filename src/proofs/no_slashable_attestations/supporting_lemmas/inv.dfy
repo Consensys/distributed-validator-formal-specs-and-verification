@@ -1933,7 +1933,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dv'.honest_nodes_states
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
-            && inv_monotonic_att_slashing_db_hist_body(dvc, dvc')
+            &&inv_monotonic_att_slashing_db_hist_body(dvc, dvc')
     }
 
     predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv: DVState, hn: BLSPubkey)

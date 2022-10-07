@@ -94,7 +94,7 @@ module Proofs_DV_Ind_Inv
         &&  inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
         &&  inv29(dv)  
         &&  inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
-        &&  inv34(dv)
+        &&  inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)
         &&  inv35(dv)
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_attn_shares_are_from_sent_messages(dv)
@@ -245,11 +245,11 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv') 
-    ensures inv34(dv')
+    ensures inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv')
     ensures inv35(dv')
     {       
         lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_dv_next(dv, e, dv');  
-        lemma_inv34_dv_next(dv, e, dv');  
+        lemma_inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_dv_next(dv, e, dv');  
         lemma_inv35_dv_next(dv, e, dv');  
         // lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         // lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
