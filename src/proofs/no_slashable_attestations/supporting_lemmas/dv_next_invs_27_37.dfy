@@ -300,7 +300,7 @@ module DV_Next_Invs_27_37
                 
         }   
     }
-*/
+
 
     lemma lemma_inv_monotonic_att_slashing_db_hist_dv_next(
         dv: DVState,
