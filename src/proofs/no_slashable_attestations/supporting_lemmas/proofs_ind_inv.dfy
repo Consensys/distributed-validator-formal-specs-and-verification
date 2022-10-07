@@ -92,7 +92,7 @@ module Proofs_DV_Ind_Inv
     {                
         &&  inv27(dv)  
         &&  inv28(dv)  
-        &&  inv29(dv)  
+        &&  inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)  
         &&  inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
         &&  inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)
         &&  inv_construct_signed_attestation_signature_assumptions_helper(dv)
@@ -233,11 +233,11 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv27(dv') 
     ensures inv28(dv')
-    ensures inv29(dv')
+    ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv')
     {
         lemma_inv27_dv_next(dv, e, dv');    
         lemma_inv28_dv_next(dv, e, dv');  
-        lemma_inv29_dv_next(dv, e, dv');          
+        lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_dv_next(dv, e, dv');          
     }
 
     lemma lemma_ind_inv_dv_next_invs_27_37_helper2(dv: DVState, e: DV.Event, dv': DVState)       
@@ -372,7 +372,7 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv')
     {
-        lemma_inv29_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
+        lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
         assert inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
 
         lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
