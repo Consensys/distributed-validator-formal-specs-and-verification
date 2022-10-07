@@ -89,7 +89,7 @@ module DV_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv28_dv_next(
+    lemma lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -98,8 +98,8 @@ module DV_Next_Invs_27_37
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
     requires inv26(dv)
-    requires inv28(dv)  
-    ensures inv28(dv')
+    requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
+    ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
     {        
         match event 
         {
@@ -112,26 +112,26 @@ module DV_Next_Invs_27_37
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
                         assert inv26_body(dvc);   
-                        assert inv28_body(dvc);                                           
-                        lemma_inv28_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv28_body(dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc);                                           
+                        lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv28_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv28_body(dvc');
+                        lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv28_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv28_body(dvc');
+                        lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
                         lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv5_body(dvc_mod);
-                        lemma_inv28_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv28_body(dvc_mod);
-                        lemma_inv28_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv28_body(dvc');
+                        lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc_mod);
+                        lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 
@@ -199,14 +199,14 @@ module DV_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv30_dv_next(
+    lemma lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    ensures inv30(dv, event, dv')
+    ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv, event, dv')
     {        
         match event 
         {
@@ -217,23 +217,23 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        lemma_inv30_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv30_body(dvc, dvc');
+                        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv30_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv30_body(dvc, dvc');
+                        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc, dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv30_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv30_body(dvc, dvc');
+                        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc, dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv30_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv30_body(dvc, dvc_mod);
-                        lemma_inv30_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv30_body(dvc_mod, dvc');
+                        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc, dvc_mod);
+                        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc_mod, dvc');
 
                     case ResendAttestationShares =>                                                                      
 

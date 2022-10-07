@@ -1821,7 +1821,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv27_body(hn_state)       
     }
 
-    predicate inv28_body_ces(ces: ConsensusEngineState)
+    predicate inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(ces: ConsensusEngineState)
     {
         forall s: Slot, vp: AttestationData -> bool |
                 ( && s in ces.att_slashing_db_hist.Keys
@@ -1835,7 +1835,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 )
     }
 
-    predicate inv28_body(hn_state: DVCState)
+    predicate inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(hn_state: DVCState)
     {
         forall s: Slot, vp: AttestationData -> bool |
                 ( && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -1849,11 +1849,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 )
     }
 
-    predicate inv28(dv: DVState)
+    predicate inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv: DVState)
     {
         forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv28_body(dvc)
+            && inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc)
     }
 
     predicate inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(hn_state: DVCState)

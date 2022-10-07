@@ -228,7 +228,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv50_ind_inv(
         dv: DVState
     )    
-    requires inv28(dv)
+    requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)
     ensures inv50(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
@@ -242,7 +242,7 @@ module Proofs_Intermediate_Steps
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
-            assert inv28_body(hn_state);
+            assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(hn_state);
             assert s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
             assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s];
 
