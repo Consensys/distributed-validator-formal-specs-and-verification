@@ -4,15 +4,15 @@ This folder contains the Dafny reference implementation section of the DVT proto
 
 ## Description
 
-The bulk of the implementation logic is contained in the `DVCNode` class.
+The bulk of the implementation logic is contained in the `DVC` class.
 An instance of this class refers to a DVC that handles the attestation creation logic of the DVT protocol for a single Distributed Validator public key.
 
-The only public method of the `DVCNode` class is the `process_event` method.
-This method must be executed on an instance `I` of `DVCNode` any time that a new event concerning attestation creation for the Distributed Validator public key handled by instance `I` occurs.
-The implementation is not thread-safe, that is, for any instance of `DVCNode`, only one `process_event` method must be executing at any point in time.
+The only public method of the `DVC` class is the `process_event` method.
+This method must be executed on an instance `I` of `DVC` any time that a new event concerning attestation creation for the Distributed Validator public key handled by instance `I` occurs.
+The implementation is not thread-safe, that is, for any instance of `DVC`, only one `process_event` method must be executing at any point in time.
 
 `process_event` returns a value of type `Status` which indicates whether any error occurred in the processing of the event.
-The formal verification analysis will prove that, as long as the components external to the `DVCNode` class (i.e. network, consensus, beacon node, remote signer and slashing db) behave as expected, no error can occur.
+The formal verification analysis will prove that, as long as the components external to the `DVC` class (i.e. network, consensus, beacon node, remote signer and slashing db) behave as expected, no error can occur.
 Therefore, if `process_event` indicates that an error occurred while processing the event, it means that one of the external components did not behave as expected.
 Hence, recovery from error conditions is outside the scope of this reference implementation.
 
