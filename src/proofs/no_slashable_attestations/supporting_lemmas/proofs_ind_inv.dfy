@@ -93,12 +93,12 @@ module Proofs_DV_Ind_Inv
         &&  inv27(dv)  
         &&  inv28(dv)  
         &&  inv29(dv)  
-        &&  inv31(dv)  
-        &&  inv34(dv)
+        &&  inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
+        &&  inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)
         &&  inv_construct_signed_attestation_signature_assumptions_helper(dv)
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_attn_shares_are_from_sent_messages(dv)
-        &&  IndInv3.inv33(dv)
+        &&  IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)
     }
 
 
@@ -244,12 +244,12 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv31(dv') 
-    ensures inv34(dv')
+    ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv') 
+    ensures inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv')
     ensures inv_construct_signed_attestation_signature_assumptions_helper(dv')
     {       
-        lemma_inv31_dv_next(dv, e, dv');  
-        lemma_inv34_dv_next(dv, e, dv');  
+        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_dv_next(dv, e, dv');  
+        lemma_inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_dv_next(dv, e, dv');  
         lemma_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
         // lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         // lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
@@ -262,7 +262,7 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv_all_in_transit_messages_were_sent(dv') 
     ensures inv_rcvd_attn_shares_are_from_sent_messages(dv')
-    ensures IndInv3.inv33(dv')
+    ensures IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv')
     {               
         lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
@@ -386,7 +386,7 @@ module Proofs_DV_Ind_Inv
                && inv_quorum_constraints(dv)
                && inv53(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
-               && IndInv3.inv33(dv)  
+               && IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)  
                && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
                && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
                ;

@@ -35,7 +35,7 @@ module IndInv3
     import opened DVC_Spec_Axioms
 
     // TODO
-    predicate inv33_body(
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(
         dv: DVState, 
         hn: BLSPubkey,
         hn_state: DVCState,
@@ -47,12 +47,12 @@ module IndInv3
                 )
     }
 
-    predicate inv33(dv: DVState)
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv: DVState)
     {
         forall hn: BLSPubkey, s: Slot |
             hn in dv.honest_nodes_states
             :: 
-            inv33_body(dv, hn, dv.honest_nodes_states[hn], s)        
+            inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn, dv.honest_nodes_states[hn], s)        
     }  
 
     lemma lemma_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
@@ -265,9 +265,9 @@ module IndInv3
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv33_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
-    ensures inv33_body(s', hn, s'.honest_nodes_states[hn], cid)
+    ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s', hn, s'.honest_nodes_states[hn], cid)
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -310,7 +310,7 @@ module IndInv3
                 {
                     if hn in  s.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     {
-                        assert inv33_body(s, hn, s.honest_nodes_states[hn], cid);
+                        assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid);
 
                         assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     }
@@ -346,7 +346,7 @@ module IndInv3
                 if
                     && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                 {
-                    assert inv33_body(s, hn, s.honest_nodes_states[hn], cid);
+                    assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid);
                     assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                     assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;                    
@@ -365,20 +365,20 @@ module IndInv3
     requires inv_quorum_constraints(s)
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
-    requires inv33(s)   
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)   
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
-    ensures inv33(s')   
+    ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s')   
     {
         forall hn: BLSPubkey, slot: Slot |
             hn in s'.honest_nodes_states
-        ensures inv33_body(s', hn, s'.honest_nodes_states[hn], slot)    
+        ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s', hn, s'.honest_nodes_states[hn], slot)    
         {
             lemma_inv_33_helper(s, event, slot, hn, s');
         }
     }  
 
-    lemma lemma_inv33_implies_46_a(dv: DVState)
-    requires inv33(dv)
+    lemma lemma_inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_implies_46_a(dv: DVState)
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     {
         forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn)
@@ -390,7 +390,7 @@ module IndInv3
         {
             assert hn in dv.honest_nodes_states.Keys;
             var hn_state := dv.honest_nodes_states[hn];
-            assert inv33_body(dv, hn, hn_state, s);
+            assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn, hn_state, s);
             assert
                 && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
                     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
@@ -408,13 +408,13 @@ module IndInv3
     requires inv_quorum_constraints(s)
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)   
-    requires inv33(s)   
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)   
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s)   
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s')   
     {
         lemma_inv_33(s, event, s');
-        lemma_inv33_implies_46_a(s');
+        lemma_inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_implies_46_a(s');
     }     
 
     lemma lemma_add_set_of_validity_predicates<D(!new, 0)>(
@@ -732,7 +732,7 @@ module IndInv3
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv33_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
@@ -856,7 +856,7 @@ module IndInv3
                     && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]                          
                     && cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
                 {
-                    assert inv33_body(s, hn, s.honest_nodes_states[hn], cid);
+                    assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid);
                     assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                     assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
@@ -877,7 +877,7 @@ module IndInv3
     requires inv_quorum_constraints(s)
     requires inv53(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
-    requires inv33(s)  
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)  
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s) 
     requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(s)

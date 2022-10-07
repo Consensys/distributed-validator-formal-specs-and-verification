@@ -297,7 +297,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(
         dv: DVState
     )    
-    requires inv34(dv)    
+    requires inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)    
     ensures  inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     {}
 
