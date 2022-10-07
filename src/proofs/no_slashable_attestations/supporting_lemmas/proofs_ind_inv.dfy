@@ -91,7 +91,7 @@ module Proofs_DV_Ind_Inv
     predicate invs_27_37(dv: DVState)       
     {                
         &&  inv27(dv)  
-        &&  inv28(dv)  
+        &&  inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
         &&  inv29(dv)  
         &&  inv31(dv)  
         &&  inv34(dv)
@@ -232,11 +232,11 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv27(dv') 
-    ensures inv28(dv')
+    ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
     ensures inv29(dv')
     {
         lemma_inv27_dv_next(dv, e, dv');    
-        lemma_inv28_dv_next(dv, e, dv');  
+        lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_dv_next(dv, e, dv');  
         lemma_inv29_dv_next(dv, e, dv');          
     }
 
