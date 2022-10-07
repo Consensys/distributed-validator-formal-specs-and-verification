@@ -1032,7 +1032,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires s in dv.consensus_on_attestation_data.Keys         
     requires hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys      
     requires && inv47_body(dv, hn, s) 
-             && inv46_a(dv) 
+             && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv) 
     // requires && var hn_state := dv.honest_nodes_states[hn];
     //          && exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s    
     {    
@@ -1055,7 +1055,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // requires && var hn_state := dv.honest_nodes_states[hn];
     //         && exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s
     requires && inv47_body(dv, hn, s) 
-             && inv46_a(dv)     
+             && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)     
     requires s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys                
     requires is_a_valid_decided_value_according_to_set_of_nodes(ci, h_nodes)
     {
@@ -1080,7 +1080,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys      
             // && exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s            
             && inv47_body(dv, hn, s) 
-            && inv46_a(dv)           
+            && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)           
             ::            
             && inv43_body_a(dv, hn, s)
             && ( dv.consensus_on_attestation_data[s].decided_value.isPresent() 
@@ -1160,7 +1160,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     db <= hn_state.attestation_slashing_db
     }  
 
-    predicate inv46_a(dv: DVState)
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv: DVState)
     {
         forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn) ::
             && var hn_state := dv.honest_nodes_states[hn];
@@ -1168,7 +1168,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
     }
 
-    predicate inv46_b_body(
+    predicate inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(
         dv: DVState, 
         hn: BLSPubkey,
         hn_state: DVCState,
@@ -1190,12 +1190,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         )             
     }       
     
-    predicate inv46_b(dv: DVState)
+    predicate inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: DVState)
     {
         forall hn: BLSPubkey, s: Slot, vp : AttestationData -> bool |
             hn in dv.honest_nodes_states.Keys
             ::
-            inv46_b_body(
+            inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(
                 dv,
                 hn,
                 dv.honest_nodes_states[hn],
@@ -1971,7 +1971,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv34_body(dvc)
     } 
 
-    predicate inv35(dv: DVState)
+    predicate inv_construct_signed_attestation_signature_assumptions_helper(dv: DVState)
     {
         construct_signed_attestation_signature_assumptions_helper(
             dv.construct_signed_attestation_signature,

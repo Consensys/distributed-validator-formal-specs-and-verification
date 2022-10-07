@@ -54,8 +54,8 @@ module Core_Proofs
     requires && is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes_a')
              && m in h_nodes_a'             
     requires a.data.slot < a'.data.slot
-    requires inv46_a(dv)
-    requires inv46_b(dv)
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
     requires inv50(dv)
@@ -77,8 +77,8 @@ module Core_Proofs
         var vpa': AttestationData -> bool :| && vpa' in consa'.honest_nodes_validity_functions[m]
                                              && vpa'(consa'.decided_value.safe_get());
 
-        // assert inv46_b_body(dv, m, sa', vpa');
-        assert inv46_b_body(dv, m, m_state, sa', vpa');
+        // assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(dv, m, sa', vpa');
+        assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(dv, m, m_state, sa', vpa');
         assert vpa' in m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'];
         
         // var dba': set<SlashingDBAttestation> := m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'][vpa'];  
@@ -186,8 +186,8 @@ module Core_Proofs
     requires a.data.slot < a'.data.slot 
 //     requires inv48(dv)
 //     requires inv47(dv)
-    requires inv46_a(dv)
-    requires inv46_b(dv)
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires inv50(dv)
 //     requires inv49(dv)
     requires inv51(dv)
@@ -266,8 +266,8 @@ module Core_Proofs
              && is_valid_attestation(a, dv.dv_pubkey)
     requires && a' in dv.all_attestations_created
              && is_valid_attestation(a', dv.dv_pubkey)
-    requires inv46_a(dv)
-    requires inv46_b(dv)
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires inv50(dv)
     requires inv51(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)

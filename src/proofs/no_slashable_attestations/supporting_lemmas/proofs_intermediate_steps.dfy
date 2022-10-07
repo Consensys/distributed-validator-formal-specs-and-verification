@@ -287,7 +287,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_construct_signed_attestation_signature_assumptions_helper(
         dv: DVState
     )    
-    requires inv35(dv)    
+    requires inv_construct_signed_attestation_signature_assumptions_helper(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
