@@ -26,48 +26,48 @@ module Fnc_Invs_27_39
     
     
 
-    lemma lemma_inv27_add_block_to_bn(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)    
-    requires inv27_body(s)
-    ensures inv27_body(s')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(s)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(s')
     { }
 
-    lemma lemma_inv27_f_listen_for_attestation_shares(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     { }
 
-    lemma lemma_inv27_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires attestation_duty in process.all_rcvd_duties
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     { } 
 
-    lemma lemma_inv27_f_resend_attestation_share(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_resend_attestation_share(
         process: DVCState,
         process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state        
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     { } 
 
     
 
-    lemma lemma_inv27_f_check_for_next_queued_duty(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(
         process: DVCState,
         process': DVCState
     )
@@ -75,8 +75,8 @@ module Fnc_Invs_27_39
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
     requires inv25_body(process)
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -112,8 +112,8 @@ module Fnc_Invs_27_39
                     assert inv25_body(process_mod);
 
                     assert inv5_body(process_mod);
-                    assert inv27_body(process_mod);
-                    lemma_inv27_f_check_for_next_queued_duty(process_mod, process');
+                    assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
+                    lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(process_mod, process');
                 }
                 else
                 { 
@@ -121,8 +121,8 @@ module Fnc_Invs_27_39
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     );     
                     assert inv5_body(process_mod);
-                    assert inv27_body(process_mod);
-                    lemma_inv27_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
+                    assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
+                    lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
                 }
         }
         else
@@ -133,7 +133,7 @@ module Fnc_Invs_27_39
 
     
 
-    lemma lemma_inv27_f_att_consensus_decided(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -143,8 +143,8 @@ module Fnc_Invs_27_39
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
     requires inv5_body(process)
     requires inv25_body(process)
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
         
         if  && process.current_attestation_duty.isPresent()
@@ -189,20 +189,20 @@ module Fnc_Invs_27_39
             assert inv5_body(process_mod);
             assert inv25_body(process_mod);
 
-            assert inv27_body(process_mod);
+            assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
 
             var ret_dvc := f_check_for_next_queued_duty(process_mod).state;
             lemma_inv5_f_check_for_next_queued_duty(process_mod, ret_dvc);
             assert inv5_body(ret_dvc);
             
-            lemma_inv27_f_check_for_next_queued_duty(process_mod, ret_dvc);
-            assert inv27_body(ret_dvc);
+            lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(process_mod, ret_dvc);
+            assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(ret_dvc);
 
             assert process' == ret_dvc;
         }      
     }
 
-    lemma lemma_inv27_f_serve_attestation_duty(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
@@ -211,8 +211,8 @@ module Fnc_Invs_27_39
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)
     requires inv25_body(process)
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
         var process_mod := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
@@ -221,12 +221,12 @@ module Fnc_Invs_27_39
 
         assert inv5_body(process_mod);
         assert inv25_body(process_mod);
-        assert inv27_body(process_mod);
+        assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
         
-        lemma_inv27_f_check_for_next_queued_duty(process_mod, process');        
+        lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(process_mod, process');        
     }
 
-    lemma lemma_inv27_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -235,8 +235,8 @@ module Fnc_Invs_27_39
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
     requires inv5_body(process)
     requires inv25_body(process)
-    requires inv27_body(process)
-    ensures inv27_body(process')
+    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -258,7 +258,7 @@ module Fnc_Invs_27_39
         
         assert inv5_body(process);
         assert inv25_body(process);
-        assert inv27_body(process);
+        assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process);
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
         {
@@ -287,13 +287,13 @@ module Fnc_Invs_27_39
             
             assert inv5_body(process_mod);
             assert inv25_body(process_mod);
-            assert inv27_body(process_mod);
+            assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
 
-            lemma_inv27_f_check_for_next_queued_duty(process_mod, process');
+            lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(process_mod, process');
         }
         else
         {               
-            assert inv27_body(process);
+            assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process);
         }
     }  
 

@@ -1806,7 +1806,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             inv51_body(dv.honest_nodes_states[hn], s)                
     }
 
-    predicate inv27_body(hn_state: DVCState)    
+    predicate inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state: DVCState)    
     {
         forall k: Slot | k in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys ::
             exists duty: AttestationDuty :: 
@@ -1814,11 +1814,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     && duty.slot == k
     }
 
-    predicate inv27(dv: DVState)
+    predicate inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv: DVState)
     {
         forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var hn_state := dv.honest_nodes_states[hn];            
-            && inv27_body(hn_state)       
+            && inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state)       
     }
 
     predicate inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(ces: ConsensusEngineState)

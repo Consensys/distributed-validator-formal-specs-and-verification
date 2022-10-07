@@ -90,10 +90,10 @@ module Proofs_DV_Ind_Inv
 
     predicate invs_27_37(dv: DVState)       
     {                
-        &&  inv27(dv)  
+        &&  inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)  
         &&  inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
         &&  inv29(dv)  
-        &&  inv31(dv)  
+        &&  inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
         &&  inv34(dv)
         &&  inv35(dv)
         &&  inv_all_in_transit_messages_were_sent(dv)
@@ -231,11 +231,11 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv27(dv') 
+    ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv') 
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
     ensures inv29(dv')
     {
-        lemma_inv27_dv_next(dv, e, dv');    
+        lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_dv_next(dv, e, dv');    
         lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_dv_next(dv, e, dv');  
         lemma_inv29_dv_next(dv, e, dv');          
     }
@@ -244,11 +244,11 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv31(dv') 
+    ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv') 
     ensures inv34(dv')
     ensures inv35(dv')
     {       
-        lemma_inv31_dv_next(dv, e, dv');  
+        lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_dv_next(dv, e, dv');  
         lemma_inv34_dv_next(dv, e, dv');  
         lemma_inv35_dv_next(dv, e, dv');  
         // lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  

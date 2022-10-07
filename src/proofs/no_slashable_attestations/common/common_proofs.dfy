@@ -237,16 +237,16 @@ module Common_Proofs
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r);
     }
 
-    lemma lemma_inv31_updateConsensusInstanceValidityCheck(
+    lemma lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         r: ConsensusEngineState
     )
     requires r == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)        
-    requires inv31_body_ces(s, new_attestation_slashing_db)
+    requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(s, new_attestation_slashing_db)
     requires ( forall k: Slot | k in s.attestation_consensus_active_instances.Keys ::
                     s.attestation_consensus_active_instances[k].attestation_duty.slot == k )
-    ensures inv31_body_ces(r, new_attestation_slashing_db)
+    ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(r, new_attestation_slashing_db)
     {
         lemma_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
         assert r.att_slashing_db_hist.Keys
@@ -288,7 +288,7 @@ module Common_Proofs
         assert new_att_slashing_db_hist.Keys 
                     == s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys
                 ;
-        assert inv31_body_ces(s, new_attestation_slashing_db);
+        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(s, new_attestation_slashing_db);
 
         forall k: Slot, vp: AttestationData -> bool, db | 
                     ( && k in new_att_slashing_db_hist.Keys
@@ -322,8 +322,8 @@ module Common_Proofs
         var t := s.(attestation_consensus_active_instances := new_attestation_consensus_active_instances,
                     att_slashing_db_hist := new_att_slashing_db_hist
                    );
-        assert inv31_body_ces(t, new_attestation_slashing_db);
+        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(t, new_attestation_slashing_db);
         assert r.att_slashing_db_hist.Keys == t.att_slashing_db_hist.Keys;
-        assert inv31_body_ces(r, new_attestation_slashing_db);
+        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(r, new_attestation_slashing_db);
     }
 }
