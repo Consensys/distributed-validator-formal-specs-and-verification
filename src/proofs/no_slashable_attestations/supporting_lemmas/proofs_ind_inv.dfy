@@ -69,7 +69,7 @@ module Proofs_DV_Ind_Inv
 
     predicate invs_8_18(dv: DVState)       
     {        
-        &&  inv8(dv)   
+        &&  inv_none_latest_served_duty_implies_none_current_att_duty(dv)   
         &&  inv_current_att_duty_is_either_none_or_latest_served_duty(dv)  
         &&  inv_not_none_current_att_duty_is_latest_served_att_duty(dv) 
         &&  inv_is_sequence_attestation_duties_to_be_serves_orders(dv)      
@@ -149,12 +149,12 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv8(dv')
+    ensures inv_none_latest_served_duty_implies_none_current_att_duty(dv')
     ensures inv_current_att_duty_is_either_none_or_latest_served_duty(dv')
     ensures inv_not_none_current_att_duty_is_latest_served_att_duty(dv')
     ensures inv_is_sequence_attestation_duties_to_be_serves_orders(dv')
     {
-        lemma_inv8_dv_next(dv, e, dv');
+        lemma_inv_none_latest_served_duty_implies_none_current_att_duty_dv_next(dv, e, dv');
         lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_dv_next(dv, e, dv');
         lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_dv_next(dv, e, dv');        
         lemma_inv_is_sequence_attestation_duties_to_be_serves_orders_dv_next(dv, e, dv');                

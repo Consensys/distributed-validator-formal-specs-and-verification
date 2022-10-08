@@ -1452,17 +1452,17 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv7_body(dvc)
     }
 
-    predicate inv8_body(dvc: DVCState)
+    predicate inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> !dvc.current_attestation_duty.isPresent()
     }
 
-    predicate inv8(dv: DVState)
+    predicate inv_none_latest_served_duty_implies_none_current_att_duty(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv8_body(dvc)
+            && inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc)
     }
   
     predicate inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc: DVCState)
