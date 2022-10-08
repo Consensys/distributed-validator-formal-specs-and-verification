@@ -70,39 +70,39 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv9_dv_next(
+    lemma lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    requires inv9(dv)
-    ensures inv9(dv')
+    requires inv_current_att_duty_is_either_none_or_latest_served_duty(dv)
+    ensures inv_current_att_duty_is_either_none_or_latest_served_duty(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];
-                assert inv9_body(dvc);
+                assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc);
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv9_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv9_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv9_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv9_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-                        assert inv9_body(dvc_mod);
-                        lemma_inv9_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv9_body(dvc');
+                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc_mod);
+                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
 
@@ -115,39 +115,39 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv_not_nonecurrent_att_duty_is_latest_served_att_duty_dv_next(
+    lemma lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')          
-    requires inv_not_nonecurrent_att_duty_is_latest_served_att_duty(dv)
-    ensures inv_not_nonecurrent_att_duty_is_latest_served_att_duty(dv')
+    requires inv_not_none_current_att_duty_is_latest_served_att_duty(dv)
+    ensures inv_not_none_current_att_duty_is_latest_served_att_duty(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];
-                assert inv_not_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc);
+                assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(dvc);
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv_not_nonecurrent_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_not_nonecurrent_att_duty_is_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_not_nonecurrent_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv_not_nonecurrent_att_duty_is_latest_served_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-                        assert inv_not_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc_mod);
-                        lemma_inv_not_nonecurrent_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_not_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc');
+                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(dvc_mod);
+                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
 
