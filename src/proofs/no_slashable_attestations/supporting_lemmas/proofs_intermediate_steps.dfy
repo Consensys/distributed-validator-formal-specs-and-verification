@@ -78,7 +78,7 @@ module Proofs_Intermediate_Steps
     )    
     requires inv_quorum_constraints(dv)  
     requires inv4(dv)
-    requires inv_is sequence attestation duties to be serves orders(dv)
+    requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)    
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
@@ -119,7 +119,7 @@ module Proofs_Intermediate_Steps
     requires inv_quorum_constraints(dv)  
     requires inv4(dv)
     requires inv5(dv)
-    requires inv_is sequence attestation duties to be serves orders(dv)
+    requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)    
     {   

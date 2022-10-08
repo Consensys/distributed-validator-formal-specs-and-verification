@@ -1540,7 +1540,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv12_body(dvc, next_duty)
     }
 
-    predicate inv_is sequence attestation duties to be serves orders(dv: DVState)
+    predicate inv_is_sequence_attestation_duties_to_be_serves_orders(dv: DVState)
     {
         is_sequence_attestation_duties_to_be_served_orderd(dv)
     }
