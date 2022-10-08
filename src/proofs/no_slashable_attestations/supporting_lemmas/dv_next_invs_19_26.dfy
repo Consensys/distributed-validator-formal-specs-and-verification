@@ -36,14 +36,14 @@ module DV_Next_Invs_19_26
     ensures inv19(dv')    
     { }
 
-    lemma lemma_inv20_dv_next(
+    lemma lemma_concl_unchanged_dvn_seq_of_att_duties_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    ensures inv20(dv, dv')
+    ensures concl_unchanged_dvn_seq_of_att_duties(dv, dv')
     { }
 
     lemma lemma_inv_every_att_duty_before_dvn_att_index_was_delivered_dv_next(
@@ -54,7 +54,7 @@ module DV_Next_Invs_19_26
     requires inv_quorum_constraints(dv)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv20(dv, dv')
+    requires concl_unchanged_dvn_seq_of_att_duties(dv, dv')
     requires inv_every_att_duty_before_dvn_att_index_was_delivered(dv)
     ensures inv_every_att_duty_before_dvn_att_index_was_delivered(dv')
     {        

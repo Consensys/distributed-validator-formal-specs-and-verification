@@ -1684,7 +1684,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
            )
     }
 
-    predicate inv20(dv: DVState, dv': DVState)
+    predicate concl_unchanged_dvn_seq_of_att_duties(dv: DVState, dv': DVState)
     {
         dv.sequence_attestation_duties_to_be_served
                 == dv'.sequence_attestation_duties_to_be_served
