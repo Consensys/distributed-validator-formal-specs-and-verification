@@ -1814,7 +1814,7 @@ module Fnc_Invs_1_26
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)  
-    requires inv15_body(process, attestation_duty)  
+    requires concl_future_att_duty_is_higher_than_queued_att_duty_body(process, attestation_duty)  
     requires inv_strictly_increasing_queue_of_att_duties_body(process)
     ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     {
@@ -1940,7 +1940,7 @@ module Fnc_Invs_1_26
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)  
     requires inv12_body(process, attestation_duty)  
-    requires inv15_body(process, attestation_duty)  
+    requires concl_future_att_duty_is_higher_than_queued_att_duty_body(process, attestation_duty)  
     requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     requires forall queued_duty: AttestationDuty | queued_duty in process.attestation_duties_queue ::

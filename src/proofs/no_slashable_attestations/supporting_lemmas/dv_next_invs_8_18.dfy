@@ -234,7 +234,7 @@ module DV_Next_Invs_8_18
     requires inv4(dv)
     requires inv5(dv)
     requires inv13(dv)
-    requires inv15(dv)
+    requires concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     requires inv_strictly_increasing_queue_of_att_duties(dv)
     ensures inv_strictly_increasing_queue_of_att_duties(dv')
     {        
@@ -313,7 +313,7 @@ module DV_Next_Invs_8_18
                     case ServeAttstationDuty(attestation_duty) =>                                                                     
                         
                         assert inv14_body(dvc, attestation_duty); 
-                        assert inv15_body(dvc, attestation_duty);                                             
+                        assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, attestation_duty);                                             
                         lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
