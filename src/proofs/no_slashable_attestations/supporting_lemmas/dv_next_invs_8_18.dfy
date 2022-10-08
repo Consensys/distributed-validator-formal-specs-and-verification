@@ -312,7 +312,7 @@ module DV_Next_Invs_8_18
                 {
                     case ServeAttstationDuty(attestation_duty) =>                                                                     
                         
-                        assert inv14_body(dvc, attestation_duty); 
+                        assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty); 
                         assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, attestation_duty);                                             
                         lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
                         

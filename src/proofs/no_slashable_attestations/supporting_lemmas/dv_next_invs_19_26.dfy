@@ -190,7 +190,7 @@ module DV_Next_Invs_19_26
     requires inv5(dv)
     requires inv7(dv)
     requires inv13(dv)
-    requires inv14(dv)
+    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     requires inv_strictly_increasing_queue_of_att_duties(dv)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)
@@ -208,7 +208,7 @@ module DV_Next_Invs_19_26
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
                         assert inv7_body(dvc);                
-                        assert inv14_body(dvc, attestation_duty);
+                        assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty);
                         assert inv_strictly_increasing_queue_of_att_duties_body(dvc);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc);
                         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);

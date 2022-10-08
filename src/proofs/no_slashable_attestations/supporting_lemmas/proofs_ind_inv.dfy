@@ -284,13 +284,13 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv11(dv)
     ensures inv12(dv)
-    ensures inv14(dv)
+    ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     {    
         lemma_inv11_ind_inv(dv);
         lemma_inv12_ind_inv(dv);
-        lemma_inv14_ind_inv(dv);
+        lemma_concl_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(dv);
         lemma_concl_future_att_duty_is_higher_than_queued_att_duty_ind_inv(dv);
         lemma_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(dv);  
     }
@@ -341,7 +341,7 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv11(dv)
     ensures inv12(dv)
-    ensures inv14(dv)
+    ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     ensures inv50(dv)

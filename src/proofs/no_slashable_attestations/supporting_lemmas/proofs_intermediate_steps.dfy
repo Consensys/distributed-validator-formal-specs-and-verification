@@ -28,7 +28,7 @@ module Proofs_Intermediate_Steps
     )         
     requires inv_quorum_constraints(dv)      
     requires inv6(dv)    
-    requires inv14(dv)
+    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures inv11(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
@@ -53,7 +53,7 @@ module Proofs_Intermediate_Steps
     )         
     requires inv_quorum_constraints(dv)      
     requires inv7(dv)    
-    requires inv14(dv)
+    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures inv12(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
@@ -73,13 +73,13 @@ module Proofs_Intermediate_Steps
         }
     } 
       
-    lemma lemma_inv14_ind_inv(
+    lemma lemma_concl_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv_quorum_constraints(dv)  
     requires inv4(dv)
     requires inv13(dv)
-    ensures inv14(dv)    
+    ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)    
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -108,7 +108,7 @@ module Proofs_Intermediate_Steps
                 assert rcvd_duty.slot <= next_duty.slot;
             }
 
-            assert inv14_body(dvc, next_duty);
+            assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
             
         }        
     }
@@ -120,7 +120,7 @@ module Proofs_Intermediate_Steps
     requires inv4(dv)
     requires inv5(dv)
     requires inv13(dv)
-    requires inv14(dv)
+    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)    
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
@@ -136,7 +136,7 @@ module Proofs_Intermediate_Steps
                              dv.sequence_attestation_duties_to_be_served,
                              dv.index_next_attestation_duty_to_be_served);
             assert inv5_body(dvc);
-            assert inv14_body(dvc, next_duty);
+            assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
 
 
             forall queued_duty: AttestationDuty | queued_duty in dvc.attestation_duties_queue
