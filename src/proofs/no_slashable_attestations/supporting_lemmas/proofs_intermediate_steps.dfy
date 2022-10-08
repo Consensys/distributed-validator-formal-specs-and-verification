@@ -163,7 +163,7 @@ module Proofs_Intermediate_Steps
         dv: DVState
     )    
     requires inv18(dv)
-    requires inv22(dv)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     {   

@@ -60,7 +60,7 @@ module IndInv4
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_iii_c_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
-    requires inv22_body(process)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served + 1, attestation_duty, n)
     {
@@ -128,7 +128,7 @@ module IndInv4
     requires pred_4_1_g_iii_b(s)
     requires pred_4_1_g_iii_c(s)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv22(s)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)                
     {
         lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
@@ -155,7 +155,7 @@ module IndInv4
     requires pred_4_1_g_iii_b(s)
     requires pred_4_1_g_iii_c(s)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv22(s)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
     ensures  NextEventPreCond(s, event)                
     {
@@ -175,7 +175,7 @@ module IndInv4
     requires pred_4_1_g_iii_b(s)
     requires pred_4_1_g_iii_c(s)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv22(s)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
     ensures  NextPreCond(s)                
     {

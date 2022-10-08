@@ -135,15 +135,15 @@ module DV_Next_Invs_19_26
         }        
     }   
     
-    lemma lemma_inv22_dv_next(
+    lemma lemma_inv_no_active_consensus_instance_before_receiving_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv22(dv)  
-    ensures inv22(dv')
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)  
+    ensures inv_no_active_consensus_instance_before_receiving_att_duty(dv')
     {        
         match event 
         {
@@ -154,20 +154,20 @@ module DV_Next_Invs_19_26
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                                                                     
-                        lemma_inv22_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
+                        lemma_inv_no_active_consensus_instance_before_receiving_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv22_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lemma_inv_no_active_consensus_instance_before_receiving_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv22_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_no_active_consensus_instance_before_receiving_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv22_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv22_body(dvc_mod);
-                        lemma_inv22_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv22_body(dvc');
+                        lemma_inv_no_active_consensus_instance_before_receiving_att_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc_mod);
+                        lemma_inv_no_active_consensus_instance_before_receiving_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc');
                     
                     case ResendAttestationShares =>                                                                      
 
@@ -193,7 +193,7 @@ module DV_Next_Invs_19_26
     requires inv14(dv)
     requires inv17(dv)
     requires inv18(dv)
-    requires inv22(dv)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)  
     ensures inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv')
     {        
@@ -211,7 +211,7 @@ module DV_Next_Invs_19_26
                         assert inv14_body(dvc, attestation_duty);
                         assert inv17_body(dvc);
                         assert inv18_body(dvc);
-                        assert inv22_body(dvc);
+                        assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc);                                           
                         lemma_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc');
@@ -219,7 +219,7 @@ module DV_Next_Invs_19_26
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         assert inv17_body(dvc);
                         assert inv18_body(dvc);
-                        assert inv22_body(dvc);
+                        assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);
                         lemma_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc');
                         
@@ -230,15 +230,15 @@ module DV_Next_Invs_19_26
                     case ImportedNewBlock(block) => 
                         assert inv17_body(dvc);
                         assert inv18_body(dvc);
-                        assert inv22_body(dvc);
+                        assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);
                         
                         var dvc_mod := add_block_to_bn(dvc, block);
                         lemma_inv17_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv17_body(dvc_mod);
                         lemma_inv18_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv18_body(dvc_mod);
-                        lemma_inv22_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv22_body(dvc_mod);
+                        lemma_inv_no_active_consensus_instance_before_receiving_att_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc_mod);
                         lemma_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc_mod);
                         lemma_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        

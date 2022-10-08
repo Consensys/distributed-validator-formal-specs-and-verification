@@ -1708,17 +1708,17 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv21_body(dvc, duty)
     }    
 
-    predicate inv22_body(dvc: DVCState)
+    predicate inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {}
     }
 
-    predicate inv22(dv: DVState)
+    predicate inv_no_active_consensus_instance_before_receiving_att_duty(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv22_body(dvc)
+            && inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc)
     }
     
     predicate inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc: DVCState)
