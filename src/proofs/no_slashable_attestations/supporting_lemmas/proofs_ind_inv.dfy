@@ -64,7 +64,7 @@ module Proofs_DV_Ind_Inv
         &&  inv4(dv)
         &&  inv5(dv)
         &&  inv6(dv)
-        &&  inv7(dv)
+        &&  inv_latest_served_duty_is_rcvd_duty(dv)
     }
 
     predicate invs_8_18(dv: DVState)       
@@ -142,7 +142,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv4_dv_next(dv, e, dv');
         lemma_inv5_dv_next(dv, e, dv');
         lemma_inv6_dv_next(dv, e, dv');
-        lemma_inv7_dv_next(dv, e, dv');        
+        lemma_inv_latest_served_duty_is_rcvd_duty_dv_next(dv, e, dv');        
     }
 
     lemma lemma_ind_inv_dv_next_invs_8_18_helper_1(dv: DVState, e: DV.Event, dv': DVState)       

@@ -255,7 +255,7 @@ module DV_Next_Invs_1_7
         }   
     } 
 
-    lemma lemma_inv7_dv_next(
+    lemma lemma_inv_latest_served_duty_is_rcvd_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -263,8 +263,8 @@ module DV_Next_Invs_1_7
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv5(dv)
-    requires inv7(dv)
-    ensures inv7(dv')
+    requires inv_latest_served_duty_is_rcvd_duty(dv)
+    ensures inv_latest_served_duty_is_rcvd_duty(dv')
     {        
         match event 
         {
@@ -274,17 +274,17 @@ module DV_Next_Invs_1_7
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>     
-                        lemma_inv7_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lemma_inv_latest_served_duty_is_rcvd_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv7_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                        lemma_inv_latest_served_duty_is_rcvd_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv7_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_latest_served_duty_is_rcvd_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv7_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                        lemma_inv_latest_served_duty_is_rcvd_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
                     case ResendAttestationShares =>                         
                         

@@ -188,7 +188,7 @@ module DV_Next_Invs_19_26
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
-    requires inv7(dv)
+    requires inv_latest_served_duty_is_rcvd_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     requires inv_strictly_increasing_queue_of_att_duties(dv)
@@ -207,7 +207,7 @@ module DV_Next_Invs_19_26
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
-                        assert inv7_body(dvc);                
+                        assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
                         assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty);
                         assert inv_strictly_increasing_queue_of_att_duties_body(dvc);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc);
