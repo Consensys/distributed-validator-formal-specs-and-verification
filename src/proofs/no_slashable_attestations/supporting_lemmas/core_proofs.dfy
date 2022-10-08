@@ -17,7 +17,7 @@ include "fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
-include "ind_inv_queued_att_duty_is_dvn_seq_of_att_duty.dfy"
+include "ind_inv4.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
 module Core_Proofs

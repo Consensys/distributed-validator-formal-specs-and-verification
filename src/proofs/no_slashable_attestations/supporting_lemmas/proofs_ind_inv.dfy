@@ -14,7 +14,7 @@ include "dv_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
-include "ind_inv_queued_att_duty_is_dvn_seq_of_att_duty.dfy"
+include "ind_inv4.dfy"
 include "core_proofs.dfy"
 
 
