@@ -14,7 +14,7 @@ include "dv_next_invs_27_37.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
-include "ind_inv4.dfy"
+include "ind_inv_queued_att_duty_is_dvn_seq_of_att_duty.dfy"
 include "core_proofs.dfy"
 
 
@@ -61,7 +61,7 @@ module Proofs_DV_Ind_Inv
         &&  inv_quorum_constraints(dv)
         &&  inv_unchanged_honesty(dv)
         &&  inv_only_dv_construct_signed_attestation_signature(dv)
-        &&  inv4(dv)
+        &&  inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
         &&  inv_queued_att_duty_is_rcvd_duty(dv)
         &&  inv_current_att_duty_is_rcvd_duty(dv)
         &&  inv_latest_served_duty_is_rcvd_duty(dv)
@@ -139,7 +139,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_quorum_constraints_dv_next(dv, e, dv');
         lemma_inv_unchanged_honesty_dv_next(dv, e, dv');
         lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
-        lemma_inv4_dv_next(dv, e, dv');
+        lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_dv_next(dv, e, dv');
         lemma_inv_queued_att_duty_is_rcvd_duty_dv_next(dv, e, dv');
         lemma_inv_current_att_duty_is_rcvd_duty_dv_next(dv, e, dv');
         lemma_inv_latest_served_duty_is_rcvd_duty_dv_next(dv, e, dv');        

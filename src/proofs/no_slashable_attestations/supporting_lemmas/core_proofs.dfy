@@ -17,7 +17,7 @@ include "fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
-include "ind_inv4.dfy"
+include "ind_inv_queued_att_duty_is_dvn_seq_of_att_duty.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
 module Core_Proofs
@@ -184,12 +184,12 @@ module Core_Proofs
     requires && a' in dv.all_attestations_created
              && is_valid_attestation(a', dv.dv_pubkey)
     requires a.data.slot < a'.data.slot 
-//     requires inv48(dv)
-//     requires inv47(dv)
+//     requires inv_queued_att_duty_is_dvn_seq_of_att_duty8(dv)
+//     requires inv_queued_att_duty_is_dvn_seq_of_att_duty7(dv)
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires inv_queued_att_duty_is_rcvd_duty0(dv)
-//     requires inv49(dv)
+//     requires inv_queued_att_duty_is_dvn_seq_of_att_duty9(dv)
     requires inv_queued_att_duty_is_rcvd_duty1(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)

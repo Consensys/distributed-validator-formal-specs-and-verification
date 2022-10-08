@@ -22,7 +22,7 @@ module Fnc_Invs_1_26
     import opened DVC_Spec_Axioms
     
     
-    lemma lemma_inv4_f_serve_attestation_duty(
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_serve_attestation_duty(
         dvc: DVCState,
         attestation_duty: AttestationDuty,
         dvc': DVCState
@@ -36,10 +36,10 @@ module Fnc_Invs_1_26
                 all_rcvd_duties := dvc.all_rcvd_duties + {attestation_duty}
             );        
 
-        lemma_inv4_f_check_for_next_queued_duty(dvc_mod, dvc');        
+        lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(dvc_mod, dvc');        
     }
 
-    lemma lemma_inv4_f_check_for_next_queued_duty(
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(
         dvc: DVCState,
         dvc': DVCState
     )
@@ -67,14 +67,14 @@ module Fnc_Invs_1_26
                             new_attestation_slashing_db
                         )                        
                     );
-                    lemma_inv4_f_check_for_next_queued_duty(dvc_mod, dvc');
+                    lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(dvc_mod, dvc');
                 }
                 else
                 { 
                     var dvc_mod := dvc.(
                         attestation_duties_queue := dvc.attestation_duties_queue[1..]
                     );         
-                    lemma_inv4_f_start_next_duty(dvc_mod, dvc.attestation_duties_queue[0], dvc');
+                    lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_start_next_duty(dvc_mod, dvc.attestation_duties_queue[0], dvc');
                 }
         }
         else
@@ -83,7 +83,7 @@ module Fnc_Invs_1_26
         }
     }
 
-    lemma lemma_inv4_f_start_next_duty(dvc: DVCState, attestation_duty: AttestationDuty, dvc': DVCState)
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_start_next_duty(dvc: DVCState, attestation_duty: AttestationDuty, dvc': DVCState)
     requires f_start_next_duty.requires(dvc, attestation_duty)
     requires dvc' == f_start_next_duty(dvc, attestation_duty).state
     ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties        
@@ -91,7 +91,7 @@ module Fnc_Invs_1_26
         assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties;
     }  
 
-    lemma lemma_inv4_f_att_consensus_decided(
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -130,14 +130,14 @@ module Fnc_Invs_1_26
 
             var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process_mod);
             
-            lemma_inv4_f_check_for_next_queued_duty(process_mod, ret_check_for_next_queued_duty.state);
+            lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(process_mod, ret_check_for_next_queued_duty.state);
 
             assert process' == ret_check_for_next_queued_duty.state;
         } 
     }  
 
 
-    lemma lemma_inv4_f_listen_for_attestation_shares(
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
@@ -147,7 +147,7 @@ module Fnc_Invs_1_26
     ensures process.all_rcvd_duties == process'.all_rcvd_duties
     {}
 
-    lemma lemma_inv4_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -186,13 +186,13 @@ module Fnc_Invs_1_26
                     new_attestation_slashing_db
                 )                
             );
-            lemma_inv4_f_check_for_next_queued_duty(process, process');
+            lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(process, process');
         }
         else
         {}
     }   
 
-    lemma lemma_inv4_add_block_to_bn(
+    lemma lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState 

@@ -68,7 +68,7 @@ module DV_Next_Invs_19_26
                     case ServeAttstationDuty(att_duty) =>     
                         var index := dv.index_next_attestation_duty_to_be_served;
                         var new_duty := dv.sequence_attestation_duties_to_be_served[index].attestation_duty;                                
-                        lemma_inv4_f_serve_attestation_duty(dvc, new_duty, dvc');    
+                        lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_serve_attestation_duty(dvc, new_duty, dvc');    
                         assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {new_duty};                                                                                                       
                         var new_index := dv'.index_next_attestation_duty_to_be_served;
                         assert index + 1 == new_index;
@@ -97,7 +97,7 @@ module DV_Next_Invs_19_26
                                 {
                                     assert k == index;
                                     assert k == new_index - 1;
-                                    lemma_inv4_f_serve_attestation_duty(dvc_state, att_duty, dvc_state');                                
+                                    lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_serve_attestation_duty(dvc_state, att_duty, dvc_state');                                
                                     assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {att_duty};
                                     assert att_duty in dvc'.all_rcvd_duties;                                
                                     assert inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
@@ -115,14 +115,14 @@ module DV_Next_Invs_19_26
                         assert inv_every_att_duty_before_dvn_att_index_was_delivered(dv');
 
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv4_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                        lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv4_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv4_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                        lemma_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
                     case ResendAttestationShares =>                         
                         
