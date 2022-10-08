@@ -17,7 +17,7 @@ module Spec_Spec_NonInstr_Refinement
         ceni: DVC_Spec_NonInstr.ConsensusEngineState
     )
     {
-        cei.attestation_consensus_active_instances == ceni.attestation_consensus_active_instances
+        cei.active_attestation_consensus_instances == ceni.active_attestation_consensus_instances
     }
 
     predicate DVCStateRel(
@@ -154,7 +154,7 @@ module Spec_Spec_NonInstr_Refinement
     //         assert DVC_Spec.isMyAttestation(a1, dvci, block, valIndex);
     //         // assert a1.data.slot == a2.data.slot ==> a1 == a2;
     //     }
-    // // assert forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys        
+    // // assert forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys        
     // }
 
     // lemma l(

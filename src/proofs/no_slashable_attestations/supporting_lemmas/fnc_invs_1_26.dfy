@@ -2378,13 +2378,13 @@ module Fnc_Invs_1_26
                         assert  process_mod.latest_attestation_duty.isPresent()
                                     ==> process_mod.latest_attestation_duty.safe_get().slot < process.attestation_duties_queue[0].slot;
 
-                        assert process_mod.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
-                                    == process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                        assert process_mod.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
+                                    == process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
-                        forall k: Slot | k in process_mod.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                        forall k: Slot | k in process_mod.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
                         ensures k < process.attestation_duties_queue[0].slot;
                         {
-                            assert k in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            assert k in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                             assert inv23_body(process);
                             assert k <= process.latest_attestation_duty.safe_get().slot;
                             assert process.latest_attestation_duty.safe_get().slot < process.attestation_duties_queue[0].slot;
@@ -2406,7 +2406,7 @@ module Fnc_Invs_1_26
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires inv23_body(process)
-    requires ( forall k: Slot | k in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys ::
+    requires ( forall k: Slot | k in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys ::
                     k < attestation_duty.slot
             )
     ensures inv23_body(process')
@@ -2430,8 +2430,8 @@ module Fnc_Invs_1_26
                                     )
                             );
 
-        assert process'.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
-                    == process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+        assert process'.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
+                    == process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
                             + {attestation_duty.slot};
     } 
 

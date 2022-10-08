@@ -43,7 +43,7 @@ module IndInv4
         attestation_duties_queue: seq<AttestationDuty>
     )
     {
-        forall ad | ad in attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+        forall ad | ad in attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     }    
 
 
@@ -92,17 +92,17 @@ module IndInv4
             if |process.attestation_duties_queue| > 0 
             {
                 forall ad | ad in new_attestation_duties_queue
-                ensures ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                ensures ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                 {
                     if ad in process.attestation_duties_queue
                     {
-                        assert  ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                        assert  ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                     }
                     else 
                     {
                         assert ad == attestation_duty;
                         assert ad.slot > process.attestation_duties_queue[0].slot;
-                        assert  ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                        assert  ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                     }
                 }
                 assert inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body_helper(process, new_attestation_duties_queue);

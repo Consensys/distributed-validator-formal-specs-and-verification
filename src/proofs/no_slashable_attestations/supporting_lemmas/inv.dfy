@@ -125,10 +125,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         cid: Slot
     )
     requires n in dv.honest_nodes_states.Keys 
-    requires cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances
+    requires cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances
     {
         var dvc := dv.honest_nodes_states[n];
-        var acvc := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[cid];
+        var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
 
         pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
             cid, 
@@ -141,9 +141,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc: DVCState,
         cid: Slot
     )
-    requires cid in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances
+    requires cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances
     {
-        var acvc := dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[cid];
+        var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
         pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
             cid, 
             acvc.attestation_duty, 
@@ -166,7 +166,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         forall cid | 
-            && cid in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances
+            && cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances
             ::
             pred_4_1_g_i_for_dvc_single_dvc_2_body(dvc, cid)        
     }    
@@ -177,7 +177,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         forall n, cid | 
             && n in dv.honest_nodes_states 
-            && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances
+            && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances
             ::
             pred_4_1_g_i_for_dvc_single_dvc(dv, n, cid)
     }
@@ -673,44 +673,44 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }       
          
 
-    predicate inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv: DVState)    
+    predicate inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(
+            inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(
                 dv.honest_nodes_states[hn]
             )                    
     }       
 
-    predicate inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body
+    predicate inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body
     (
         n_state: DVCState
     )
     {
-        n_state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys <= n_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        n_state.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys <= n_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     }
 
-    predicate inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
+    predicate inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
     {
         forall hn, cid |
             && hn in dv.honest_nodes_states.Keys        
             ::
-            inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist_body(dv.honest_nodes_states[hn], cid)
+            inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist_body(dv.honest_nodes_states[hn], cid)
              
     }       
 
-    predicate inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist_body
+    predicate inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist_body
     (
         n_state: DVCState,
         cid: Slot
     )
     {
-        && cid in n_state.attestation_consensus_engine_state.attestation_consensus_active_instances 
+        && cid in n_state.attestation_consensus_engine_state.active_attestation_consensus_instances 
         ==>
         (
             && cid in n_state.attestation_consensus_engine_state.att_slashing_db_hist
-            && n_state.attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate in n_state.attestation_consensus_engine_state.att_slashing_db_hist[cid] 
+            && n_state.attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate in n_state.attestation_consensus_engine_state.att_slashing_db_hist[cid] 
         )
     }    
 
@@ -1711,7 +1711,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv22_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
-            ==> dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys == {}
+            ==> dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {}
     }
 
     predicate inv22(dv: DVState)
@@ -1724,7 +1724,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv23_body(dvc: DVCState)
     {
         dvc.latest_attestation_duty.isPresent()
-        ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+        ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
                 ::
                 k <= dvc.latest_attestation_duty.safe_get().slot
             )
@@ -1741,7 +1741,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         dvc.latest_attestation_duty.isPresent()
         ==> ( forall k: Slot, n: nat | 
-                && k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                && k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
                 && 0 <= n < |dvc.attestation_duties_queue|
                 ::
                 k <= dvc.attestation_duties_queue[n].slot
@@ -1757,7 +1757,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc: DVCState)
     {
-        forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys ::
+        forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys ::
             exists rcvd_duty: AttestationDuty :: 
                 && rcvd_duty in dvc.all_rcvd_duties
                 && rcvd_duty.slot == k
@@ -1772,11 +1772,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_consensus_instances_only_for_rcvd_duties_body(dvc: DVCState)
     {
-        forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+        forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
             ::
-            && dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[k].attestation_duty
+            && dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[k].attestation_duty
                     in dvc.all_rcvd_duties                
-            && dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[k].attestation_duty.slot == k
+            && dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[k].attestation_duty.slot == k
     }
 
     predicate inv_consensus_instances_only_for_rcvd_duties(dv: DVState)
@@ -1859,8 +1859,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(hn_state: DVCState)
     {
         forall k: Slot |
-            k in hn_state.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys ::
-                && var ci := hn_state.attestation_consensus_engine_state.attestation_consensus_active_instances[k];
+            k in hn_state.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys ::
+                && var ci := hn_state.attestation_consensus_engine_state.active_attestation_consensus_instances[k];
                 && var vp: AttestationData -> bool := ci.validityPredicate;
                 && k in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
                 && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[k].Keys             
@@ -1959,7 +1959,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
    
     predicate inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_body(dvc: DVCState)
     {
-        dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+        dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
         <= 
         dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     } 

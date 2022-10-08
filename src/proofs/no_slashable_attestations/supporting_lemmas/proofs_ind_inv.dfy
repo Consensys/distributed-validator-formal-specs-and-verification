@@ -316,13 +316,13 @@ module Proofs_DV_Ind_Inv
     ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)  
     ensures is_sequence_attestation_duties_to_be_served_orderd(dv)
     ensures inv_attestation_duty_queue_is_ordered(dv)
-    ensures inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+    ensures inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     ensures pred_inv_current_latest_attestation_duty_match(dv)
     ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     {    
         lemma_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv);
         lemma_inv_attestation_duty_queue_is_ordered(dv);
-        lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
+        lemma_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);
         lemma_pred_inv_current_latest_attestation_duty_match(dv);
         lemma_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
     }
@@ -354,7 +354,7 @@ module Proofs_DV_Ind_Inv
     ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)   
     ensures is_sequence_attestation_duties_to_be_served_orderd(dv)     
     ensures inv_attestation_duty_queue_is_ordered(dv)
-    ensures inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+    ensures inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     ensures pred_inv_current_latest_attestation_duty_match(dv)
     ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     ensures lemma_pred_4_1_g_iii_precond(dv)
@@ -372,11 +372,11 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv')
     {
-        lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
-        assert inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv);
+        lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv);
+        assert inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv);
 
-        lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
-        assert inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv);
+        lemma_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);
+        assert inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);
 
         lemma_ind_inv_implies_intermediate_steps(dv);
         assert inv53(dv);
@@ -387,8 +387,8 @@ module Proofs_DV_Ind_Inv
                && inv53(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
                && IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)  
-               && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
-               && inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
+               && inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+               && inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
                ;
 
         lemma_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');    

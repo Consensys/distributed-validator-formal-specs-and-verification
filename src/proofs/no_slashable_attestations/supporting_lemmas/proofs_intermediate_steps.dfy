@@ -176,7 +176,7 @@ module Proofs_Intermediate_Steps
                 var latest_duty := dvc.latest_attestation_duty.safe_get();
 
                 forall k: Slot, n: nat | 
-                            && k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
+                            && k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
                             && 0 <= n < |dvc.attestation_duties_queue|
                 ensures k < dvc.attestation_duties_queue[n].slot;            
                 {
@@ -193,7 +193,7 @@ module Proofs_Intermediate_Steps
             }
             else
             {
-                assert dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys == {};
+                assert dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {};
                 assert inv24_body(dvc);
             }
         }
@@ -294,11 +294,11 @@ module Proofs_Intermediate_Steps
                 dv.all_nodes)    
     {}
 
-    lemma lemma_inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(
+    lemma lemma_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(
         dv: DVState
     )    
     requires inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)    
-    ensures  inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+    ensures  inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     {}
 
     lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(
@@ -315,9 +315,9 @@ module Proofs_Intermediate_Steps
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 
-    lemma lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
+    lemma lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
-    ensures inv_attestation_consensus_active_instances_predicate_is_in_att_slashing_db_hist(dv)
+    ensures inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
     {}  
     
 }

@@ -393,7 +393,7 @@ module DV
         process: DVCState
     )
     {
-        forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+        forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     }    
 
 
@@ -530,9 +530,9 @@ module DV
                 && var validityPredicates := 
                     map n |
                             && n in s.honest_nodes_states.Keys 
-                            && cid in s.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                            && cid in s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                         ::
-                            s.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                            s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
                     ;
 
                 ConsensusSpec.Next(

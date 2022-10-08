@@ -341,7 +341,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures forall a | a in s'.bn.attestations_submitted :: exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dv, hn', att_share, a)
     // ensures s'.bn.attestations_submitted == s.bn.attestations_submitted     
     {
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -502,7 +502,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted ::
                         exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dv, hn', att_share, a);
     {
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -657,7 +657,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires attestation_share in dv.att_network.allMessagesSent
     ensures pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, s') 
     {
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -1112,9 +1112,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         var validityPredicates := 
                             map n |
                                     && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                                 ::
-                                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
                             ;
 
                         var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
@@ -1176,9 +1176,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                         var validityPredicates := 
                             map n |
                                     && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                                 ::
-                                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
                             ;
 
                         var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
@@ -1622,9 +1622,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 var validityPredicates := 
                     map n |
                             && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                         ::
-                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
                     ;
 
                 var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
@@ -1905,9 +1905,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 var validityPredicates := 
                     map n |
                             && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                         ::
-                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
                     ;
 
                 var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
@@ -1932,10 +1932,10 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             {
                 assert vp in validityPredicates.Values;
                 var vpn :| vpn in validityPredicates.Keys && validityPredicates[vpn] == vp;
-                assert validityPredicates[vpn] == s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate;
+                assert validityPredicates[vpn] == s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate;
 
                 assert vpn in s.honest_nodes_states.Keys;
-                assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
                 lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
 
@@ -2018,14 +2018,14 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         s': ConsensusEngineState
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
-    ensures s'.attestation_consensus_active_instances.Keys == s.attestation_consensus_active_instances.Keys
-    ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;
+    ensures s'.active_attestation_consensus_instances.Keys == s.active_attestation_consensus_instances.Keys
+    ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;
     // requires forall k | k in m :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
     // ensures forall k | k in m' :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m'[k].attestation_duty, m'[k].validityPredicate)    
     {
-        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+        lemma_updateConsensusInstanceValidityCheckHelper(s.active_attestation_consensus_instances, new_attestation_slashing_db, s'.active_attestation_consensus_instances);
 
-        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;
 
         assert forall slot, vp: AttestationData -> bool |
                     && slot in s.att_slashing_db_hist.Keys 
@@ -2037,12 +2037,12 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         ;
 
         assert forall slot |
-                    && slot in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s'.active_attestation_consensus_instances.Keys 
                     && slot in s.att_slashing_db_hist.Keys
-                    && var vp := s'.attestation_consensus_active_instances[slot].validityPredicate;
+                    && var vp := s'.active_attestation_consensus_instances[slot].validityPredicate;
                     && vp in s.att_slashing_db_hist[slot].Keys
                     ::
-                    var vp := s'.attestation_consensus_active_instances[slot].validityPredicate;
+                    var vp := s'.active_attestation_consensus_instances[slot].validityPredicate;
                     s.att_slashing_db_hist[slot][vp] + {new_attestation_slashing_db} == s'.att_slashing_db_hist[slot][vp];      
 
         assert forall slot, vp: AttestationData -> bool |
@@ -2050,7 +2050,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     && slot !in s.att_slashing_db_hist.Keys 
                     && vp in s'.att_slashing_db_hist[slot].Keys
                     ::
-                    && vp == s'.attestation_consensus_active_instances[slot].validityPredicate
+                    && vp == s'.active_attestation_consensus_instances[slot].validityPredicate
         ;      
 
         assert forall slot, vp: AttestationData -> bool |
@@ -2072,15 +2072,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
     requires 
-                    && slot in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s'.active_attestation_consensus_instances.Keys 
                     && slot in s.att_slashing_db_hist.Keys
-                    && vp == s'.attestation_consensus_active_instances[slot].validityPredicate
+                    && vp == s'.active_attestation_consensus_instances[slot].validityPredicate
                     && vp in s.att_slashing_db_hist[slot].Keys  
     ensures s.att_slashing_db_hist[slot][vp] + {new_attestation_slashing_db} == s'.att_slashing_db_hist[slot][vp];      
     {
-        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+        lemma_updateConsensusInstanceValidityCheckHelper(s.active_attestation_consensus_instances, new_attestation_slashing_db, s'.active_attestation_consensus_instances);
 
-        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }   
 
     lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
@@ -2092,15 +2092,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
     requires 
-                    && slot in s'.attestation_consensus_active_instances.Keys 
+                    && slot in s'.active_attestation_consensus_instances.Keys 
                     && slot in s.att_slashing_db_hist.Keys
-                    && vp != s'.attestation_consensus_active_instances[slot].validityPredicate
+                    && vp != s'.active_attestation_consensus_instances[slot].validityPredicate
                     && vp in s.att_slashing_db_hist[slot].Keys  
     ensures s.att_slashing_db_hist[slot][vp] == s'.att_slashing_db_hist[slot][vp];      
     {
-        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+        lemma_updateConsensusInstanceValidityCheckHelper(s.active_attestation_consensus_instances, new_attestation_slashing_db, s'.active_attestation_consensus_instances);
 
-        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }      
 
     lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
@@ -2112,14 +2112,14 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
     requires 
-                    && slot !in s'.attestation_consensus_active_instances.Keys 
+                    && slot !in s'.active_attestation_consensus_instances.Keys 
                     && slot in s.att_slashing_db_hist.Keys
                     && vp in s.att_slashing_db_hist[slot].Keys  
     ensures s.att_slashing_db_hist[slot][vp] == s'.att_slashing_db_hist[slot][vp];      
     {
-        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+        lemma_updateConsensusInstanceValidityCheckHelper(s.active_attestation_consensus_instances, new_attestation_slashing_db, s'.active_attestation_consensus_instances);
 
-        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }   
 
     lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
@@ -2133,9 +2133,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     ensures slot in s'.att_slashing_db_hist.Keys
     ensures s.att_slashing_db_hist[slot].Keys <= s'.att_slashing_db_hist[slot].Keys;      
     {
-        lemma_updateConsensusInstanceValidityCheckHelper(s.attestation_consensus_active_instances, new_attestation_slashing_db, s'.attestation_consensus_active_instances);
+        lemma_updateConsensusInstanceValidityCheckHelper(s.active_attestation_consensus_instances, new_attestation_slashing_db, s'.active_attestation_consensus_instances);
 
-        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.attestation_consensus_active_instances.Keys;                   
+        assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }                
 
     lemma lemma_pred_4_1_f_g_for_dvc_f_serve_attestation_duty(
@@ -2187,9 +2187,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 );
 
                 lemma_pred_4_1_f_g_for_dvc_updateConsensusInstanceValidityCheckHelper(
-                        process.attestation_consensus_engine_state.attestation_consensus_active_instances,
+                        process.attestation_consensus_engine_state.active_attestation_consensus_instances,
                         new_attestation_slashing_db,
-                        s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                        s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
                 );
 
                 lemma_pred_4_1_f_g_for_dvc_f_check_for_next_queued_duty(s_mod, s');
@@ -2205,15 +2205,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );     
 
-                assert s'.attestation_consensus_engine_state.attestation_consensus_active_instances == process.attestation_consensus_engine_state.attestation_consensus_active_instances[attestation_duty.slot := acvc];
+                assert s'.attestation_consensus_engine_state.active_attestation_consensus_instances == process.attestation_consensus_engine_state.active_attestation_consensus_instances[attestation_duty.slot := acvc];
 
                 forall cid | 
-                    && cid in s'.attestation_consensus_engine_state.attestation_consensus_active_instances  
+                    && cid in s'.attestation_consensus_engine_state.active_attestation_consensus_instances  
                 ensures pred_4_1_g_i_for_dvc_single_dvc_2_body(s', cid); 
                 {
                     if cid != attestation_duty.slot 
                     {
-                        assert cid in process.attestation_consensus_engine_state.attestation_consensus_active_instances;
+                        assert cid in process.attestation_consensus_engine_state.active_attestation_consensus_instances;
                         assert pred_4_1_g_i_for_dvc_single_dvc_2_body(s', cid); 
                     }
                     else 
@@ -2279,9 +2279,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             );
 
         lemma_pred_4_1_f_g_for_dvc_updateConsensusInstanceValidityCheckHelper(
-                process.attestation_consensus_engine_state.attestation_consensus_active_instances,
+                process.attestation_consensus_engine_state.active_attestation_consensus_instances,
                 attestation_slashing_db,
-                s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
         );            
 
         lemma_pred_4_1_f_g_for_dvc_f_check_for_next_queued_duty(s_mod, s');             
@@ -2330,9 +2330,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             );
 
             lemma_pred_4_1_f_g_for_dvc_updateConsensusInstanceValidityCheckHelper(
-                    process.attestation_consensus_engine_state.attestation_consensus_active_instances,
+                    process.attestation_consensus_engine_state.active_attestation_consensus_instances,
                     new_attestation_slashing_db,
-                    s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                    s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
             ); 
 
             lemma_pred_4_1_f_g_for_dvc_f_check_for_next_queued_duty(s_mod, s');             
@@ -2700,7 +2700,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
-    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)  
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)  
     requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_iii_body_body(dv, s');  
     {
@@ -2741,7 +2741,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_g_b_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
-    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
     requires dv.consensus_on_attestation_data[id].decided_value.isPresent()
     requires dv.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
@@ -2789,7 +2789,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ensures inv_g_iii_body_body_body(dv, s1, db2)
             {
                 assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                        || s2 in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                        || s2 in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                 assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                 assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
@@ -2805,15 +2805,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
                 if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
                 {
-                    assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                    assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
                     assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {attestation_slashing_db};
                     assert sdba in db2;
                 }
                 else 
                 {
-                    if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                    if s2 in s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
                     {
-                        if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                        if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
                         {
                             lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                 process.attestation_consensus_engine_state,
@@ -2925,7 +2925,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_g_b_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
-    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
     requires inv_g_d_a_body_body(dv, n, process)  
     requires inv_g_d_b_body_body(dv, n, process)   
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
@@ -3061,7 +3061,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ensures inv_g_iii_body_body_body(dv, s1, db2)
             {
                 assert  || s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                        || s2 in new_process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                        || s2 in new_process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                 assert s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                 assert s1 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
@@ -3077,15 +3077,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
                 if vp !in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
                 {
-                    assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                    assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
                     assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {new_attestation_slashing_db};
                     assert sdba in db2;
                 }
                 else 
                 {
-                    if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                    if s2 in s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
                     {
-                        if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                        if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
                         {
                             lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                 new_process.attestation_consensus_engine_state,
@@ -3143,7 +3143,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_g_b_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
-    requires inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
     ensures inv_g_iii_body_body(dv, s');  
     decreases process.attestation_duties_queue
     {
@@ -3184,7 +3184,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 ensures inv_g_iii_body_body_body(dv, s1, db2)
                 {
                     assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                            || s2 in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            || s2 in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                     assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
@@ -3200,15 +3200,15 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
                     if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
                     {
-                        assert s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate == vp;
+                        assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
                         assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {new_attestation_slashing_db};
                         assert sdba in db2;
                     }
                     else 
                     {
-                        if s2 in s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances
+                        if s2 in s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
                         {
-                            if vp == s_mod.attestation_consensus_engine_state.attestation_consensus_active_instances[s2].validityPredicate
+                            if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
                             {
                                 lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                     process.attestation_consensus_engine_state,
@@ -3552,9 +3552,9 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         var validityPredicates := 
             map n |
                     && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                 ::
-                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.attestation_consensus_active_instances[cid].validityPredicate
+                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
             ;
 
         var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
@@ -3623,7 +3623,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s) 
         && is_sequence_attestation_duties_to_be_served_orderd(s)
         && inv_attestation_duty_queue_is_ordered(s) 
-        && inv_attestation_consensus_active_instances_keys_is_subset_of_att_slashing_db_hist(s)      
+        && inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)      
         && pred_inv_current_latest_attestation_duty_match(s)
         && pred_4_1_b(s)
         && pred_4_1_c(s)

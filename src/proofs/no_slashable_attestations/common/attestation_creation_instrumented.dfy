@@ -23,14 +23,14 @@ module DVC_Spec {
 
 
     datatype ConsensusEngineState = ConsensusEngineState(
-        attestation_consensus_active_instances: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        active_attestation_consensus_instances: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
     )
 
     function getInitialConensusEngineState(): ConsensusEngineState
     {
         ConsensusEngineState(
-            attestation_consensus_active_instances := map[],
+            active_attestation_consensus_instances := map[],
             att_slashing_db_hist := map[]
         )
     }
@@ -41,7 +41,7 @@ module DVC_Spec {
         attestation_duty: AttestationDuty,
         attestation_slashing_db: set<SlashingDBAttestation>
     ): ConsensusEngineState
-    requires id !in s.attestation_consensus_active_instances.Keys
+    requires id !in s.active_attestation_consensus_instances.Keys
     {
         var acvc := DVC_Spec_NonInstr.AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
@@ -49,11 +49,11 @@ module DVC_Spec {
                 );
         
         assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
-        var new_attestation_consensus_active_instances := s.attestation_consensus_active_instances[
+        var new_active_attestation_consensus_instances := s.active_attestation_consensus_instances[
                 id := acvc
             ];
         s.(
-            attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+            active_attestation_consensus_instances := new_active_attestation_consensus_instances,
             att_slashing_db_hist := 
                 // s.att_slashing_db_hist[
                 //     id := map[acvc.validityPredicate := {attestation_slashing_db}]
@@ -92,7 +92,7 @@ module DVC_Spec {
     ): ConsensusEngineState
     {
         s.(
-            attestation_consensus_active_instances := s.attestation_consensus_active_instances - ids
+            active_attestation_consensus_instances := s.active_attestation_consensus_instances - ids
         )
     }    
 
@@ -114,15 +114,15 @@ module DVC_Spec {
   
     function updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_attestation_consensus_active_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        new_active_attestation_consensus_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
     {
             var ret 
-                := map k: Slot | k in (new_attestation_consensus_active_instances.Keys + hist.Keys)
+                := map k: Slot | k in (new_active_attestation_consensus_instances.Keys + hist.Keys)
                     ::            
-                    if k in new_attestation_consensus_active_instances.Keys then 
-                        var vp := new_attestation_consensus_active_instances[k].validityPredicate;
+                    if k in new_active_attestation_consensus_instances.Keys then 
+                        var vp := new_active_attestation_consensus_instances[k].validityPredicate;
                         var hist_k := getOrDefault(hist, k, map[]);
                         var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
                         hist_k[
@@ -138,15 +138,15 @@ module DVC_Spec {
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (r: ConsensusEngineState)
     {
-        var new_attestation_consensus_active_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.attestation_consensus_active_instances,
+        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    s.active_attestation_consensus_instances,
                     new_attestation_slashing_db
                 );
         s.(
-            attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+            active_attestation_consensus_instances := new_active_attestation_consensus_instances,
             att_slashing_db_hist := updateAttSlashingDBHist(
                 s.att_slashing_db_hist,
-                new_attestation_consensus_active_instances,
+                new_active_attestation_consensus_instances,
                 new_attestation_slashing_db
             )
         )
@@ -285,7 +285,7 @@ module DVC_Spec {
         process: DVCState,
         attestation_duty: AttestationDuty
     ): DVCStateAndOuputs
-    requires forall ad | ad in process.attestation_duties_queue + [attestation_duty]:: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+    requires forall ad | ad in process.attestation_duties_queue + [attestation_duty]:: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     {
         f_check_for_next_queued_duty(
             process.(
@@ -296,7 +296,7 @@ module DVC_Spec {
     }    
 
     function f_check_for_next_queued_duty(process: DVCState): DVCStateAndOuputs
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -333,7 +333,7 @@ module DVC_Spec {
     }         
 
     function f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty): DVCStateAndOuputs
-    requires attestation_duty.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     {
         DVCStateAndOuputs(
             state :=  process.(
@@ -372,7 +372,7 @@ module DVC_Spec {
         id: Slot,
         decided_attestation_data: AttestationData
     ): DVCStateAndOuputs
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys    
+    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys    
     {
         
         if  && process.current_attestation_duty.isPresent()
@@ -421,7 +421,7 @@ module DVC_Spec {
         attestation_share: AttestationShare
     ): DVCStateAndOuputs
     {
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -555,7 +555,7 @@ module DVC_Spec {
                         && DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2
-    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys
+    requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 

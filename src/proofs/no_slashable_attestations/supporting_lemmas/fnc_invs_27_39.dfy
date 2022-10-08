@@ -107,7 +107,7 @@ module Fnc_Invs_27_39
 
                     assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                                 == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                        + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                                        + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
                     assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
@@ -183,7 +183,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                         == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                                + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
 
             assert inv5_body(process_mod);
@@ -282,7 +282,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                     == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
             
             assert inv5_body(process_mod);
@@ -392,7 +392,7 @@ module Fnc_Invs_27_39
 
                     assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                                 == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                        + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                                        + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                     assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
                     assert inv5_body(process_mod);
 
@@ -467,7 +467,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                         == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                                + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
 
             assert inv5_body(process_mod);
@@ -566,7 +566,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                     == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
             
             assert inv5_body(process_mod);
@@ -660,7 +660,7 @@ module Fnc_Invs_27_39
 
                     assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                                 == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                        + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                                        + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
                     assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
@@ -734,7 +734,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                         == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                                + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                                + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
 
             assert inv5_body(process_mod);
@@ -833,7 +833,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                     == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
             
             assert inv5_body(process_mod);
@@ -1406,7 +1406,7 @@ module Fnc_Invs_27_39
 
             assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                     == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                            + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+                            + process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
             
             assert inv5_body(process_mod);
@@ -1883,7 +1883,7 @@ module Fnc_Invs_27_39
                    )                   
                    
     { 
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -2496,7 +2496,7 @@ module Fnc_Invs_27_39
                            )
                    )                                      
     { 
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -2645,7 +2645,7 @@ module Fnc_Invs_27_39
                         )
             )
     { 
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())

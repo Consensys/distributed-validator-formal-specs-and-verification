@@ -30,30 +30,30 @@ module Common_Proofs
     )
     requires r == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)        
     ensures r.att_slashing_db_hist.Keys
-                == s.att_slashing_db_hist.Keys + s.attestation_consensus_active_instances.Keys
+                == s.att_slashing_db_hist.Keys + s.active_attestation_consensus_instances.Keys
     {
-        var new_attestation_consensus_active_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.attestation_consensus_active_instances,
+        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    s.active_attestation_consensus_instances,
                     new_attestation_slashing_db
                 );
 
         lemma_updateConsensusInstanceValidityCheckHelper(
-                s.attestation_consensus_active_instances,
+                s.active_attestation_consensus_instances,
                 new_attestation_slashing_db,
-                new_attestation_consensus_active_instances);
+                new_active_attestation_consensus_instances);
 
-        assert new_attestation_consensus_active_instances.Keys == s.attestation_consensus_active_instances.Keys;
+        assert new_active_attestation_consensus_instances.Keys == s.active_attestation_consensus_instances.Keys;
 
         var new_att_slashing_db_hist := updateAttSlashingDBHist(
                                             s.att_slashing_db_hist,
-                                            new_attestation_consensus_active_instances,
+                                            new_active_attestation_consensus_instances,
                                             new_attestation_slashing_db
                                         );
 
         assert new_att_slashing_db_hist.Keys 
-                    == s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys;
+                    == s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys;
 
-        var t := s.(attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+        var t := s.(active_attestation_consensus_instances := new_active_attestation_consensus_instances,
                     att_slashing_db_hist := new_att_slashing_db_hist
                    );
 
@@ -67,9 +67,9 @@ module Common_Proofs
             ==
             new_att_slashing_db_hist.Keys;
             == 
-            s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys;
+            s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys;
             ==
-            s.att_slashing_db_hist.Keys + s.attestation_consensus_active_instances.Keys;
+            s.att_slashing_db_hist.Keys + s.active_attestation_consensus_instances.Keys;
         }
     }
 
@@ -107,21 +107,21 @@ module Common_Proofs
 
     lemma lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_attestation_consensus_active_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        new_active_attestation_consensus_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
     )    
     requires new_hist == updateAttSlashingDBHist(hist, 
-                                                 new_attestation_consensus_active_instances, 
+                                                 new_active_attestation_consensus_instances, 
                                                  new_attestation_slashing_db)
     ensures ( forall k: Slot | k in new_hist.Keys ::
-                && ( k in new_attestation_consensus_active_instances.Keys
-                        ==> && var vp := new_attestation_consensus_active_instances[k].validityPredicate;
+                && ( k in new_active_attestation_consensus_instances.Keys
+                        ==> && var vp := new_active_attestation_consensus_instances[k].validityPredicate;
                             && var hist_k := getOrDefault(hist, k, map[]);
                             && var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
                             && new_hist[k][vp] == hist_k_vp                        
                    )
-                && ( k !in new_attestation_consensus_active_instances.Keys
+                && ( k !in new_active_attestation_consensus_instances.Keys
                         ==> new_hist[k] == hist[k]
                    )
             )
@@ -134,21 +134,21 @@ module Common_Proofs
     )
     requires r == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)        
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(s)
-    requires ( forall k: Slot | k in s.attestation_consensus_active_instances.Keys ::
-                    s.attestation_consensus_active_instances[k].attestation_duty.slot == k )
+    requires ( forall k: Slot | k in s.active_attestation_consensus_instances.Keys ::
+                    s.active_attestation_consensus_instances[k].attestation_duty.slot == k )
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r)
     {
         lemma_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
         assert r.att_slashing_db_hist.Keys
-                == s.att_slashing_db_hist.Keys + s.attestation_consensus_active_instances.Keys;
+                == s.att_slashing_db_hist.Keys + s.active_attestation_consensus_instances.Keys;
 
-        var new_attestation_consensus_active_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.attestation_consensus_active_instances,
+        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    s.active_attestation_consensus_instances,
                     new_attestation_slashing_db
                 );
 
-        assert forall k: Slot | k in new_attestation_consensus_active_instances.Keys ::
-                    && var ci := new_attestation_consensus_active_instances[k];
+        assert forall k: Slot | k in new_active_attestation_consensus_instances.Keys ::
+                    && var ci := new_active_attestation_consensus_instances[k];
                     && ci.validityPredicate
                         == ((ad: AttestationData) => consensus_is_valid_attestation_data(
                                                         new_attestation_slashing_db, 
@@ -162,18 +162,18 @@ module Common_Proofs
 
         var new_att_slashing_db_hist := updateAttSlashingDBHist(
                                             s.att_slashing_db_hist,
-                                            new_attestation_consensus_active_instances,
+                                            new_active_attestation_consensus_instances,
                                             new_attestation_slashing_db
                                         );
-        assert forall k: Slot | k in new_attestation_consensus_active_instances.Keys ::
-                    && var ci := new_attestation_consensus_active_instances[k];
+        assert forall k: Slot | k in new_active_attestation_consensus_instances.Keys ::
+                    && var ci := new_active_attestation_consensus_instances[k];
                     && var vp := ci.validityPredicate;
                     && var duty := ci.attestation_duty;
                     && duty.slot == k
                     && new_attestation_slashing_db in new_att_slashing_db_hist[k][vp]
                 ;
         assert new_att_slashing_db_hist.Keys 
-                    == s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys
+                    == s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys
                 ;
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(s);
 
@@ -186,9 +186,9 @@ module Common_Proofs
                             && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
                         )
         {
-            if k in new_attestation_consensus_active_instances.Keys
+            if k in new_active_attestation_consensus_instances.Keys
             {
-                var ci := new_attestation_consensus_active_instances[k];                
+                var ci := new_active_attestation_consensus_instances[k];                
 
                 if vp == ci.validityPredicate
                 {
@@ -224,12 +224,12 @@ module Common_Proofs
         }
      
         lemma_updateConsensusInstanceValidityCheckHelper(
-                s.attestation_consensus_active_instances,
+                s.active_attestation_consensus_instances,
                 new_attestation_slashing_db,
-                new_attestation_consensus_active_instances);
-        assert new_attestation_consensus_active_instances.Keys == s.attestation_consensus_active_instances.Keys;
+                new_active_attestation_consensus_instances);
+        assert new_active_attestation_consensus_instances.Keys == s.active_attestation_consensus_instances.Keys;
 
-        var t := s.(attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+        var t := s.(active_attestation_consensus_instances := new_active_attestation_consensus_instances,
                     att_slashing_db_hist := new_att_slashing_db_hist
                    );
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(t);
@@ -244,21 +244,21 @@ module Common_Proofs
     )
     requires r == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)        
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(s, new_attestation_slashing_db)
-    requires ( forall k: Slot | k in s.attestation_consensus_active_instances.Keys ::
-                    s.attestation_consensus_active_instances[k].attestation_duty.slot == k )
+    requires ( forall k: Slot | k in s.active_attestation_consensus_instances.Keys ::
+                    s.active_attestation_consensus_instances[k].attestation_duty.slot == k )
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(r, new_attestation_slashing_db)
     {
         lemma_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
         assert r.att_slashing_db_hist.Keys
-                == s.att_slashing_db_hist.Keys + s.attestation_consensus_active_instances.Keys;
+                == s.att_slashing_db_hist.Keys + s.active_attestation_consensus_instances.Keys;
 
-        var new_attestation_consensus_active_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.attestation_consensus_active_instances,
+        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    s.active_attestation_consensus_instances,
                     new_attestation_slashing_db
                 );
 
-        assert forall k: Slot | k in new_attestation_consensus_active_instances.Keys ::
-                    && var ci := new_attestation_consensus_active_instances[k];
+        assert forall k: Slot | k in new_active_attestation_consensus_instances.Keys ::
+                    && var ci := new_active_attestation_consensus_instances[k];
                     && ci.validityPredicate
                         == ((ad: AttestationData) => consensus_is_valid_attestation_data(
                                                         new_attestation_slashing_db, 
@@ -268,25 +268,25 @@ module Common_Proofs
                  
         var new_att_slashing_db_hist := updateAttSlashingDBHist(
                                             s.att_slashing_db_hist,
-                                            new_attestation_consensus_active_instances,
+                                            new_active_attestation_consensus_instances,
                                             new_attestation_slashing_db
                                         );
-        assert forall k: Slot | k in new_attestation_consensus_active_instances.Keys ::
-                    && var ci := new_attestation_consensus_active_instances[k];
+        assert forall k: Slot | k in new_active_attestation_consensus_instances.Keys ::
+                    && var ci := new_active_attestation_consensus_instances[k];
                     && var vp := ci.validityPredicate;
                     && var duty := ci.attestation_duty;
                     && duty.slot == k
                     && new_attestation_slashing_db in new_att_slashing_db_hist[k][vp]
                 ;
         assert forall k: Slot, vp, db | 
-                    && k in new_attestation_consensus_active_instances.Keys 
+                    && k in new_active_attestation_consensus_instances.Keys 
                     && vp in new_att_slashing_db_hist[k]
                     && db in new_att_slashing_db_hist[k][vp]
                     ::
                     && db <= new_attestation_slashing_db 
                 ;
         assert new_att_slashing_db_hist.Keys 
-                    == s.att_slashing_db_hist.Keys + new_attestation_consensus_active_instances.Keys
+                    == s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys
                 ;
         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(s, new_attestation_slashing_db);
 
@@ -297,9 +297,9 @@ module Common_Proofs
                     )
         ensures db <= new_attestation_slashing_db
         {
-            if k in new_attestation_consensus_active_instances.Keys
+            if k in new_active_attestation_consensus_instances.Keys
             {
-                var ci := new_attestation_consensus_active_instances[k];                
+                var ci := new_active_attestation_consensus_instances[k];                
 
                 if vp == ci.validityPredicate
                 {
@@ -319,7 +319,7 @@ module Common_Proofs
             }
         }
      
-        var t := s.(attestation_consensus_active_instances := new_attestation_consensus_active_instances,
+        var t := s.(active_attestation_consensus_instances := new_active_attestation_consensus_instances,
                     att_slashing_db_hist := new_att_slashing_db_hist
                    );
         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(t, new_attestation_slashing_db);
