@@ -72,7 +72,7 @@ module Proofs_DV_Ind_Inv
         &&  inv8(dv)   
         &&  inv9(dv)  
         &&  inv10(dv) 
-        &&  inv13(dv)      
+        &&  inv_is sequence attestation duties to be serves orders(dv)      
         &&  inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv)  
         &&  inv_strictly_increasing_queue_of_att_duties(dv)  
         &&  inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)  
@@ -152,12 +152,12 @@ module Proofs_DV_Ind_Inv
     ensures inv8(dv')
     ensures inv9(dv')
     ensures inv10(dv')
-    ensures inv13(dv')
+    ensures inv_is sequence attestation duties to be serves orders(dv')
     {
         lemma_inv8_dv_next(dv, e, dv');
         lemma_inv9_dv_next(dv, e, dv');
         lemma_inv10_dv_next(dv, e, dv');        
-        lemma_inv13_dv_next(dv, e, dv');                
+        lemma_inv_is sequence attestation duties to be serves orders_dv_next(dv, e, dv');                
         // lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next(dv, e, dv');
         // lemma_inv_strictly_increasing_queue_of_att_duties_dv_next(dv, e, dv');
         // lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_dv_next(dv, e, dv');

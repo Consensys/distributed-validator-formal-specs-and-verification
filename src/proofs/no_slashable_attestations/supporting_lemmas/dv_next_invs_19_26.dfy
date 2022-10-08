@@ -189,7 +189,7 @@ module DV_Next_Invs_19_26
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
     requires inv7(dv)
-    requires inv13(dv)
+    requires inv_is sequence attestation duties to be serves orders(dv)
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     requires inv_strictly_increasing_queue_of_att_duties(dv)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)

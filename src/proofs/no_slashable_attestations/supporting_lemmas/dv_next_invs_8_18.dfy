@@ -161,15 +161,15 @@ module DV_Next_Invs_8_18
     }  
 
     
-    lemma lemma_inv13_dv_next(
+    lemma lemma_inv_is sequence attestation duties to be serves orders_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    requires inv13(dv)
-    ensures inv13(dv')
+    requires inv_is sequence attestation duties to be serves orders(dv)
+    ensures inv_is sequence attestation duties to be serves orders(dv')
     { 
         assert dv.sequence_attestation_duties_to_be_served == dv'.sequence_attestation_duties_to_be_served;
     }
@@ -233,7 +233,7 @@ module DV_Next_Invs_8_18
     requires inv_unchanged_honesty(dv)
     requires inv4(dv)
     requires inv5(dv)
-    requires inv13(dv)
+    requires inv_is sequence attestation duties to be serves orders(dv)
     requires concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     requires inv_strictly_increasing_queue_of_att_duties(dv)
     ensures inv_strictly_increasing_queue_of_att_duties(dv')
@@ -297,7 +297,7 @@ module DV_Next_Invs_8_18
     requires inv4(dv)
     requires inv5(dv)
     requires inv7(dv)
-    requires inv13(dv)  
+    requires inv_is sequence attestation duties to be serves orders(dv)  
     requires inv_strictly_increasing_queue_of_att_duties(dv)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv')
