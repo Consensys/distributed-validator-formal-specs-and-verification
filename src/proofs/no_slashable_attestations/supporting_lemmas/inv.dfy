@@ -1585,17 +1585,17 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv15_body(dvc, next_duty)
     }
 
-    predicate inv16_body(dvc: DVCState)
+    predicate inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc: DVCState)
     {
         !dvc.latest_attestation_duty.isPresent()
             ==> |dvc.attestation_duties_queue| == 0
     }
 
-    predicate inv16(dv: DVState)
+    predicate inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv16_body(dvc)
+            && inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc)
     }
 
     predicate inv_strictly_increasing_queue_of_att_duties_body(dvc: DVCState)

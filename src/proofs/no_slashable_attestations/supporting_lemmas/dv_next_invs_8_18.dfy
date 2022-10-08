@@ -175,8 +175,8 @@ module DV_Next_Invs_8_18
     }
     
 
-    // It takes more than 60 seconds to prove lemma_inv16_dv_next.
-    lemma lemma_inv16_dv_next(
+    // It takes more than 60 seconds to prove lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next.
+    lemma lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -184,32 +184,32 @@ module DV_Next_Invs_8_18
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
     requires inv8(dv)
-    requires inv16(dv)
-    ensures inv16(dv')
+    requires inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv)
+    ensures inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];
-                assert inv16_body(dvc);
+                assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc);
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv16_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv16_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv16_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv16_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-                        assert inv16_body(dvc_mod);
-                        lemma_inv16_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv16_body(dvc');
+                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc_mod);
+                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
 
