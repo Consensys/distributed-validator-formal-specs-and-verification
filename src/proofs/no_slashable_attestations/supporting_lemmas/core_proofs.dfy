@@ -58,8 +58,8 @@ module Core_Proofs
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
-    requires inv50(dv)
-    // requires inv51(dv)
+    requires inv_queued_att_duty_is_rcvd_duty0(dv)
+    // requires inv_queued_att_duty_is_rcvd_duty1(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {        
@@ -83,10 +83,10 @@ module Core_Proofs
         
         // var dba': set<SlashingDBAttestation> := m_state.attestation_consensus_engine_state.att_slashing_db_hist[sa'][vpa'];  
 
-        // assert inv51_body(m_state, sa');
-        var duty: AttestationDuty, dba' :| inv50_body(dv, m, sa', dba', duty, vpa');
+        // assert inv_queued_att_duty_is_rcvd_duty1_body(m_state, sa');
+        var duty: AttestationDuty, dba' :| inv_queued_att_duty_is_rcvd_duty0_body(dv, m, sa', dba', duty, vpa');
         
-        assert inv50_body(dv, m, sa', dba', duty, vpa');
+        assert inv_queued_att_duty_is_rcvd_duty0_body(dv, m, sa', dba', duty, vpa');
         assert vpa' == (ad: AttestationData) => consensus_is_valid_attestation_data(dba', ad, duty);
         assert !is_slashable_attestation_data(dba', dva');
 
@@ -188,9 +188,9 @@ module Core_Proofs
 //     requires inv47(dv)
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-    requires inv50(dv)
+    requires inv_queued_att_duty_is_rcvd_duty0(dv)
 //     requires inv49(dv)
-    requires inv51(dv)
+    requires inv_queued_att_duty_is_rcvd_duty1(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
@@ -268,8 +268,8 @@ module Core_Proofs
              && is_valid_attestation(a', dv.dv_pubkey)
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-    requires inv50(dv)
-    requires inv51(dv)
+    requires inv_queued_att_duty_is_rcvd_duty0(dv)
+    requires inv_queued_att_duty_is_rcvd_duty1(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)   
     {

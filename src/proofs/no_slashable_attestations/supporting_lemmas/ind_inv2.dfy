@@ -720,7 +720,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)  
+    requires inv_queued_att_duty_is_rcvd_duty3(s)  
     ensures inv_g_a_ii_a_body_body(s', n, s_node)        
     {
         assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;
@@ -770,7 +770,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)  
+    requires inv_queued_att_duty_is_rcvd_duty3(s)  
     ensures inv_g_a_iii_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)        
     {
         assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;
@@ -898,7 +898,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)  
+    requires inv_queued_att_duty_is_rcvd_duty3(s)  
     ensures inv_g_a_iv_a_body_body(s', n, s_node)        
     {
         assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;
@@ -1006,7 +1006,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
         && inv_quorum_constraints(s)
         && inv_unchanged_honesty(s)
         && inv_only_dv_construct_signed_attestation_signature(s)
-        && inv53(s)    
+        && inv_queued_att_duty_is_rcvd_duty3(s)    
         && invNetwork(s)
         && pred_4_1_g_b_new(s) //
         && inv_g_a_ii_a(s) //
@@ -5575,7 +5575,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     // requires invNetwork(s)
     // requires inv_quorum_constraints(s)
     // requires inv_only_dv_construct_signed_attestation_signature(s)
-    // requires inv53(s)  
+    // requires inv_queued_att_duty_is_rcvd_duty3(s)  
     // ensures inv_g_iii_body_body(s', s_node)  
     {
         assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;

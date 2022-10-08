@@ -62,7 +62,7 @@ module Proofs_DV_Ind_Inv
         &&  inv_unchanged_honesty(dv)
         &&  inv_only_dv_construct_signed_attestation_signature(dv)
         &&  inv4(dv)
-        &&  inv5(dv)
+        &&  inv_queued_att_duty_is_rcvd_duty(dv)
         &&  inv_current_att_duty_is_rcvd_duty(dv)
         &&  inv_latest_served_duty_is_rcvd_duty(dv)
     }
@@ -140,7 +140,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_unchanged_honesty_dv_next(dv, e, dv');
         lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
         lemma_inv4_dv_next(dv, e, dv');
-        lemma_inv5_dv_next(dv, e, dv');
+        lemma_inv_queued_att_duty_is_rcvd_duty_dv_next(dv, e, dv');
         lemma_inv_current_att_duty_is_rcvd_duty_dv_next(dv, e, dv');
         lemma_inv_latest_served_duty_is_rcvd_duty_dv_next(dv, e, dv');        
     }
@@ -297,17 +297,17 @@ module Proofs_DV_Ind_Inv
 
     lemma lemma_ind_inv_implies_intermediate_steps_helper_2(dv: DVState)
     requires ind_inv(dv)  
-    ensures inv50(dv)
-    ensures inv51(dv)   
-    ensures inv53(dv)    
+    ensures inv_queued_att_duty_is_rcvd_duty0(dv)
+    ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
+    ensures inv_queued_att_duty_is_rcvd_duty3(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
                 dv.all_nodes)  
     {    
-        lemma_inv50_ind_inv(dv);
-        lemma_inv51_ind_inv(dv);
-        lemma_inv53_ind_inv(dv);      
+        lemma_inv_queued_att_duty_is_rcvd_duty0_ind_inv(dv);
+        lemma_inv_queued_att_duty_is_rcvd_duty1_ind_inv(dv);
+        lemma_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv);      
         lemma_construct_signed_attestation_signature_assumptions_helper(dv);       
     }
 
@@ -344,9 +344,9 @@ module Proofs_DV_Ind_Inv
     ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
-    ensures inv50(dv)
-    ensures inv51(dv)   
-    ensures inv53(dv)    
+    ensures inv_queued_att_duty_is_rcvd_duty0(dv)
+    ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
+    ensures inv_queued_att_duty_is_rcvd_duty3(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
@@ -379,12 +379,12 @@ module Proofs_DV_Ind_Inv
         assert inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);
 
         lemma_ind_inv_implies_intermediate_steps(dv);
-        assert inv53(dv);
+        assert inv_queued_att_duty_is_rcvd_duty3(dv);
 
 
         assert && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
                && inv_quorum_constraints(dv)
-               && inv53(dv)
+               && inv_queued_att_duty_is_rcvd_duty3(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
                && IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)  
                && inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
@@ -507,7 +507,7 @@ module Proofs_DV_Ind_Inv
     ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {
         lemma_ind_inv_implies_intermediate_steps(dv);
-        assert inv53(dv);
+        assert inv_queued_att_duty_is_rcvd_duty3(dv);
         lemma_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
@@ -893,8 +893,8 @@ module Proofs_DV_Ind_Inv
             && is_valid_attestation(a', dv.dv_pubkey)
             && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
             && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-            && inv50(dv)
-            && inv51(dv)
+            && inv_queued_att_duty_is_rcvd_duty0(dv)
+            && inv_queued_att_duty_is_rcvd_duty1(dv)
             ;
             lemma_4_1_general(dv, a, a');
         }

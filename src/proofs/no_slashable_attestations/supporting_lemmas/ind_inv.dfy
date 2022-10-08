@@ -1007,7 +1007,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_c(s)
     requires pred_4_1_f_b(s)
     requires inv_quorum_constraints(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires |s.all_nodes| > 0
     requires s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
@@ -1067,7 +1067,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
@@ -1219,7 +1219,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
@@ -1307,7 +1307,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
@@ -1394,7 +1394,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires |s.all_nodes| > 0
     ensures pred_4_1_c(s') 
@@ -1460,7 +1460,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_c(s)
     requires pred_4_1_f_b(s)
@@ -1586,7 +1586,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires event.HonestNodeTakingStep?
     requires cid in s'.consensus_on_attestation_data.Keys
     requires inv_quorum_constraints(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
@@ -1703,7 +1703,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_4_1_f_a(s)    
     ensures pred_4_1_f_a(s')   
@@ -3291,7 +3291,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     ensures forall ci: nat ::
             var s_consensus := s.consensus_on_attestation_data[ci];
             var s'_consensus := s.consensus_on_attestation_data[ci];
@@ -3336,7 +3336,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)
+    requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires s.consensus_on_attestation_data[ci].decided_value.isPresent()
     ensures 
             var s_consensus := s.consensus_on_attestation_data[ci];
@@ -3376,7 +3376,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)  
+    requires inv_queued_att_duty_is_rcvd_duty3(s)  
     ensures inv_g_iii_body_body(s', s_node)  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -3411,7 +3411,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)  
+    requires inv_queued_att_duty_is_rcvd_duty3(s)  
     ensures inv_g_b_body_body_new(s', n, s_node)  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -3458,7 +3458,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)  
+    requires inv_queued_att_duty_is_rcvd_duty3(s)  
     ensures inv_g_d_a_body_body(s', n, s_node)  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -3513,7 +3513,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     // requires invNetwork(s)
     // requires inv_quorum_constraints(s)
     // requires inv_only_dv_construct_signed_attestation_signature(s)
-    // requires inv53(s)  
+    // requires inv_queued_att_duty_is_rcvd_duty3(s)  
     // ensures inv_g_iii_body_body(s', s_node)  
     {
         assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;
@@ -3537,7 +3537,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires event.event.AttConsensusDecided?
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)    
+    requires inv_queued_att_duty_is_rcvd_duty3(s)    
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
     {
@@ -3582,7 +3582,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv53(s)    
+    requires inv_queued_att_duty_is_rcvd_duty3(s)    
     requires pred_4_1_f_a(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)      
@@ -3614,7 +3614,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && inv_quorum_constraints(s)
         && inv_unchanged_honesty(s)
         && inv_only_dv_construct_signed_attestation_signature(s)
-        && inv53(s)
+        && inv_queued_att_duty_is_rcvd_duty3(s)
         && pred_4_1_g_iii_a(s)
         && pred_4_1_g_iii_a_a(s)
         && pred_4_1_g_iii_b(s)

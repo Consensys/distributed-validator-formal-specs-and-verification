@@ -187,7 +187,7 @@ module DV_Next_Invs_19_26
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_latest_served_duty_is_rcvd_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
@@ -206,7 +206,7 @@ module DV_Next_Invs_19_26
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
                         assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty);
                         assert inv_strictly_increasing_queue_of_att_duties_body(dvc);
@@ -262,7 +262,7 @@ module DV_Next_Invs_19_26
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)  
     ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv')
     {        
@@ -275,7 +275,7 @@ module DV_Next_Invs_19_26
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);                                           
                         lemma_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc');
@@ -290,8 +290,8 @@ module DV_Next_Invs_19_26
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv5_body(dvc_mod);
+                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
                         lemma_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc_mod);
                         lemma_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
@@ -315,7 +315,7 @@ module DV_Next_Invs_19_26
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instances_only_for_rcvd_duties(dv)  
     ensures inv_consensus_instances_only_for_rcvd_duties(dv')
     {        
@@ -328,7 +328,7 @@ module DV_Next_Invs_19_26
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);                                           
                         lemma_inv_consensus_instances_only_for_rcvd_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
@@ -343,8 +343,8 @@ module DV_Next_Invs_19_26
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv5_body(dvc_mod);
+                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
                         lemma_inv_consensus_instances_only_for_rcvd_duties_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc_mod);
                         lemma_inv_consensus_instances_only_for_rcvd_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        

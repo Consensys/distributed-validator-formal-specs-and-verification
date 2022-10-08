@@ -18,9 +18,9 @@ module Proofs_Intermediate_Steps
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
     import opened Helper_Sets_Lemmas    
     
-    lemma lemma_inv53_ind_inv(dv: DVState)
+    lemma lemma_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: DVState)
     requires inv_unchanged_honesty(dv)
-    ensures inv53(dv)
+    ensures inv_queued_att_duty_is_rcvd_duty3(dv)
     { }
         
     lemma lemma_concl_next_att_duty_is_higher_than_current_att_duty_ind_inv(
@@ -118,7 +118,7 @@ module Proofs_Intermediate_Steps
     )    
     requires inv_quorum_constraints(dv)  
     requires inv4(dv)
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)    
@@ -135,7 +135,7 @@ module Proofs_Intermediate_Steps
             assert inv4_body(hn, dvc.all_rcvd_duties,
                              dv.sequence_attestation_duties_to_be_served,
                              dv.index_next_attestation_duty_to_be_served);
-            assert inv5_body(dvc);
+            assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
             assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
 
 
@@ -199,17 +199,17 @@ module Proofs_Intermediate_Steps
         }
     } 
 
-    lemma lemma_inv51_ind_inv(
+    lemma lemma_inv_queued_att_duty_is_rcvd_duty1_ind_inv(
         dv: DVState
     )    
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)
-    ensures inv51(dv)    
+    ensures inv_queued_att_duty_is_rcvd_duty1(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
         ensures ( ( && is_honest_node(dv, hn) 
                     && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
                   )
-                  ==> inv51_body(dv.honest_nodes_states[hn], s)
+                  ==> inv_queued_att_duty_is_rcvd_duty1_body(dv.honest_nodes_states[hn], s)
                 )
         {
             if && is_honest_node(dv, hn) 
@@ -217,7 +217,7 @@ module Proofs_Intermediate_Steps
             {
                 var hn_state := dv.honest_nodes_states[hn];
                 assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state);
-                assert inv51_body(hn_state, s);
+                assert inv_queued_att_duty_is_rcvd_duty1_body(hn_state, s);
             }
             else
             {}
@@ -225,11 +225,11 @@ module Proofs_Intermediate_Steps
             
     } 
 
-    lemma lemma_inv50_ind_inv(
+    lemma lemma_inv_queued_att_duty_is_rcvd_duty0_ind_inv(
         dv: DVState
     )    
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)
-    ensures inv50(dv)    
+    ensures inv_queued_att_duty_is_rcvd_duty0(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
             && is_honest_node(dv, hn)
@@ -238,7 +238,7 @@ module Proofs_Intermediate_Steps
             && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s]            
         ensures ( exists duty, db ::
                     && var hn_state := dv.honest_nodes_states[hn];
-                    && inv50_body(dv, hn, s, db, duty, vp) 
+                    && inv_queued_att_duty_is_rcvd_duty0_body(dv, hn, s, db, duty, vp) 
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
@@ -258,7 +258,7 @@ module Proofs_Intermediate_Steps
                         && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
                     ;
 
-            assert inv50_body(dv, hn, s, db, duty, vp);
+            assert inv_queued_att_duty_is_rcvd_duty0_body(dv, hn, s, db, duty, vp);
         }
     }   
 

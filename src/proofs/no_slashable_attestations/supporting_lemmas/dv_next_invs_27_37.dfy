@@ -41,7 +41,7 @@ module DV_Next_Invs_27_37
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)  
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv')
@@ -55,7 +55,7 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc);                                           
                         lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');
@@ -71,8 +71,8 @@ module DV_Next_Invs_27_37
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv5_body(dvc_mod);
+                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
                         lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc_mod);
                         lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
@@ -96,7 +96,7 @@ module DV_Next_Invs_27_37
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
@@ -110,7 +110,7 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc);                                           
                         lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_serve_attestation_duty(dvc, attestation_duty, dvc');
@@ -126,8 +126,8 @@ module DV_Next_Invs_27_37
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv5_body(dvc_mod);
+                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
                         lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc_mod);
                         lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
@@ -151,7 +151,7 @@ module DV_Next_Invs_27_37
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)  
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv')
@@ -165,7 +165,7 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc);                                           
                         lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_serve_attestation_duty(dvc, attestation_duty, dvc');
@@ -181,8 +181,8 @@ module DV_Next_Invs_27_37
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv5_body(dvc_mod);
+                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
                         lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc_mod);
                         lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
@@ -253,7 +253,7 @@ module DV_Next_Invs_27_37
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv5(dv)
+    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv')
@@ -267,7 +267,7 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv5_body(dvc);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc);                                           
                         lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
@@ -283,8 +283,8 @@ module DV_Next_Invs_27_37
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv5_body(dvc_mod);
+                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
                         lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc_mod);
                         lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
@@ -470,7 +470,7 @@ module DV_Next_Invs_27_37
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
     requires inv_only_dv_construct_signed_attestation_signature(dv)
-    requires inv53(dv)    
+    requires inv_queued_att_duty_is_rcvd_duty3(dv)    
     requires pred_4_1_f_a(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_i_for_dvc(dv)      
