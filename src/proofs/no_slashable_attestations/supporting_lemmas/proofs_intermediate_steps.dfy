@@ -280,7 +280,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_pred_inv_current_latest_attestation_duty_match(
         dv: DVState
     )    
-    requires inv_nont_nonecurrent_att_duty_is_latest_served_att_duty(dv)    
+    requires inv_not_nonecurrent_att_duty_is_latest_served_att_duty(dv)    
     ensures pred_inv_current_latest_attestation_duty_match(dv)    
     {}
 

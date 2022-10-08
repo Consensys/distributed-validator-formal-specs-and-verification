@@ -1484,7 +1484,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv9_body(dvc)
     }
 
-    predicate inv_nont_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc: DVCState)
+    predicate inv_not_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc: DVCState)
     {
         dvc.current_attestation_duty.isPresent()
             ==> ( && dvc.latest_attestation_duty.isPresent()
@@ -1493,11 +1493,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 )
     }
 
-    predicate inv_nont_nonecurrent_att_duty_is_latest_served_att_duty(dv: DVState)
+    predicate inv_not_nonecurrent_att_duty_is_latest_served_att_duty(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_nont_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc)
+            && inv_not_nonecurrent_att_duty_is_latest_served_att_duty_body(dvc)
     }
 
     predicate concl_next_att_duty_is_higher_than_current_att_duty_body(dvc: DVCState, next_duty: AttestationDuty)
