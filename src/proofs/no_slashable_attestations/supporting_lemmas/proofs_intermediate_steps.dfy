@@ -162,7 +162,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(
         dv: DVState
     )    
-    requires inv18(dv)
+    requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
@@ -266,7 +266,7 @@ module Proofs_Intermediate_Steps
         dv: DVState
     )    
     requires inv17(dv)
-    requires inv18(dv)
+    requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)    
     {}
 

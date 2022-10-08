@@ -1617,7 +1617,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv17_body(dvc)
     }
 
-    predicate inv18_body(dvc: DVCState)
+    predicate inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc: DVCState)
     {
         && var queue := dvc.attestation_duties_queue;
         && dvc.latest_attestation_duty.isPresent()
@@ -1630,11 +1630,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
            )
     }
 
-    predicate inv18(dv: DVState)
+    predicate inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv18_body(dvc)
+            && inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc)
     }
 
     predicate invNetwork(
@@ -1668,7 +1668,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(dv, n)
     }    
 
-    predicate inv19(dv: DVState)
+    predicate inv_no_duplicated_att_duties(dv: DVState)
     {        
         && ( forall k1: nat, k2: nat ::
                 && 0 <= k1
