@@ -84,7 +84,7 @@ module Proofs_DV_Ind_Inv
         &&  inv21(dv) 
         &&  inv22(dv)      
         &&  inv23(dv)  
-        &&  inv25(dv)          
+        &&  inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)          
         &&  inv_consensus_instances_only_for_rcvd_duties(dv)  
     }
 
@@ -200,7 +200,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv21_dv_next(dv, e, dv');        
         lemma_inv22_dv_next(dv, e, dv');                
         // lemma_inv23_dv_next(dv, e, dv');                
-        // lemma_inv25_dv_next(dv, e, dv');    
+        // lemma_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_dv_next(dv, e, dv');    
         // lemma_inv_consensus_instances_only_for_rcvd_duties_dv_next(dv, e, dv');    
     }
 
@@ -209,11 +209,11 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv23(dv')        
-    ensures inv25(dv')
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv')
     ensures inv_consensus_instances_only_for_rcvd_duties(dv')
     {
         lemma_inv23_dv_next(dv, e, dv');                
-        lemma_inv25_dv_next(dv, e, dv');    
+        lemma_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_dv_next(dv, e, dv');    
         lemma_inv_consensus_instances_only_for_rcvd_duties_dv_next(dv, e, dv');    
     }
 

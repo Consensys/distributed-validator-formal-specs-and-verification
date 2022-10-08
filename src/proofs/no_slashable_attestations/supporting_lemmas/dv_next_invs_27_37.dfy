@@ -42,7 +42,7 @@ module DV_Next_Invs_27_37
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
-    requires inv25(dv)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)  
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv')
     {        
@@ -56,7 +56,7 @@ module DV_Next_Invs_27_37
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
-                        assert inv25_body(dvc);   
+                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc);                                           
                         lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc');
@@ -152,7 +152,7 @@ module DV_Next_Invs_27_37
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
-    requires inv25(dv)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)  
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv')
     {        
@@ -166,7 +166,7 @@ module DV_Next_Invs_27_37
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
-                        assert inv25_body(dvc);   
+                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc);                                           
                         lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');

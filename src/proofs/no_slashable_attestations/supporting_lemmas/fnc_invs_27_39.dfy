@@ -74,7 +74,7 @@ module Fnc_Invs_27_39
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     decreases process.attestation_duties_queue
@@ -109,7 +109,7 @@ module Fnc_Invs_27_39
                                 == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
                                         + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
 
-                    assert inv25_body(process_mod);
+                    assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
                     assert inv5_body(process_mod);
                     assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
@@ -142,7 +142,7 @@ module Fnc_Invs_27_39
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
@@ -187,7 +187,7 @@ module Fnc_Invs_27_39
 
 
             assert inv5_body(process_mod);
-            assert inv25_body(process_mod);
+            assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
             assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
 
@@ -210,7 +210,7 @@ module Fnc_Invs_27_39
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
@@ -220,7 +220,7 @@ module Fnc_Invs_27_39
             );        
 
         assert inv5_body(process_mod);
-        assert inv25_body(process_mod);
+        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
         
         lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(process_mod, process');        
@@ -234,7 +234,7 @@ module Fnc_Invs_27_39
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
@@ -257,7 +257,7 @@ module Fnc_Invs_27_39
                 );    
         
         assert inv5_body(process);
-        assert inv25_body(process);
+        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process);
         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process);
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -286,7 +286,7 @@ module Fnc_Invs_27_39
 
             
             assert inv5_body(process_mod);
-            assert inv25_body(process_mod);
+            assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
             assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process_mod);
 
             lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_check_for_next_queued_duty(process_mod, process');
@@ -627,7 +627,7 @@ module Fnc_Invs_27_39
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process)
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process')
     decreases process.attestation_duties_queue
@@ -662,7 +662,7 @@ module Fnc_Invs_27_39
                                 == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
                                         + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
 
-                    assert inv25_body(process_mod);
+                    assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
                     assert inv5_body(process_mod);
                     assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process_mod);
@@ -693,7 +693,7 @@ module Fnc_Invs_27_39
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process)
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process')
     {
@@ -738,7 +738,7 @@ module Fnc_Invs_27_39
 
 
             assert inv5_body(process_mod);
-            assert inv25_body(process_mod);
+            assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
             assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process_mod);
 
@@ -761,7 +761,7 @@ module Fnc_Invs_27_39
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process)
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process')
     {
@@ -771,7 +771,7 @@ module Fnc_Invs_27_39
             );        
 
         assert inv5_body(process_mod);
-        assert inv25_body(process_mod);
+        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process_mod);
         
         lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_check_for_next_queued_duty(process_mod, process');        
@@ -785,7 +785,7 @@ module Fnc_Invs_27_39
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
     requires inv5_body(process)
-    requires inv25_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process)
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process')
     {
@@ -808,7 +808,7 @@ module Fnc_Invs_27_39
                 );    
         
         assert inv5_body(process);
-        assert inv25_body(process);
+        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process);
         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process);
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -837,7 +837,7 @@ module Fnc_Invs_27_39
 
             
             assert inv5_body(process_mod);
-            assert inv25_body(process_mod);
+            assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
             assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process_mod);
 
             lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_check_for_next_queued_duty(process_mod, process');
