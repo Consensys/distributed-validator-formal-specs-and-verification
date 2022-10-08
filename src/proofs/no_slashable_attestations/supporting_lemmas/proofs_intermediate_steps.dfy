@@ -265,7 +265,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(
         dv: DVState
     )    
-    requires inv17(dv)
+    requires inv_strictly_increasing_queue_of_att_duties(dv)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)    
     {}
@@ -273,7 +273,7 @@ module Proofs_Intermediate_Steps
     lemma lemma_inv_attestation_duty_queue_is_ordered(
         dv: DVState
     )    
-    requires inv17(dv)    
+    requires inv_strictly_increasing_queue_of_att_duties(dv)    
     ensures inv_attestation_duty_queue_is_ordered(dv)    
     {}
 

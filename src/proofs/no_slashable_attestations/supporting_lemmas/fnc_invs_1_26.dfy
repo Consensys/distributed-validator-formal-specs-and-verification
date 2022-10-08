@@ -1615,21 +1615,21 @@ module Fnc_Invs_1_26
     ensures inv16_body(s')
     { }
 
-    lemma lemma_inv17_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     { }  
 
-    lemma lemma_inv17_f_check_for_next_queued_duty(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_check_for_next_queued_duty(
         process: DVCState,
         process': DVCState
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -1651,16 +1651,16 @@ module Fnc_Invs_1_26
                             new_attestation_slashing_db
                         )                        
                     );
-                    lemma_inv17_f_check_for_next_queued_duty(process_mod, process');
+                    lemma_inv_strictly_increasing_queue_of_att_duties_f_check_for_next_queued_duty(process_mod, process');
                 }
                 else
                 { 
                     var process_mod := process.(
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     );     
-                    assert inv8_body(process_mod) || inv17_body(process_mod);
+                    assert inv8_body(process_mod) || inv_strictly_increasing_queue_of_att_duties_body(process_mod);
 
-                    lemma_inv17_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
+                    lemma_inv_strictly_increasing_queue_of_att_duties_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
                 }
         }
         else
@@ -1669,26 +1669,26 @@ module Fnc_Invs_1_26
         }
     }
 
-    lemma lemma_inv17_f_listen_for_attestation_shares(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     {}
 
-    lemma lemma_inv17_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -1708,7 +1708,7 @@ module Fnc_Invs_1_26
                     rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
                 );    
 
-        assert inv17_body(process);
+        assert inv_strictly_increasing_queue_of_att_duties_body(process);
                     
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -1724,37 +1724,37 @@ module Fnc_Invs_1_26
                 )                
             );
             
-            assert inv17_body(process);
+            assert inv_strictly_increasing_queue_of_att_duties_body(process);
 
-            lemma_inv17_f_check_for_next_queued_duty(process, process');
+            lemma_inv_strictly_increasing_queue_of_att_duties_f_check_for_next_queued_duty(process, process');
         }
         else
         {   
-            assert inv17_body(process);
+            assert inv_strictly_increasing_queue_of_att_duties_body(process);
         }
     }  
 
-    lemma lemma_inv17_f_resend_attestation_share(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_resend_attestation_share(
         process: DVCState,
         process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     { }       
          
-    lemma lemma_inv17_add_block_to_bn(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState 
     )
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
-    requires inv17_body(s)
-    ensures inv17_body(s')
+    requires inv_strictly_increasing_queue_of_att_duties_body(s)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(s')
     { }
 
-    lemma lemma_inv17_f_att_consensus_decided(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -1762,8 +1762,8 @@ module Fnc_Invs_1_26
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     {
         
         if  || !process.current_attestation_duty.isPresent()
@@ -1796,17 +1796,17 @@ module Fnc_Invs_1_26
                 )
             );
 
-        assert inv17_body(process);
+        assert inv_strictly_increasing_queue_of_att_duties_body(process);
 
         var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process);
         
-        lemma_inv17_f_check_for_next_queued_duty(process, ret_check_for_next_queued_duty.state);
+        lemma_inv_strictly_increasing_queue_of_att_duties_f_check_for_next_queued_duty(process, ret_check_for_next_queued_duty.state);
 
         assert process' == ret_check_for_next_queued_duty.state;
         
     }  
 
-    lemma lemma_inv17_f_serve_attestation_duty(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
@@ -1815,15 +1815,15 @@ module Fnc_Invs_1_26
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)  
     requires inv15_body(process, attestation_duty)  
-    requires inv17_body(process)
-    ensures inv17_body(process')
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     {
         var process_mod := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
                 all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
             );        
         
-        lemma_inv17_f_check_for_next_queued_duty(process_mod, process');        
+        lemma_inv_strictly_increasing_queue_of_att_duties_f_check_for_next_queued_duty(process_mod, process');        
     } 
 
     lemma lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_attestation_shares(
@@ -1834,7 +1834,7 @@ module Fnc_Invs_1_26
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state    
     requires inv5_body(process)
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     {}
@@ -1845,7 +1845,7 @@ module Fnc_Invs_1_26
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
     requires inv5_body(process)
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     { }  
@@ -1858,7 +1858,7 @@ module Fnc_Invs_1_26
     requires add_block_to_bn.requires(s, block)
     requires s' == add_block_to_bn(s, block)
     requires inv5_body(s)
-    requires inv17_body(s)
+    requires inv_strictly_increasing_queue_of_att_duties_body(s)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(s)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(s')
     { }
@@ -1869,7 +1869,7 @@ module Fnc_Invs_1_26
     requires forall queued_duty: AttestationDuty | queued_duty in process.attestation_duties_queue ::
                         attestation_duty.slot < queued_duty.slot     
     requires inv5_body(process)
-    requires inv17_body(process)                        
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)                        
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     { } 
@@ -1881,9 +1881,9 @@ module Fnc_Invs_1_26
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
-    ensures inv17_body(process')
+    ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     decreases process.attestation_duties_queue
     {
@@ -1941,7 +1941,7 @@ module Fnc_Invs_1_26
     requires inv5_body(process)  
     requires inv12_body(process, attestation_duty)  
     requires inv15_body(process, attestation_duty)  
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     requires forall queued_duty: AttestationDuty | queued_duty in process.attestation_duties_queue ::
                         queued_duty.slot < attestation_duty.slot
@@ -1959,13 +1959,13 @@ module Fnc_Invs_1_26
                         == process_mod.latest_attestation_duty.safe_get();
             assert process.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
             assert process_mod.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
-            assert inv17_body(process_mod);      
+            assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);      
             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);      
         }
         else 
         {
             assert !process_mod.latest_attestation_duty.isPresent();
-            assert inv17_body(process_mod);      
+            assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);      
             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);      
         }
         
@@ -1980,7 +1980,7 @@ module Fnc_Invs_1_26
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
     requires inv5_body(process)
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     {
@@ -2003,7 +2003,7 @@ module Fnc_Invs_1_26
                 );    
 
         assert inv5_body(process);
-        assert inv17_body(process);
+        assert inv_strictly_increasing_queue_of_att_duties_body(process);
         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process);
                     
 
@@ -2021,7 +2021,7 @@ module Fnc_Invs_1_26
             );
 
             assert inv5_body(process);
-            assert inv17_body(process);
+            assert inv_strictly_increasing_queue_of_att_duties_body(process);
             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process);
 
             lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_check_for_next_queued_duty(process, process');
@@ -2041,7 +2041,7 @@ module Fnc_Invs_1_26
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
     requires inv5_body(process)
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     {
@@ -2077,7 +2077,7 @@ module Fnc_Invs_1_26
             );
 
         assert inv5_body(process);
-        assert inv17_body(process);
+        assert inv_strictly_increasing_queue_of_att_duties_body(process);
         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process);
 
         var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process);
@@ -2332,7 +2332,7 @@ module Fnc_Invs_1_26
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state        
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
@@ -2359,7 +2359,7 @@ module Fnc_Invs_1_26
                         )                        
                     );
 
-                    assert inv17_body(process_mod);
+                    assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);
                     assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);
                     assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
                 }
@@ -2371,7 +2371,7 @@ module Fnc_Invs_1_26
 
                     if process_mod.latest_attestation_duty.isPresent()
                     {
-                        assert inv17_body(process_mod);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
 
@@ -2445,7 +2445,7 @@ module Fnc_Invs_1_26
     requires inv5_body(process)
     requires inv7_body(process)
     requires inv14_body(process, attestation_duty)
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)    
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
@@ -2458,7 +2458,7 @@ module Fnc_Invs_1_26
 
         assert inv5_body(process_mod);
         assert inv7_body(process_mod);
-        assert inv17_body(process_mod);                        
+        assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);                        
         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);         
         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process_mod);         
         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
@@ -2473,7 +2473,7 @@ module Fnc_Invs_1_26
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
@@ -2497,7 +2497,7 @@ module Fnc_Invs_1_26
                     rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
                 );    
         
-        assert inv17_body(process_mod);
+        assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);
         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);
         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process_mod);
         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
@@ -2515,7 +2515,7 @@ module Fnc_Invs_1_26
                 )                
             );
             
-            assert inv17_body(temp_process);
+            assert inv_strictly_increasing_queue_of_att_duties_body(temp_process);
             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(temp_process);
             assert inv_no_active_consensus_instance_before_receiving_att_duty_body(temp_process);
             assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(temp_process);
@@ -2538,7 +2538,7 @@ module Fnc_Invs_1_26
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
-    requires inv17_body(process)
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
@@ -2575,7 +2575,7 @@ module Fnc_Invs_1_26
                 )
             );
 
-        assert inv17_body(process_mod);
+        assert inv_strictly_increasing_queue_of_att_duties_body(process_mod);
         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process_mod);
         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process_mod);
         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);

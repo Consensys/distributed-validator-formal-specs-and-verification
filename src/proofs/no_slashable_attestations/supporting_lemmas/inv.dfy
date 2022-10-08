@@ -1598,7 +1598,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv16_body(dvc)
     }
 
-    predicate inv17_body(dvc: DVCState)
+    predicate inv_strictly_increasing_queue_of_att_duties_body(dvc: DVCState)
     {
         && var queue := dvc.attestation_duties_queue;
         && ( forall k1: nat, k2: nat |
@@ -1610,11 +1610,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
            )
     }
 
-    predicate inv17(dv: DVState)
+    predicate inv_strictly_increasing_queue_of_att_duties(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv17_body(dvc)
+            && inv_strictly_increasing_queue_of_att_duties_body(dvc)
     }
 
     predicate inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc: DVCState)

@@ -74,7 +74,7 @@ module Proofs_DV_Ind_Inv
         &&  inv10(dv) 
         &&  inv13(dv)      
         &&  inv16(dv)  
-        &&  inv17(dv)  
+        &&  inv_strictly_increasing_queue_of_att_duties(dv)  
         &&  inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)  
     }
     
@@ -159,7 +159,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv10_dv_next(dv, e, dv');        
         lemma_inv13_dv_next(dv, e, dv');                
         // lemma_inv16_dv_next(dv, e, dv');
-        // lemma_inv17_dv_next(dv, e, dv');
+        // lemma_inv_strictly_increasing_queue_of_att_duties_dv_next(dv, e, dv');
         // lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_dv_next(dv, e, dv');
     }
 
@@ -168,11 +168,11 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv16(dv')
-    ensures inv17(dv')
+    ensures inv_strictly_increasing_queue_of_att_duties(dv')
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv')
     {
         lemma_inv16_dv_next(dv, e, dv');
-        lemma_inv17_dv_next(dv, e, dv');
+        lemma_inv_strictly_increasing_queue_of_att_duties_dv_next(dv, e, dv');
         lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_dv_next(dv, e, dv');
     }
 

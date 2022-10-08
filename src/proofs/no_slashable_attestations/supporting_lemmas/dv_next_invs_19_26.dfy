@@ -191,7 +191,7 @@ module DV_Next_Invs_19_26
     requires inv7(dv)
     requires inv13(dv)
     requires inv14(dv)
-    requires inv17(dv)
+    requires inv_strictly_increasing_queue_of_att_duties(dv)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)  
@@ -209,7 +209,7 @@ module DV_Next_Invs_19_26
                         assert inv5_body(dvc);
                         assert inv7_body(dvc);                
                         assert inv14_body(dvc, attestation_duty);
-                        assert inv17_body(dvc);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc);
                         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc);                                           
@@ -217,7 +217,7 @@ module DV_Next_Invs_19_26
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        assert inv17_body(dvc);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc);
                         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);
                         lemma_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
@@ -228,13 +228,13 @@ module DV_Next_Invs_19_26
                         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        assert inv17_body(dvc);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc);
                         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc);
                         
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv17_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv17_body(dvc_mod);
+                        lemma_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
                         lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc_mod);
                         lemma_inv_no_active_consensus_instance_before_receiving_att_duty_add_block_to_bn(dvc, block, dvc_mod);

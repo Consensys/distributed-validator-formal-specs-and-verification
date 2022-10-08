@@ -222,7 +222,7 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv17_dv_next(
+    lemma lemma_inv_strictly_increasing_queue_of_att_duties_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -235,8 +235,8 @@ module DV_Next_Invs_8_18
     requires inv5(dv)
     requires inv13(dv)
     requires inv15(dv)
-    requires inv17(dv)
-    ensures inv17(dv')
+    requires inv_strictly_increasing_queue_of_att_duties(dv)
+    ensures inv_strictly_increasing_queue_of_att_duties(dv')
     {        
         match event 
         {
@@ -248,39 +248,39 @@ module DV_Next_Invs_8_18
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                                                                     
-                        lemma_inv17_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
+                        lemma_inv_strictly_increasing_queue_of_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv17_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lemma_inv_strictly_increasing_queue_of_att_duties_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv17_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lemma_inv_strictly_increasing_queue_of_att_duties_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv17_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv17_body(dvc_mod);
-                        lemma_inv17_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv17_body(dvc');
+                        lemma_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
+                        lemma_inv_strictly_increasing_queue_of_att_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc');
                     
                     case ResendAttestationShares =>                                                                      
 
                     case NoEvent => 
                         
                 }
-                assert inv17_body(dvc');
+                assert inv_strictly_increasing_queue_of_att_duties_body(dvc');
                 forall n | n in dv'.honest_nodes_states.Keys 
-                ensures inv17_body(dv'.honest_nodes_states[n]);
+                ensures inv_strictly_increasing_queue_of_att_duties_body(dv'.honest_nodes_states[n]);
                 {
                     if n != node 
                     {
                         assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
-                        assert inv17_body(dv'.honest_nodes_states[n]);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dv'.honest_nodes_states[n]);
                     }
                 }
                 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                assert inv17(dv');
+                assert inv_strictly_increasing_queue_of_att_duties(dv');
                 
         }   
     }  
@@ -298,7 +298,7 @@ module DV_Next_Invs_8_18
     requires inv5(dv)
     requires inv7(dv)
     requires inv13(dv)  
-    requires inv17(dv)
+    requires inv_strictly_increasing_queue_of_att_duties(dv)
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv')
     {        
@@ -326,8 +326,8 @@ module DV_Next_Invs_8_18
                         var dvc_mod := add_block_to_bn(dvc, block);
                         lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv5_body(dvc_mod);
-                        lemma_inv17_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv17_body(dvc_mod);
+                        lemma_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
                         lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc_mod);
 
