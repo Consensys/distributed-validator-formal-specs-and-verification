@@ -27,7 +27,7 @@ module Proofs_Intermediate_Steps
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
-    requires inv6(dv)    
+    requires inv_current_att_duty_is_rcvd_duty(dv)    
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_next_att_duty_is_higher_than_current_att_duty(dv)
     {   

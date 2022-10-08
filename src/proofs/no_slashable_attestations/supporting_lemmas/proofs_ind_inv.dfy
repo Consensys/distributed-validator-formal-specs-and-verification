@@ -63,7 +63,7 @@ module Proofs_DV_Ind_Inv
         &&  inv_only_dv_construct_signed_attestation_signature(dv)
         &&  inv4(dv)
         &&  inv5(dv)
-        &&  inv6(dv)
+        &&  inv_current_att_duty_is_rcvd_duty(dv)
         &&  inv_latest_served_duty_is_rcvd_duty(dv)
     }
 
@@ -141,7 +141,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
         lemma_inv4_dv_next(dv, e, dv');
         lemma_inv5_dv_next(dv, e, dv');
-        lemma_inv6_dv_next(dv, e, dv');
+        lemma_inv_current_att_duty_is_rcvd_duty_dv_next(dv, e, dv');
         lemma_inv_latest_served_duty_is_rcvd_duty_dv_next(dv, e, dv');        
     }
 
