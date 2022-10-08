@@ -1520,13 +1520,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv11_body(dvc, next_duty)
     }
 
-    predicate inv12_body(dvc: DVCState, next_duty: AttestationDuty)
+    predicate concl_next_att_duty_is_higher_than_latest_served_att_duty_body(dvc: DVCState, next_duty: AttestationDuty)
     {
         dvc.latest_attestation_duty.isPresent()
             ==> dvc.latest_attestation_duty.safe_get().slot < next_duty.slot        
     }
 
-    predicate inv12(dv: DVState)
+    predicate concl_next_att_duty_is_higher_than_latest_served_att_duty(dv: DVState)
     {
         && var dv_duty_queue := dv.sequence_attestation_duties_to_be_served;
         && var dv_index := dv.index_next_attestation_duty_to_be_served;
@@ -1537,7 +1537,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::            
             && var dvc := dv.honest_nodes_states[hn];
             && var next_duty := next_duty_and_node.attestation_duty;
-            && inv12_body(dvc, next_duty)
+            && concl_next_att_duty_is_higher_than_latest_served_att_duty_body(dvc, next_duty)
     }
 
     predicate inv_is_sequence_attestation_duties_to_be_serves_orders(dv: DVState)

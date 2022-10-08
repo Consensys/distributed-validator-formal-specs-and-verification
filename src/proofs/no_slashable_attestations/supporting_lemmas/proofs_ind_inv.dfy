@@ -283,13 +283,13 @@ module Proofs_DV_Ind_Inv
     lemma lemma_ind_inv_implies_intermediate_steps_helper_1(dv: DVState)
     requires ind_inv(dv)
     ensures inv11(dv)
-    ensures inv12(dv)
+    ensures concl_next_att_duty_is_higher_than_latest_served_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     {    
         lemma_inv11_ind_inv(dv);
-        lemma_inv12_ind_inv(dv);
+        lemma_concl_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(dv);
         lemma_concl_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(dv);
         lemma_concl_future_att_duty_is_higher_than_queued_att_duty_ind_inv(dv);
         lemma_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(dv);  
@@ -340,7 +340,7 @@ module Proofs_DV_Ind_Inv
     lemma lemma_ind_inv_implies_intermediate_steps(dv: DVState)
     requires ind_inv(dv)
     ensures inv11(dv)
-    ensures inv12(dv)
+    ensures concl_next_att_duty_is_higher_than_latest_served_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    

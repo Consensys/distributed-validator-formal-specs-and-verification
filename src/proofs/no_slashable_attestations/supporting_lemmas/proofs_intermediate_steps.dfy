@@ -48,13 +48,13 @@ module Proofs_Intermediate_Steps
         }
     } 
     
-    lemma lemma_inv12_ind_inv(
+    lemma lemma_concl_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
     requires inv7(dv)    
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
-    ensures inv12(dv)
+    ensures concl_next_att_duty_is_higher_than_latest_served_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
