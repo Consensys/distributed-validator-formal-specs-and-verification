@@ -1737,7 +1737,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv23_body(dvc)
     }
 
-    predicate inv24_body(dvc: DVCState)
+    predicate concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_body(dvc: DVCState)
     {
         dvc.latest_attestation_duty.isPresent()
         ==> ( forall k: Slot, n: nat | 
@@ -1748,11 +1748,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             )
     }
 
-    predicate inv24(dv: DVState)
+    predicate concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv24_body(dvc)
+            && concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_body(dvc)
     }
 
     predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc: DVCState)
@@ -1873,12 +1873,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc)
     }
 
-    predicate inv_monotonic_att_slashing_db_body(dvc: DVCState, dvc': DVCState)
+    predicate concl_monotonic_att_slashing_db_body(dvc: DVCState, dvc': DVCState)
     {
         dvc.attestation_slashing_db <= dvc'.attestation_slashing_db
     }
 
-    predicate inv_monotonic_att_slashing_db(dv: DVState, event: DV.Event, dv': DVState)    
+    predicate concl_monotonic_att_slashing_db(dv: DVState, event: DV.Event, dv': DVState)    
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')    
     {
@@ -1886,7 +1886,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dv'.honest_nodes_states
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
-            && inv_monotonic_att_slashing_db_body(dvc, dvc')
+            && concl_monotonic_att_slashing_db_body(dvc, dvc')
     }
 
     predicate inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(ces: ConsensusEngineState, attestation_slashing_db: set<SlashingDBAttestation>)
@@ -1918,14 +1918,14 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc)
     }
 
-    predicate inv_monotonic_att_slashing_db_hist_body(dvc: DVCState, dvc': DVCState)
+    predicate concl_monotonic_att_slashing_db_hist_body(dvc: DVCState, dvc': DVCState)
     {        
         dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
         <= 
         dvc'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     }
 
-    predicate inv_monotonic_att_slashing_db_hist(dv: DVState, event: DV.Event, dv': DVState)    
+    predicate concl_monotonic_att_slashing_db_hist(dv: DVState, event: DV.Event, dv': DVState)    
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')    
     {
@@ -1933,7 +1933,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && hn in dv'.honest_nodes_states
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
-            && inv_monotonic_att_slashing_db_hist_body(dvc, dvc')
+            && concl_monotonic_att_slashing_db_hist_body(dvc, dvc')
     }
 
     predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv: DVState, hn: BLSPubkey)

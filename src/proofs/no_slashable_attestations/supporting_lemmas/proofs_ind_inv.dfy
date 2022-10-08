@@ -286,13 +286,13 @@ module Proofs_DV_Ind_Inv
     ensures inv12(dv)
     ensures inv14(dv)
     ensures inv15(dv)
-    ensures inv24(dv)    
+    ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     {    
         lemma_inv11_ind_inv(dv);
         lemma_inv12_ind_inv(dv);
         lemma_inv14_ind_inv(dv);
         lemma_inv15_ind_inv(dv);
-        lemma_inv24_ind_inv(dv);  
+        lemma_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(dv);  
     }
 
     lemma lemma_ind_inv_implies_intermediate_steps_helper_2(dv: DVState)
@@ -343,7 +343,7 @@ module Proofs_DV_Ind_Inv
     ensures inv12(dv)
     ensures inv14(dv)
     ensures inv15(dv)
-    ensures inv24(dv)    
+    ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     ensures inv50(dv)
     ensures inv51(dv)   
     ensures inv53(dv)    

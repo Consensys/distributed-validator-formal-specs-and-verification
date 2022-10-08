@@ -199,14 +199,14 @@ module DV_Next_Invs_27_37
         }   
     }
 
-    lemma lemma_inv_monotonic_att_slashing_db_dv_next(
+    lemma lemma_concl_monotonic_att_slashing_db_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    ensures inv_monotonic_att_slashing_db(dv, event, dv')
+    ensures concl_monotonic_att_slashing_db(dv, event, dv')
     {        
         match event 
         {
@@ -217,23 +217,23 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        lemma_inv_monotonic_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_monotonic_att_slashing_db_body(dvc, dvc');
+                        lemma_concl_monotonic_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert concl_monotonic_att_slashing_db_body(dvc, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_monotonic_att_slashing_db_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv_monotonic_att_slashing_db_body(dvc, dvc');
+                        lemma_concl_monotonic_att_slashing_db_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert concl_monotonic_att_slashing_db_body(dvc, dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_monotonic_att_slashing_db_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_monotonic_att_slashing_db_body(dvc, dvc');
+                        lemma_concl_monotonic_att_slashing_db_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert concl_monotonic_att_slashing_db_body(dvc, dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv_monotonic_att_slashing_db_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_monotonic_att_slashing_db_body(dvc, dvc_mod);
-                        lemma_inv_monotonic_att_slashing_db_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_monotonic_att_slashing_db_body(dvc_mod, dvc');
+                        lemma_concl_monotonic_att_slashing_db_add_block_to_bn(dvc, block, dvc_mod);
+                        assert concl_monotonic_att_slashing_db_body(dvc, dvc_mod);
+                        lemma_concl_monotonic_att_slashing_db_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert concl_monotonic_att_slashing_db_body(dvc_mod, dvc');
 
                     case ResendAttestationShares =>                                                                      
 
@@ -302,14 +302,14 @@ module DV_Next_Invs_27_37
     }
 
 
-    lemma lemma_inv_monotonic_att_slashing_db_hist_dv_next(
+    lemma lemma_concl_monotonic_att_slashing_db_hist_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    ensures inv_monotonic_att_slashing_db_hist(dv, event, dv')
+    ensures concl_monotonic_att_slashing_db_hist(dv, event, dv')
     {        
         match event 
         {
@@ -320,23 +320,23 @@ module DV_Next_Invs_27_37
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        lemma_inv_monotonic_att_slashing_db_hist_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
+                        lemma_concl_monotonic_att_slashing_db_hist_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert concl_monotonic_att_slashing_db_hist_body(dvc, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_monotonic_att_slashing_db_hist_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
+                        lemma_concl_monotonic_att_slashing_db_hist_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert concl_monotonic_att_slashing_db_hist_body(dvc, dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_monotonic_att_slashing_db_hist_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
+                        lemma_concl_monotonic_att_slashing_db_hist_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert concl_monotonic_att_slashing_db_hist_body(dvc, dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv_monotonic_att_slashing_db_hist_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc_mod);
-                        lemma_inv_monotonic_att_slashing_db_hist_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_monotonic_att_slashing_db_hist_body(dvc_mod, dvc');
+                        lemma_concl_monotonic_att_slashing_db_hist_add_block_to_bn(dvc, block, dvc_mod);
+                        assert concl_monotonic_att_slashing_db_hist_body(dvc, dvc_mod);
+                        lemma_concl_monotonic_att_slashing_db_hist_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert concl_monotonic_att_slashing_db_hist_body(dvc_mod, dvc');
 
                     case ResendAttestationShares =>                                                                      
 

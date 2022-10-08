@@ -159,13 +159,13 @@ module Proofs_Intermediate_Steps
     }
 
 
-    lemma lemma_inv24_ind_inv(
+    lemma lemma_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv18(dv)
     requires inv22(dv)
     requires inv23(dv)
-    ensures inv24(dv)    
+    ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     {   
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys
         {
@@ -189,12 +189,12 @@ module Proofs_Intermediate_Steps
                     } 
                 }
 
-                assert inv24_body(dvc);
+                assert concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_body(dvc);
             }
             else
             {
                 assert dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {};
-                assert inv24_body(dvc);
+                assert concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_body(dvc);
             }
         }
     } 
