@@ -97,7 +97,7 @@ module DV_Next_Invs_27_37
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
-    requires inv26(dv)
+    requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
     {        
@@ -111,7 +111,7 @@ module DV_Next_Invs_27_37
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
-                        assert inv26_body(dvc);   
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc);                                           
                         lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
@@ -254,7 +254,7 @@ module DV_Next_Invs_27_37
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
-    requires inv26(dv)
+    requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv')
     {        
@@ -268,7 +268,7 @@ module DV_Next_Invs_27_37
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
-                        assert inv26_body(dvc);   
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc);                                           
                         lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc');

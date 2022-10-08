@@ -1770,7 +1770,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv25_body(dvc)
     }
 
-    predicate inv26_body(dvc: DVCState)
+    predicate inv_consensus_instances_only_for_rcvd_duties_body(dvc: DVCState)
     {
         forall k: Slot | k in dvc.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys 
             ::
@@ -1779,11 +1779,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && dvc.attestation_consensus_engine_state.attestation_consensus_active_instances[k].attestation_duty.slot == k
     }
 
-    predicate inv26(dv: DVState)
+    predicate inv_consensus_instances_only_for_rcvd_duties(dv: DVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv26_body(dvc)
+            && inv_consensus_instances_only_for_rcvd_duties_body(dvc)
     }
 
     predicate inv51_body(hn_state: DVCState, s: Slot)

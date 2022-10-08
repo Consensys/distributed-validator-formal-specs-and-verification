@@ -308,7 +308,7 @@ module DV_Next_Invs_19_26
         }   
     } 
 
-    lemma lemma_inv26_dv_next(
+    lemma lemma_inv_consensus_instances_only_for_rcvd_duties_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -316,8 +316,8 @@ module DV_Next_Invs_19_26
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv5(dv)
-    requires inv26(dv)  
-    ensures inv26(dv')
+    requires inv_consensus_instances_only_for_rcvd_duties(dv)  
+    ensures inv_consensus_instances_only_for_rcvd_duties(dv')
     {        
         match event 
         {
@@ -329,26 +329,26 @@ module DV_Next_Invs_19_26
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv5_body(dvc);
-                        assert inv26_body(dvc);                                           
-                        lemma_inv26_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv26_body(dvc');
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);                                           
+                        lemma_inv_consensus_instances_only_for_rcvd_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv26_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv26_body(dvc');
+                        lemma_inv_consensus_instances_only_for_rcvd_duties_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv26_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv26_body(dvc');
+                        lemma_inv_consensus_instances_only_for_rcvd_duties_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
                         lemma_inv5_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv5_body(dvc_mod);
-                        lemma_inv26_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv26_body(dvc_mod);
-                        lemma_inv26_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv26_body(dvc');
+                        lemma_inv_consensus_instances_only_for_rcvd_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc_mod);
+                        lemma_inv_consensus_instances_only_for_rcvd_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 

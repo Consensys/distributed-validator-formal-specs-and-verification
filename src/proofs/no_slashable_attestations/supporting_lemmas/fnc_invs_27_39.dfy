@@ -344,7 +344,7 @@ module Fnc_Invs_27_39
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process)
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process')
     decreases process.attestation_duties_queue
@@ -393,7 +393,7 @@ module Fnc_Invs_27_39
                     assert process_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                                 == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
                                         + process.attestation_consensus_engine_state.attestation_consensus_active_instances.Keys;
-                    assert inv26_body(process_mod);
+                    assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
                     assert inv5_body(process_mod);
 
                     lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_check_for_next_queued_duty(process_mod, process');
@@ -426,7 +426,7 @@ module Fnc_Invs_27_39
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process)
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process')
     {
@@ -471,7 +471,7 @@ module Fnc_Invs_27_39
 
 
             assert inv5_body(process_mod);
-            assert inv26_body(process_mod);
+            assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
 
             assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process_mod);
 
@@ -494,7 +494,7 @@ module Fnc_Invs_27_39
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process)
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process')
     {
@@ -504,7 +504,7 @@ module Fnc_Invs_27_39
             );        
 
         assert inv5_body(process_mod);
-        assert inv26_body(process_mod);
+        assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process_mod);
         
         lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_check_for_next_queued_duty(process_mod, process');        
@@ -518,7 +518,7 @@ module Fnc_Invs_27_39
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process)
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process')
     {
@@ -541,7 +541,7 @@ module Fnc_Invs_27_39
                 );    
         
         assert inv5_body(process);
-        assert inv26_body(process);
+        assert inv_consensus_instances_only_for_rcvd_duties_body(process);
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process);
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -570,7 +570,7 @@ module Fnc_Invs_27_39
 
             
             assert inv5_body(process_mod);
-            assert inv26_body(process_mod);
+            assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
             assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process_mod);
 
             lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_check_for_next_queued_duty(process_mod, process');
@@ -1139,7 +1139,7 @@ module Fnc_Invs_27_39
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
     requires inv5_body(process)
-    requires inv26_body(process)    
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)    
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process')
     decreases process.attestation_duties_queue
@@ -1188,7 +1188,7 @@ module Fnc_Invs_27_39
                         )                        
                     );
                     assert process_mod.attestation_slashing_db <= new_attestation_slashing_db;                    
-                    assert inv26_body(process_mod);
+                    assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
                     assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process_mod.attestation_consensus_engine_state, 
                                           new_attestation_slashing_db);
 
@@ -1221,7 +1221,7 @@ module Fnc_Invs_27_39
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process')
     {
@@ -1268,7 +1268,7 @@ module Fnc_Invs_27_39
                                                                 attestation_slashing_db
                                                         );
 
-            assert inv26_body(process);
+            assert inv_consensus_instances_only_for_rcvd_duties_body(process);
 
 
             lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_updateConsensusInstanceValidityCheck(
@@ -1310,7 +1310,7 @@ module Fnc_Invs_27_39
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process')
     {
@@ -1320,7 +1320,7 @@ module Fnc_Invs_27_39
             );        
 
         assert inv5_body(process_mod);
-        assert inv26_body(process_mod);
+        assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process_mod);
         
         lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_check_for_next_queued_duty(process_mod, process');        
@@ -1334,7 +1334,7 @@ module Fnc_Invs_27_39
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
     requires inv5_body(process)
-    requires inv26_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process')
     {
@@ -1357,7 +1357,7 @@ module Fnc_Invs_27_39
                 );    
         
         assert inv5_body(process);
-        assert inv26_body(process);
+        assert inv_consensus_instances_only_for_rcvd_duties_body(process);
         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process);
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -1410,7 +1410,7 @@ module Fnc_Invs_27_39
 
             
             assert inv5_body(process_mod);
-            assert inv26_body(process_mod);
+            assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
             assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process_mod);
 
             lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_check_for_next_queued_duty(process_mod, process');
