@@ -81,7 +81,7 @@ module Proofs_DV_Ind_Inv
     predicate invs_19_26(dv: DVState)       
     {        
         &&  inv19(dv)           
-        &&  inv21(dv) 
+        &&  inv_every_att_duty_before_dvn_att_index_was_delivered(dv) 
         &&  inv_no_active_consensus_instance_before_receiving_att_duty(dv)      
         &&  inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)  
         &&  inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)          
@@ -192,12 +192,12 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv19(dv')        
     ensures inv20(dv, dv')
-    ensures inv21(dv')
+    ensures inv_every_att_duty_before_dvn_att_index_was_delivered(dv')
     ensures inv_no_active_consensus_instance_before_receiving_att_duty(dv')
     {
         lemma_inv19_dv_next(dv, e, dv');
         lemma_inv20_dv_next(dv, e, dv');
-        lemma_inv21_dv_next(dv, e, dv');        
+        lemma_inv_every_att_duty_before_dvn_att_index_was_delivered_dv_next(dv, e, dv');        
         lemma_inv_no_active_consensus_instance_before_receiving_att_duty_dv_next(dv, e, dv');                
         // lemma_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_dv_next(dv, e, dv');                
         // lemma_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_dv_next(dv, e, dv');    

@@ -46,7 +46,7 @@ module DV_Next_Invs_19_26
     ensures inv20(dv, dv')
     { }
 
-    lemma lemma_inv21_dv_next(
+    lemma lemma_inv_every_att_duty_before_dvn_att_index_was_delivered_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -55,8 +55,8 @@ module DV_Next_Invs_19_26
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv20(dv, dv')
-    requires inv21(dv)
-    ensures inv21(dv')
+    requires inv_every_att_duty_before_dvn_att_index_was_delivered(dv)
+    ensures inv_every_att_duty_before_dvn_att_index_was_delivered(dv')
     {        
         match event 
         {
@@ -90,8 +90,8 @@ module DV_Next_Invs_19_26
                             {
                                 if k < index
                                 {     
-                                    assert inv21_body(dvc_state, duty);
-                                    assert inv21_body(dvc_state', duty);
+                                    assert inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc_state, duty);
+                                    assert inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
                                 }
                                 else
                                 {
@@ -100,19 +100,19 @@ module DV_Next_Invs_19_26
                                     lemma_inv4_f_serve_attestation_duty(dvc_state, att_duty, dvc_state');                                
                                     assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {att_duty};
                                     assert att_duty in dvc'.all_rcvd_duties;                                
-                                    assert inv21_body(dvc_state', duty);
+                                    assert inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
                                 }
                             }
                             else
                             {
                                 assert dvc_state == dvc_state';
-                                assert inv21_body(dvc_state', duty);
+                                assert inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
                             }
                             
-                            assert inv21_body(dvc_state', duty);
+                            assert inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
                         }
                         
-                        assert inv21(dv');
+                        assert inv_every_att_duty_before_dvn_att_index_was_delivered(dv');
 
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         lemma_inv4_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        

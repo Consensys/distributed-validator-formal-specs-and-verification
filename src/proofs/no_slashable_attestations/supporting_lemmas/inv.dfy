@@ -1690,12 +1690,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 == dv'.sequence_attestation_duties_to_be_served
     }
 
-    predicate inv21_body(dvc: DVCState, duty: AttestationDuty)
+    predicate inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc: DVCState, duty: AttestationDuty)
     {
         duty in dvc.all_rcvd_duties
     }
 
-    predicate inv21(dv: DVState)
+    predicate inv_every_att_duty_before_dvn_att_index_was_delivered(dv: DVState)
     {
         forall k: nat ::
             && 0 <= k < dv.index_next_attestation_duty_to_be_served
@@ -1705,7 +1705,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && var duty := duty_and_node.attestation_duty;
             && var hn := duty_and_node.node;
             && var dvc := dv.honest_nodes_states[hn];
-            && inv21_body(dvc, duty)
+            && inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc, duty)
     }    
 
     predicate inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc: DVCState)
