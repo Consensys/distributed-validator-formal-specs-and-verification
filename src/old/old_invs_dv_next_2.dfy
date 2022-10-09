@@ -21,7 +21,7 @@ module DV_Next_Invs_8_18
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_1_26
 
      
 

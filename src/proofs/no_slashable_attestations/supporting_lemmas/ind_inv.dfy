@@ -21,7 +21,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
-    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_1_26
     import DVC_Spec_NonInstr
     import opened DVC_Spec_Axioms
 

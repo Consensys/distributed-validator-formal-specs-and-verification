@@ -8,7 +8,7 @@ include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
 include "invs_dv_next_1.dfy"
-include "dv_next_invs_8_18.dfy"
+include "invs_dv_next_1.dfy"
 
 module DV_Next_Invs_19_26
 {
@@ -22,7 +22,7 @@ module DV_Next_Invs_19_26
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DV_Next_Invs_1_7
+    import opened DV_Next_Invs_1_26
     import opened DV_Next_Invs_8_18
 
     lemma lemma_inv_no_duplicated_att_duties_dv_next(

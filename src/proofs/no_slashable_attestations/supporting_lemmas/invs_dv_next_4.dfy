@@ -8,8 +8,6 @@ include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
 include "invs_dv_next_1.dfy"
-include "dv_next_invs_8_18.dfy"
-include "dv_next_invs_19_26.dfy"
 include "fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "../common/dvc_spec_axioms.dfy"
@@ -26,9 +24,7 @@ module DV_Next_Invs_27_37
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DV_Next_Invs_1_7
-    import opened DV_Next_Invs_8_18
-    import opened DV_Next_Invs_19_26
+    import opened DV_Next_Invs_1_26
     import opened Fnc_Invs_27_39
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DVC_Spec_Axioms
