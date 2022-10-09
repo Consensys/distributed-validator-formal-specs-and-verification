@@ -311,7 +311,7 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv')
     {
-        lemma_pred_4_1_f_g_for_dvc(dv, e, dv');
+        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv: DVState, e: DV.Event, dv': DVState)       
