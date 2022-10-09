@@ -1,8 +1,9 @@
 include "../../common/commons.dfy"
 include "../../specs/dv/dv_attestation_creation.dfy"
 
-include "supporting_lemmas/proofs_ind_inv.dfy"
+
 include "supporting_lemmas/ind_inv.dfy"
+include "supporting_lemmas/ind_inv_implies_safety/proofs_ind_inv.dfy"
 include "supporting_lemmas/init_implies_ind_inv/init_implies_ind_inv.dfy"
 
 module No_Slashable_Attestations_Main_Theorem

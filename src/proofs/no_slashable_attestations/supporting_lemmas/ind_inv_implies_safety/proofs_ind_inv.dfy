@@ -1,19 +1,28 @@
-include "../../../common/commons.dfy"
-include "../common/attestation_creation_instrumented.dfy"
-include "../../../specs/consensus/consensus.dfy"
-include "../../../specs/network/network.dfy"
-include "../../../specs/dv/dv_attestation_creation.dfy"
-include "inv.dfy"
-include "invs_fnc_1.dfy"
-include "../../common/helper_sets_lemmas.dfy"
+include "../../../../common/commons.dfy"
+include "../../common/attestation_creation_instrumented.dfy"
+include "../../../../specs/consensus/consensus.dfy"
+include "../../../../specs/network/network.dfy"
+include "../../../../specs/dv/dv_attestation_creation.dfy"
+include "../../../../specs/dvc/dvc_attestation_creation.dfy"
+
+include "../../../common/helper_sets_lemmas.dfy"
+include "../../../no_slashable_attestations/common/common_proofs.dfy"
+include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+
+include "../dv_next_preserves_ind_inv/invs_dv_next_1.dfy"
+include "../dv_next_preserves_ind_inv/invs_dv_next_2.dfy"
+include "../dv_next_preserves_ind_inv/invs_fnc_1.dfy"
+include "../dv_next_preserves_ind_inv/invs_fnc_2.dfy"
+include "../dv_next_preserves_ind_inv/ind_inv1.dfy"
+include "../dv_next_preserves_ind_inv/ind_inv2.dfy"
+include "../dv_next_preserves_ind_inv/ind_inv3.dfy"
+include "../dv_next_preserves_ind_inv/ind_inv4.dfy"
+
+include "../inv.dfy"
+include "../ind_inv.dfy"
+
+
 include "proofs_intermediate_steps.dfy"
-include "invs_dv_next_1.dfy"
-include "invs_dv_next_2.dfy"
-include "ind_inv.dfy"
-include "ind_inv1.dfy"
-include "ind_inv2.dfy"
-include "ind_inv3.dfy"
-include "ind_inv4.dfy"
 include "core_proofs.dfy"
 
 

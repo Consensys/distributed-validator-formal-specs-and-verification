@@ -1,11 +1,12 @@
-include "../../../common/commons.dfy"
-include "../common/attestation_creation_instrumented.dfy"
-include "../../../specs/consensus/consensus.dfy"
-include "../../../specs/network/network.dfy"
-include "../../../specs/dv/dv_attestation_creation.dfy"
-include "inv.dfy"
-include "../../common/helper_sets_lemmas.dfy"
+include "../../../../common/commons.dfy"
+include "../../common/attestation_creation_instrumented.dfy"
+include "../../../../specs/consensus/consensus.dfy"
+include "../../../../specs/network/network.dfy"
+include "../../../../specs/dv/dv_attestation_creation.dfy"
 
+include "../../../common/helper_sets_lemmas.dfy"
+
+include "../inv.dfy"
 
 module Proofs_Intermediate_Steps
 {

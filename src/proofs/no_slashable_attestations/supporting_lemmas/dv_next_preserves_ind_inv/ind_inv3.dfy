@@ -1,16 +1,20 @@
-include "../../../common/commons.dfy"
-include "../../common/helper_sets_lemmas.dfy"
-include "../common/attestation_creation_instrumented.dfy"
-include "../../../specs/consensus/consensus.dfy"
-include "../../../specs/network/network.dfy"
-include "../../../specs/dv/dv_attestation_creation.dfy"
-include "inv.dfy"
+include "../../../../common/commons.dfy"
+include "../../common/attestation_creation_instrumented.dfy"
+include "../../../../specs/consensus/consensus.dfy"
+include "../../../../specs/network/network.dfy"
+include "../../../../specs/dv/dv_attestation_creation.dfy"
+include "../../../../specs/dvc/dvc_attestation_creation.dfy"
+
+include "../../../common/helper_sets_lemmas.dfy"
+include "../../../no_slashable_attestations/common/common_proofs.dfy"
+include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+
 include "invs_dv_next_1.dfy"
 include "invs_dv_next_2.dfy"
 include "ind_inv1.dfy"
 include "ind_inv2.dfy"
-include "../common/common_proofs.dfy"
-include "../common/dvc_spec_axioms.dfy"
+
+include "../inv.dfy"
 
 
 module IndInv3
