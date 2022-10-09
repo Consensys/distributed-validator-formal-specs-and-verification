@@ -13,7 +13,7 @@ include "../inv.dfy"
 include "invs_fnc_1.dfy"
 include "invs_fnc_2.dfy"
 include "invs_dv_next_1.dfy"
-include "ind_inv1.dfy"
+include "invs_dv_next_3.dfy"
 
 module Invs_DV_Next_2
 {

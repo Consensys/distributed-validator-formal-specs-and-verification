@@ -9,7 +9,7 @@ include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
 include "invs_dv_next_1.dfy"
 include "invs_fnc_2.dfy"
-include "ind_inv1.dfy"
+include "invs_dv_next_3.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
 module Invs_DV_Next_2
