@@ -26,6 +26,17 @@ Our Dafny specifications are written at two levels of abstraction: the reference
 
 - 
 
+## How to run the Dafny verifier
+
+### Prerequisites
+
+- bash
+- docker-compose
+
+### Command
+
+`./verify.sh`
+
 ## Future work
 
 We are currently working on the following directions:
