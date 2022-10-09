@@ -1339,7 +1339,7 @@ module Invs_DV_Next_5
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
     requires index_next_attestation_duty_to_be_served > 0    
-    requires inv_g_iii_a_a_body_body(dv, n, process)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
@@ -1347,7 +1347,7 @@ module Invs_DV_Next_5
     requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
-    ensures inv_g_iii_a_a_body_body(dv, n, s')
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     {
         var new_p := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
@@ -1377,11 +1377,11 @@ module Invs_DV_Next_5
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_g_iii_a_a_body_body(dv, n, process)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_g_iii_a_a_body_body(dv, n, s') 
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s') 
     {    
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot
@@ -1425,11 +1425,11 @@ module Invs_DV_Next_5
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_g_iii_a_a_body_body(dv, n, process)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_g_iii_a_a_body_body(dv, n, s')
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -1475,11 +1475,11 @@ module Invs_DV_Next_5
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state  
-    requires inv_g_iii_a_a_body_body(dv, n, process)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_g_iii_a_a_body_body(dv, n, s')
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -1512,7 +1512,7 @@ module Invs_DV_Next_5
             }
             else 
             {       
-                assert inv_g_iii_a_a_body_body(dv, n, s'); 
+                assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s'); 
             }
         } 
         else 
@@ -1529,8 +1529,8 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')      
-    requires inv_g_iii_a_a_body_body(s, n, s_node)
-    ensures inv_g_iii_a_a_body_body(s', n, s_node)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s, n, s_node)
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', n, s_node)
     {
 
     }
@@ -1571,7 +1571,7 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
-    ensures inv_g_iii_a_a_body_body(s', event.node, s'.honest_nodes_states[event.node]); 
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', event.node, s'.honest_nodes_states[event.node]); 
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1596,7 +1596,7 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         );
-                        assert inv_g_iii_a_a_body_body(s', node, s'_node);                     
+                        assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', node, s'_node);                     
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
                         lemma_NonServeAttstationDuty(s, event, s');
@@ -1610,13 +1610,13 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         ); 
-                        assert inv_g_iii_a_a_body_body(s', node, s'_node);                        
+                        assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', node, s'_node);                        
                
                    
                     case ReceivedAttestationShare(attestation_share) =>
                         lemma_NonServeAttstationDuty(s, event, s'); 
                         lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
-                        assert inv_g_iii_a_a_body_body(s', node, s'_node);  
+                        assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', node, s'_node);  
                         
 
                     case ImportedNewBlock(block) => 
@@ -1630,19 +1630,19 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         );  
-                        assert inv_g_iii_a_a_body_body(s', node, s'_node);                     
+                        assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', node, s'_node);                     
                     
                  
                     case ResendAttestationShares => 
                         lemma_NonServeAttstationDuty(s, event, s');
                         lemma_f_resend_attestation_share_constants(s_node, s'_node);
                         // lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a_helper_easy(s', event, s_node, s'_node, node );
-                        assert inv_g_iii_a_a_body_body(s', node, s'_node);  
+                        assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', node, s'_node);  
 
                     case NoEvent => 
                         lemma_NonServeAttstationDuty(s, event, s');
                         assert s_node == s'_node; 
-                        assert inv_g_iii_a_a_body_body(s', node, s'_node);                          
+                        assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', node, s'_node);                          
                 }                     
 
         }
@@ -1675,7 +1675,7 @@ module Invs_DV_Next_5
                    
                 forall hn |
                     && hn in s'.honest_nodes_states.Keys   
-                ensures inv_g_iii_a_a_body_body(s', hn, s'.honest_nodes_states[hn]); 
+                ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', hn, s'.honest_nodes_states[hn]); 
                 {
                     if hn != node 
                     {
@@ -1693,7 +1693,7 @@ module Invs_DV_Next_5
                    
                 forall hn |
                     && hn in s'.honest_nodes_states.Keys   
-                ensures inv_g_iii_a_a_body_body(s', hn, s'.honest_nodes_states[hn]); 
+                ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', hn, s'.honest_nodes_states[hn]); 
                 {
                     // if hn != node 
                     {

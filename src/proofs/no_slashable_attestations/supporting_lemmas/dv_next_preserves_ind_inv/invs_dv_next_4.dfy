@@ -5571,7 +5571,7 @@ module Invs_DV_Next_4
 
 
     // ensures inv_g_iii_a_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
-    // ensures inv_g_iii_a_a_body_body(s', n, s_node)
+    // ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', n, s_node)
     // ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
     // ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)    
     ensures inv_g_d_b_body_body(s', n, s_node)    

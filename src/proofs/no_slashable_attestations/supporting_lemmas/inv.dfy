@@ -299,7 +299,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_g_iii_a_a_body_body(
+            inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(
                 dv, 
                 hn,
                 dv.honest_nodes_states[hn]
@@ -316,7 +316,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             0
     }                
 
-    predicate inv_g_iii_a_a_body_body(
+    predicate inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState
