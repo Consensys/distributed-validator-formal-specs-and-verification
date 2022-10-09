@@ -1,13 +1,17 @@
 include "../../common/commons.dfy"
 include "../../specs/dv/dv_attestation_creation.dfy"
 
-include "supporting_lemmas/proofs_ind_inv1.dfy"
+include "supporting_lemmas/proofs_ind_inv.dfy"
+include "supporting_lemmas/ind_inv.dfy"
+include "supporting_lemmas/init_implies_ind_inv/init_implies_ind_inv.dfy"
 
 module No_Slashable_Attestations_Main_Theorem
 {
     import opened Types 
     import opened DV
     import opened Proofs_DV_Ind_Inv
+    import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
+    import opened Ind_Inv_DV_Init
 
 
     predicate isValidTrace(

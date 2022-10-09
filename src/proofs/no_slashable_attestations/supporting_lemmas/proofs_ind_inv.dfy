@@ -38,38 +38,6 @@ module Proofs_DV_Ind_Inv
     import opened IndInv3
     import opened IndInv4
 
-    
-
-    
-    
-    lemma lemma_ind_inv_dv_init(dv: DVState)       
-    requires DV.Init(dv, {})    
-    ensures ind_inv(dv)
-    ensures NextPreCond(dv)
-    {
-        assert  DV.Init(dv, {})  
-                ==>                 
-                && invs_group_1(dv)
-                && invs_group_2(dv)
-                && invs_group_3(dv)                
-                && invs_group_4(dv)
-                && invs_group_5(dv)   
-                && invs_group_6(dv)                
-                && invs_group_7(dv)
-                && invs_group_8(dv)                
-        ;
-
-        assert  DV.Init(dv, {})    
-                ==>
-                && invs_group_9(dv)
-                && invs_group_10(dv)
-                && invs_group_11(dv)
-                && invs_group_12(dv)
-                && invs_group_13(dv)
-                && invs_group_14(dv)
-                ;
-    }  
-
     lemma lemma_ind_inv_dv_next_invs_group_1(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
