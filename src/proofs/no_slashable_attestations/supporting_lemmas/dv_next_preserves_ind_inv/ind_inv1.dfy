@@ -13,7 +13,7 @@ include "invs_dv_next_1.dfy"
 
 include "../inv.dfy"
 
-module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
+module Invs_DV_Next_3
 {
     import opened Types 
     import opened CommonFunctions

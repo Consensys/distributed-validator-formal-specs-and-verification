@@ -36,16 +36,16 @@ module Proofs_DV_Ind_Inv
     import opened DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
+    import opened Invs_DV_Next_3
+    import opened Invs_DV_Next_4
     import opened Fnc_Invs_1
     import opened Helper_Sets_Lemmas
     import opened Invs_DV_Next_1
     import opened Proofs_Intermediate_Steps
     import opened Invs_DV_Next_2
     import opened Core_Proofs
-    import opened IndInv3
-    import opened IndInv4
+    import opened Invs_DV_Next_5
+    import opened Invs_DV_Next_6
 
     lemma lemma_ind_inv_dv_next_invs_group_1(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
@@ -130,7 +130,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
         // lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         // lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
-        // IndInv3.lemma_inv_33(dv, e, dv');
+        // Invs_DV_Next_5.lemma_inv_33(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_invs_group_8(dv: DVState, e: DV.Event, dv': DVState)       
@@ -141,7 +141,7 @@ module Proofs_DV_Ind_Inv
     {               
         lemma_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         lemma_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
-        IndInv3.lemma_inv_33(dv, e, dv');
+        Invs_DV_Next_5.lemma_inv_33(dv, e, dv');
     }
 
 

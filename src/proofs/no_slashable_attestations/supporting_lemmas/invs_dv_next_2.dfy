@@ -1,19 +1,16 @@
-include "../../../../common/commons.dfy"
-include "../../common/attestation_creation_instrumented.dfy"
-include "../../../../specs/consensus/consensus.dfy"
-include "../../../../specs/network/network.dfy"
-include "../../../../specs/dv/dv_attestation_creation.dfy"
-
-include "../../../common/helper_sets_lemmas.dfy"
-include "../../common/common_proofs.dfy"
-include "../../common/dvc_spec_axioms.dfy"
-
-include "../inv.dfy"
-
+include "../../../common/commons.dfy"
+include "../common/attestation_creation_instrumented.dfy"
+include "../../../specs/consensus/consensus.dfy"
+include "../../../specs/network/network.dfy"
+include "../../../specs/dv/dv_attestation_creation.dfy"
+include "inv.dfy"
 include "invs_fnc_1.dfy"
-include "invs_fnc_2.dfy"
+include "../../common/helper_sets_lemmas.dfy"
+include "proofs_intermediate_steps.dfy"
 include "invs_dv_next_1.dfy"
+include "invs_fnc_2.dfy"
 include "ind_inv1.dfy"
+include "../common/dvc_spec_axioms.dfy"
 
 module Invs_DV_Next_2
 {
@@ -26,10 +23,12 @@ module Invs_DV_Next_2
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Fnc_Invs_1
     import opened Helper_Sets_Lemmas
+    import opened Proofs_Intermediate_Steps
     import opened Invs_DV_Next_1
     import opened Fnc_Invs_2
-    import opened DVC_Spec_Axioms
     import opened Invs_DV_Next_3
+    import opened DVC_Spec_Axioms
+    
 
     lemma lemma_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_dv_next(
         dv: DVState,

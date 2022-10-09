@@ -15,7 +15,7 @@ include "ind_inv1.dfy"
 include "../inv.dfy"
 
 
-module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
+module Invs_DV_Next_4
 {
     import opened Types 
     import opened CommonFunctions
@@ -25,7 +25,7 @@ module Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened Invs_DV_Next_3
     import opened DVC_Spec_Axioms
 
     lemma lemma_inv_attestation_duty_queue_is_ordered_3_body_body(
