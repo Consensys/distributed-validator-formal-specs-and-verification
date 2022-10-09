@@ -38,7 +38,7 @@ module Core_Proofs
     }
 
 
-    lemma lemma_4_1_a_ii(dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
+    lemma lemma_no_slashable_submitted_attestations_with_different_slots_ii(dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
                         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dv.all_nodes| > 0
@@ -93,7 +93,7 @@ module Core_Proofs
     }
 
 
-    lemma lemma_4_1_a_i(dv: DVState, a: Attestation, a': Attestation)
+    lemma lemma_no_slashable_submitted_attestations_with_different_slots_i(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)   
     requires inv_unchanged_honesty(dv)
@@ -167,7 +167,7 @@ module Core_Proofs
                                 concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
     }
 
-    lemma lemma_4_1_a(dv: DVState, a: Attestation, a': Attestation)
+    lemma lemma_no_slashable_submitted_attestations_with_different_slots(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
@@ -191,7 +191,7 @@ module Core_Proofs
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
-        lemma_4_1_a_i(dv, a, a');
+        lemma_no_slashable_submitted_attestations_with_different_slots_i(dv, a, a');
 
         
         var consa := dv.consensus_on_attestation_data[a.data.slot];
@@ -201,11 +201,11 @@ module Core_Proofs
 
         
         assert concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
-        lemma_4_1_a_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        lemma_no_slashable_submitted_attestations_with_different_slots_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
         
     }    
 
-    lemma lemma_4_1_b(dv: DVState, a: Attestation, a': Attestation)
+    lemma lemma_no_slashable_submitted_attestations_with_same_slots(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
@@ -271,14 +271,14 @@ module Core_Proofs
     {
         if a.data.slot == a'.data.slot 
         {
-            lemma_4_1_b(dv, a, a');
+            lemma_no_slashable_submitted_attestations_with_same_slots(dv, a, a');
         }
         else if a.data.slot < a'.data.slot 
         {
-            lemma_4_1_a(dv, a, a');
+            lemma_no_slashable_submitted_attestations_with_different_slots(dv, a, a');
         }
         else {
-            lemma_4_1_a(dv, a', a);
+            lemma_no_slashable_submitted_attestations_with_different_slots(dv, a', a);
         }
     } 
 
