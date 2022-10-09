@@ -22,7 +22,7 @@ module DV_Next_Invs_19_26
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DV_Next_Invs_1_26
+    import opened Invs_DV_Next_1
     import opened DV_Next_Invs_8_18
 
     lemma lemma_inv_no_duplicated_att_duties_dv_next(

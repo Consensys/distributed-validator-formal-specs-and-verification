@@ -12,7 +12,7 @@ include "fnc_invs_27_39.dfy"
 include "ind_inv.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
-module DV_Next_Invs_27_37
+module Invs_DV_Next_2
 {
     import opened Types 
     import opened CommonFunctions
@@ -24,7 +24,7 @@ module DV_Next_Invs_27_37
     import opened Fnc_Invs_1_26
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
-    import opened DV_Next_Invs_1_26
+    import opened Invs_DV_Next_1
     import opened Fnc_Invs_27_39
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened DVC_Spec_Axioms

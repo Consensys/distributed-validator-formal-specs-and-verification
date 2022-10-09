@@ -6,7 +6,7 @@ include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 include "invs_dv_next_1.dfy"
-include "invs_dv_next_4.dfy"
+include "invs_dv_next_2.dfy"
 include "ind_inv.dfy"
 include "ind_inv2.dfy"
 include "../common/common_proofs.dfy"
@@ -23,8 +23,8 @@ module IndInv3
     import opened DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DV_Next_Invs_1_26
-    import opened DV_Next_Invs_27_37
+    import opened Invs_DV_Next_1
+    import opened Invs_DV_Next_2
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_Ind_Inv_With_Empty_Initial_Attestation_Slashing_DB2
     import opened Common_Proofs

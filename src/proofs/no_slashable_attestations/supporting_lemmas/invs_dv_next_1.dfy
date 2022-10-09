@@ -8,7 +8,7 @@ include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
 
-module DV_Next_Invs_1_26
+module Invs_DV_Next_1
 {
     import opened Types 
     import opened CommonFunctions
