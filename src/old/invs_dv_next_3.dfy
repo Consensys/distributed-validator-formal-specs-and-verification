@@ -2436,7 +2436,7 @@ module Invs_DV_Next_3
     requires s' == f_serve_attestation_duty(process, attestation_duty).state   
     requires index_next_attestation_duty_to_be_served > 0    
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, process)
-    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
@@ -2480,7 +2480,7 @@ module Invs_DV_Next_3
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, process)
-    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
@@ -2664,7 +2664,7 @@ module Invs_DV_Next_3
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state       
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, process)
-    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
@@ -2882,7 +2882,7 @@ module Invs_DV_Next_3
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state   
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, process)
-    requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
@@ -3239,14 +3239,14 @@ module Invs_DV_Next_3
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
-    requires inv_g_iii_a_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s, n, s_node)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
     requires inv_g_d_b_body_body(s, n, s_node)
 
 
-    ensures inv_g_iii_a_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
     ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', n, s_node)
     ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
     ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)    
@@ -3262,7 +3262,7 @@ module Invs_DV_Next_3
     {
         assert s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served <= s'.index_next_attestation_duty_to_be_served + 1;
 
-        assert inv_g_iii_a_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
+        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
         assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s', n, s_node);
         assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
         assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s', n, s_node, s.index_next_attestation_duty_to_be_served);
@@ -3359,8 +3359,8 @@ module Invs_DV_Next_3
         && inv_unchanged_honesty(s)
         && inv_only_dv_construct_signed_attestation_signature(s)
         && inv_queued_att_duty_is_rcvd_duty3(s)
-        && inv_db_of_validity_predicate_contains_all_previous_decided_values_a(s)
-        && inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a(s)
+        && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s)
+        && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)
         && inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
         && inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
         && inv_decided_values_of_previous_duties_are_known_new(s)

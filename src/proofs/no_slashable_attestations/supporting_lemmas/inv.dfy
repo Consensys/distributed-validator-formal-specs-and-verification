@@ -264,12 +264,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && sdba in db2        
     }    
 
-    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv: DVState)    
+    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_g_iii_a_body_body(
+            inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(
                 dv, 
                 hn,
                 dv.honest_nodes_states[hn],
@@ -277,7 +277,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             )                    
     }       
 
-    predicate inv_g_iii_a_body_body(
+    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState,
@@ -294,7 +294,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && an.node == n
     }   
 
-    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a(dv: DVState)    
+    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          

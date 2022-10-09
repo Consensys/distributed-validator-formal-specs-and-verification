@@ -367,13 +367,13 @@ module Proofs_DV_Ind_Inv
         lemma_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv')
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv')
     {
-        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv, e, dv');
+        lemma_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_invs_group_10(dv: DVState, e: DV.Event, dv': DVState)       
@@ -409,9 +409,9 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures invs_group_11(dv')
     {        
-        lemma_ind_inv_dv_next_inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv, e, dv');
+        lemma_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv, e, dv');
         lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_dv_next(dv, e, dv');
-        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a(dv, e, dv');
+        lemma_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv, e, dv');
         lemma_ind_inv_implies_intermediate_steps(dv);
         lemma_pred_data_of_att_share_is_decided_value(dv, e, dv');
     }

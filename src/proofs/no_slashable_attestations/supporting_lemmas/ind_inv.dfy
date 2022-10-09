@@ -116,9 +116,9 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_11(dv: DVState)       
     {                
-        && inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv)        
+        && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv)        
         && inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv)
-        && inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a(dv)        
+        && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)        
         && pred_data_of_att_share_is_decided_value(dv)                     
     }
     
