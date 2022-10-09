@@ -164,7 +164,7 @@ module Invs_DV_Next_3
                     // var new_process := s.(
                     //     attestation_duties_queue := s.attestation_duties_queue[1..]
                     // );         
-                    // lemma_pred_4_1_b_f_start_next_duty();
+                    // lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_f_start_next_duty();
                 }
 
         }
@@ -321,7 +321,7 @@ module Invs_DV_Next_3
     }
     
 
-    lemma lemma_pred_4_1_b_f_listen_for_attestation_shares(
+    lemma lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
 
@@ -479,7 +479,7 @@ module Invs_DV_Next_3
             }   
     }
 
-    lemma lemma_pred_4_1_b_ex_f_listen_for_attestation_shares(
+    lemma lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
 
@@ -709,7 +709,7 @@ module Invs_DV_Next_3
             }   
     }    
 
-    lemma lemma_pred_4_1_b_ex_helper(
+    lemma lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -741,7 +741,7 @@ module Invs_DV_Next_3
     }    
 
     // 1m 10s
-    lemma lemma_pred_4_1_b(
+    lemma lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -782,13 +782,13 @@ module Invs_DV_Next_3
                                 lemma_f_serve_attestation_duty_constants(s.honest_nodes_states[node], attestation_duty, s'.honest_nodes_states[node]);
                         // //     }
                         // // }
-                        lemma_pred_4_1_b_ex_helper(s, event, s');
+                        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');  
 
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         // // Proved
                         lemma_f_att_consensus_decided_constants(s.honest_nodes_states[node], id, decided_attestation_data, s'.honest_nodes_states[node]);
-                        lemma_pred_4_1_b_ex_helper(s, event, s');
+                        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');            
 
                     case ReceivedAttestationShare(attestation_share) => 
@@ -802,7 +802,7 @@ module Invs_DV_Next_3
                         assert attestation_share in s.att_network.allMessagesSent;
                         assert s'.all_attestations_created == s.all_attestations_created + stateAndOutput.outputs.attestations_submitted;
 
-                        lemma_pred_4_1_b_ex_f_listen_for_attestation_shares(
+                        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_f_listen_for_attestation_shares(
                             s_node,
                             attestation_share,
                             s'_node,
@@ -834,24 +834,24 @@ module Invs_DV_Next_3
                         var s_node := add_block_to_bn(s_node, nodeEvent.block);
                         lemma_f_listen_for_new_imported_blocks_constants(s_node, block, s'_node);
                         assert s'.all_attestations_created == s.all_attestations_created;
-                        lemma_pred_4_1_b_ex_helper(s, event, s');
+                        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');     
 
                     case ResendAttestationShares => 
                         // // Proved
                         assert s'.all_attestations_created == s.all_attestations_created;
-                        lemma_pred_4_1_b_ex_helper(s, event, s');
+                        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
 
                     case NoEvent => 
                         // // Proved
                         assert s'.all_attestations_created == s.all_attestations_created;
-                        lemma_pred_4_1_b_ex_helper(s, event, s');
+                        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
                 }
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                // lemma_pred_4_1_b_helper(s, event, s');
+                // lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_helper(s, event, s');
                 // assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
                 forall a | 
                     && a in s'.all_attestations_created
@@ -3687,7 +3687,7 @@ module Invs_DV_Next_3
                 lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3a(s, event, s', s_node, node);
                 lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3c(s, event, s', s_node, node);
                 lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper4(s, event, s', s_node, node);
-                lemma_pred_4_1_b(s, event, s');
+                lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s, event, s');
                 lemma_pred_data_of_att_share_is_decided_value(s, event, s');
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 

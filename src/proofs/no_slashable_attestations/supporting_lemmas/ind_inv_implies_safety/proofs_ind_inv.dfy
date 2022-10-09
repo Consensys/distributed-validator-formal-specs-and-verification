@@ -195,7 +195,7 @@ module Proofs_DV_Ind_Inv
     lemma lemma_ind_inv_implies_intermediate_steps_helper_4(dv: DVState)
     requires ind_inv(dv)  
     ensures lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_precond(dv)
-    ensures lemma_pred_4_1_b_new_precond(dv)    
+    ensures lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(dv)    
     {   
         lemma_ind_inv_implies_intermediate_steps_helper_1(dv);
         lemma_ind_inv_implies_intermediate_steps_helper_2(dv);
@@ -223,7 +223,7 @@ module Proofs_DV_Ind_Inv
     ensures pred_inv_current_latest_attestation_duty_match(dv)
     ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     ensures lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_precond(dv)
-    ensures lemma_pred_4_1_b_new_precond(dv)
+    ensures lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(dv)
     {   
         lemma_ind_inv_implies_intermediate_steps_helper_1(dv); 
         lemma_ind_inv_implies_intermediate_steps_helper_2(dv);
@@ -260,7 +260,7 @@ module Proofs_DV_Ind_Inv
         assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_pred_4_1_b(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -292,7 +292,7 @@ module Proofs_DV_Ind_Inv
                 ;
 
         
-        lemma_pred_4_1_b(dv, e, dv');
+        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv, e, dv');
         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv');
     }
 
@@ -340,7 +340,7 @@ module Proofs_DV_Ind_Inv
     ensures invs_group_9(dv')
     {
         lemma_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');  
-        lemma_ind_inv_dv_next_inv_pred_4_1_b(dv, e, dv');             
+        lemma_ind_inv_dv_next_inv_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv, e, dv');             
         lemma_ind_inv_dv_next_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');       
         lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv, e, dv');  
         lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv, e, dv');   
@@ -443,7 +443,7 @@ module Proofs_DV_Ind_Inv
     ensures inv_decided_values_of_previous_duties_are_known_new(dv')
     {
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
-        lemma_pred_4_1_b_new(dv, e, dv');
+        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_g_d_a(dv: DVState, e: DV.Event, dv': DVState)       
@@ -487,7 +487,7 @@ module Proofs_DV_Ind_Inv
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
         
         lemma_4_1_g_iii_b(dv, e, dv');
-        lemma_pred_4_1_b_new(dv, e, dv');
+        lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new(dv, e, dv');
         lemma_inv_g_d_a(dv, e, dv');
         lemma_inv_g_d_b(dv, e, dv');        
         lemma_inv_g_a_ii_a(dv, e, dv');
