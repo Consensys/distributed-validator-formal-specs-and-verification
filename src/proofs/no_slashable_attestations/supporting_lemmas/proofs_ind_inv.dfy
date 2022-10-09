@@ -113,7 +113,7 @@ module Proofs_DV_Ind_Inv
     {                
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_attn_shares_are_from_sent_messages(dv)
-        &&  IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)
+        &&  inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)
     }
     
     lemma lemma_ind_inv_dv_init(dv: DVState)       
@@ -348,7 +348,7 @@ module Proofs_DV_Ind_Inv
                && inv_quorum_constraints(dv)
                && inv_queued_att_duty_is_rcvd_duty3(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
-               && IndInv3.inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)  
+               && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)  
                && inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
                && inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
                ;

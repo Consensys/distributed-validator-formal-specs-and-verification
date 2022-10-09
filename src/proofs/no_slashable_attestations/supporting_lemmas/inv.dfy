@@ -1936,20 +1936,20 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && concl_monotonic_att_slashing_db_hist_body(dvc, dvc')
     }
 
-    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv: DVState, hn: BLSPubkey)
-    {
-        hn in dv.honest_nodes_states.Keys        
-            ==> && var hn_state := dv.honest_nodes_states[hn];
-                && forall s: Slot ::
-                        ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
-                            ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                        )
-    }
+    // predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv: DVState, hn: BLSPubkey)
+    // {
+    //     hn in dv.honest_nodes_states.Keys        
+    //         ==> && var hn_state := dv.honest_nodes_states[hn];
+    //             && forall s: Slot ::
+    //                     ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+    //                         ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    //                     )
+    // }
 
-    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv: DVState)
-    {
-        forall hn: BLSPubkey :: inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn)        
-    }
+    // predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv: DVState)
+    // {
+    //     forall hn: BLSPubkey :: inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn)        
+    // }
 
     predicate prop_monotonic_set_of_in_transit_messages(dv: DVState, dv': DVState)
     {
@@ -2043,4 +2043,23 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(
+        dv: DVState, 
+        hn: BLSPubkey,
+        hn_state: DVCState,
+        s: Slot
+    )
+    {
+                ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+                    ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                )
+    }
+
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv: DVState)
+    {
+        forall hn: BLSPubkey, s: Slot |
+            hn in dv.honest_nodes_states
+            :: 
+            inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn, dv.honest_nodes_states[hn], s)        
+    } 
 }
