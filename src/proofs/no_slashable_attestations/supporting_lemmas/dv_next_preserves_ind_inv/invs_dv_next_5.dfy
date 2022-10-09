@@ -1344,7 +1344,7 @@ module Invs_DV_Next_5
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
-    requires inv_g_iii_c_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_iii_a_a_body_body(dv, n, s')
@@ -1546,11 +1546,11 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')      
     requires inv_g_iii_b_body_body(s, n, s_node, index_next_attestation_duty_to_be_served)
-    requires inv_g_iii_c_body_body(s, n, s_node, index_next_attestation_duty_to_be_served)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s, n, s_node, index_next_attestation_duty_to_be_served)
     requires is_sequence_attestation_duties_to_be_served_orderd(s);
 
     ensures inv_g_iii_b_body_body(s', n, s_node, index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_c_body_body(s', n, s_node, index_next_attestation_duty_to_be_served)
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s', n, s_node, index_next_attestation_duty_to_be_served)
     ensures is_sequence_attestation_duties_to_be_served_orderd(s')
     {
         

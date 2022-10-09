@@ -2748,12 +2748,12 @@ module Fnc_Invs_2
     )
     requires add_block_to_bn.requires(process, block)
     requires process' == add_block_to_bn(process, block)    
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -2772,12 +2772,12 @@ module Fnc_Invs_2
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state        
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -2793,12 +2793,12 @@ module Fnc_Invs_2
     )
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state        
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -2820,12 +2820,12 @@ module Fnc_Invs_2
                 && var an := sequence_attestation_duties_to_be_served[i];
                 && an.attestation_duty == attestation_duty
                 && an.node == hn 
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -2853,12 +2853,12 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -2876,7 +2876,7 @@ module Fnc_Invs_2
                     process_mod, 
                     sequence_attestation_duties_to_be_served, 
                     new_index_next_attestation_duty_to_be_served);
-        assert inv_g_iii_c_new_body(
+        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process_mod, 
                     sequence_attestation_duties_to_be_served, 
@@ -2906,13 +2906,13 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -2944,7 +2944,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );
-                    assert inv_g_iii_c_new_body(
+                    assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                                 hn, 
                                 process_mod, 
                                 sequence_attestation_duties_to_be_served, 
@@ -2982,7 +2982,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );
-                    assert inv_g_iii_c_new_body(
+                    assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                                 hn, 
                                 process_mod, 
                                 sequence_attestation_duties_to_be_served, 
@@ -3024,13 +3024,13 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -3069,7 +3069,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );
-            assert inv_g_iii_c_new_body(
+            assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                                 hn, 
                                 process_mod, 
                                 sequence_attestation_duties_to_be_served, 
@@ -3110,13 +3110,13 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    requires inv_g_iii_c_new_body(
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served
              )
-    ensures inv_g_iii_c_new_body(
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                     hn, 
                     process', 
                     sequence_attestation_duties_to_be_served, 
@@ -3145,7 +3145,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );
-        assert inv_g_iii_c_new_body(
+        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                                 hn, 
                                 process, 
                                 sequence_attestation_duties_to_be_served, 
@@ -3170,7 +3170,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );
-            assert inv_g_iii_c_new_body(
+            assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                                 hn, 
                                 process, 
                                 sequence_attestation_duties_to_be_served, 

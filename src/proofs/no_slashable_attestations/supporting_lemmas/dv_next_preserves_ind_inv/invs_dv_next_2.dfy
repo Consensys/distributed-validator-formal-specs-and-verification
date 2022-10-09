@@ -717,14 +717,14 @@ module Invs_DV_Next_2
                             dv.index_next_attestation_duty_to_be_served
                 );
 
-                assert inv_g_iii_c_body_body(
+                assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
                             dv,
                             node,
                             dvc,
                             dv.index_next_attestation_duty_to_be_served
                 );
 
-                assert inv_g_iii_c_new_body(
+                assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                             node,
                             dvc,
                             dv.sequence_attestation_duties_to_be_served,
@@ -742,7 +742,7 @@ module Invs_DV_Next_2
                             dv.sequence_attestation_duties_to_be_served,
                             dv.index_next_attestation_duty_to_be_served
                         );
-                        assert inv_g_iii_c_body_body(
+                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
                                     dv',
                                     node,
                                     dvc',
@@ -758,7 +758,7 @@ module Invs_DV_Next_2
                             node,
                             dv.sequence_attestation_duties_to_be_served,
                             dv.index_next_attestation_duty_to_be_served);
-                        assert inv_g_iii_c_body_body(
+                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
                                     dv',
                                     node,
                                     dvc',
@@ -773,7 +773,7 @@ module Invs_DV_Next_2
                             node,
                             dv.sequence_attestation_duties_to_be_served,
                             dv.index_next_attestation_duty_to_be_served);
-                        assert inv_g_iii_c_body_body(
+                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
                                     dv',
                                     node,
                                     dvc',
@@ -790,7 +790,7 @@ module Invs_DV_Next_2
                             dv.sequence_attestation_duties_to_be_served,
                             dv.index_next_attestation_duty_to_be_served
                         );
-                        assert inv_g_iii_c_new_body(
+                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_new_body(
                             node,
                             dvc_mod,
                             dv.sequence_attestation_duties_to_be_served,
@@ -804,7 +804,7 @@ module Invs_DV_Next_2
                             dv.sequence_attestation_duties_to_be_served,
                             dv.index_next_attestation_duty_to_be_served
                         );
-                        assert inv_g_iii_c_body_body(
+                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
                                     dv',
                                     node,
                                     dvc',
