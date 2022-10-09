@@ -2738,7 +2738,7 @@ module Fnc_Invs_2
         }
     }  
 
-    lemma lemma_pred_4_1_g_iii_c_add_block_to_bn(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_add_block_to_bn(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState,
@@ -2762,7 +2762,7 @@ module Fnc_Invs_2
         
     }
     
-    lemma lemma_pred_4_1_g_iii_c_f_listen_for_attestation_shares(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState,
@@ -2784,7 +2784,7 @@ module Fnc_Invs_2
                     index_next_attestation_duty_to_be_served)
     {}
 
-    lemma lemma_pred_4_1_g_iii_c_f_resend_attestation_share(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_resend_attestation_share(
         process: DVCState,
         process': DVCState,
         hn: BLSPubkey,
@@ -2805,7 +2805,7 @@ module Fnc_Invs_2
                     index_next_attestation_duty_to_be_served)
     { } 
 
-    lemma lemma_pred_4_1_g_iii_c_f_start_next_duty(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_start_next_duty(
         process: DVCState, 
         attestation_duty: AttestationDuty, 
         process': DVCState,
@@ -2833,7 +2833,7 @@ module Fnc_Invs_2
     { } 
 
 
-    lemma lemma_pred_4_1_g_iii_c_f_serve_attestation_duty(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState,
@@ -2882,7 +2882,7 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     new_index_next_attestation_duty_to_be_served);   
         
-        lemma_pred_4_1_g_iii_c_f_check_for_next_queued_duty(
+        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_check_for_next_queued_duty(
             process_mod, 
             process',
             hn, 
@@ -2891,7 +2891,7 @@ module Fnc_Invs_2
     } 
 
 
-    lemma lemma_pred_4_1_g_iii_c_f_check_for_next_queued_duty(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_check_for_next_queued_duty(
         process: DVCState,
         process': DVCState,
         hn: BLSPubkey,
@@ -2951,7 +2951,7 @@ module Fnc_Invs_2
                                 index_next_attestation_duty_to_be_served
                     );
                     
-                    lemma_pred_4_1_g_iii_c_f_check_for_next_queued_duty(
+                    lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_check_for_next_queued_duty(
                         process_mod, 
                         process',
                         hn, 
@@ -2988,7 +2988,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );                                          
-                    lemma_pred_4_1_g_iii_c_f_start_next_duty(
+                    lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_start_next_duty(
                         process_mod, 
                         process.attestation_duties_queue[0], 
                         process',
@@ -3007,7 +3007,7 @@ module Fnc_Invs_2
         }
     }
 
-    lemma lemma_pred_4_1_g_iii_c_f_att_consensus_decided(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -3078,7 +3078,7 @@ module Fnc_Invs_2
 
             var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process_mod);
         
-            lemma_pred_4_1_g_iii_c_f_check_for_next_queued_duty(
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_check_for_next_queued_duty(
                 process_mod, 
                 ret_check_for_next_queued_duty.state,
                 hn, 
@@ -3094,7 +3094,7 @@ module Fnc_Invs_2
         }
     } 
 
-    lemma lemma_pred_4_1_g_iii_c_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState,
@@ -3176,7 +3176,7 @@ module Fnc_Invs_2
                                 sequence_attestation_duties_to_be_served, 
                                 index_next_attestation_duty_to_be_served
                     );
-            lemma_pred_4_1_g_iii_c_f_check_for_next_queued_duty(
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_check_for_next_queued_duty(
                 process, 
                 process',
                 hn, 

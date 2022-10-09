@@ -1073,8 +1073,8 @@ module Invs_DV_Next_3
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
-    requires pred_4_1_g_i_for_dvc(s)          
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)          
     requires |s.all_nodes| > 0    
     requires
                 && hn in s'.honest_nodes_states.Keys 
@@ -1225,8 +1225,8 @@ module Invs_DV_Next_3
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
-    requires pred_4_1_g_i_for_dvc(s)          
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)          
     requires |s.all_nodes| > 0    
     requires
                 && hn in s'.honest_nodes_states.Keys 
@@ -1313,8 +1313,8 @@ module Invs_DV_Next_3
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
-    requires pred_4_1_g_i_for_dvc(s)          
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)          
     requires |s.all_nodes| > 0
     ensures pred_data_of_att_share_is_decided_value(s')   
     {
@@ -1469,8 +1469,8 @@ module Invs_DV_Next_3
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)      
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)    
-    requires pred_4_1_g_i_for_dvc(s)          
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)    
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)          
     requires |s.all_nodes| > 0
     ensures pred_data_of_att_share_is_decided_value(s')   
     {
@@ -1754,7 +1754,7 @@ module Invs_DV_Next_3
         cid: Slot
     )
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -1781,7 +1781,7 @@ module Invs_DV_Next_3
         var vp: AttestationData -> bool :| vp in s_consensus.honest_nodes_validity_functions[h_n] && vp(s_consensus.decided_value.safe_get());  
 
         var attestation_duty, attestation_slashing_db :|
-                pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+                inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp);
 
         assert s_consensus.decided_value.safe_get().slot == cid;
     }
@@ -1794,8 +1794,8 @@ module Invs_DV_Next_3
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
-    requires pred_4_1_g_i_for_dvc(s)  
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)  
@@ -1813,7 +1813,7 @@ module Invs_DV_Next_3
         s: DVState
     )
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -1881,9 +1881,9 @@ module Invs_DV_Next_3
             && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
             && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
     requires event.HonestNodeTakingStep?
-    requires pred_4_1_g_i(s)
-    requires pred_4_1_g_i_for_dvc(s)
-    ensures pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp); 
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp); 
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1928,7 +1928,7 @@ module Invs_DV_Next_3
             {
                 assert vp in s'_consensus.honest_nodes_validity_functions[hn];
 
-                attestation_duty, attestation_slashing_db :| pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+                attestation_duty, attestation_slashing_db :| inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp);
 
             }
             else 
@@ -1943,12 +1943,12 @@ module Invs_DV_Next_3
                 lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
 
                 assert s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state == s.honest_nodes_states[vpn].attestation_consensus_engine_state;
-                assert pred_4_1_g_i_for_dvc_single_dvc(s, vpn, cid);
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc(s, vpn, cid);
 
-                attestation_duty, attestation_slashing_db :| pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+                attestation_duty, attestation_slashing_db :| inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp);
             }
 
-            assert pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp);
+            assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp);
 
 
         }
@@ -1962,12 +1962,12 @@ module Invs_DV_Next_3
     )   
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
-    requires pred_4_1_g_i(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)      
-    requires pred_4_1_g_i_for_dvc(s)  
-    ensures pred_4_1_g_i(s')   
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)  
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s')   
     {
         match event 
         {
@@ -1975,14 +1975,14 @@ module Invs_DV_Next_3
                 forall hn, cid: nat, vp |
                     && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
-                ensures exists attestation_duty, attestation_slashing_db :: pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp)
+                ensures exists attestation_duty, attestation_slashing_db :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp)
                 {
                     var attestation_duty: AttestationDuty, attestation_slashing_db := lemma_pred_4_1_f_g_i_helper(s, event, s', cid, hn, vp);
                 }
-                assert pred_4_1_g_i(s');
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s');
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                assert pred_4_1_g_i(s');
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s');
         }
     }   
 
@@ -1992,8 +1992,8 @@ module Invs_DV_Next_3
         m': map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>
     )    
     requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
-    requires forall k | k in m :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
-    ensures forall k | k in m' :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m'[k].attestation_duty, m'[k].validityPredicate)    
+    requires forall k | k in m :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
+    ensures forall k | k in m' :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(k, m'[k].attestation_duty, m'[k].validityPredicate)    
     {
         forall k | k in  m 
         ensures k in m'
@@ -2005,17 +2005,17 @@ module Invs_DV_Next_3
         assert m.Keys == m'.Keys;
 
         forall k | k in m' 
-        ensures pred_4_1_g_i_body(k, m'[k].attestation_duty, new_attestation_slashing_db, m'[k].validityPredicate); 
+        ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(k, m'[k].attestation_duty, new_attestation_slashing_db, m'[k].validityPredicate); 
         {
             assert m'[k] == m[k].(
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, m[k].attestation_duty)
             );
-            assert  pred_4_1_g_i_body(k, m'[k].attestation_duty, new_attestation_slashing_db, m'[k].validityPredicate);        
+            assert  inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(k, m'[k].attestation_duty, new_attestation_slashing_db, m'[k].validityPredicate);        
         }
     }
 
     
-    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState
@@ -2023,8 +2023,8 @@ module Invs_DV_Next_3
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
     ensures s'.active_attestation_consensus_instances.Keys == s.active_attestation_consensus_instances.Keys
     ensures s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;
-    // requires forall k | k in m :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
-    // ensures forall k | k in m' :: pred_4_1_g_i_for_dvc_single_dvc_2_body_body(k, m'[k].attestation_duty, m'[k].validityPredicate)    
+    // requires forall k | k in m :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
+    // ensures forall k | k in m' :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(k, m'[k].attestation_duty, m'[k].validityPredicate)    
     {
         lemma_updateConsensusInstanceValidityCheckHelper(s.active_attestation_consensus_instances, new_attestation_slashing_db, s'.active_attestation_consensus_instances);
 
@@ -2066,7 +2066,7 @@ module Invs_DV_Next_3
                    
     }   
 
-    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
@@ -2086,7 +2086,7 @@ module Invs_DV_Next_3
         assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }   
 
-    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
@@ -2106,7 +2106,7 @@ module Invs_DV_Next_3
         assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }      
 
-    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
@@ -2125,7 +2125,7 @@ module Invs_DV_Next_3
         assert s'.att_slashing_db_hist.Keys == s.att_slashing_db_hist.Keys + s'.active_attestation_consensus_instances.Keys;                   
     }   
 
-    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
@@ -2148,14 +2148,14 @@ module Invs_DV_Next_3
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
-    requires pred_4_1_g_i_for_dvc_single_dvc_2(process) 
-    ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'); 
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(process) 
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
     {
         var s_mod := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
                 all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
             );
-        assert pred_4_1_g_i_for_dvc_single_dvc_2(s_mod); 
+        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s_mod); 
         lemma_pred_4_1_f_g_for_dvc_f_check_for_next_queued_duty(s_mod, s');        
     }    
 
@@ -2165,8 +2165,8 @@ module Invs_DV_Next_3
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state   
-    requires pred_4_1_g_i_for_dvc_single_dvc_2(process) 
-    ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'); 
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(process) 
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -2212,31 +2212,31 @@ module Invs_DV_Next_3
 
                 forall cid | 
                     && cid in s'.attestation_consensus_engine_state.active_attestation_consensus_instances  
-                ensures pred_4_1_g_i_for_dvc_single_dvc_2_body(s', cid); 
+                ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
                 {
                     if cid != attestation_duty.slot 
                     {
                         assert cid in process.attestation_consensus_engine_state.active_attestation_consensus_instances;
-                        assert pred_4_1_g_i_for_dvc_single_dvc_2_body(s', cid); 
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
                     }
                     else 
                     {
-                        assert pred_4_1_g_i_body(
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(
                             cid,
                             attestation_duty,
                             attestation_slashing_db,
                             acvc.validityPredicate
                         );
-                        assert pred_4_1_g_i_for_dvc_single_dvc_2_body(s', cid); 
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
                     }
                 }              
 
-                assert pred_4_1_g_i_for_dvc_single_dvc_2(s'); 
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
             }
         } 
         else 
         {
-            assert pred_4_1_g_i_for_dvc_single_dvc_2(s'); 
+            assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
         }       
     }
 
@@ -2248,8 +2248,8 @@ module Invs_DV_Next_3
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires pred_4_1_g_i_for_dvc_single_dvc_2(process) 
-    ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'); 
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(process) 
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
     {
         if  || !process.current_attestation_duty.isPresent()
             || id != process.current_attestation_duty.safe_get().slot 
@@ -2297,8 +2297,8 @@ module Invs_DV_Next_3
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state
-    requires pred_4_1_g_i_for_dvc_single_dvc_2(process) 
-    ensures pred_4_1_g_i_for_dvc_single_dvc_2(s');     
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(process) 
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s');     
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -2353,8 +2353,8 @@ module Invs_DV_Next_3
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)      
-    requires pred_4_1_g_i_for_dvc(s)  
-    ensures pred_4_1_g_i_for_dvc(s')    
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)  
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s')    
     {
         match event 
         {
@@ -2365,27 +2365,27 @@ module Invs_DV_Next_3
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         forall n | n in s'.honest_nodes_states
-                        ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
+                        ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
                         {
                             if n == node
                             {
                                 lemma_pred_4_1_f_g_for_dvc_f_serve_attestation_duty(s_node, attestation_duty, s'_node);
-                                assert pred_4_1_g_i_for_dvc_single_dvc_2(s'_node); 
+                                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'_node); 
                             }
                         }
-                        assert pred_4_1_g_i_for_dvc(s');                        
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');                        
                   
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         forall n | n in s'.honest_nodes_states
-                        ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
+                        ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
                         {
                             if n == node
                             {
                                 lemma_pred_4_1_f_g_for_dvc_f_att_consensus_decided(s_node, id, decided_attestation_data, s'_node);
-                                assert pred_4_1_g_i_for_dvc_single_dvc_2(s'_node); 
+                                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'_node); 
                             }
                         }
-                        assert pred_4_1_g_i_for_dvc(s');                       
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');                       
               
                     case ReceivedAttestationShare(attestation_share) => 
                         forall n | n in s'.honest_nodes_states
@@ -2396,31 +2396,31 @@ module Invs_DV_Next_3
                                 lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                             }
                         }
-                        assert pred_4_1_g_i_for_dvc(s');     
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');     
 
                     case ImportedNewBlock(block) => 
                         forall n | n in s'.honest_nodes_states
-                        ensures pred_4_1_g_i_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
+                        ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
                         {
                             if n == node
                             {
                                 var s_node := add_block_to_bn(s_node, nodeEvent.block);
                                 lemma_pred_4_1_f_listen_for_new_imported_blocks(s_node, block, s'_node);
-                                assert pred_4_1_g_i_for_dvc_single_dvc_2(s'_node); 
+                                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'_node); 
                             }
                         }
-                        assert pred_4_1_g_i_for_dvc(s');                        
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');                        
                
                     case ResendAttestationShares => 
-                        assert pred_4_1_g_i_for_dvc(s');
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');
                    
                     case NoEvent => 
-                        assert pred_4_1_g_i_for_dvc(s');
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');
                 }            
 
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                assert pred_4_1_g_i_for_dvc(s');
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s');
         }        
     }   
 
@@ -2448,7 +2448,7 @@ module Invs_DV_Next_3
     // requires inv_unchanged_honesty(s)
     // requires inv_only_dv_construct_signed_attestation_signature(s)      
     // requires inv_g_a(s)  
-    // // ensures pred_4_1_g_iii(s')      
+    // // ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s')      
     // {
     //     match event 
     //     {
@@ -2646,7 +2646,7 @@ module Invs_DV_Next_3
     // requires inv_unchanged_honesty(s)
     // requires inv_only_dv_construct_signed_attestation_signature(s)      
     // requires inv_g_c(s)  
-    // // ensures pred_4_1_g_iii(s')      
+    // // ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s')      
     // {
     //     match event 
     //     {
@@ -2683,7 +2683,7 @@ module Invs_DV_Next_3
     //     }                
     // }  
 
-    lemma lemma_pred_4_1_g_iii_f_serve_attestation_duty(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         s': DVCState,
@@ -2723,11 +2723,11 @@ module Invs_DV_Next_3
             assert inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(new_p);
         }
 
-        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
+        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
 
     }     
 
-    lemma lemma_pred_4_1_g_iii_f_att_consensus_decided(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -2776,7 +2776,7 @@ module Invs_DV_Next_3
                     )
                 );
 
-            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                 process.attestation_consensus_engine_state,
                 attestation_slashing_db,
                 s_mod.attestation_consensus_engine_state
@@ -2818,7 +2818,7 @@ module Invs_DV_Next_3
                     {
                         if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
                         {
-                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                 process.attestation_consensus_engine_state,
                                 attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
@@ -2829,7 +2829,7 @@ module Invs_DV_Next_3
                         }
                         else 
                         {
-                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
                                 process.attestation_consensus_engine_state,
                                 attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
@@ -2841,7 +2841,7 @@ module Invs_DV_Next_3
                     }
                     else 
                     {
-                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
                             process.attestation_consensus_engine_state,
                             attestation_slashing_db,
                             s_mod.attestation_consensus_engine_state,
@@ -2855,7 +2855,7 @@ module Invs_DV_Next_3
                 assert  inv_g_iii_body_body_body(dv, s1, db2);
             }    
 
-            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);    
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);    
         }         
     }  
 
@@ -2912,7 +2912,7 @@ module Invs_DV_Next_3
         }
     }       
 
-    lemma lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         s': DVCState,
@@ -2969,7 +2969,7 @@ module Invs_DV_Next_3
                 )                
             );
 
-            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                 new_process.attestation_consensus_engine_state,
                 new_attestation_slashing_db,
                 s_mod.attestation_consensus_engine_state
@@ -3090,7 +3090,7 @@ module Invs_DV_Next_3
                     {
                         if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
                         {
-                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                 new_process.attestation_consensus_engine_state,
                                 new_attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
@@ -3101,7 +3101,7 @@ module Invs_DV_Next_3
                         }
                         else 
                         {
-                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
                                 new_process.attestation_consensus_engine_state,
                                 new_attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
@@ -3113,7 +3113,7 @@ module Invs_DV_Next_3
                     }
                     else 
                     {
-                        lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
                             new_process.attestation_consensus_engine_state,
                             new_attestation_slashing_db,
                             s_mod.attestation_consensus_engine_state,
@@ -3127,11 +3127,11 @@ module Invs_DV_Next_3
                 assert  inv_g_iii_body_body_body(dv, s1, db2);
             }                
 
-            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);                    
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);                    
         }        
     }      
 
-    lemma lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty(
         process: DVCState,
         s': DVCState,
         dv: DVState,
@@ -3170,7 +3170,7 @@ module Invs_DV_Next_3
                     )                        
                 );
 
-                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                     process.attestation_consensus_engine_state,
                     new_attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state
@@ -3213,7 +3213,7 @@ module Invs_DV_Next_3
                         {
                             if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
                             {
-                                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                     process.attestation_consensus_engine_state,
                                     new_attestation_slashing_db,
                                     s_mod.attestation_consensus_engine_state,
@@ -3224,7 +3224,7 @@ module Invs_DV_Next_3
                             }
                             else 
                             {
-                                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
                                     process.attestation_consensus_engine_state,
                                     new_attestation_slashing_db,
                                     s_mod.attestation_consensus_engine_state,
@@ -3236,7 +3236,7 @@ module Invs_DV_Next_3
                         }
                         else 
                         {
-                            lemma_pred_4_1_g_iii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
                                 process.attestation_consensus_engine_state,
                                 new_attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
@@ -3252,7 +3252,7 @@ module Invs_DV_Next_3
 
                 assert inv_g_iii_body_body(dv, s_mod); 
 
-                lemma_pred_4_1_g_iii_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
 
                 assert inv_g_iii_body_body(dv, s');
 
@@ -3283,14 +3283,14 @@ module Invs_DV_Next_3
         }       
     }  
 
-    lemma lemma_pred_4_1_g_iii_helper(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
-    requires pred_4_1_g_iii(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -3328,7 +3328,7 @@ module Invs_DV_Next_3
         }        
     }
 
-    lemma lemma_pred_4_1_g_iii_helper2(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper2(
         s: DVState,
         event: DV.Event,
         s': DVState,
@@ -3366,7 +3366,7 @@ module Invs_DV_Next_3
         }        
     }    
 
-    lemma lemma_pred_4_1_g_iii_helper3(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3(
         s: DVState,
         event: DV.Event,
         s': DVState,
@@ -3375,7 +3375,7 @@ module Invs_DV_Next_3
     requires inv_g_iii_body_body(s, s_node)
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires pred_4_1_g_iii(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -3392,7 +3392,7 @@ module Invs_DV_Next_3
         ensures inv_g_iii_body_body_body(s', s1, db2);
         {
             assert inv_g_iii_body_body_body(s, s1, db2);
-            lemma_pred_4_1_g_iii_helper2(s, event, s', s1);
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper2(s, event, s', s1);
             // assert s.consensus_on_attestation_data[s1].decided_value.isPresent();
             assert s'.consensus_on_attestation_data[s1].decided_value.isPresent();
             assert inv_g_iii_body_body_body(s', s1, db2);
@@ -3400,7 +3400,7 @@ module Invs_DV_Next_3
         
     }     
 
-    lemma lemma_pred_4_1_g_iii_helper3a(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3a(
         s: DVState,
         event: DV.Event,
         s': DVState,
@@ -3410,7 +3410,7 @@ module Invs_DV_Next_3
     requires inv_g_b_body_body_new(s, n, s_node)
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires pred_4_1_g_iii(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -3430,7 +3430,7 @@ module Invs_DV_Next_3
         // ensures inv_g_iii_body_body_body(s', s1, db2);
         {
             var slot := an.attestation_duty.slot;
-            lemma_pred_4_1_g_iii_helper2(s, event, s', slot);
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper2(s, event, s', slot);
 
             assert
                 && s.consensus_on_attestation_data[slot].decided_value.isPresent()
@@ -3447,7 +3447,7 @@ module Invs_DV_Next_3
     }     
 
 
-    lemma lemma_pred_4_1_g_iii_helper3c(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3c(
         s: DVState,
         event: DV.Event,
         s': DVState,
@@ -3457,7 +3457,7 @@ module Invs_DV_Next_3
     requires inv_g_d_a_body_body(s, n, s_node)
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires pred_4_1_g_iii(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -3473,7 +3473,7 @@ module Invs_DV_Next_3
             && s_node.future_att_consensus_instances_already_decided[slot] == s'.consensus_on_attestation_data[slot].decided_value.safe_get()
             ;                
         {
-            lemma_pred_4_1_g_iii_helper2(s, event, s', slot);
+            lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper2(s, event, s', slot);
 
             assert
                 && s.consensus_on_attestation_data[slot].decided_value.isPresent()
@@ -3489,7 +3489,7 @@ module Invs_DV_Next_3
         
     }             
 
-    lemma lemma_pred_4_1_g_iii_helper4(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper4(
         s: DVState,
         event: DV.Event,
         s': DVState,
@@ -3512,7 +3512,7 @@ module Invs_DV_Next_3
     ensures inv_g_d_b_body_body(s', n, s_node)    
 
 
-    // requires pred_4_1_g_iii(s)
+    // requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
     // requires invNetwork(s)
     // requires inv_quorum_constraints(s)
     // requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -3529,7 +3529,7 @@ module Invs_DV_Next_3
         
     }      
 
-    lemma lemma_pred_4_1_g_iii_helper5(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper5(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -3573,7 +3573,7 @@ module Invs_DV_Next_3
     }    
 
 
-    lemma lemma_pred_4_1_g_iii_helper6(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper6(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -3587,8 +3587,8 @@ module Invs_DV_Next_3
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)    
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
-    requires pred_4_1_g_i(s)
-    requires pred_4_1_g_i_for_dvc(s)      
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)      
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)      
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;   
@@ -3603,11 +3603,11 @@ module Invs_DV_Next_3
         assert event.event.decided_attestation_data.slot == event.event.id;         
     }    
 
-    predicate lemma_pred_4_1_g_iii_precond(
+    predicate lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_precond(
         s: DVState     
     ) 
     {
-        && pred_4_1_g_iii(s)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
         && construct_signed_attestation_signature_assumptions_helper(
             s.construct_signed_attestation_signature,
             s.dv_pubkey,
@@ -3618,10 +3618,10 @@ module Invs_DV_Next_3
         && inv_unchanged_honesty(s)
         && inv_only_dv_construct_signed_attestation_signature(s)
         && inv_queued_att_duty_is_rcvd_duty3(s)
-        && pred_4_1_g_iii_a(s)
-        && pred_4_1_g_iii_a_a(s)
-        && pred_4_1_g_iii_b(s)
-        && pred_4_1_g_iii_c(s)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(s)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(s)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(s)
         && pred_4_1_g_b_new(s)
         && inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s) 
         && is_sequence_attestation_duties_to_be_served_orderd(s)
@@ -3632,8 +3632,8 @@ module Invs_DV_Next_3
         && pred_data_of_att_share_is_decided_value(s)
         && inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)  
         && inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)    
-        && pred_4_1_g_i(s)    
-        && pred_4_1_g_i_for_dvc(s)  
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s)    
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(s)  
         && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
         && inv_g_d_a(s)
         && inv_g_d_b(s)   
@@ -3667,15 +3667,15 @@ module Invs_DV_Next_3
     }
 
 
-    lemma lemma_pred_4_1_g_iii(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires lemma_pred_4_1_g_iii_precond(s)
-    ensures pred_4_1_g_iii(s')
+    requires lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_precond(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s')
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -3683,10 +3683,10 @@ module Invs_DV_Next_3
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-                lemma_pred_4_1_g_iii_helper3(s, event, s', s_node);
-                lemma_pred_4_1_g_iii_helper3a(s, event, s', s_node, node);
-                lemma_pred_4_1_g_iii_helper3c(s, event, s', s_node, node);
-                lemma_pred_4_1_g_iii_helper4(s, event, s', s_node, node);
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3(s, event, s', s_node);
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3a(s, event, s', s_node, node);
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3c(s, event, s', s_node, node);
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper4(s, event, s', s_node, node);
                 lemma_pred_4_1_b(s, event, s');
                 lemma_pred_data_of_att_share_is_decided_value(s, event, s');
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
@@ -3698,7 +3698,7 @@ module Invs_DV_Next_3
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
                         lemma_ServeAttstationDuty2(s, event, s');
-                        lemma_pred_4_1_g_iii_f_serve_attestation_duty(
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
                             s'_node,
@@ -3712,8 +3712,8 @@ module Invs_DV_Next_3
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
-                        lemma_pred_4_1_g_iii_helper5(s, event, s');                 
-                        lemma_pred_4_1_g_iii_f_att_consensus_decided(
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper5(s, event, s');                 
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_att_consensus_decided(
                             s_node,
                             id,
                             decided_attestation_data,
@@ -3732,7 +3732,7 @@ module Invs_DV_Next_3
 
                     case ImportedNewBlock(block) => 
                         var s_node := add_block_to_bn(s_node, nodeEvent.block);
-                        lemma_pred_4_1_g_iii_f_listen_for_new_imported_blocks(
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_f_listen_for_new_imported_blocks(
                             s_node,
                             block,
                             s'_node,
@@ -3760,12 +3760,12 @@ module Invs_DV_Next_3
                 {
                     if hn != node 
                     {
-                        lemma_pred_4_1_g_iii_helper3(s, event, s', s.honest_nodes_states[hn]);
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3(s, event, s', s.honest_nodes_states[hn]);
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                         assert inv_g_iii_body_body(s', s'.honest_nodes_states[hn]);                        
                     }
                 }     
-                assert pred_4_1_g_iii(s');          
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s');          
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
                 forall hn |
@@ -3774,12 +3774,12 @@ module Invs_DV_Next_3
                 {
                     if hn != node 
                     {
-                        lemma_pred_4_1_g_iii_helper3(s, event, s', s.honest_nodes_states[hn]);
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3(s, event, s', s.honest_nodes_states[hn]);
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                         assert inv_g_iii_body_body(s', s'.honest_nodes_states[hn]);                        
                     }
                 }                
-                assert pred_4_1_g_iii(s');  
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s');  
 
         }
     } 

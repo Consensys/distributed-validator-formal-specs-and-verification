@@ -101,8 +101,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
         && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv) 
         && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-        && pred_4_1_g_i_for_dvc(dv)
-        && pred_4_1_g_i(dv)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
         
     }
 
@@ -116,9 +116,9 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_11(dv: DVState)       
     {                
-        && pred_4_1_g_iii_a(dv)        
-        && pred_4_1_g_iii_c(dv)
-        && pred_4_1_g_iii_a_a(dv)        
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv)        
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(dv)
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(dv)        
         && pred_data_of_att_share_is_decided_value(dv)                     
     }
     
@@ -130,7 +130,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_13(dv: DVState)       
     {                
-        && pred_4_1_g_iii_b(dv)    
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv)    
         && pred_4_1_g_b_new(dv)    
         && inv_g_d_a(dv)
         && inv_g_d_b(dv)  
@@ -141,7 +141,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         && inv_g_a_iii(dv)
         && inv_g_a_iv_a(dv)
-        && pred_4_1_g_iii(dv)        
+        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(dv)        
     }
 
     predicate invs_group_15(dv: DVState)       

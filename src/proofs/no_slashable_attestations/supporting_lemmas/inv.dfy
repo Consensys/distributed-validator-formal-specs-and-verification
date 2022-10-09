@@ -119,7 +119,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }     
 
     
-    predicate pred_4_1_g_i_for_dvc_single_dvc(
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc(
         dv: DVState,
         n: BLSPubkey,
         cid: Slot
@@ -130,48 +130,48 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         var dvc := dv.honest_nodes_states[n];
         var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
 
-        pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
+        inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(
             cid, 
             acvc.attestation_duty, 
             acvc.validityPredicate
         ) 
     }
 
-    predicate pred_4_1_g_i_for_dvc_single_dvc_2_body(
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(
         dvc: DVCState,
         cid: Slot
     )
     requires cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances
     {
         var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
-        pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
+        inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(
             cid, 
             acvc.attestation_duty, 
             acvc.validityPredicate
         ) 
     }     
 
-    predicate pred_4_1_g_i_for_dvc_single_dvc_2_body_body(
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(
         cid: Slot,
         attestation_duty: AttestationDuty,
         vp: AttestationData -> bool
     )
     {
         exists attestation_slashing_db ::
-            pred_4_1_g_i_body(cid, attestation_duty, attestation_slashing_db, vp)        
+            inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp)        
     }         
 
-    predicate pred_4_1_g_i_for_dvc_single_dvc_2(
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(
         dvc: DVCState
     )
     {
         forall cid | 
             && cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances
             ::
-            pred_4_1_g_i_for_dvc_single_dvc_2_body(dvc, cid)        
+            inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(dvc, cid)        
     }    
 
-    predicate pred_4_1_g_i_for_dvc(
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(
         dv: DVState
     )
     {
@@ -179,11 +179,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && n in dv.honest_nodes_states 
             && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances
             ::
-            pred_4_1_g_i_for_dvc_single_dvc(dv, n, cid)
+            inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc(dv, n, cid)
     }
 
    
-    predicate pred_4_1_g_i_body(
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(
         s: Slot,
         attestation_duty: AttestationDuty,
         attestation_slashing_db: set<SlashingDBAttestation>,
@@ -194,17 +194,17 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && (vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty))
     }
 
-    predicate pred_4_1_g_i(dv: DVState)
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv: DVState)
     {
         forall hn, s: nat, vp |
             && hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
             && vp in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
             ::
             exists attestation_duty, attestation_slashing_db ::
-                pred_4_1_g_i_body(s, attestation_duty, attestation_slashing_db, vp)
+                inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(s, attestation_duty, attestation_slashing_db, vp)
     }
 
-    predicate pred_4_1_g_ii(dv: DVState)    
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histi(dv: DVState)    
     {
         forall hn, s1: nat, s2: nat, vp, db2 |
             && hn in dv.honest_nodes_states.Keys
@@ -225,7 +225,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && sdba in db2
     }    
 
-    predicate pred_4_1_g_iii(dv: DVState)    
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -264,7 +264,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && sdba in db2        
     }    
 
-    predicate pred_4_1_g_iii_a(dv: DVState)    
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -294,7 +294,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && an.node == n
     }   
 
-    predicate pred_4_1_g_iii_a_a(dv: DVState)    
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -328,7 +328,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             slot < get_upperlimit_active_instances(n_state)
     }      
     
-    predicate pred_4_1_g_iii_b(dv: DVState)    
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -362,7 +362,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     
 
-    predicate pred_4_1_g_iii_c(dv: DVState)    
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          

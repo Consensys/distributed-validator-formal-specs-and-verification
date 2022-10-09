@@ -124,8 +124,8 @@ module Invs_DV_Next_6
     requires validEvent(s, event)
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires pred_4_1_g_iii_b(s)
-    requires pred_4_1_g_iii_c(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(s)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
     requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)                
@@ -151,8 +151,8 @@ module Invs_DV_Next_6
     requires validEvent(s, event)
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires pred_4_1_g_iii_b(s)
-    requires pred_4_1_g_iii_c(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(s)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
     requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
@@ -171,8 +171,8 @@ module Invs_DV_Next_6
     )
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires pred_4_1_g_iii_b(s)
-    requires pred_4_1_g_iii_c(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(s)
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
     requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
@@ -409,7 +409,7 @@ module Invs_DV_Next_6
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s)
     requires inv_attestation_duty_queue_is_ordered(s)
     requires is_sequence_attestation_duties_to_be_served_orderd(s);
-    requires pred_4_1_g_iii_b(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s');        
     {
         match event 
