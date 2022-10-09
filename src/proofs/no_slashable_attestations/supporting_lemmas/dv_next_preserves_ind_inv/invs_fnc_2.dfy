@@ -2833,7 +2833,7 @@ module Fnc_Invs_2
     { } 
 
 
-    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_serve_attestation_duty(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState,

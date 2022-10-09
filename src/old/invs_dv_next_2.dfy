@@ -734,7 +734,7 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                           
-                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_serve_attestation_duty(
+                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_f_serve_attestation_duty(
                             dvc, 
                             attestation_duty, 
                             dvc',
