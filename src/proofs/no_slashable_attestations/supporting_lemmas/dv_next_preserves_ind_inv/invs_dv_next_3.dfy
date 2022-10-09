@@ -2290,7 +2290,7 @@ module Invs_DV_Next_3
         lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_f_check_for_next_queued_duty(s_mod, s');             
     }     
 
-    lemma lemma_pred_4_1_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         s': DVCState
@@ -2405,7 +2405,7 @@ module Invs_DV_Next_3
                             if n == node
                             {
                                 var s_node := add_block_to_bn(s_node, nodeEvent.block);
-                                lemma_pred_4_1_f_listen_for_new_imported_blocks(s_node, block, s'_node);
+                                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_f_listen_for_new_imported_blocks(s_node, block, s'_node);
                                 assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'_node); 
                             }
                         }

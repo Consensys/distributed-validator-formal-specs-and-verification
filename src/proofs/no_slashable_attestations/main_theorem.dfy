@@ -57,7 +57,7 @@ module No_Slashable_Attestations_Main_Theorem
         ensures non_slashable_attestations(trace[i])
         {
             lemma_non_slashable_attestations_rec(trace, i);
-            lemma_ind_inv_4_1_general(trace[i]);
+            lemma_ind_inv_no_slashable_submitted_attestations(trace[i]);
         }
         
     }    

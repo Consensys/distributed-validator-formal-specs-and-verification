@@ -250,7 +250,7 @@ module Core_Proofs
     }      
 
 
-    lemma lemma_4_1_general(dv: DVState, a: Attestation, a': Attestation)    
+    lemma lemma_no_slashable_submitted_attestations(dv: DVState, a: Attestation, a': Attestation)    
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)

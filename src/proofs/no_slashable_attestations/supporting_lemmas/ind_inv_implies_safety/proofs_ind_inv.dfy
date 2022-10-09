@@ -673,7 +673,7 @@ module Proofs_DV_Ind_Inv
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     }
 
-    lemma lemma_ind_inv_4_1_general(dv: DVState)
+    lemma lemma_ind_inv_no_slashable_submitted_attestations(dv: DVState)
     requires ind_inv(dv)    
     ensures non_slashable_attestations(dv)
     {   
@@ -705,7 +705,7 @@ module Proofs_DV_Ind_Inv
             && inv_queued_att_duty_is_rcvd_duty0(dv)
             && inv_queued_att_duty_is_rcvd_duty1(dv)
             ;
-            lemma_4_1_general(dv, a, a');
+            lemma_no_slashable_submitted_attestations(dv, a, a');
         }
     }
 
