@@ -99,7 +99,7 @@ module Core_Proofs
     requires inv_unchanged_honesty(dv)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
-    requires pred_4_1_f_a(dv)    
+    requires inv_decided_value_of_consensus_instance_is_valid(dv)    
     requires && a in dv.all_attestations_created
              && is_valid_attestation(a, dv.dv_pubkey)
     requires && a' in dv.all_attestations_created
@@ -173,7 +173,7 @@ module Core_Proofs
     requires inv_unchanged_honesty(dv)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
-    requires pred_4_1_f_a(dv)    
+    requires inv_decided_value_of_consensus_instance_is_valid(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
     requires && a in dv.all_attestations_created
@@ -211,7 +211,7 @@ module Core_Proofs
     requires inv_unchanged_honesty(dv)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
-    requires pred_4_1_f_a(dv)    
+    requires inv_decided_value_of_consensus_instance_is_valid(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
     requires && a in dv.all_attestations_created
@@ -255,7 +255,7 @@ module Core_Proofs
     requires inv_unchanged_honesty(dv)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
-    requires pred_4_1_f_a(dv)    
+    requires inv_decided_value_of_consensus_instance_is_valid(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
     requires && a in dv.all_attestations_created

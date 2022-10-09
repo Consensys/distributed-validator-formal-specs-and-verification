@@ -100,7 +100,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
         && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv) 
-        && pred_4_1_f_a(dv)    
+        && inv_decided_value_of_consensus_instance_is_valid(dv)    
         && pred_4_1_g_i_for_dvc(dv)
         && pred_4_1_g_i(dv)
         

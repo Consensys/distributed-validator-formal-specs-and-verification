@@ -1038,7 +1038,7 @@ module Invs_DV_Next_4
         && pred_rcvd_attestation_shares_is_in_all_messages_sent(s) 
         && pred_4_1_f_b(s)
         && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)      
-        && pred_4_1_f_a(s)    
+        && inv_decided_value_of_consensus_instance_is_valid(s)    
         && pred_4_1_g_i(s)    
         && pred_4_1_g_i_for_dvc(s)         
     }

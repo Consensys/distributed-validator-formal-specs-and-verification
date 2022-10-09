@@ -1072,7 +1072,7 @@ module Invs_DV_Next_3
     requires inv_unchanged_honesty(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0    
@@ -1224,7 +1224,7 @@ module Invs_DV_Next_3
     requires inv_unchanged_honesty(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0    
@@ -1312,7 +1312,7 @@ module Invs_DV_Next_3
     requires inv_unchanged_honesty(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0
@@ -1468,7 +1468,7 @@ module Invs_DV_Next_3
     requires pred_data_of_att_share_is_decided_value(s)
     requires pred_4_1_f_b(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)      
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)    
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0
@@ -1578,7 +1578,7 @@ module Invs_DV_Next_3
     }    
 
     // 1m 15s
-    lemma lemma_pred_4_1_f_a_helper(
+    lemma lemma_inv_decided_value_of_consensus_instance_is_valid_helper(
         s: DVState,
         event: DV.Event,
         cid: Slot,
@@ -1591,10 +1591,10 @@ module Invs_DV_Next_3
     requires inv_quorum_constraints(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
     ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]); 
-    // ensures pred_4_1_f_a(s')   
+    // ensures inv_decided_value_of_consensus_instance_is_valid(s')   
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1698,7 +1698,7 @@ module Invs_DV_Next_3
         }
     }   
 
-    lemma lemma_pred_4_1_f_a(
+    lemma lemma_inv_decided_value_of_consensus_instance_is_valid(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -1708,8 +1708,8 @@ module Invs_DV_Next_3
     requires inv_quorum_constraints(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires pred_4_1_f_a(s)    
-    ensures pred_4_1_f_a(s')   
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    ensures inv_decided_value_of_consensus_instance_is_valid(s')   
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1734,18 +1734,18 @@ module Invs_DV_Next_3
                 {
                     if s.consensus_on_attestation_data[cid].decided_value.isPresent()
                     {
-                        lemma_pred_4_1_f_a_helper(s, event, cid, s');
+                        lemma_inv_decided_value_of_consensus_instance_is_valid_helper(s, event, cid, s');
                     }
                     else
                     {
                         assert is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]);
                     }
                 }
-                assert pred_4_1_f_a(s');
+                assert inv_decided_value_of_consensus_instance_is_valid(s');
                
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                assert pred_4_1_f_a(s');
+                assert inv_decided_value_of_consensus_instance_is_valid(s');
         }        
     } 
 
@@ -1753,7 +1753,7 @@ module Invs_DV_Next_3
         s: DVState,
         cid: Slot
     )
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
@@ -1793,7 +1793,7 @@ module Invs_DV_Next_3
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)  
     requires inv_quorum_constraints(s)
@@ -1804,7 +1804,7 @@ module Invs_DV_Next_3
         lemma_inv_quorum_constraints_dv_next(s, event, s');
         lemma_inv_unchanged_honesty_dv_next(s, event, s');
         lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(s, event, s');
-        lemma_pred_4_1_f_a(s, event, s');
+        lemma_inv_decided_value_of_consensus_instance_is_valid(s, event, s');
         lemma_pred_4_1_f_g_i(s, event, s');
         lemma_pred_4_1_f_b2(s');   
     }     
@@ -1812,7 +1812,7 @@ module Invs_DV_Next_3
     lemma lemma_pred_4_1_f_b2(
         s: DVState
     )
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
@@ -3586,7 +3586,7 @@ module Invs_DV_Next_3
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)    
-    requires pred_4_1_f_a(s)    
+    requires inv_decided_value_of_consensus_instance_is_valid(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)      
     requires pred_4_1_f_b(s)      
@@ -3630,7 +3630,7 @@ module Invs_DV_Next_3
         && pred_inv_current_latest_attestation_duty_match(s)
         && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s)
         && pred_data_of_att_share_is_decided_value(s)
-        && pred_4_1_f_a(s)  
+        && inv_decided_value_of_consensus_instance_is_valid(s)  
         && pred_4_1_f_b(s)    
         && pred_4_1_g_i(s)    
         && pred_4_1_g_i_for_dvc(s)  

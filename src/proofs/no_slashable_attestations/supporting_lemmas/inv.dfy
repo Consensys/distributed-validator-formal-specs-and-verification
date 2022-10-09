@@ -99,7 +99,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
     }  
 
-    predicate pred_4_1_f_a(dv: DVState)
+    predicate inv_decided_value_of_consensus_instance_is_valid(dv: DVState)
     {
         forall cid |
             && cid in dv.consensus_on_attestation_data.Keys

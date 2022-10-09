@@ -468,7 +468,7 @@ module Invs_DV_Next_2
     requires inv_unchanged_honesty(dv)
     requires inv_only_dv_construct_signed_attestation_signature(dv)
     requires inv_queued_att_duty_is_rcvd_duty3(dv)    
-    requires pred_4_1_f_a(dv)    
+    requires inv_decided_value_of_consensus_instance_is_valid(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_i_for_dvc(dv)      
     requires pred_4_1_f_b(dv)       

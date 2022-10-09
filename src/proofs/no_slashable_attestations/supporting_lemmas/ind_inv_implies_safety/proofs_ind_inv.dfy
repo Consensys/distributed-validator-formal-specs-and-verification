@@ -296,13 +296,13 @@ module Proofs_DV_Ind_Inv
         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_pred_4_1_f_a(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_inv_decided_value_of_consensus_instance_is_valid(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures pred_4_1_f_a(dv')
+    ensures inv_decided_value_of_consensus_instance_is_valid(dv')
     {
-        lemma_pred_4_1_f_a(dv, e, dv');
+        lemma_inv_decided_value_of_consensus_instance_is_valid(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_i_for_dvc(dv: DVState, e: DV.Event, dv': DVState)       
@@ -341,7 +341,7 @@ module Proofs_DV_Ind_Inv
     {
         lemma_ind_inv_dv_next_inv_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');  
         lemma_ind_inv_dv_next_inv_pred_4_1_b(dv, e, dv');             
-        lemma_ind_inv_dv_next_inv_pred_4_1_f_a(dv, e, dv');       
+        lemma_ind_inv_dv_next_inv_inv_decided_value_of_consensus_instance_is_valid(dv, e, dv');       
         lemma_ind_inv_dv_next_inv_pred_4_1_g_i_for_dvc(dv, e, dv');  
         lemma_ind_inv_dv_next_inv_pred_4_1_g_i(dv, e, dv');   
     }
@@ -693,7 +693,7 @@ module Proofs_DV_Ind_Inv
             && inv_unchanged_honesty(dv)
             && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
             && pred_data_of_att_share_is_decided_value(dv)
-            && pred_4_1_f_a(dv)    
+            && inv_decided_value_of_consensus_instance_is_valid(dv)    
             && pred_4_1_g_i(dv)
             && pred_4_1_g_iii(dv)
             && a in dv.all_attestations_created
