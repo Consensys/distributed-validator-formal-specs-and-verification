@@ -225,15 +225,15 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && sdba in db2
     }    
 
-    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(dv: DVState)    
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_g_iii_body_body(dv, dv.honest_nodes_states[hn])                
+            inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, dv.honest_nodes_states[hn])                
     }   
 
-    predicate inv_g_iii_body_body(
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(
         dv: DVState, 
         hn_state: DVCState
     ) 
@@ -245,14 +245,14 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
             && db2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]           
             ::       
-            inv_g_iii_body_body_body(dv, s1, db2)         
+            inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv, s1, db2)         
             // && dv.consensus_on_attestation_data[s1].decided_value.isPresent()
             // && var decided_a_data := dv.consensus_on_attestation_data[s1].decided_value.safe_get();
             // && var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);
             // && sdba in db2        
     }
 
-    predicate inv_g_iii_body_body_body(
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(
         dv: DVState, 
         s1: nat,
         db2: set<SlashingDBAttestation>
@@ -264,7 +264,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && sdba in db2        
     }    
 
-    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv: DVState)    
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -294,7 +294,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && an.node == n
     }   
 
-    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(dv: DVState)    
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -328,7 +328,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             slot < get_upperlimit_active_instances(n_state)
     }      
     
-    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv: DVState)    
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -362,7 +362,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     
 
-    predicate inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(dv: DVState)    
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          

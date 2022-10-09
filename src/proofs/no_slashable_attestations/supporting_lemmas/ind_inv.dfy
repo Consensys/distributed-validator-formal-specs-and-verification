@@ -116,9 +116,9 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_11(dv: DVState)       
     {                
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv)        
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(dv)
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(dv)        
+        && inv_db_of_validity_predicate_contains_all_previous_decided_values_a(dv)        
+        && inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv)
+        && inv_db_of_validity_predicate_contains_all_previous_decided_values_a_a(dv)        
         && pred_data_of_att_share_is_decided_value(dv)                     
     }
     
@@ -130,7 +130,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_13(dv: DVState)       
     {                
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv)    
+        && inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv)    
         && inv_decided_values_of_previous_duties_are_known_new(dv)    
         && inv_g_d_a(dv)
         && inv_g_d_b(dv)  
@@ -141,7 +141,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         && inv_g_a_iii(dv)
         && inv_g_a_iv_a(dv)
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(dv)        
+        && inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)        
     }
 
     predicate invs_group_15(dv: DVState)       

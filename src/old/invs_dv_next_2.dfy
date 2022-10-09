@@ -500,7 +500,7 @@ module Invs_DV_Next_2
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         var att_network := dv.att_network;
                         var att_network' := dv'.att_network;
-                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper6(dv, event, dv');
+                        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_helper6(dv, event, dv');
                         lemma_inv_attestation_shares_to_broadcast_are_sent_messages_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
                         assert      att_network'.allMessagesSent
                                 ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
@@ -686,16 +686,16 @@ module Invs_DV_Next_2
         }        
     }  
 
-    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_dv_next(
+    lemma lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv)
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(dv)
-    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(dv')
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv)
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv)
+    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv')
     {        
         match event 
         {
@@ -750,7 +750,7 @@ module Invs_DV_Next_2
                         );
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_att_consensus_decided(
+                        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_f_att_consensus_decided(
                             dvc, 
                             id, 
                             decided_attestation_data, 
@@ -766,7 +766,7 @@ module Invs_DV_Next_2
                         );
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_listen_for_attestation_shares(
+                        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_f_listen_for_attestation_shares(
                             dvc, 
                             attestation_share, 
                             dvc',
@@ -782,7 +782,7 @@ module Invs_DV_Next_2
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_add_block_to_bn(
+                        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_add_block_to_bn(
                             dvc, 
                             block, 
                             dvc_mod,
@@ -796,7 +796,7 @@ module Invs_DV_Next_2
                             dv.sequence_attestation_duties_to_be_served,
                             dv.index_next_attestation_duty_to_be_served
                         );
-                        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_f_listen_for_new_imported_blocks(
+                        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_f_listen_for_new_imported_blocks(
                             dvc_mod, 
                             block, 
                             dvc',
