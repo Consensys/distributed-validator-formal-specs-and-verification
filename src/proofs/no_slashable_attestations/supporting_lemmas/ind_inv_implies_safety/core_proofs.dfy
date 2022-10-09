@@ -43,7 +43,7 @@ module Core_Proofs
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)    
-    requires pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
+    requires concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
     requires && consa.decided_value.isPresent()
              && consa'.decided_value.isPresent()
              && a.data == consa.decided_value.safe_get()
@@ -108,7 +108,7 @@ module Core_Proofs
     ensures && var consa := dv.consensus_on_attestation_data[a.data.slot];
             && var consa' := dv.consensus_on_attestation_data[a'.data.slot];   
             && exists m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :: 
-                        pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')    
+                        concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')    
     {
         var hna, att_share :|
                 && is_honest_node(dv, hna)
@@ -162,9 +162,9 @@ module Core_Proofs
             
         var m: BLSPubkey :| m in honest_nodes && m in h_nodes_a && m in h_nodes_a';  
 
-        assert pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        assert concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
         assert ( exists m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :: 
-                                pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
+                                concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
     }
 
     lemma lemma_4_1_a(dv: DVState, a: Attestation, a': Attestation)
@@ -197,10 +197,10 @@ module Core_Proofs
         var consa := dv.consensus_on_attestation_data[a.data.slot];
         var consa' := dv.consensus_on_attestation_data[a'.data.slot];                      
         var m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :| 
-                pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+                concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
 
         
-        assert pred_4_1_witness(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        assert concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
         lemma_4_1_a_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
         
     }    

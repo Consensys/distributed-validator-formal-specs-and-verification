@@ -1241,7 +1241,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     
 
-    predicate pred_4_1_witness(
+    predicate concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(
         dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey,
         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
