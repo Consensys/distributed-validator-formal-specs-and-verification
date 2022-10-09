@@ -9,24 +9,21 @@ include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
 include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
-include "../dv_next_preserves_ind_inv/invs_dv_next_1.dfy"
-include "../dv_next_preserves_ind_inv/invs_dv_next_2.dfy"
-include "../dv_next_preserves_ind_inv/invs_fnc_1.dfy"
-include "../dv_next_preserves_ind_inv/invs_fnc_2.dfy"
-include "../dv_next_preserves_ind_inv/invs_dv_next_3.dfy"
-include "../dv_next_preserves_ind_inv/invs_dv_next_4.dfy"
-include "../dv_next_preserves_ind_inv/invs_dv_next_5.dfy"
-include "../dv_next_preserves_ind_inv/invs_dv_next_6.dfy"
+include "invs_fnc_1.dfy"
+include "invs_fnc_2.dfy"
+include "invs_dv_next_1.dfy"
+include "invs_dv_next_2.dfy"
+include "invs_dv_next_3.dfy"
+include "invs_dv_next_4.dfy"
+include "invs_dv_next_5.dfy"
+include "invs_dv_next_6.dfy"
 
 include "../inv.dfy"
 include "../ind_inv.dfy"
 
-
 include "proofs_intermediate_steps.dfy"
-include "core_proofs.dfy"
 
-
-module Proofs_DV_Ind_Inv
+module Ind_Inv_DV_Next
 {
     import opened Types 
     import opened CommonFunctions
@@ -43,7 +40,6 @@ module Proofs_DV_Ind_Inv
     import opened Invs_DV_Next_1
     import opened Proofs_Intermediate_Steps
     import opened Invs_DV_Next_2
-    import opened Core_Proofs
     import opened Invs_DV_Next_5
     import opened Invs_DV_Next_6
 
@@ -656,57 +652,28 @@ module Proofs_DV_Ind_Inv
 
         lemma_ind_inv_dv_next_ind_inv(dv, e, dv');
         lemma_NextPreCond(dv');
-    }      
+    } 
 
-    predicate non_slashable_attestations(
-        dv: DVState
+    lemma lemma_NextPreCond(
+        s: DVState
     )
+    requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
+    requires is_sequence_attestation_duties_to_be_served_orderd(s)
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
+    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
+    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
+    ensures  NextPreCond(s)                
     {
-        forall a: Attestation, a': Attestation
-                | 
-                && a in dv.all_attestations_created
-                && is_valid_attestation(a, dv.dv_pubkey)
-                && a' in dv.all_attestations_created
-                && is_valid_attestation(a', dv.dv_pubkey)     
-                ::
-                && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
-                && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
-    }
-
-    lemma lemma_ind_inv_no_slashable_submitted_attestations(dv: DVState)
-    requires ind_inv(dv)    
-    ensures non_slashable_attestations(dv)
-    {   
-        lemma_ind_inv_implies_intermediate_steps(dv);
-
-        forall a: Attestation, a': Attestation
-                    | 
-                    && a in dv.all_attestations_created
-                    && is_valid_attestation(a, dv.dv_pubkey)
-                    && a' in dv.all_attestations_created
-                    && is_valid_attestation(a', dv.dv_pubkey)     
-        ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
-                && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
+        forall event | validEvent(s, event)
+        ensures NextEventPreCond(s, event);
         {
-            assert 
-            && inv_quorum_constraints(dv)
-            && inv_unchanged_honesty(dv)
-            && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
-            && pred_data_of_att_share_is_decided_value(dv)
-            && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-            && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
-            && inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
-            && a in dv.all_attestations_created
-            && is_valid_attestation(a, dv.dv_pubkey)
-            && a' in dv.all_attestations_created
-            && is_valid_attestation(a', dv.dv_pubkey)
-            && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
-            && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-            && inv_queued_att_duty_is_rcvd_duty0(dv)
-            && inv_queued_att_duty_is_rcvd_duty1(dv)
-            ;
-            lemma_no_slashable_submitted_attestations(dv, a, a');
+            if event.HonestNodeTakingStep?
+            {
+                lemma_NextEventPreCond(s, event);
+            }
         }
-    }
 
+    }       
 }

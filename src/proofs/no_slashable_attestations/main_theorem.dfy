@@ -3,16 +3,18 @@ include "../../specs/dv/dv_attestation_creation.dfy"
 
 
 include "supporting_lemmas/ind_inv.dfy"
-include "supporting_lemmas/ind_inv_implies_safety/proofs_ind_inv.dfy"
 include "supporting_lemmas/init_implies_ind_inv/init_implies_ind_inv.dfy"
+include "supporting_lemmas/dv_next_preserves_ind_inv/ind_inv_dv_next.dfy"
+include "supporting_lemmas/ind_inv_implies_safety/ind_inv_implies_safety.dfy"
 
 module No_Slashable_Attestations_Main_Theorem
 {
     import opened Types 
-    import opened DV
-    import opened Proofs_DV_Ind_Inv
+    import opened DV    
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Ind_Inv_DV_Init
+    import opened Ind_Inv_DV_Next
+    import opened Ind_Inv_Implies_Safety
 
 
     predicate isValidTrace(

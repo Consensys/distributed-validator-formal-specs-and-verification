@@ -166,28 +166,7 @@ module Invs_DV_Next_6
     }        
 
 
-    lemma lemma_NextPreCond(
-        s: DVState
-    )
-    requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
-    requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
-    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
-    requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
-    ensures  NextPreCond(s)                
-    {
-        forall event | validEvent(s, event)
-        ensures NextEventPreCond(s, event);
-        {
-            if event.HonestNodeTakingStep?
-            {
-                lemma_NextEventPreCond(s, event);
-            }
-        }
-
-    }     
+       
       
 
     lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
