@@ -468,10 +468,10 @@ module Invs_DV_Next_2
     requires inv_unchanged_honesty(dv)
     requires inv_only_dv_construct_signed_attestation_signature(dv)
     requires inv_queued_att_duty_is_rcvd_duty3(dv)    
-    requires inv_decided_value_of_consensus_instance_is_valid(dv)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_i_for_dvc(dv)      
-    requires pred_4_1_f_b(dv)       
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv)       
     requires inv_attestation_shares_to_broadcast_are_sent_messages(dv)    
     ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {   

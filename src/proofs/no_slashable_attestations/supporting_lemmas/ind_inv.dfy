@@ -100,7 +100,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
         && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv) 
-        && inv_decided_value_of_consensus_instance_is_valid(dv)    
+        && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
         && pred_4_1_g_i_for_dvc(dv)
         && pred_4_1_g_i(dv)
         
@@ -108,7 +108,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_10(dv: DVState)       
     {                    
-        && pred_4_1_f_b(dv) 
+        && inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv) 
         && invNetwork(dv)
         && inv_attestation_shares_to_broadcast_are_sent_messages(dv)
         && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)

@@ -1008,7 +1008,7 @@ module Invs_DV_Next_3
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires pred_data_of_att_share_is_decided_value(s)
-    requires pred_4_1_f_b(s)
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_quorum_constraints(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
@@ -1066,13 +1066,13 @@ module Invs_DV_Next_3
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires pred_data_of_att_share_is_decided_value(s)
-    requires pred_4_1_f_b(s)
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0    
@@ -1218,13 +1218,13 @@ module Invs_DV_Next_3
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires pred_data_of_att_share_is_decided_value(s)
-    requires pred_4_1_f_b(s)
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0    
@@ -1286,7 +1286,7 @@ module Invs_DV_Next_3
 
                             assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == decided_attestation_data; 
                             assert s'.consensus_on_attestation_data[id].decided_value.safe_get() == att_share.data; 
-                            lemma_pred_4_1_f_b(s, event, s');   
+                            lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s, event, s');   
                             
                             assert  att_share.data.slot == id;
                             assert s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();                             
@@ -1306,13 +1306,13 @@ module Invs_DV_Next_3
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires pred_data_of_att_share_is_decided_value(s)
-    requires pred_4_1_f_b(s)
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0
@@ -1394,7 +1394,7 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')  
     requires event.AdeversaryTakingStep?
     requires pred_data_of_att_share_is_decided_value(s)
-    requires pred_4_1_f_b(s)
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
@@ -1466,9 +1466,9 @@ module Invs_DV_Next_3
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires pred_data_of_att_share_is_decided_value(s)
-    requires pred_4_1_f_b(s)
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)      
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)    
     requires pred_4_1_g_i_for_dvc(s)          
     requires |s.all_nodes| > 0
@@ -1578,7 +1578,7 @@ module Invs_DV_Next_3
     }    
 
     // 1m 15s
-    lemma lemma_inv_decided_value_of_consensus_instance_is_valid_helper(
+    lemma lemma_inv_decided_value_of_consensus_instance_is_decided_by_quorum_helper(
         s: DVState,
         event: DV.Event,
         cid: Slot,
@@ -1591,10 +1591,10 @@ module Invs_DV_Next_3
     requires inv_quorum_constraints(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
     ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]); 
-    // ensures inv_decided_value_of_consensus_instance_is_valid(s')   
+    // ensures inv_decided_value_of_consensus_instance_is_decided_by_quorum(s')   
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1698,7 +1698,7 @@ module Invs_DV_Next_3
         }
     }   
 
-    lemma lemma_inv_decided_value_of_consensus_instance_is_valid(
+    lemma lemma_inv_decided_value_of_consensus_instance_is_decided_by_quorum(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -1708,8 +1708,8 @@ module Invs_DV_Next_3
     requires inv_quorum_constraints(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
-    ensures inv_decided_value_of_consensus_instance_is_valid(s')   
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
+    ensures inv_decided_value_of_consensus_instance_is_decided_by_quorum(s')   
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1734,26 +1734,26 @@ module Invs_DV_Next_3
                 {
                     if s.consensus_on_attestation_data[cid].decided_value.isPresent()
                     {
-                        lemma_inv_decided_value_of_consensus_instance_is_valid_helper(s, event, cid, s');
+                        lemma_inv_decided_value_of_consensus_instance_is_decided_by_quorum_helper(s, event, cid, s');
                     }
                     else
                     {
                         assert is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]);
                     }
                 }
-                assert inv_decided_value_of_consensus_instance_is_valid(s');
+                assert inv_decided_value_of_consensus_instance_is_decided_by_quorum(s');
                
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
-                assert inv_decided_value_of_consensus_instance_is_valid(s');
+                assert inv_decided_value_of_consensus_instance_is_decided_by_quorum(s');
         }        
     } 
 
-    lemma lemma_pred_4_1_f_b_helper(
+    lemma lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_helper(
         s: DVState,
         cid: Slot
     )
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
@@ -1786,44 +1786,44 @@ module Invs_DV_Next_3
         assert s_consensus.decided_value.safe_get().slot == cid;
     }
 
-    lemma lemma_pred_4_1_f_b(
+    lemma lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)  
-    ensures pred_4_1_f_b(s') 
+    ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s') 
     {
         lemma_inv_quorum_constraints_dv_next(s, event, s');
         lemma_inv_unchanged_honesty_dv_next(s, event, s');
         lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(s, event, s');
-        lemma_inv_decided_value_of_consensus_instance_is_valid(s, event, s');
+        lemma_inv_decided_value_of_consensus_instance_is_decided_by_quorum(s, event, s');
         lemma_pred_4_1_f_g_i(s, event, s');
-        lemma_pred_4_1_f_b2(s');   
+        lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(s');   
     }     
 
-    lemma lemma_pred_4_1_f_b2(
+    lemma lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(
         s: DVState
     )
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires inv_quorum_constraints(s)
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
-    ensures pred_4_1_f_b(s) 
+    ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s) 
     {
         forall cid |
             && cid in s.consensus_on_attestation_data.Keys
             && s.consensus_on_attestation_data[cid].decided_value.isPresent()
         {
-           lemma_pred_4_1_f_b_helper(s, cid);
+           lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_helper(s, cid);
         }        
     }        
 
@@ -3586,17 +3586,17 @@ module Invs_DV_Next_3
     requires inv_unchanged_honesty(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)    
-    requires inv_decided_value_of_consensus_instance_is_valid(s)    
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires pred_4_1_g_i(s)
     requires pred_4_1_g_i_for_dvc(s)      
-    requires pred_4_1_f_b(s)      
+    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)      
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;   
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get().slot == event.event.id;    
     ensures event.event.decided_attestation_data.slot == event.event.id
     {
-        lemma_pred_4_1_f_b(s, event, s');
-        assert pred_4_1_f_b(s');
+        lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s, event, s');
+        assert inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s');
         assert s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
         assert  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;   
         assert  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get().slot == event.event.id;   
@@ -3630,8 +3630,8 @@ module Invs_DV_Next_3
         && pred_inv_current_latest_attestation_duty_match(s)
         && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s)
         && pred_data_of_att_share_is_decided_value(s)
-        && inv_decided_value_of_consensus_instance_is_valid(s)  
-        && pred_4_1_f_b(s)    
+        && inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)  
+        && inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)    
         && pred_4_1_g_i(s)    
         && pred_4_1_g_i_for_dvc(s)  
         && inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
