@@ -31,22 +31,7 @@ module Ind_Inv_Implies_Safety
     
     import opened Core_Proofs
     import opened Ind_Inv_DV_Next
-    import opened Proofs_Intermediate_Steps
-
-    lemma lemma_ind_inv_dv_ind(dv: DVState, dv': DVState)       
-    requires DV.NextPreCond(dv)
-    requires DV.Next(dv, dv')  
-    requires ind_inv(dv)    
-    ensures ind_inv(dv')  
-    ensures DV.NextPreCond(dv')
-    {
-        var e :|
-            && validEvent(dv, e)
-            && NextEvent(dv, e, dv');
-
-        lemma_ind_inv_dv_next_ind_inv(dv, e, dv');
-        lemma_NextPreCond(dv');
-    }      
+    import opened Proofs_Intermediate_Steps 
 
     predicate non_slashable_attestations(
         dv: DVState
