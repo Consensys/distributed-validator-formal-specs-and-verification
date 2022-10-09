@@ -2699,7 +2699,7 @@ module Invs_DV_Next_3
     requires inv_g_iii_a_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires inv_g_iii_c_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
-    requires inv_g_b_body_body_new(dv, n, process)    
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
@@ -2741,7 +2741,7 @@ module Invs_DV_Next_3
     requires inv_g_iii_body_body(dv, process)
     requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_iii_a_a_body_body(dv, n, process)
-    requires inv_g_b_body_body_new(dv, n, process)    
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
@@ -2782,7 +2782,7 @@ module Invs_DV_Next_3
                 s_mod.attestation_consensus_engine_state
             );           
 
-            // assert inv_g_b_body_body_new(dv, n, s_mod);   
+            // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);   
             forall s1: nat, s2: nat, vp, db2 |
                 && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
                 && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
@@ -2925,7 +2925,7 @@ module Invs_DV_Next_3
     requires inv_g_iii_body_body(dv, process)
     requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_iii_a_a_body_body(dv, n, process)
-    requires inv_g_b_body_body_new(dv, n, process)    
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
@@ -3013,7 +3013,7 @@ module Invs_DV_Next_3
                         ;                        
                     }
                 } 
-                assert inv_g_b_body_body_new(dv, n, s_mod);                   
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);                   
             }
             else 
             {
@@ -3052,7 +3052,7 @@ module Invs_DV_Next_3
                     }
                 }
 
-                assert inv_g_b_body_body_new(dv, n, s_mod);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
             }
 
             forall s1: nat, s2: nat, vp, db2 |
@@ -3143,7 +3143,7 @@ module Invs_DV_Next_3
     requires inv_g_iii_body_body(dv, process)
     requires inv_g_iii_a_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_iii_a_a_body_body(dv, n, process)
-    requires inv_g_b_body_body_new(dv, n, process)    
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)    
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process) 
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
@@ -3407,7 +3407,7 @@ module Invs_DV_Next_3
         s_node: DVCState,
         n: BLSPubkey
     )
-    requires inv_g_b_body_body_new(s, n, s_node)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s, n, s_node)
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii(s)
@@ -3415,7 +3415,7 @@ module Invs_DV_Next_3
     requires inv_quorum_constraints(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_queued_att_duty_is_rcvd_duty3(s)  
-    ensures inv_g_b_body_body_new(s', n, s_node)  
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', n, s_node)  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         forall an |
@@ -3622,7 +3622,7 @@ module Invs_DV_Next_3
         && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(s)
         && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s)
         && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c(s)
-        && pred_4_1_g_b_new(s)
+        && inv_decided_values_of_previous_duties_are_known_new(s)
         && inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s) 
         && is_sequence_attestation_duties_to_be_served_orderd(s)
         && inv_attestation_duty_queue_is_ordered(s) 

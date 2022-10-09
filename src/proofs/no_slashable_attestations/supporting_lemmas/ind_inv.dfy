@@ -131,7 +131,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_13(dv: DVState)       
     {                
         && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv)    
-        && pred_4_1_g_b_new(dv)    
+        && inv_decided_values_of_previous_duties_are_known_new(dv)    
         && inv_g_d_a(dv)
         && inv_g_d_b(dv)  
         && inv_g_a_ii_a(dv)        

@@ -226,7 +226,7 @@ module Invs_DV_Next_4
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state   
     requires index_next_attestation_duty_to_be_served > 0    
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_a_iii_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
@@ -235,7 +235,7 @@ module Invs_DV_Next_4
     requires inv_attestation_duty_queue_is_ordered_4_body_body(dv, n, process, index_next_attestation_duty_to_be_served-1)  
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
-    ensures inv_g_b_body_body_new(dv, n, s');
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     {
         var new_p := process.(
                 attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
@@ -309,7 +309,7 @@ module Invs_DV_Next_4
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
@@ -319,7 +319,7 @@ module Invs_DV_Next_4
 
     requires dv.consensus_on_attestation_data[id].decided_value.isPresent()
     requires dv.consensus_on_attestation_data[id].decided_value.safe_get() ==  decided_attestation_data 
-    ensures inv_g_b_body_body_new(dv, n, s'); 
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s'); 
     {     
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot
@@ -351,7 +351,7 @@ module Invs_DV_Next_4
 
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
             assert get_upperlimit_decided_instances(s_mod) == process.latest_attestation_duty.safe_get().slot + 1;
 
@@ -413,7 +413,7 @@ module Invs_DV_Next_4
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state       
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_d_a_body_body(dv, n, process)
@@ -423,7 +423,7 @@ module Invs_DV_Next_4
     requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires pred_axiom_is_my_attestation_2(dv, process, block)
-    ensures inv_g_b_body_body_new(dv, n, s');
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -474,7 +474,7 @@ module Invs_DV_Next_4
 
             assert inv_g_d_a_body_body(dv, n, s_mod);                  
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
 
             if
@@ -535,13 +535,13 @@ module Invs_DV_Next_4
     // )
     // requires f_check_for_next_queued_duty.requires(process)
     // requires s' == f_check_for_next_queued_duty(process).state   
-    // requires inv_g_b_body_body_new(dv, n, process)
+    // requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     // requires inv_g_a_ii_a_body_body(dv, n, process)
     // requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     // // requires inv_g_d_a_body_body(dv, n, process)
     // requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)  
 
-    // ensures inv_g_b_body_body_new(dv, n, s');
+    // ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     // decreases process.attestation_duties_queue    
     
     lemma lemma_pred_4_1_b_new_f_check_for_next_queued_duty(
@@ -553,13 +553,13 @@ module Invs_DV_Next_4
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires s' == f_check_for_next_queued_duty(process).state   
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_d_a_body_body(dv, n, process)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)  
 
-    ensures inv_g_b_body_body_new(dv, n, s');
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     decreases process.attestation_duties_queue
     {
         if  && process.attestation_duties_queue != [] 
@@ -697,11 +697,11 @@ module Invs_DV_Next_4
 
                 if process.latest_attestation_duty.isPresent()
                 {
-                    assert inv_g_b_body_body_new(dv, n, s');
+                    assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
                 }
                 else 
                 {
-                    assert inv_g_b_body_body_new(dv, n, s');
+                    assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
                 }
 
                 
@@ -709,7 +709,7 @@ module Invs_DV_Next_4
         } 
         else 
         {
-            assert inv_g_b_body_body_new(dv, n, s');
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
         }       
     }    
 
@@ -973,11 +973,11 @@ module Invs_DV_Next_4
         s'_node: DVCState,
         n: BLSPubkey
     )
-    requires inv_g_b_body_body_new(s, n, s_node)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s, n, s_node)
     requires s_node.latest_attestation_duty == s'_node.latest_attestation_duty
     requires s_node.current_attestation_duty == s'_node.current_attestation_duty
     requires s_node.attestation_slashing_db <= s'_node.attestation_slashing_db
-    ensures inv_g_b_body_body_new(s, n, s'_node)        
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s, n, s'_node)        
     {
         assert get_upperlimit_decided_instances(s'_node) == get_upperlimit_decided_instances(s_node);
 
@@ -1014,7 +1014,7 @@ module Invs_DV_Next_4
         && inv_only_dv_construct_signed_attestation_signature(s)
         && inv_queued_att_duty_is_rcvd_duty3(s)    
         && invNetwork(s)
-        && pred_4_1_g_b_new(s) //
+        && inv_decided_values_of_previous_duties_are_known_new(s) //
         && inv_g_a_ii_a(s) //
         && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(s) //
         && inv_g_d_a(s) //
@@ -1074,7 +1074,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                // assert inv_g_b_body_body_new(s', node, s_node);
+                // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 // assert inv_g_d_a_body_body(s', node, s_node);
                 // assert inv_g_a_ii_a_body_body(s', node, s_node);
                 // assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -1110,7 +1110,7 @@ module Invs_DV_Next_4
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires lemma_pred_4_1_b_new_precond(s)
-    ensures pred_4_1_g_b_new(s');  
+    ensures inv_decided_values_of_previous_duties_are_known_new(s');  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1133,7 +1133,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 assert inv_g_a_ii_a_body_body(s', node, s_node);
                 assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -1158,7 +1158,7 @@ module Invs_DV_Next_4
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         );
-                        assert inv_g_b_body_body_new(s', node, s'_node);                     
+                        assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s'_node);                     
  
                               
 
@@ -1175,7 +1175,7 @@ module Invs_DV_Next_4
                             node,
                             s.index_next_attestation_duty_to_be_served
                         ); 
-                        assert inv_g_b_body_body_new(s', node, s'_node);                        
+                        assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s'_node);                        
                
                    
                     case ReceivedAttestationShare(attestation_share) => 
@@ -1194,7 +1194,7 @@ module Invs_DV_Next_4
                             node,
                             s.index_next_attestation_duty_to_be_served
                         );  
-                        assert inv_g_b_body_body_new(s', node, s'_node);                     
+                        assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s'_node);                     
                     
                  
                     case ResendAttestationShares => 
@@ -1204,12 +1204,12 @@ module Invs_DV_Next_4
                     case NoEvent => 
                         lemma_pred_4_1_b_new_helper_easy(s', event, s_node, s'_node, node );
                 }
-                assert inv_g_b_body_body_new(s', node, s'_node);  
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s'_node);  
                 
 
                 forall hn |
                     && hn in s'.honest_nodes_states.Keys   
-                ensures inv_g_b_body_body_new(s', hn, s'.honest_nodes_states[hn]); 
+                ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', hn, s'.honest_nodes_states[hn]); 
                 {
                     if hn != node 
                     {
@@ -1217,16 +1217,16 @@ module Invs_DV_Next_4
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                         lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3a(s, event, s', s.honest_nodes_states[hn], hn);
                         lemma_pred_4_1_b_new_helper_easy(s', event, s.honest_nodes_states[hn], s'.honest_nodes_states[hn], hn);
-                        // assert inv_g_b_body_body_new(s', hn, s'.honest_nodes_states[hn]);                        
+                        // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', hn, s'.honest_nodes_states[hn]);                        
                     }
                 }     
-                assert pred_4_1_g_b_new(s');                  
+                assert inv_decided_values_of_previous_duties_are_known_new(s');                  
         
 
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
                  forall hn |
                     && hn in s'.honest_nodes_states.Keys   
-                ensures inv_g_b_body_body_new(s', hn, s'.honest_nodes_states[hn]); 
+                ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', hn, s'.honest_nodes_states[hn]); 
                 {
 
                     {
@@ -1234,10 +1234,10 @@ module Invs_DV_Next_4
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                         lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_helper3a(s, event, s', s.honest_nodes_states[hn], hn);
                         lemma_pred_4_1_b_new_helper_easy(s', event, s.honest_nodes_states[hn], s'.honest_nodes_states[hn], hn);
-                        // assert inv_g_b_body_body_new(s', hn, s'.honest_nodes_states[hn]);                        
+                        // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', hn, s'.honest_nodes_states[hn]);                        
                     }
                 }     
-                assert pred_4_1_g_b_new(s'); 
+                assert inv_decided_values_of_previous_duties_are_known_new(s'); 
 
         }
     }      
@@ -1335,7 +1335,7 @@ module Invs_DV_Next_4
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
@@ -1438,7 +1438,7 @@ module Invs_DV_Next_4
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state       
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_d_a_body_body(dv, n, process)
@@ -1499,7 +1499,7 @@ module Invs_DV_Next_4
 
             assert inv_g_d_a_body_body(dv, n, s_mod);                  
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
 
             if
@@ -1718,7 +1718,7 @@ module Invs_DV_Next_4
         } 
         else 
         {
-            // assert inv_g_b_body_body_new(dv, n, s');
+            // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
         }       
     }       
 
@@ -1768,7 +1768,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 assert inv_g_a_ii_a_body_body(s', node, s_node);
                 assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -1964,7 +1964,7 @@ module Invs_DV_Next_4
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
@@ -2066,7 +2066,7 @@ module Invs_DV_Next_4
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state       
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_ii_a_body_body(dv, n, process)
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_g_d_a_body_body(dv, n, process)
@@ -2127,7 +2127,7 @@ module Invs_DV_Next_4
 
             assert inv_g_d_a_body_body(dv, n, s_mod);                  
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
 
             if
@@ -2350,7 +2350,7 @@ module Invs_DV_Next_4
         } 
         else 
         {
-            // assert inv_g_b_body_body_new(dv, n, s');
+            // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
         }       
     }             
 
@@ -2399,7 +2399,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 assert inv_g_a_ii_a_body_body(s', node, s_node);
                 assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -2746,7 +2746,7 @@ module Invs_DV_Next_4
 
                 // lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                // assert inv_g_b_body_body_new(s', node, s_node);
+                // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 // assert inv_g_a_ii_a_body_body(s', node, s_node);
                 // assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -3676,7 +3676,7 @@ module Invs_DV_Next_4
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)  
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)    
     requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_a_iii_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
@@ -3742,7 +3742,7 @@ module Invs_DV_Next_4
         lemma_inv_g_a_iii_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
     } 
 
-    lemma lemma_inv_g_b_body_body_new_intermediate_f_att_consensus_decided(
+    lemma lemma_inv_inv_decided_values_of_previous_duties_are_known_body_body_new_intermediate_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -3752,7 +3752,7 @@ module Invs_DV_Next_4
         index_next_attestation_duty_to_be_served: nat        
     )  
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)   
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)    
     requires dv.consensus_on_attestation_data[id].decided_value.isPresent()
@@ -3780,17 +3780,17 @@ module Invs_DV_Next_4
                     attestation_slashing_db
                 )
             );
-    ensures inv_g_b_body_body_new(dv, n, s_mod);
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
     {
 
         assert s_mod.attestation_duties_queue == process.attestation_duties_queue;
 
         lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
 
-        assert inv_g_b_body_body_new(dv, n, s_mod);
+        assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
     }
 
-    lemma lemma_inv_g_b_body_body_new_intermediate_f_listen_for_new_imported_blocks(
+    lemma lemma_inv_inv_decided_values_of_previous_duties_are_known_body_body_new_intermediate_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,        
         s_mod: DVCState,
@@ -3798,7 +3798,7 @@ module Invs_DV_Next_4
         n: BLSPubkey
     )  
     requires f_listen_for_new_imported_blocks.requires(process, block)
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_d_a_body_body(dv, n, process)
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
@@ -3840,7 +3840,7 @@ module Invs_DV_Next_4
                     new_attestation_slashing_db
                 )                
             )
-    ensures inv_g_b_body_body_new(dv, n, s_mod);
+    ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
     {
             var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -3879,7 +3879,7 @@ module Invs_DV_Next_4
                 && dv.consensus_on_attestation_data[new_process.current_attestation_duty.safe_get().slot].decided_value.safe_get() == decided_attestation_data
             ;                        
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
     }    
 
@@ -3902,7 +3902,7 @@ module Invs_DV_Next_4
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)  
 
 
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
 
@@ -3940,9 +3940,9 @@ module Invs_DV_Next_4
 
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
 
-            lemma_inv_g_b_body_body_new_intermediate_f_att_consensus_decided(process, id, decided_attestation_data, s_mod, dv, n, index_next_attestation_duty_to_be_served);
+            lemma_inv_inv_decided_values_of_previous_duties_are_known_body_body_new_intermediate_f_att_consensus_decided(process, id, decided_attestation_data, s_mod, dv, n, index_next_attestation_duty_to_be_served);
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
             assert get_upperlimit_decided_instances(s_mod) == process.latest_attestation_duty.safe_get().slot + 1;
 
@@ -4014,7 +4014,7 @@ module Invs_DV_Next_4
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)
 
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
 
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
@@ -4066,11 +4066,11 @@ module Invs_DV_Next_4
 
             assert inv_g_d_a_body_body(dv, n, s_mod);    
 
-            lemma_inv_g_b_body_body_new_intermediate_f_listen_for_new_imported_blocks(
+            lemma_inv_inv_decided_values_of_previous_duties_are_known_body_body_new_intermediate_f_listen_for_new_imported_blocks(
                 process, block, s_mod, dv, n
             );
 
-            assert inv_g_b_body_body_new(dv, n, s_mod);
+            assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s_mod);
 
 
             if
@@ -4137,7 +4137,7 @@ module Invs_DV_Next_4
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)
 
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires inv_g_b_body_body_new(dv, n, process)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
 
     ensures inv_g_a_iii_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
@@ -4396,7 +4396,7 @@ module Invs_DV_Next_4
         } 
         else 
         {
-            // assert inv_g_b_body_body_new(dv, n, s');
+            // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
         }       
     }  
 
@@ -4451,7 +4451,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 assert inv_g_a_ii_a_body_body(s', node, s_node);
                 assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -4513,7 +4513,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 assert inv_g_a_ii_a_body_body(s', node, s_node);
                 assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -5141,7 +5141,7 @@ module Invs_DV_Next_4
         } 
         else 
         {
-            // assert inv_g_b_body_body_new(dv, n, s');
+            // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
         }       
     }  
 
@@ -5181,7 +5181,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', event.node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', event.node, s_node);
                 assert inv_g_d_a_body_body(s', event.node, s_node);
                 assert inv_g_a_ii_a_body_body(s', event.node, s_node);
                 assert inv_g_iii_b_body_body(s', event.node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -5262,7 +5262,7 @@ module Invs_DV_Next_4
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                assert inv_g_b_body_body_new(s', node, s_node);
+                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_a_body_body(s', node, s_node);
                 assert inv_g_a_ii_a_body_body(s', node, s_node);
                 assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
@@ -5625,7 +5625,7 @@ module Invs_DV_Next_4
 
                 // lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
-                // assert inv_g_b_body_body_new(s', node, s_node);
+                // assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(s', node, s_node);
                 assert inv_g_d_b_body_body(s', node, s_node);
                 // assert inv_g_a_ii_a_body_body(s', node, s_node);
                 // assert inv_g_iii_b_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);

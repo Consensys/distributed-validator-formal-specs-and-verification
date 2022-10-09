@@ -436,11 +436,11 @@ module Proofs_DV_Ind_Inv
         lemma_4_1_g_iii_b(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_pred_4_1_g_b_new(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_inv_decided_values_of_previous_duties_are_known_new(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures pred_4_1_g_b_new(dv')
+    ensures inv_decided_values_of_previous_duties_are_known_new(dv')
     {
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
         lemma_pred_4_1_b_new(dv, e, dv');

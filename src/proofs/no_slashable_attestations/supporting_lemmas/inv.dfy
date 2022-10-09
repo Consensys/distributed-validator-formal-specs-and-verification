@@ -435,19 +435,19 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             0
     }
 
-    predicate pred_4_1_g_b_new(dv: DVState)    
+    predicate inv_decided_values_of_previous_duties_are_known_new(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_g_b_body_body_new(
+            inv_inv_decided_values_of_previous_duties_are_known_body_body_new(
                 dv, 
                 hn,
                 dv.honest_nodes_states[hn]
             )                    
     }          
 
-    predicate inv_g_b_body_body_new(
+    predicate inv_inv_decided_values_of_previous_duties_are_known_body_body_new(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState
@@ -768,7 +768,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 // && construct_SlashingDBAttestation_from_att_data(dv.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
     }         
 
-    // predicate inv_g_b_body_body(
+    // predicate inv_inv_decided_values_of_previous_duties_are_known_body_body(
     //     dv: DVState, 
     //     n: BLSPubkey,
     //     n_state: DVCState
