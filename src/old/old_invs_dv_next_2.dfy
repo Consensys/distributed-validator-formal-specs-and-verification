@@ -4,7 +4,7 @@ include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
-include "fnc_invs_1_26.dfy"
+include "invs_fnc_1.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
 include "invs_dv_next_1.dfy"
@@ -18,7 +18,7 @@ module DV_Next_Invs_8_18
     import opened DVC_Spec
     import opened DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Fnc_Invs_1_26
+    import opened Fnc_Invs_1
     import opened Helper_Sets_Lemmas
     import opened Proofs_Intermediate_Steps
     import opened Invs_DV_Next_1

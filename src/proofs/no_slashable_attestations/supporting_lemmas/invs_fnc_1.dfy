@@ -8,7 +8,7 @@ include "../../common/helper_sets_lemmas.dfy"
 include "../common/common_proofs.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
-module Fnc_Invs_1_26
+module Fnc_Invs_1
 {
     import opened Types 
     import opened CommonFunctions

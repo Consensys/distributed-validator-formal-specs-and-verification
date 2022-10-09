@@ -6,10 +6,10 @@ include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "../common/common_proofs.dfy"
-include "fnc_invs_1_26.dfy"
+include "invs_fnc_1.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
-module Fnc_Invs_27_39
+module Fnc_Invs_2
 {
     import opened Types 
     import opened CommonFunctions
@@ -20,7 +20,7 @@ module Fnc_Invs_27_39
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
-    import opened Fnc_Invs_1_26
+    import opened Fnc_Invs_1
     import opened DVC_Spec_Axioms
     
     
