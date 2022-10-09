@@ -7,7 +7,7 @@ include "inv.dfy"
 include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
-include "dv_next_invs_1_7.dfy"
+include "invs_dv_next_1.dfy"
 include "dv_next_invs_8_18.dfy"
 
 module DV_Next_Invs_19_26

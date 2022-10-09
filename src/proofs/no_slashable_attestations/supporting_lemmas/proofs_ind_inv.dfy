@@ -7,7 +7,7 @@ include "inv.dfy"
 include "fnc_invs_1_26.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "proofs_intermediate_steps.dfy"
-include "dv_next_invs_1_7.dfy"
+include "invs_dv_next_1.dfy"
 include "dv_next_invs_8_18.dfy"
 include "dv_next_invs_19_26.dfy"
 include "invs_dv_next_4.dfy"
@@ -130,7 +130,7 @@ module Proofs_DV_Ind_Inv
 
     
 
-    lemma lemma_ind_inv_dv_next_invs_1_7(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_invs_dv_next_1(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -719,7 +719,7 @@ module Proofs_DV_Ind_Inv
     // ensures invs_19_26(dv')
     // ensures invs_27_37(dv')
     // {
-    //     lemma_ind_inv_dv_next_invs_1_7(dv, e, dv');
+    //     lemma_ind_inv_invs_dv_next_1(dv, e, dv');
     //     lemma_ind_inv_dv_next_invs_8_18(dv, e, dv');
     //     lemma_ind_inv_dv_next_invs_19_26(dv, e, dv');
     //     lemma_ind_inv_invs_dv_next_4(dv, e, dv');         
@@ -732,7 +732,7 @@ module Proofs_DV_Ind_Inv
     ensures invs_1_7(dv')
     ensures invs_8_18(dv')
     {
-        lemma_ind_inv_dv_next_invs_1_7(dv, e, dv');
+        lemma_ind_inv_invs_dv_next_1(dv, e, dv');
         lemma_ind_inv_dv_next_invs_8_18(dv, e, dv');
     }
 
