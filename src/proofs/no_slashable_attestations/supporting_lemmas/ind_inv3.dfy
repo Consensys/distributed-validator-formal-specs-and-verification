@@ -394,7 +394,7 @@ module IndInv3
         }
     }  
 
-    lemma lemma_inv_46_a(
+    lemma lemma_inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(
         s: DVState,
         event: DV.Event,
         s': DVState
