@@ -3,8 +3,8 @@ include "../common/attestation_creation_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
-include "ind_inv.dfy"
-include "ind_inv.dfy"
+include "ind_inv1.dfy"
+include "ind_inv1.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "invs_fnc_1.dfy"
 include "../../common/helper_sets_lemmas.dfy"
@@ -12,7 +12,7 @@ include "invs_dv_next_1.dfy"
 include "invs_dv_next_2.dfy"
 include "../common/common_proofs.dfy"
 include "invs_fnc_2.dfy"
-include "ind_inv.dfy"
+include "ind_inv1.dfy"
 include "ind_inv2.dfy"
 include "ind_inv3.dfy"
 include "ind_inv4.dfy"
@@ -251,8 +251,7 @@ module Core_Proofs
     }      
 
 
-    lemma lemma_4_1_general(dv: DVState, a: Attestation, a': Attestation)
-    // requires |dv.all_nodes| > 0
+    lemma lemma_4_1_general(dv: DVState, a: Attestation, a': Attestation)    
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
     requires pred_4_1_b(dv)

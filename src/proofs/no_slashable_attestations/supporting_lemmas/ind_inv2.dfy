@@ -5,7 +5,7 @@ include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
-include "ind_inv.dfy"
+include "ind_inv1.dfy"
 include "../common/dvc_spec_axioms.dfy"
 
 
