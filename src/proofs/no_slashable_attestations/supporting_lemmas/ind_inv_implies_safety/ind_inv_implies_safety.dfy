@@ -48,11 +48,11 @@ module Ind_Inv_Implies_Safety
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     }
 
-    lemma lemma_ind_inv_no_slashable_submitted_attestations(dv: DVState)
+    lemma lem_ind_inv_no_slashable_submitted_attestations(dv: DVState)
     requires ind_inv(dv)    
     ensures non_slashable_attestations(dv)
     {   
-        lemma_ind_inv_implies_intermediate_steps(dv);
+        lem_ind_inv_implies_intermediate_steps(dv);
 
         forall a: Attestation, a': Attestation
                     | 
@@ -80,7 +80,7 @@ module Ind_Inv_Implies_Safety
             && inv_queued_att_duty_is_rcvd_duty0(dv)
             && inv_queued_att_duty_is_rcvd_duty1(dv)
             ;
-            lemma_no_slashable_submitted_attestations(dv, a, a');
+            lem_no_slashable_submitted_attestations(dv, a, a');
         }
     }
 

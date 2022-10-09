@@ -664,7 +664,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             a2 == process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1_for_loop_inv(process, block, i)
         }        
 
-        lemma lemma_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(
+        lemma lem_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(
             process: DVCState,
             block: BeaconBlock,
             i: nat,
@@ -700,7 +700,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }
 
 
-        lemma lemma_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(
+        lemma lem_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(
             process: DVCState,
             block: BeaconBlock,
             a1: map<Slot, AttestationData>
@@ -863,7 +863,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                               
         }        
 
-        twostate lemma lemma_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_present(
+        twostate lemma lem_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_present(
             p0: DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             old_instances: set<Slot>,
@@ -886,7 +886,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             
         }    
 
-        twostate lemma lemma_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_not_present(
+        twostate lemma lem_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_not_present(
             p0: DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             block: BeaconBlock
@@ -906,7 +906,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             
         }         
 
-        twostate lemma lemma_listen_for_new_imported_blocks_from_part_3_to_4(
+        twostate lemma lem_listen_for_new_imported_blocks_from_part_3_to_4(
             p0: DVCState,
             block: BeaconBlock
         )      
@@ -932,7 +932,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             
         }      
 
-        twostate predicate lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(
+        twostate predicate lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(
             p0: DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             block: BeaconBlock
@@ -949,12 +949,12 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             && toDVCState() == f_check_for_next_queued_duty(p0).state
         }
 
-        twostate lemma lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided(
+        twostate lemma lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided(
             p0: DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             block: BeaconBlock
         )      
-        requires lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(p0, att_consensus_instances_already_decided, block)
+        requires lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(p0, att_consensus_instances_already_decided, block)
         ensures
                 toDVCState()  == f_listen_for_new_imported_blocks(old(toDVCState()), block).state;
         {
@@ -1020,7 +1020,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }             
         
 
-        twostate lemma lemma_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(
+        twostate lemma lem_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(
             block: BeaconBlock,
             att_consensus_instances_already_decided: map<Slot, AttestationData>
         )      
@@ -1111,7 +1111,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         // As the name of the lemma suggests, this is an unused lemma which, however, if commented out, very very very
         // surprisingly, causes the verification time of the method listen_for_new_imported_blocks to increase to more
         // than 30 min. lemma
-        // unused_lemma_that_if_commented_out_gets_the_verification_time_of_the_following_method_to_increase_to_30_plus_min(
+        // unused_lem_that_if_commented_out_gets_the_verification_time_of_the_following_method_to_increase_to_30_plus_min(
         // process: DVCState, block: BeaconBlock
         // )
         // requires f_listen_for_new_imported_blocks.requires(process, block)  
@@ -1172,7 +1172,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
                 }
                 if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)){
-                    lemma_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(old(toDVCState()), block, i, ax, att_consensus_instances_already_decided);
+                    lem_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(old(toDVCState()), block, i, ax, att_consensus_instances_already_decided);
                 }
 
                 ...;    
@@ -1184,7 +1184,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)){
                         assert isValidReprExtended();   
                         assert lemmaConsensusInstancesAreTheSamePrecond(att_consensus);                
-                        lemma_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(old(toDVCState()), block, att_consensus_instances_already_decided);
+                        lem_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(old(toDVCState()), block, att_consensus_instances_already_decided);
                 }   
             }       
  
@@ -1242,7 +1242,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                         assert o2 == o1.(
                             future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances
                         );
-                        lemma_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_present(o1, att_consensus_instances_already_decided, old_instances, block);
+                        lem_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_present(o1, att_consensus_instances_already_decided, old_instances, block);
                         assert unchanged(`current_attestation_duty);                                                   
                     }  
                 } 
@@ -1298,7 +1298,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                         assert o2 == o1.(
                             future_att_consensus_instances_already_decided := att_consensus_instances_already_decided 
                         );
-                        lemma_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_not_present(o1, att_consensus_instances_already_decided, block);
+                        lem_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_not_present(o1, att_consensus_instances_already_decided, block);
                         assert unchanged(`current_attestation_duty);                                                                    
                     } 
                 }                                         
@@ -1331,7 +1331,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                         if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
                         {
                             lemmaAttestationHasBeenAddedToSlashingDbForall@L3(att_consensus_instances_already_decided[old@L3(current_attestation_duty).safe_get().slot]);
-                            lemma_listen_for_new_imported_blocks_from_part_3_to_4(o3, block);
+                            lem_listen_for_new_imported_blocks_from_part_3_to_4(o3, block);
                             assert o4 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block);  
                         }
                     } 
@@ -1341,7 +1341,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                     {
                         if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
                         {
-                            assert lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(o4, att_consensus_instances_already_decided, block) by 
+                            assert lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(o4, att_consensus_instances_already_decided, block) by 
                             {
                                 assert 
                                 && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
@@ -1352,7 +1352,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                                 ;                                
                             }    
 
-                            lemma_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided(o4, att_consensus_instances_already_decided, block);  
+                            lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided(o4, att_consensus_instances_already_decided, block);  
                         }
                     }                                   
 
@@ -1370,7 +1370,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
                 {
                     // assert !old(current_attestation_duty).isPresent();
-                    lemma_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(block, att_consensus_instances_already_decided);
+                    lem_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(block, att_consensus_instances_already_decided);
                 }
             }
             if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))

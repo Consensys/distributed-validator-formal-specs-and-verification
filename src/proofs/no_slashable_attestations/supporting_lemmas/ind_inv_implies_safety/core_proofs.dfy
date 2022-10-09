@@ -38,7 +38,7 @@ module Core_Proofs
     }
 
 
-    lemma lemma_no_slashable_submitted_attestations_with_different_slots_ii(dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
+    lemma lem_no_slashable_submitted_attestations_with_different_slots_ii(dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
                         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
                         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dv.all_nodes| > 0
@@ -87,13 +87,13 @@ module Core_Proofs
         assert vpa' == (ad: AttestationData) => consensus_is_valid_attestation_data(dba', ad, duty);
         assert !is_slashable_attestation_data(dba', dva');
 
-        lemma_is_slashable_attestation_data(dba', dva', sdba', sdba);        
+        lem_is_slashable_attestation_data(dba', dva', sdba', sdba);        
         assert !is_slashable_attestation_data_eth_spec(dva, dva');
         assert !is_slashable_attestation_data_eth_spec(dva', dva);                 
     }
 
 
-    lemma lemma_no_slashable_submitted_attestations_with_different_slots_i(dv: DVState, a: Attestation, a': Attestation)
+    lemma lem_no_slashable_submitted_attestations_with_different_slots_i(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)   
     requires inv_unchanged_honesty(dv)
@@ -167,7 +167,7 @@ module Core_Proofs
                                 concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
     }
 
-    lemma lemma_no_slashable_submitted_attestations_with_different_slots(dv: DVState, a: Attestation, a': Attestation)
+    lemma lem_no_slashable_submitted_attestations_with_different_slots(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
@@ -191,7 +191,7 @@ module Core_Proofs
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
-        lemma_no_slashable_submitted_attestations_with_different_slots_i(dv, a, a');
+        lem_no_slashable_submitted_attestations_with_different_slots_i(dv, a, a');
 
         
         var consa := dv.consensus_on_attestation_data[a.data.slot];
@@ -201,11 +201,11 @@ module Core_Proofs
 
         
         assert concl_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
-        lemma_no_slashable_submitted_attestations_with_different_slots_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        lem_no_slashable_submitted_attestations_with_different_slots_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
         
     }    
 
-    lemma lemma_no_slashable_submitted_attestations_with_same_slots(dv: DVState, a: Attestation, a': Attestation)
+    lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
@@ -250,7 +250,7 @@ module Core_Proofs
     }      
 
 
-    lemma lemma_no_slashable_submitted_attestations(dv: DVState, a: Attestation, a': Attestation)    
+    lemma lem_no_slashable_submitted_attestations(dv: DVState, a: Attestation, a': Attestation)    
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
@@ -271,19 +271,19 @@ module Core_Proofs
     {
         if a.data.slot == a'.data.slot 
         {
-            lemma_no_slashable_submitted_attestations_with_same_slots(dv, a, a');
+            lem_no_slashable_submitted_attestations_with_same_slots(dv, a, a');
         }
         else if a.data.slot < a'.data.slot 
         {
-            lemma_no_slashable_submitted_attestations_with_different_slots(dv, a, a');
+            lem_no_slashable_submitted_attestations_with_different_slots(dv, a, a');
         }
         else {
-            lemma_no_slashable_submitted_attestations_with_different_slots(dv, a', a);
+            lem_no_slashable_submitted_attestations_with_different_slots(dv, a', a);
         }
     } 
 
 
-    lemma lemma_is_slashable_attestation_data(
+    lemma lem_is_slashable_attestation_data(
         att_slashing_db: set<SlashingDBAttestation>, 
         ad: AttestationData,
         sdba: SlashingDBAttestation,

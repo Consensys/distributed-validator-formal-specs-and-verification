@@ -223,7 +223,7 @@ module CommonFunctions{
         pubkey: BLSPubkey
     )   
 
-    lemma {:axiom} lemma_verify_bls_siganture()
+    lemma {:axiom} lem_verify_bls_siganture()
     ensures 
         forall d: Root, s, pk1, pk2 |
             && verify_bls_siganture(d, s, pk1)

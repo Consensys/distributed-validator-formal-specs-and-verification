@@ -76,7 +76,7 @@ predicate InjectiveOverSeq<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
   forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
 }
 
-lemma lemma_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+lemma lem_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
   requires forall x :: f.requires(x);
   requires Injective(f);
   requires forall x :: x in xs <==> f(x) in ys;
@@ -88,11 +88,11 @@ lemma lemma_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
     var x :| x in xs;
     var xs' := xs - {x};
     var ys' := ys - {f(x)};
-    lemma_MapSetCardinality(xs', ys', f);
+    lem_MapSetCardinality(xs', ys', f);
   }
 }
 
-// lemma lemma_MapSetCardinalityOverSImp<X, Y>(xs:set<X>, f:X-->Y)
+// lemma lem_MapSetCardinalityOverSImp<X, Y>(xs:set<X>, f:X-->Y)
 //   requires forall x :: x in xs ==> f.requires(x);
 //   requires InjectiveOverSimp(xs, f);
 //   requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
@@ -103,11 +103,11 @@ lemma lemma_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
 //     var x :| x in xs;
 //     var xs' := xs - {x};
 //     var ys' := ys - {f(x)};
-//     lemma_MapSetCardinalityOver(xs', ys', f);
+//     lem_MapSetCardinalityOver(xs', ys', f);
 //   }
 // }
 
-lemma lemma_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+lemma lem_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
   requires forall x :: x in xs ==> f.requires(x);
   requires InjectiveOver(xs, ys, f);
   requires forall x :: x in xs ==> f(x) in ys;
@@ -119,11 +119,11 @@ lemma lemma_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
     var x :| x in xs;
     var xs' := xs - {x};
     var ys' := ys - {f(x)};
-    lemma_MapSetCardinalityOver(xs', ys', f);
+    lem_MapSetCardinalityOver(xs', ys', f);
   }
 }
 
-lemma lemma_MapSubsetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X->Y)
+lemma lem_MapSubsetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X->Y)
   requires forall x :: x in xs ==> f.requires(x);
   requires InjectiveOver(xs, ys, f);
   requires forall x :: x in xs ==> f(x) in ys;
@@ -134,11 +134,11 @@ lemma lemma_MapSubsetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X->Y)
     var x :| x in xs;
     var xs' := xs - {x};
     var ys' := ys - {f(x)};
-    lemma_MapSubsetCardinalityOver(xs', ys', f);
+    lem_MapSubsetCardinalityOver(xs', ys', f);
   }
 }
 
-lemma lemma_MapSubsetCardinalityOverNoInjective<T,T2>(s:set<T>, s2: set<T2>, f:T --> T2)
+lemma lem_MapSubsetCardinalityOverNoInjective<T,T2>(s:set<T>, s2: set<T2>, f:T --> T2)
 requires forall m | m in s :: f.requires(m)
 requires s2 == set m | m in s :: f(m)
 requires |s| > 0 
@@ -149,7 +149,7 @@ ensures |s2| > 0
   assert f(e) in s2;
 }
 
-lemma lemma_MapSubseqCardinalityOver<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
+lemma lem_MapSubseqCardinalityOver<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
   requires forall x :: x in xs ==> f.requires(x);
   requires forall i, j :: 0 <= i < |xs| && 0 <= j < |xs| && i != j ==> xs[i] != xs[j];
   requires InjectiveOverSeq(xs, ys, f);
@@ -177,7 +177,7 @@ lemma lemma_MapSubseqCardinalityOver<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
     {
         assert x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys';
     }
-    lemma_MapSubseqCardinalityOver(xs', ys', f);
+    lem_MapSubseqCardinalityOver(xs', ys', f);
   }
 }
 
@@ -189,7 +189,7 @@ function MapSetToSet<X(!new), Y>(xs:set<X>, f:X->Y):set<Y>
   ensures  |xs| == |MapSetToSet(xs, f)|;
 {
   var ys := set x | x in xs :: f(x); 
-  lemma_MapSetCardinality(xs, ys, f);
+  lem_MapSetCardinality(xs, ys, f);
   ys
 }
 
@@ -201,7 +201,7 @@ function MapSetToSetOver<X, Y>(xs:set<X>, f:X->Y):set<Y>
   ensures  |xs| == |MapSetToSetOver(xs, f)|;
 {
   var ys := set x | x in xs :: f(x); 
-  lemma_MapSetCardinalityOver(xs, ys, f);
+  lem_MapSetCardinalityOver(xs, ys, f);
   ys
 }
 
@@ -214,7 +214,7 @@ function MapSeqToSet<X(!new), Y>(xs:seq<X>, f:X->Y):set<Y>
   set x | x in xs :: f(x)
 }
 
-lemma lemma_SubsetCardinality<X>(xs:set<X>, ys:set<X>, f:X->bool)
+lemma lem_SubsetCardinality<X>(xs:set<X>, ys:set<X>, f:X->bool)
   requires forall x :: x in xs ==> f.requires(x);
   requires forall x :: x in ys ==> x in xs && f(x);
   ensures  |ys| <= |xs|;
@@ -224,7 +224,7 @@ lemma lemma_SubsetCardinality<X>(xs:set<X>, ys:set<X>, f:X->bool)
     var y :| y in ys;
     var xs' := xs - {y};
     var ys' := ys - {y};
-    lemma_SubsetCardinality(xs', ys', f);
+    lem_SubsetCardinality(xs', ys', f);
   }
 }
 
@@ -235,7 +235,7 @@ function MakeSubset<X(!new)>(xs:set<X>, f:X->bool):set<X>
   ensures  |MakeSubset(xs, f)| <= |xs|;
 {
   var ys := set x | x in xs && f(x);
-  lemma_SubsetCardinality(xs, ys, f);
+  lem_SubsetCardinality(xs, ys, f);
   ys
 }
 
@@ -253,7 +253,7 @@ function{:opaque} setPos(xs:set<int>):set<int>
 }
 */
 
-lemma lemma_UnionCardinality<X>(xs:set<X>, ys:set<X>, us:set<X>)
+lemma lem_UnionCardinality<X>(xs:set<X>, ys:set<X>, us:set<X>)
     requires us==xs+ys;
     ensures |us| >= |xs|;
     decreases ys;
@@ -265,11 +265,11 @@ lemma lemma_UnionCardinality<X>(xs:set<X>, ys:set<X>, us:set<X>)
             var xr := xs - {y};
             var yr := ys - {y};
             var ur := us - {y};
-            lemma_UnionCardinality(xr, yr, ur);
+            lem_UnionCardinality(xr, yr, ur);
         } else {
             var ur := us - {y};
             var yr := ys - {y};
-            lemma_UnionCardinality(xs, yr, ur);
+            lem_UnionCardinality(xs, yr, ur);
         }
     }
 }
@@ -284,7 +284,7 @@ function SetOfNumbersInRightExclusiveRange(a:int, b:int):set<int>
     if a == b then {} else {a} + SetOfNumbersInRightExclusiveRange(a+1, b)
 }
 
-lemma lemma_CardinalityOfBoundedSet(s:set<int>, a:int, b:int)
+lemma lem_CardinalityOfBoundedSet(s:set<int>, a:int, b:int)
     requires forall opn :: opn in s ==> a <= opn < b;
     requires a <= b;
     ensures  |s| <= b-a;

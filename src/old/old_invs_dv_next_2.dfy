@@ -25,7 +25,7 @@ module DV_Next_Invs_8_18
 
      
 
-    lemma lemma_inv_none_latest_served_duty_implies_none_current_att_duty_dv_next(
+    lemma lem_inv_none_latest_served_duty_implies_none_current_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -44,19 +44,19 @@ module DV_Next_Invs_8_18
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv_none_latest_served_duty_implies_none_current_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_none_latest_served_duty_implies_none_current_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_none_latest_served_duty_implies_none_current_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv_none_latest_served_duty_implies_none_current_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
                         assert inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc_mod);
-                        lemma_inv_none_latest_served_duty_implies_none_current_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
@@ -70,7 +70,7 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_dv_next(
+    lemma lem_inv_current_att_duty_is_either_none_or_latest_served_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -89,19 +89,19 @@ module DV_Next_Invs_8_18
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
                         assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc_mod);
-                        lemma_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
@@ -115,7 +115,7 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_dv_next(
+    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -134,19 +134,19 @@ module DV_Next_Invs_8_18
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
                         assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(dvc_mod);
-                        lemma_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
@@ -161,7 +161,7 @@ module DV_Next_Invs_8_18
     }  
 
     
-    lemma lemma_inv_is_sequence_attestation_duties_to_be_serves_orders_dv_next(
+    lemma lem_inv_is_sequence_attestation_duties_to_be_serves_orders_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -175,8 +175,8 @@ module DV_Next_Invs_8_18
     }
     
 
-    // It takes more than 60 seconds to prove lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next.
-    lemma lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next(
+    // It takes more than 60 seconds to prove lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next.
+    lemma lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -196,19 +196,19 @@ module DV_Next_Invs_8_18
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                             
-                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, nodeEvent.block);
-                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
                         assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc_mod);
-                        lemma_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
@@ -222,7 +222,7 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv_strictly_increasing_queue_of_att_duties_dv_next(
+    lemma lem_inv_strictly_increasing_queue_of_att_duties_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -248,19 +248,19 @@ module DV_Next_Invs_8_18
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                                                                     
-                        lemma_inv_strictly_increasing_queue_of_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
+                        lem_inv_strictly_increasing_queue_of_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_strictly_increasing_queue_of_att_duties_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lem_inv_strictly_increasing_queue_of_att_duties_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_strictly_increasing_queue_of_att_duties_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_strictly_increasing_queue_of_att_duties_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        lem_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
-                        lemma_inv_strictly_increasing_queue_of_att_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_strictly_increasing_queue_of_att_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_strictly_increasing_queue_of_att_duties_body(dvc');
                     
                     case ResendAttestationShares =>                                                                      
@@ -285,7 +285,7 @@ module DV_Next_Invs_8_18
         }   
     }  
 
-    lemma lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_dv_next(
+    lemma lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -314,24 +314,24 @@ module DV_Next_Invs_8_18
                         
                         assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty); 
                         assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, attestation_duty);                                             
-                        lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
+                        lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                        lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) =>                     
                         var dvc_mod := add_block_to_bn(dvc, block);
-                        lemma_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
-                        lemma_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        lem_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
-                        lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
+                        lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc_mod);
 
-                        lemma_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc');
                     
                     case ResendAttestationShares =>                                                                                      

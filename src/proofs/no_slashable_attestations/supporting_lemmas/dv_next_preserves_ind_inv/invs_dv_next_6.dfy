@@ -47,7 +47,7 @@ module Invs_DV_Next_6
 
 
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         dv: DVState,
@@ -61,7 +61,7 @@ module Invs_DV_Next_6
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
     requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
-    requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served + 1, attestation_duty, n)
+    requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served + 1, attestation_duty, n)
     {
         var new_attestation_duties_queue := process.attestation_duties_queue + [attestation_duty];
 
@@ -115,7 +115,7 @@ module Invs_DV_Next_6
         assert inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body_helper(process, new_attestation_duties_queue);
     } 
 
-    lemma lemma_NextEventPreCond_ServeAttstationDuty(
+    lemma lem_NextEventPreCond_ServeAttstationDuty(
         s: DVState,
         event: DV.Event
     )
@@ -130,7 +130,7 @@ module Invs_DV_Next_6
     requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)                
     {
-        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
+        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
             s.honest_nodes_states[event.node],
             event.event.attestation_duty,
             s,
@@ -143,7 +143,7 @@ module Invs_DV_Next_6
     }
 
 
-    lemma lemma_NextEventPreCond(
+    lemma lem_NextEventPreCond(
         s: DVState,
         event: DV.Event
     )
@@ -160,7 +160,7 @@ module Invs_DV_Next_6
     {
         if event.event.ServeAttstationDuty?
         {
-            lemma_NextEventPreCond_ServeAttstationDuty(s, event);
+            lem_NextEventPreCond_ServeAttstationDuty(s, event);
         }
         assert NextEventPreCond(s, event);
     }        
@@ -169,7 +169,7 @@ module Invs_DV_Next_6
        
       
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         s': DVCState,
@@ -182,7 +182,7 @@ module Invs_DV_Next_6
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
-    requires lemma_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served+1, attestation_duty, n)
+    requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served+1, attestation_duty, n)
 
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
@@ -200,10 +200,10 @@ module Invs_DV_Next_6
             assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
         }        
 
-        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served); 
+        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served); 
     }  
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -250,7 +250,7 @@ module Invs_DV_Next_6
             );
        
 
-        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
             s_mod, 
             s',
             dv,
@@ -259,7 +259,7 @@ module Invs_DV_Next_6
         );          
     }        
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         s': DVCState,
@@ -307,7 +307,7 @@ module Invs_DV_Next_6
             );
 
 
-            lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+            lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
                 s_mod, 
                 s',
                 dv,
@@ -318,7 +318,7 @@ module Invs_DV_Next_6
         }
     }      
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
         process: DVCState,
         s': DVCState,
         dv: DVState,
@@ -351,7 +351,7 @@ module Invs_DV_Next_6
                     )                        
                 );
 
-                lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
+                lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
 
             }
             else 
@@ -364,7 +364,7 @@ module Invs_DV_Next_6
         }             
     } 
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_easy(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_easy(
         s_node: DVCState,
         s'_node: DVCState
     )
@@ -378,7 +378,7 @@ module Invs_DV_Next_6
 
     
 
-    lemma lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_next_honest(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_next_honest(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -401,8 +401,8 @@ module Invs_DV_Next_6
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lemma_ServeAttstationDuty2(s, event, s');
-                        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
+                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
                             s'_node,
@@ -415,9 +415,9 @@ module Invs_DV_Next_6
 
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
-                        lemma_NonServeAttstationDuty(s, event, s');
+                        lem_NonServeAttstationDuty(s, event, s');
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
-                        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
+                        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
                             s_node,
                             id,
                             decided_attestation_data,
@@ -432,15 +432,15 @@ module Invs_DV_Next_6
                
                    
                     case ReceivedAttestationShare(attestation_share) =>
-                        lemma_NonServeAttstationDuty(s, event, s'); 
-                        lemma_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
+                        lem_NonServeAttstationDuty(s, event, s'); 
+                        lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         assert inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s'_node);    
                         
 
                     case ImportedNewBlock(block) => 
-                        lemma_NonServeAttstationDuty(s, event, s');
+                        lem_NonServeAttstationDuty(s, event, s');
                         var s_node2 := add_block_to_bn(s_node, nodeEvent.block);
-                        lemma_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
+                        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
                             s'_node,
@@ -453,11 +453,11 @@ module Invs_DV_Next_6
                     
                  
                     case ResendAttestationShares => 
-                        lemma_NonServeAttstationDuty(s, event, s');
-                        lemma_f_resend_attestation_share_constants(s_node, s'_node);
+                        lem_NonServeAttstationDuty(s, event, s');
+                        lem_f_resend_attestation_share_constants(s_node, s'_node);
 
                     case NoEvent => 
-                        lemma_NonServeAttstationDuty(s, event, s');
+                        lem_NonServeAttstationDuty(s, event, s');
                         assert s_node == s'_node;                         
                 }   
                 assert inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s'_node);    

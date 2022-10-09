@@ -16,7 +16,7 @@ module Ind_Inv_DV_Init
     import opened DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     
-    lemma lemma_ind_inv_dv_init(dv: DVState)       
+    lemma lem_ind_inv_dv_init(dv: DVState)       
     requires DV.Init(dv, {})    
     ensures ind_inv(dv)
     ensures NextPreCond(dv)

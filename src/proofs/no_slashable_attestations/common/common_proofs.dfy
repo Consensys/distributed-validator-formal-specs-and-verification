@@ -23,7 +23,7 @@ module Common_Proofs
     import DVC_Spec_NonInstr
 
     // TODO: Moved from invs_dv_next_3.dfy
-    lemma lemma_updateConsensusInstanceValidityCheck(
+    lemma lem_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         r: ConsensusEngineState
@@ -37,7 +37,7 @@ module Common_Proofs
                     new_attestation_slashing_db
                 );
 
-        lemma_updateConsensusInstanceValidityCheckHelper(
+        lem_updateConsensusInstanceValidityCheckHelper(
                 s.active_attestation_consensus_instances,
                 new_attestation_slashing_db,
                 new_active_attestation_consensus_instances);
@@ -74,7 +74,7 @@ module Common_Proofs
     }
 
     // TODO: Moved from invs_dv_next_3.dfy
-    lemma lemma_updateConsensusInstanceValidityCheckHelper(
+    lemma lem_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         m': map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>
@@ -105,7 +105,7 @@ module Common_Proofs
 
     }  
 
-    lemma lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateAttSlashingDBHist(
+    lemma lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
         new_active_attestation_consensus_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
@@ -127,7 +127,7 @@ module Common_Proofs
             )
     { }
 
-    lemma lemma_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateConsensusInstanceValidityCheck(
+    lemma lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         r: ConsensusEngineState
@@ -138,7 +138,7 @@ module Common_Proofs
                     s.active_attestation_consensus_instances[k].attestation_duty.slot == k )
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r)
     {
-        lemma_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
+        lem_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
         assert r.att_slashing_db_hist.Keys
                 == s.att_slashing_db_hist.Keys + s.active_attestation_consensus_instances.Keys;
 
@@ -223,7 +223,7 @@ module Common_Proofs
             }
         }
      
-        lemma_updateConsensusInstanceValidityCheckHelper(
+        lem_updateConsensusInstanceValidityCheckHelper(
                 s.active_attestation_consensus_instances,
                 new_attestation_slashing_db,
                 new_active_attestation_consensus_instances);
@@ -237,7 +237,7 @@ module Common_Proofs
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r);
     }
 
-    lemma lemma_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_updateConsensusInstanceValidityCheck(
+    lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         r: ConsensusEngineState
@@ -248,7 +248,7 @@ module Common_Proofs
                     s.active_attestation_consensus_instances[k].attestation_duty.slot == k )
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(r, new_attestation_slashing_db)
     {
-        lemma_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
+        lem_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
         assert r.att_slashing_db_hist.Keys
                 == s.att_slashing_db_hist.Keys + s.active_attestation_consensus_instances.Keys;
 

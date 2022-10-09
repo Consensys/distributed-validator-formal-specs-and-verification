@@ -28,7 +28,7 @@ module No_Slashable_Attestations_Main_Theorem
         )
     }  
 
-    lemma lemma_non_slashable_attestations_rec(
+    lemma lem_non_slashable_attestations_rec(
         trace: iseq<DVState>,
         i: nat
     )
@@ -39,16 +39,16 @@ module No_Slashable_Attestations_Main_Theorem
     {
         if i == 0 
         {
-            lemma_ind_inv_dv_init(trace[0]);
+            lem_ind_inv_dv_init(trace[0]);
         }
         else 
         {
-            lemma_non_slashable_attestations_rec(trace, i-1);
-            lemma_ind_inv_dv_ind(trace[i-1], trace[i]);
+            lem_non_slashable_attestations_rec(trace, i-1);
+            lem_ind_inv_dv_ind(trace[i-1], trace[i]);
         }
     }
 
-    lemma lemma_non_slashable_attestations(
+    lemma lem_non_slashable_attestations(
         trace: iseq<DVState>
     )
     requires isValidTrace(trace)
@@ -58,8 +58,8 @@ module No_Slashable_Attestations_Main_Theorem
         ensures ind_inv(trace[i])
         ensures non_slashable_attestations(trace[i])
         {
-            lemma_non_slashable_attestations_rec(trace, i);
-            lemma_ind_inv_no_slashable_submitted_attestations(trace[i]);
+            lem_non_slashable_attestations_rec(trace, i);
+            lem_ind_inv_no_slashable_submitted_attestations(trace[i]);
         }
         
     }    

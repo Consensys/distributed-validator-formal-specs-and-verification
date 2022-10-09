@@ -19,12 +19,12 @@ module Proofs_Intermediate_Steps
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
     import opened Helper_Sets_Lemmas    
     
-    lemma lemma_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: DVState)
+    lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: DVState)
     requires inv_unchanged_honesty(dv)
     ensures inv_queued_att_duty_is_rcvd_duty3(dv)
     { }
         
-    lemma lemma_concl_next_att_duty_is_higher_than_current_att_duty_ind_inv(
+    lemma lem_concl_next_att_duty_is_higher_than_current_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
@@ -49,7 +49,7 @@ module Proofs_Intermediate_Steps
         }
     } 
     
-    lemma lemma_concl_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(
+    lemma lem_concl_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
@@ -74,7 +74,7 @@ module Proofs_Intermediate_Steps
         }
     } 
       
-    lemma lemma_concl_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(
+    lemma lem_concl_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv_quorum_constraints(dv)  
@@ -114,7 +114,7 @@ module Proofs_Intermediate_Steps
         }        
     }
 
-    lemma lemma_concl_future_att_duty_is_higher_than_queued_att_duty_ind_inv(
+    lemma lem_concl_future_att_duty_is_higher_than_queued_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv_quorum_constraints(dv)  
@@ -160,7 +160,7 @@ module Proofs_Intermediate_Steps
     }
 
 
-    lemma lemma_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(
+    lemma lem_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
@@ -200,7 +200,7 @@ module Proofs_Intermediate_Steps
         }
     } 
 
-    lemma lemma_inv_queued_att_duty_is_rcvd_duty1_ind_inv(
+    lemma lem_inv_queued_att_duty_is_rcvd_duty1_ind_inv(
         dv: DVState
     )    
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)
@@ -226,7 +226,7 @@ module Proofs_Intermediate_Steps
             
     } 
 
-    lemma lemma_inv_queued_att_duty_is_rcvd_duty0_ind_inv(
+    lemma lem_inv_queued_att_duty_is_rcvd_duty0_ind_inv(
         dv: DVState
     )    
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)
@@ -263,7 +263,7 @@ module Proofs_Intermediate_Steps
         }
     }   
 
-    lemma lemma_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(
+    lemma lem_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(
         dv: DVState
     )    
     requires inv_strictly_increasing_queue_of_att_duties(dv)
@@ -271,21 +271,21 @@ module Proofs_Intermediate_Steps
     ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)    
     {}
 
-    lemma lemma_inv_attestation_duty_queue_is_ordered(
+    lemma lem_inv_attestation_duty_queue_is_ordered(
         dv: DVState
     )    
     requires inv_strictly_increasing_queue_of_att_duties(dv)    
     ensures inv_attestation_duty_queue_is_ordered(dv)    
     {}
 
-    lemma lemma_pred_inv_current_latest_attestation_duty_match(
+    lemma lem_pred_inv_current_latest_attestation_duty_match(
         dv: DVState
     )    
     requires inv_not_none_current_att_duty_is_latest_served_att_duty(dv)    
     ensures pred_inv_current_latest_attestation_duty_match(dv)    
     {}
 
-    lemma lemma_construct_signed_attestation_signature_assumptions_helper(
+    lemma lem_construct_signed_attestation_signature_assumptions_helper(
         dv: DVState
     )    
     requires inv_construct_signed_attestation_signature_assumptions_helper(dv)    
@@ -295,28 +295,28 @@ module Proofs_Intermediate_Steps
                 dv.all_nodes)    
     {}
 
-    lemma lemma_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(
+    lemma lem_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(
         dv: DVState
     )    
     requires inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)    
     ensures  inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     {}
 
-    lemma lemma_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(
+    lemma lem_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(
         dv: DVState
     )    
     requires inv_rcvd_attn_shares_are_from_sent_messages(dv)    
     ensures  pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     {}
 
-    lemma lemma_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
+    lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
         dv: DVState
     )
     requires inv_attestation_shares_to_broadcast_are_sent_messages(dv)
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 
-    lemma lemma_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
+    lemma lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
     ensures inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
     {}  
