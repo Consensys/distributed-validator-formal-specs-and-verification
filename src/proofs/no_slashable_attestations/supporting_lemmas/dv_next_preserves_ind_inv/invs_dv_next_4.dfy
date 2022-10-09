@@ -419,8 +419,8 @@ module Invs_DV_Next_4
     requires inv_g_d_a_body_body(dv, n, process)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process) 
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     ensures inv_g_b_body_body_new(dv, n, s');
@@ -1022,8 +1022,8 @@ module Invs_DV_Next_4
         && inv_attestation_duty_queue_is_ordered_4(s) //    
         && inv_g_a_iii(s) //
         && inv_g_a_iv_a(s) //
-        && pred_4_1_b(s) //
-        && pred_4_1_c(s) //  
+        && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s) //
+        && pred_data_of_att_share_is_decided_value(s) //  
         && is_sequence_attestation_duties_to_be_served_orderd(s) //
         && pred_inv_current_latest_attestation_duty_match(s)
 
@@ -1070,7 +1070,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 // lemma_pred_4_1_b(s, event, s');
-                // lemma_pred_4_1_c(s, event, s');
+                // lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -1081,8 +1081,8 @@ module Invs_DV_Next_4
                 // assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 // assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 // assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                // assert pred_4_1_b(s');
-                // assert pred_4_1_c(s');             
+                // assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                // assert pred_data_of_att_share_is_decided_value(s');             
                 // assert inv_g_a_iv_a_body_body(s', node, s_node);
         }        
     }   
@@ -1129,7 +1129,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -1140,8 +1140,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -1444,8 +1444,8 @@ module Invs_DV_Next_4
     requires inv_g_d_a_body_body(dv, n, process)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process) 
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     ensures inv_g_a_ii_a_body_body(dv, n, s');
@@ -1764,7 +1764,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -1775,8 +1775,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -2072,8 +2072,8 @@ module Invs_DV_Next_4
     requires inv_g_d_a_body_body(dv, n, process)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process) 
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_g_a_iv_a_body_body(dv, n, process)
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     ensures inv_g_iii_b_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
@@ -2395,7 +2395,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -2406,8 +2406,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -2619,8 +2619,8 @@ module Invs_DV_Next_4
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state       
     requires inv_g_d_a_body_body(dv, n, process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     ensures inv_g_d_a_body_body(dv, n, s');
     {
@@ -2742,7 +2742,7 @@ module Invs_DV_Next_4
                 // lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 // lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -2753,8 +2753,8 @@ module Invs_DV_Next_4
                 // assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 // assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 // assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 // assert inv_g_a_iv_a_body_body(s', node, s_node);
                 // assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -3801,8 +3801,8 @@ module Invs_DV_Next_4
     requires inv_g_b_body_body_new(dv, n, process)
     requires inv_g_d_a_body_body(dv, n, process)
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)         
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)         
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     requires 
             var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -4017,8 +4017,8 @@ module Invs_DV_Next_4
     requires inv_g_b_body_body_new(dv, n, process)
     requires inv_g_a_iv_a_body_body(dv, n, process)
 
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)  
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)  
     requires pred_axiom_is_my_attestation_2(dv, process, block)
 
     ensures inv_g_a_iii_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
@@ -4447,7 +4447,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -4458,8 +4458,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -4509,7 +4509,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -4520,8 +4520,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -4862,8 +4862,8 @@ module Invs_DV_Next_4
     requires inv_g_iii_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)
     requires inv_g_d_a_body_body(dv, n, process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv) 
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv) 
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     ensures inv_g_a_iv_a_body_body(dv, n, s')   
     {
@@ -5177,7 +5177,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, event.node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -5188,8 +5188,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', event.node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', event.node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', event.node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', event.node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -5258,7 +5258,7 @@ module Invs_DV_Next_4
                 lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -5269,8 +5269,8 @@ module Invs_DV_Next_4
                 assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 assert inv_g_a_iv_a_body_body(s', node, s_node);
                 assert is_sequence_attestation_duties_to_be_served_orderd(s');
 
@@ -5420,8 +5420,8 @@ module Invs_DV_Next_4
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state       
     requires inv_g_d_b_body_body(dv, n, process)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires pred_axiom_is_my_attestation_2(dv, process, block)
     ensures inv_g_d_b_body_body(dv, n, s');
     {
@@ -5621,7 +5621,7 @@ module Invs_DV_Next_4
                 // lemma_pred_4_1_b_new_helper_transpose_to_new_s_multiple(s, event, s', s_node, node);
 
                 lemma_pred_4_1_b(s, event, s');
-                lemma_pred_4_1_c(s, event, s');
+                lemma_pred_data_of_att_share_is_decided_value(s, event, s');
 
                 // lemma_inv_sequence_attestation_duties_to_be_served_orderd(s, event, s');
 
@@ -5632,8 +5632,8 @@ module Invs_DV_Next_4
                 // assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
                 // assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
                 // assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert pred_4_1_b(s');
-                assert pred_4_1_c(s');             
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert pred_data_of_att_share_is_decided_value(s');             
                 // assert inv_g_a_iv_a_body_body(s', node, s_node);
                 // assert is_sequence_attestation_duties_to_be_served_orderd(s');
 

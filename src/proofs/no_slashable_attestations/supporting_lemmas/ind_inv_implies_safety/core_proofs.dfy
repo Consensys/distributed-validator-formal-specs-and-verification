@@ -97,8 +97,8 @@ module Core_Proofs
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)   
     requires inv_unchanged_honesty(dv)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires pred_4_1_f_a(dv)    
     requires && a in dv.all_attestations_created
              && is_valid_attestation(a, dv.dv_pubkey)
@@ -171,8 +171,8 @@ module Core_Proofs
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires pred_4_1_f_a(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
@@ -209,8 +209,8 @@ module Core_Proofs
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires pred_4_1_f_a(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)
@@ -253,8 +253,8 @@ module Core_Proofs
     lemma lemma_4_1_general(dv: DVState, a: Attestation, a': Attestation)    
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
-    requires pred_4_1_b(dv)
-    requires pred_4_1_c(dv)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires pred_data_of_att_share_is_decided_value(dv)
     requires pred_4_1_f_a(dv)    
     requires pred_4_1_g_i(dv)
     requires pred_4_1_g_iii(dv)

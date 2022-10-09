@@ -62,7 +62,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node(dv, n)
     }  
 
-    predicate pred_4_1_b_exists(
+    predicate concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
         dv: DVState,
         hn': BLSPubkey, 
         att_share: AttestationShare,
@@ -77,16 +77,16 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && verify_bls_siganture(attestation_signing_root, att_share.signature, hn')
     }
 
-    predicate pred_4_1_b(dv: DVState)
+    predicate concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv: DVState)
     {
         forall a |
             && a in dv.all_attestations_created
             && is_valid_attestation(a, dv.dv_pubkey)
             ::
-            exists hn', att_share: AttestationShare :: pred_4_1_b_exists(dv, hn', att_share, a)
+            exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a)
     }
 
-    predicate pred_4_1_c(dv: DVState)
+    predicate pred_data_of_att_share_is_decided_value(dv: DVState)
     {
         forall hn, att_share |
                 && hn in dv.honest_nodes_states.Keys 

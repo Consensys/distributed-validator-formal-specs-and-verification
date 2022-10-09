@@ -99,7 +99,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_9(dv: DVState)       
     {                
         && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-        && pred_4_1_b(dv) 
+        && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv) 
         && pred_4_1_f_a(dv)    
         && pred_4_1_g_i_for_dvc(dv)
         && pred_4_1_g_i(dv)
@@ -119,7 +119,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && pred_4_1_g_iii_a(dv)        
         && pred_4_1_g_iii_c(dv)
         && pred_4_1_g_iii_a_a(dv)        
-        && pred_4_1_c(dv)                     
+        && pred_data_of_att_share_is_decided_value(dv)                     
     }
     
     predicate invs_group_12(dv: DVState)       

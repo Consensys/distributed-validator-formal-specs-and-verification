@@ -264,7 +264,7 @@ module Proofs_DV_Ind_Inv
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures pred_4_1_b(dv')
+    ensures concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv')
     {
         lemma_ind_inv_implies_intermediate_steps(dv);
         assert construct_signed_attestation_signature_assumptions_helper(
@@ -279,7 +279,7 @@ module Proofs_DV_Ind_Inv
         assert pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
 
         assert  && DV.NextEvent(dv, e, dv')
-                && pred_4_1_b(dv)
+                && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
                 && construct_signed_attestation_signature_assumptions_helper(
                     dv.construct_signed_attestation_signature,
                     dv.dv_pubkey,
@@ -293,7 +293,7 @@ module Proofs_DV_Ind_Inv
 
         
         lemma_pred_4_1_b(dv, e, dv');
-        assert pred_4_1_b(dv');
+        assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_pred_4_1_f_a(dv: DVState, e: DV.Event, dv': DVState)       
@@ -413,7 +413,7 @@ module Proofs_DV_Ind_Inv
         lemma_pred_4_1_g_iii_c_dv_next(dv, e, dv');
         lemma_pred_4_1_g_iii_a_a(dv, e, dv');
         lemma_ind_inv_implies_intermediate_steps(dv);
-        lemma_pred_4_1_c(dv, e, dv');
+        lemma_pred_data_of_att_share_is_decided_value(dv, e, dv');
     }
     
     lemma lemma_ind_inv_dv_next_invs_group_12(dv: DVState, e: DV.Event, dv': DVState)       
@@ -691,8 +691,8 @@ module Proofs_DV_Ind_Inv
             assert 
             && inv_quorum_constraints(dv)
             && inv_unchanged_honesty(dv)
-            && pred_4_1_b(dv)
-            && pred_4_1_c(dv)
+            && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+            && pred_data_of_att_share_is_decided_value(dv)
             && pred_4_1_f_a(dv)    
             && pred_4_1_g_i(dv)
             && pred_4_1_g_iii(dv)
