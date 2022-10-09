@@ -333,7 +333,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_g_iii_b_body_body(
+            inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(
                 dv, 
                 hn,
                 dv.honest_nodes_states[hn],
@@ -343,7 +343,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     
 
-    predicate inv_g_iii_b_body_body(
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState,
@@ -405,7 +405,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && an.node == n
     }  
 
-    predicate inv_g_iii_b_new_body(        
+    predicate inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(        
         n: BLSPubkey,
         n_state: DVCState,
         sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    

@@ -433,7 +433,7 @@ module Proofs_DV_Ind_Inv
     ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv')
     {
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
-        lemma_4_1_g_iii_b(dv, e, dv');
+        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_dv_next(dv, e, dv');
     }
 
     lemma lemma_ind_inv_dv_next_inv_inv_decided_values_of_previous_duties_are_known_new(dv: DVState, e: DV.Event, dv': DVState)       
@@ -486,7 +486,7 @@ module Proofs_DV_Ind_Inv
     {
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
         
-        lemma_4_1_g_iii_b(dv, e, dv');
+        lemma_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_dv_next(dv, e, dv');
         lemma_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new(dv, e, dv');
         lemma_inv_g_d_a(dv, e, dv');
         lemma_inv_g_d_b(dv, e, dv');        

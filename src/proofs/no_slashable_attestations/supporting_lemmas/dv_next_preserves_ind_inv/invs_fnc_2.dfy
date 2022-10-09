@@ -2847,7 +2847,7 @@ module Fnc_Invs_2
                     == attestation_duty
              && sequence_attestation_duties_to_be_served[index_next_attestation_duty_to_be_served].node
                     == hn
-    requires inv_g_iii_b_new_body(
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
@@ -2871,7 +2871,7 @@ module Fnc_Invs_2
 
         var new_index_next_attestation_duty_to_be_served := index_next_attestation_duty_to_be_served + 1;
 
-        assert inv_g_iii_b_new_body(
+        assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                     hn, 
                     process_mod, 
                     sequence_attestation_duties_to_be_served, 
@@ -2900,7 +2900,7 @@ module Fnc_Invs_2
     )
     requires f_check_for_next_queued_duty.requires(process)
     requires process' == f_check_for_next_queued_duty(process).state    
-    requires inv_g_iii_b_new_body(
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
@@ -2938,7 +2938,7 @@ module Fnc_Invs_2
                             new_attestation_slashing_db
                         )                        
                     );
-                    assert inv_g_iii_b_new_body(
+                    assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process_mod, 
                                 sequence_attestation_duties_to_be_served, 
@@ -2960,7 +2960,7 @@ module Fnc_Invs_2
                 }
                 else
                 { 
-                    assert inv_g_iii_b_new_body(
+                    assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process, 
                                 sequence_attestation_duties_to_be_served, 
@@ -2976,7 +2976,7 @@ module Fnc_Invs_2
                     var process_mod := process.(
                         attestation_duties_queue := process.attestation_duties_queue[1..]
                     );                       
-                    assert inv_g_iii_b_new_body(
+                    assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process_mod, 
                                 sequence_attestation_duties_to_be_served, 
@@ -3018,7 +3018,7 @@ module Fnc_Invs_2
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
-    requires inv_g_iii_b_new_body(
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
@@ -3063,7 +3063,7 @@ module Fnc_Invs_2
             );
 
     
-            assert inv_g_iii_b_new_body(
+            assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process_mod, 
                                 sequence_attestation_duties_to_be_served, 
@@ -3104,7 +3104,7 @@ module Fnc_Invs_2
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_g_iii_b_new_body(
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                     hn, 
                     process, 
                     sequence_attestation_duties_to_be_served, 
@@ -3139,7 +3139,7 @@ module Fnc_Invs_2
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
                     rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
                 );
-        assert inv_g_iii_b_new_body(
+        assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process, 
                                 sequence_attestation_duties_to_be_served, 
@@ -3164,7 +3164,7 @@ module Fnc_Invs_2
                     new_attestation_slashing_db
                 )                
             );
-            assert inv_g_iii_b_new_body(
+            assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process, 
                                 sequence_attestation_duties_to_be_served, 

@@ -703,14 +703,14 @@ module Invs_DV_Next_2
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];   
                 
-                assert inv_g_iii_b_body_body(
+                assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(
                             dv,
                             node,
                             dvc,
                             dv.index_next_attestation_duty_to_be_served
                 );
 
-                assert inv_g_iii_b_new_body(
+                assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                             node,
                             dvc,
                             dv.sequence_attestation_duties_to_be_served,
