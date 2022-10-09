@@ -231,7 +231,7 @@ module Proofs_DV_Ind_Inv
         lemma_ind_inv_implies_intermediate_steps_helper_4(dv);
     }
    
-    lemma lemma_ind_inv_dv_next_inv_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: DVState, e: DV.Event, dv': DVState)  
+    lemma lemma_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: DVState, e: DV.Event, dv': DVState)  
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')       
     requires ind_inv(dv)
@@ -296,7 +296,7 @@ module Proofs_DV_Ind_Inv
         assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -305,7 +305,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -314,16 +314,16 @@ module Proofs_DV_Ind_Inv
         lemma_pred_4_1_f_g_for_dvc(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv')
     {
-        lemma_pred_4_1_f_g_i(dv, e, dv');
+        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -339,14 +339,14 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures invs_group_9(dv')
     {
-        lemma_ind_inv_dv_next_inv_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');  
+        lemma_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');  
         lemma_ind_inv_dv_next_inv_pred_4_1_b(dv, e, dv');             
-        lemma_ind_inv_dv_next_inv_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');       
-        lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv, e, dv');  
-        lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv, e, dv');   
+        lemma_ind_inv_dv_next_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');       
+        lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv, e, dv');  
+        lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv, e, dv');   
     }
 
-    lemma lemma_ind_inv_dv_next_inv_invNetwork(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_invNetwork(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -367,7 +367,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
-    lemma lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -383,7 +383,7 @@ module Proofs_DV_Ind_Inv
     ensures invs_group_10(dv')
     {
         lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv, e, dv');
-        lemma_ind_inv_dv_next_inv_invNetwork(dv, e, dv');
+        lemma_ind_inv_dv_next_invNetwork(dv, e, dv');
         lemma_ind_inv_dv_next_inv_38(dv, e, dv');
         lemma_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv');
     }
@@ -409,7 +409,7 @@ module Proofs_DV_Ind_Inv
     requires ind_inv(dv)
     ensures invs_group_11(dv')
     {        
-        lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv, e, dv');
+        lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a(dv, e, dv');
         lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_c_dv_next(dv, e, dv');
         lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_a_a(dv, e, dv');
         lemma_ind_inv_implies_intermediate_steps(dv);
@@ -426,7 +426,7 @@ module Proofs_DV_Ind_Inv
         lemma_inv_attestation_duty_queue_is_ordered_4(dv, e, dv');        
     }
 
-    lemma lemma_ind_inv_dv_next_inv_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lemma_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_histii_b(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)

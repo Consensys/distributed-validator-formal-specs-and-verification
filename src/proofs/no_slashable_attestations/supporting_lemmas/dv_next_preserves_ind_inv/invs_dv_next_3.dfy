@@ -1099,7 +1099,7 @@ module Invs_DV_Next_3
                         assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
                         assert s.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;   
 
-                        var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                        var s_w_honest_node_states_updated := lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
                         var cid := att_share.data.slot;
 
                         assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
@@ -1168,7 +1168,7 @@ module Invs_DV_Next_3
                 {
                     case AttConsensusDecided(id: Slot, decided_attestation_data) => 
 
-                        var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                        var s_w_honest_node_states_updated := lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
                         var cid := id;
 
                         assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
@@ -1805,7 +1805,7 @@ module Invs_DV_Next_3
         lemma_inv_unchanged_honesty_dv_next(s, event, s');
         lemma_inv_only_dv_construct_signed_attestation_signature_dv_next(s, event, s');
         lemma_inv_decided_value_of_consensus_instance_is_decided_by_quorum(s, event, s');
-        lemma_pred_4_1_f_g_i(s, event, s');
+        lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s, event, s');
         lemma_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(s');   
     }     
 
@@ -1829,7 +1829,7 @@ module Invs_DV_Next_3
 
      
 
-    lemma lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Types.Event
@@ -1850,7 +1850,7 @@ module Invs_DV_Next_3
             ;         
     }
 
-    lemma lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated_2(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated_2(
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Types.Event,
@@ -1864,7 +1864,7 @@ module Invs_DV_Next_3
     {      
     }    
 
-    lemma lemma_pred_4_1_f_g_i_helper(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_helper(
         s: DVState,
         event: DV.Event,
         s': DVState,
@@ -1893,7 +1893,7 @@ module Invs_DV_Next_3
                 var s'_node := s'.honest_nodes_states[node];
 
                 var s_w_honest_node_states_updated :=
-                    lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);         
+                    lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);         
 
                 assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
@@ -1940,7 +1940,7 @@ module Invs_DV_Next_3
                 assert vpn in s.honest_nodes_states.Keys;
                 assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
-                lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
+                lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
 
                 assert s_w_honest_node_states_updated.honest_nodes_states[vpn].attestation_consensus_engine_state == s.honest_nodes_states[vpn].attestation_consensus_engine_state;
                 assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc(s, vpn, cid);
@@ -1955,7 +1955,7 @@ module Invs_DV_Next_3
 
     }  
 
-    lemma lemma_pred_4_1_f_g_i(
+    lemma lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -1977,7 +1977,7 @@ module Invs_DV_Next_3
                     && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
                 ensures exists attestation_duty, attestation_slashing_db :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(cid, attestation_duty, attestation_slashing_db, vp)
                 {
-                    var attestation_duty: AttestationDuty, attestation_slashing_db := lemma_pred_4_1_f_g_i_helper(s, event, s', cid, hn, vp);
+                    var attestation_duty: AttestationDuty, attestation_slashing_db := lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_helper(s, event, s', cid, hn, vp);
                 }
                 assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(s');
 
@@ -3544,7 +3544,7 @@ module Invs_DV_Next_3
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.isPresent(); 
     ensures  s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data;    
     {
-        var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, event.node, event.event);           
+        var s_w_honest_node_states_updated := lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, event.node, event.event);           
         var cid := event.event.id;
 
         assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;

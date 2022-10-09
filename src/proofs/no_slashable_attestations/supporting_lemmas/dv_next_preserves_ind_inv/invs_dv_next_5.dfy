@@ -255,7 +255,7 @@ module Invs_DV_Next_5
             
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
 
-                var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                var s_w_honest_node_states_updated := lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
 
                 assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
@@ -725,7 +725,7 @@ module Invs_DV_Next_5
             
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
 
-                var s_w_honest_node_states_updated := lemma_pred_4_1_f_g_i_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                var s_w_honest_node_states_updated := lemma_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
 
                 assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
