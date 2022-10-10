@@ -7,11 +7,12 @@ docker_down() {
 }
 
 
-trap "docker_down" INT
-trap "docker_down" ERR
+trap "exitfn" INT
+trap "exitfn" ERR
 
 exitfn () {
     trap SIGINT              # Restore signal handling for SIGINT
+    trap ERR
     docker_down
     exit                     #   then exit script.
 }
