@@ -806,19 +806,19 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //             // && construct_SlashingDBAttestation_from_att_data(dv.consensus_on_attestation_data[slot].decided_value.safe_get()) in n_state.attestation_slashing_db
     // }    
 
-    predicate inv_g_a_ii_a(dv: DVState)    
+    predicate inv_exists_decided_value_for_every_duty_before_queued_duties(dv: DVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_g_a_ii_a_body_body(
+            inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(
                 dv, 
                 hn,
                 dv.honest_nodes_states[hn]
             )                    
     }       
 
-    predicate inv_g_a_ii_a_body_body(
+    predicate inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState

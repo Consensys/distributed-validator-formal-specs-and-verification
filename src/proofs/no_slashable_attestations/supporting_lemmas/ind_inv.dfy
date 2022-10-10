@@ -134,7 +134,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && inv_decided_values_of_previous_duties_are_known_new(dv)    
         && inv_g_d_a(dv)
         && inv_g_d_b(dv)  
-        && inv_g_a_ii_a(dv)        
+        && inv_exists_decided_value_for_every_duty_before_queued_duties(dv)        
     }
     
     predicate invs_group_14(dv: DVState)       

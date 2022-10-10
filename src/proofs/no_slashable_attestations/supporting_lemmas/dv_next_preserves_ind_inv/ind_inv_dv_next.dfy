@@ -462,14 +462,14 @@ module Ind_Inv_DV_Next
         lem_inv_g_d_b(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_g_a_ii_a(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_inv_exists_decided_value_for_every_duty_before_queued_duties(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv_g_a_ii_a(dv')
+    ensures inv_exists_decided_value_for_every_duty_before_queued_duties(dv')
     {
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
-        lem_inv_g_a_ii_a(dv, e, dv');
+        lem_inv_exists_decided_value_for_every_duty_before_queued_duties(dv, e, dv');
     }
 
 
@@ -486,7 +486,7 @@ module Ind_Inv_DV_Next
         lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new(dv, e, dv');
         lem_inv_g_d_a(dv, e, dv');
         lem_inv_g_d_b(dv, e, dv');        
-        lem_inv_g_a_ii_a(dv, e, dv');
+        lem_inv_exists_decided_value_for_every_duty_before_queued_duties(dv, e, dv');
     }
 
     lemma lem_ind_inv_dv_next_invs_group_14(dv: DVState, e: DV.Event, dv': DVState)       
