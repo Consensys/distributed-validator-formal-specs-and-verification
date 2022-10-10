@@ -259,65 +259,6 @@ module Invs_DV_Next_6
         );          
     }        
 
-    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
-        process: DVCState,
-        block: BeaconBlock,
-        s': DVCState,
-        dv: DVState,
-        n: BLSPubkey,
-        index_next_attestation_duty_to_be_served: nat        
-    )
-    requires f_listen_for_new_imported_blocks.requires(process, block)
-    requires s' == f_listen_for_new_imported_blocks(process, block).state
-    requires inv_attestation_duty_queue_is_ordered_body_body(process)
-    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
-    ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
-    {
-        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
-
-        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
-
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );                     
-
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
-        {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
-
-
-            lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
-                s_mod, 
-                s',
-                dv,
-                n,
-                index_next_attestation_duty_to_be_served
-            );             
-           
-        }
-    }      
-
     lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
         process: DVCState,
         s': DVCState,
@@ -376,6 +317,65 @@ module Invs_DV_Next_6
 
     }   
 
+
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        s': DVCState,
+        dv': DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat        
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires s' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_attestation_duty_queue_is_ordered_body_body(process)
+    requires is_sequence_attestation_duties_to_be_served_orderd(dv');
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv', n, process, index_next_attestation_duty_to_be_served)
+    ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var future_att_consensus_instances_already_decided := 
+            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
+
+        var process :=
+                process.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
+                );                     
+
+        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        {
+            // Stop(current_attestation_duty.safe_get().slot);
+            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            var s_mod := process.(
+                current_attestation_duty := None,
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )                
+            );
+
+
+            lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+                s_mod, 
+                s',
+                dv',
+                n,
+                index_next_attestation_duty_to_be_served
+            );             
+           
+        }
+    }      
     
 
     lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_next_honest(

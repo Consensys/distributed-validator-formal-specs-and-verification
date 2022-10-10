@@ -1009,16 +1009,16 @@ module Invs_DV_Next_5
         process: DVCState,
         block: BeaconBlock,
         s': DVCState,
-        dv: DVState,
+        dv': DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv', n, process, index_next_attestation_duty_to_be_served)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)    
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv', n, process, index_next_attestation_duty_to_be_served)    
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv', n, s', index_next_attestation_duty_to_be_served)
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -1052,7 +1052,7 @@ module Invs_DV_Next_5
                 )                
             );
                    
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);                    
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv', n, index_next_attestation_duty_to_be_served);                    
         }        
     }        
 
@@ -1419,17 +1419,17 @@ module Invs_DV_Next_5
         process: DVCState,
         block: BeaconBlock,
         s': DVCState,
-        dv: DVState,
+        dv': DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat        
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv', n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
+    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv', n, s')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -1463,7 +1463,7 @@ module Invs_DV_Next_5
                 )                
             );
                    
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(s_mod, s', dv, n);                    
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(s_mod, s', dv', n);                    
         }        
     }            
 
