@@ -954,10 +954,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     requires n in dv.honest_nodes_states.Keys 
     {
         var n_state := dv.honest_nodes_states[n];
-        inv_g_c_body_body(dv, n, n_state, dv.index_next_attestation_duty_to_be_served)
+        inv_if_has_served_some_duty_then_all_higher_duties_rcvd_from_dv_are_in_the_queue_body_body(dv, n, n_state, dv.index_next_attestation_duty_to_be_served)
     }
 
-    predicate inv_g_c_body_body(
+    predicate inv_if_has_served_some_duty_then_all_higher_duties_rcvd_from_dv_are_in_the_queue_body_body(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState,
@@ -977,7 +977,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 an.attestation_duty in n_state.attestation_duties_queue
     }    
 
-    predicate inv_g_c_ii_body_body(
+    predicate inv_if_has_not_served_any_duties_then_all_duties_from_dv_are_in_the_queue_body_body(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState,
