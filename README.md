@@ -27,6 +27,7 @@ The formal proof of the DVT protocol relies on the following assumptions:
 - Remote Signer (RS): Every DVC has its own RS.
 - Beacon Node (BN): Every DVC has its own BN.
 - Network latency: The network between DVC, RS, and BN are synchronous.
+- Trusted components: We are currently assuming that the network and Byzantine DVCs are reliable. Those assumptions make our model less complicated and allow us to focus on writing proofs that require the anticipant of quorums, instead of all DVCs. We are adapting our model and proofs to cope with untrusted components. Those assumptions should be changed soon.
 
 ## Our approach
 
@@ -63,7 +64,7 @@ The specifications are written in files in the folder specs.
 - dv/dv_attestation_creation.dfy: We specify DV for attestation creation at the logical level that uses only mathematical functions and logical predicate to formalize system transitions.
 - dvc/dvc_attestation_creation.dfy: We specify the behavior of DVC for attestation creation at the logical level.
 - network/network.dfy: We specify the network behaviors at a high-abstract level.
-- trusted components: We are currently assuming that the network and Byzantine DVCs are reliable. Those assumptions make our model less complicated and allow us to focus on writing proofs that require the anticipant of quorums, instead of all DVCs. We are adapting our model and proofs to cope with untrusted components. 
+
 
 ### The proofs
 Our proofs are saved in the folder proofs.
