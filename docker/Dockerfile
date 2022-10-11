@@ -12,4 +12,4 @@ RUN wget https://github.com/dafny-lang/dafny/releases/download/v3.8.1/dafny-3.8.
 RUN mkdir /home/dafny
 WORKDIR /home/dafny
 
-ENTRYPOINT [ "/opt/dafny/dafny" ]
+# ENTRYPOINT [ "/opt/dafny/dafny" ]

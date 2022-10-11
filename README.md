@@ -81,6 +81,17 @@ Our proofs are saved in the folder proofs.
         - dv_next_implies_ind_inv: proves that every DV transition preserves the inductive invariant.
         - ind_inv_implies_safety: proves that the inductive invariant implies the safety, i.e., no slashble attestations are created.
 
+## How to run the Dafny verifier
+
+### Prerequisites
+
+- bash
+- docker-compose
+
+### Command
+
+`./verify.sh`
+
 ## Future work
 
 We are currently working on the following directions:

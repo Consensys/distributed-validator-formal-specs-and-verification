@@ -1,0 +1,12 @@
+---
+version: '3.6'
+
+services:
+
+  dafny:
+    build: .
+    command: /home/dafny/docker/verify.sh /opt/dafny/dafny
+    environment:
+      - ENV_NAME=dev
+    volumes:
+      - ..:/home/dafny
