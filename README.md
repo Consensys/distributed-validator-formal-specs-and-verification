@@ -63,6 +63,7 @@ The specifications are written in files in the folder specs.
 - dv/dv_attestation_creation.dfy: We specify DV for attestation creation at the logical level that uses only mathematical functions and logical predicate to formalize system transitions.
 - dvc/dvc_attestation_creation.dfy: We specify the behavior of DVC for attestation creation at the logical level.
 - network/network.dfy: We specify the network behaviors at a high-abstract level.
+- trusted components: We are currently assuming that the network and Byzantine DVCs are reliable. Those assumptions make our model less complicated and allow us to focus on writing proofs that require the anticipant of quorums, instead of all DVCs. We are adapting our model and proofs to cope with untrusted components. 
 
 ### The proofs
 Our proofs are saved in the folder proofs.
@@ -71,9 +72,9 @@ Our proofs are saved in the folder proofs.
 - implementation_refinement/attestation_creation: shows the proofs that the reference implemention adheres to the specifications.
 - no_slashable_attestations: contains proofs of the safety of the DVT protocol for attestation creation.
     - common:
-        - attestation_creation_instrumented: (TBD)
-        - common_proofs: stored fundamental lemmas that are used in other proofs.
-        - dvc_spec_axioms: formalize all of our assumptions about the DVC behaviors.
+        - attestation_creation_instrumented: adds instruments for our proofs.
+        - common_proofs: stores fundamental lemmas that are used in other proofs.
+        - dvc_spec_axioms: formalizes all of our assumptions about the DVC behaviors.
     - supporting_lemmas: contains supporting lemmas that follow the standard approach to prove the safety.
         - inv.dfy: lists all interesting invariants used in main_theorem.
         - ind_inv.dfy: contains the inductive invariant used in main_theorem.
@@ -84,17 +85,17 @@ Our proofs are saved in the folder proofs.
 ## How to run the Dafny verifier
 
 ### Prerequisites
-
+The simpliest way to check our specification is to install the following software and then to run the provided Docker container.
 - bash
 - docker-compose
 
 ### Command
-
-`./verify.sh`
+The user can check our specifications by running the following command `./verify.sh`.
 
 ## Future work
 
 We are currently working on the following directions:
+- Formalize the network faults and Byzantine DVCs, and extend our proofs with such untrusted components,
 - Deadlocks of distributed validators for attestation creation, 
 - Safety of distributed validators for block proposing under asynchrony, and
 - Deadlocks of distributed validators for attestation creation.
