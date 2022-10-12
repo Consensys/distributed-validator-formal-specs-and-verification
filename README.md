@@ -11,7 +11,7 @@ This project focuses on the formal verification of the DVT protocol.
 More specifically, the objectives of this project are to provide:
 ​
 - A formal specification of the DVT protocol.
-- A formal proof that as long as the number of Byzantine nodes is less than 1/3 of the DVCs, the above specification guarantees the following properties:
+- A formal proof that as long as the number of Byzantine DVCs is less than 1/3, the above specification guarantees the following properties:
     - A Distributed Validator (DV) will never commit a slashable offence, and
     - Under partial synchrony, a DV will eventually produce valid blocks/attestations.
 - An executable reference implementation.
@@ -21,7 +21,7 @@ More specifically, the objectives of this project are to provide:
 ​
 The formal proof of the DVT protocol relies on the following assumptions:
 ​
-- The BFT consensus protocol: DVCs make a decision on an attestation/block by running an instance of the BFS consensus protocol. We assume that the implementation and running of consensus instances are correct. That is, a consensus instance must satisfy the properties: agreement, termination, and validity.
+- The BFT consensus protocol: DVCs make a decision on an attestation/block by running an instance of the BFT consensus protocol. We assume that the implementation and running of consensus instances are correct. That is, a consensus instance must satisfy the agreement, termination, and validity properties.
 - M-of-N threshold signatures: We assume that M is greater than 2/3 of N and that the threshold signatures are implemented correctly, that is, the implementation satisfies signature unforgeability and uniqueness.
 - DVC: Each Co-Validator runs only one the Distributed Validator Client software.
 - Remote Signer (RS): Every DVC has its own RS.
@@ -34,22 +34,22 @@ The formal proof of the DVT protocol relies on the following assumptions:
 
 In this work, we first specify the DVT protocol in the verification-aware programming language [Dafny](https://dafny.org). Our Dafny specifications are written at two levels of abstraction: the specification level and the reference implementation level. The specification files are written in the high level of abstraction and they formalize the logical semantics of the DVT protocol. In contrast, the reference implementation files are close to Python files in [here](https://github.com/ethereum/distributed-validator-specs/tree/dev/src/dvspec), and those files are executable.
 
-Then, we write formal proofs to verify the correctness of our specifications and mechanically check those proofs with Dafny. We follow the standard way to prove a safety property that is based on an inductive invariant. Intuitively, an inductive invariant is a conjunction of interesting invariants in the system that are preserved by every system transition. If the inductive invariant implies the safety, then the safety is guaranteed in every reachable system state. Formally, our proof strategy for the safety has three steps:
+Then, we write formal proofs to verify the correctness of our specifications and mechanically check those proofs with Dafny. We follow the standard way to prove a safety property that is based on an inductive invariant. Intuitively, an inductive invariant is a conjunction of invariants in the system that are preserved by every system transition. If the inductive invariant implies the safety, then the safety is guaranteed in every reachable system state. Formally, our proof strategy for the safety has three steps:
 1. We find an inductive invariant and prove that it implies the safety.
 2. We prove that the initialization implies the inductive invariant.
 3. We prove that every system transition preserves the inductive invariant.
 
-Proof approach for liveness (TBD)
 
 ## Status
 
 Our specifications are currently for attestation creation, and we prove the safety property against slashing under asynchrony. That safety property refers to that there exist no slashable attestations if more than 2/3rd of the Co-Validators are correct under asynchrony. Our proofs and results also work under different models of computation: synchrony and partial synchrony.
 
-Moreover, we are working one the directions mentioned in Future work.
+Moreover, we are working on the directions mentioned in [Future work](#future-work).
 
 ## Structure
 
- Those files are stored in two folders [src/dvc_implementation](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/dvc_implementation) and [src/specs](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/specs). Our Dafny proofs are stored in the folder [src/proofs](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/proofs).Finally, common materials for both specifications and proofs are stored in the folder [src/common](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/common).
+ Those files are stored in two folders [src/dvc_implementation](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/dvc_implementation) and [src/specs](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/specs). Our Dafny proofs are stored in the folder [src/proofs](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/proofs).
+ Finally, common materials for both specifications and proofs are stored in the folder [src/common](https://github.com/ConsenSys/distributed-validator-specs-internal/tree/internal_dvt_proofs/src/common).
 
 ### The reference implementation
 
@@ -106,4 +106,4 @@ Moreover, we are investigating on formal techniques to prove liveness of distrib
 
 ## Funding
 ​
-This project is being carried out by ConsenSys R&D and is supported by a joint grant by the Ethereum Foundation, Obol and SSV Networks.
+This project is being carried out by ConsenSys R&D and is supported by a joint grant from the Ethereum Foundation, Obol and SSV Networks.
