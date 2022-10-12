@@ -22,12 +22,13 @@ More specifically, the objectives of this project are to provide:
 The formal proof of the DVT protocol relies on the following assumptions:
 ​
 - The BFT consensus protocol: DVCs make a decision on an attestation/block by running an instance of the BFS consensus protocol. We assume that the implementation and running of consensus instances are correct. That is, a consensus instance must satisfy the properties: agreement, termination, and validity.
-- M-of-N threshold signatures: We assume the threshold signatures are implemented correctly and M is greater than 2/3 of N.
+- M-of-N threshold signatures: We assume that M is greater than 2/3 of N and that the threshold signatures are implemented correctly, that is, the implementation satisfies signature unforgeability and uniqueness.
 - DVC: Each Co-Validator runs only one the Distributed Validator Client software.
 - Remote Signer (RS): Every DVC has its own RS.
 - Beacon Node (BN): Every DVC has its own BN.
-- Network latency: The network between DVC, RS, and BN are synchronous.
-- Trusted components: We are currently assuming that the network and Byzantine DVCs are reliable. Those assumptions make our model less complicated and allow us to focus on writing proofs that require the anticipant of quorums, instead of all DVCs. We are adapting our model and proofs to cope with untrusted components. Those assumptions should be changed soon.
+- Network latency: The network between DVC, RS, and BN are synchronous. However, the network between DVCs has no bound on message delay, and messages might be lost.
+
+- Trusted Byzantine DVCs: We are currently assuming that Byzantine DVCs are reliable. This assumption makes our model less complicated and allows us to focus on writing proofs that require the anticipant of quorums, instead of all DVCs. We are adapting our model and proofs to cope with Byzantine behavior. This assumption should be changed soon.
 
 ## Our approach
 
