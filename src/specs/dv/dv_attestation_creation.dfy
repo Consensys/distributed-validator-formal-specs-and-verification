@@ -149,24 +149,6 @@ module DV
                 all_nodes
             )
         )
-         
-        // &&
-        //     (
-        //     forall 
-        //         att_shares: set<AttestationShare>
-        //             |
-        //              construct_signed_attestation_signature(att_shares).isPresent()
-        //         ::
-        //         exists x ::
-        //         construct_signed_attestation_signature_assumptions_helper_3(
-        //             construct_signed_attestation_signature,
-        //             dv_pubkey,
-        //             all_nodes,
-        //             att_shares,
-        //             construct_signed_attestation_signature(att_shares).safe_get()
-        //         )
-
-        // )   
     }
 
     predicate construct_signed_attestation_signature_assumptions(
@@ -220,13 +202,6 @@ module DV
                 ::
                     s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot <= s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
         )
-        // && ( forall k1: nat, k2: nat :: 
-        //         s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
-        //             == s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
-        //         ==> 
-        //         s.sequence_attestation_duties_to_be_served[k1].attestation_duty
-        //             == s.sequence_attestation_duties_to_be_served[k2].attestation_duty
-        //    )
         && ( forall k1: nat, k2: nat :: 
                 && k1 < k2
                 && s.sequence_attestation_duties_to_be_served[k1].node 
@@ -569,7 +544,6 @@ module DV
             && (forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent ::
                     exists attestation_shares ::
                             && attestation_shares <= s'.att_network.allMessagesSent
-                            // && var sig_shares := set x | x in attestation_shares :: x.signature;
                             && var constructed_sig := s.construct_signed_attestation_signature(attestation_shares);
                             && constructed_sig.isPresent()
                             && constructed_sig.safe_get() == aggregated_attestation_sent.signature
