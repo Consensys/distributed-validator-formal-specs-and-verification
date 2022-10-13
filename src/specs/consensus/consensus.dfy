@@ -22,10 +22,6 @@ module ConsensusSpec
         ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>        
     )    
 
-    // Move functions f, quorum, and test_quorum to file commons.dfy
-
-
-
 
     predicate isConditionForSafetyTrue<D(!new, 0)>(
         s: ConsensusInstance
@@ -54,12 +50,8 @@ module ConsensusSpec
         output: Optional<OutCommand>
     )
     {
-        // exists s'': ConsensusInstance ::
-            // First we let the consensus protocol and the various nodes possibly decide on a value
-            && NextConsensusDecides(s, honest_nodes_validity_predicates, s')
-            // Then we let the node take an input/output step
-            && NextNodeStep(s', honest_nodes_validity_predicates, output)
-
+        && NextConsensusDecides(s, honest_nodes_validity_predicates, s')
+        && NextNodeStep(s', honest_nodes_validity_predicates, output)
     }
 
     predicate NextNodeStep<D(!new, 0)>(
@@ -96,8 +88,6 @@ module ConsensusSpec
         )          
     }
 
-    // If n = 5, then f(5) = 1 and quorum(n) = 4.
-    // Therefore, f(5) + 1 < quorum(5) - f(5).
     predicate is_a_valid_decided_value<D(!new, 0)>(
         s: ConsensusInstance
     )
@@ -146,8 +136,5 @@ module ConsensusSpec
                 s' == s
             )
         )
-     
     }    
-
-    
 }
