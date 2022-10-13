@@ -23,7 +23,7 @@ module DVC_Spec {
 
 
     datatype ConsensusEngineState = ConsensusEngineState(
-        active_attestation_consensus_instances: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        active_attestation_consensus_instances: map<Slot, AttestationConsensusValidityCheckState>,
         ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
     )
 
@@ -43,7 +43,7 @@ module DVC_Spec {
     ): ConsensusEngineState
     requires id !in s.active_attestation_consensus_instances.Keys
     {
-        var acvc := DVC_Spec_NonInstr.AttestationConsensusValidityCheckState(
+        var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );
@@ -98,9 +98,9 @@ module DVC_Spec {
 
 
     function updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (r: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>)
+    ): (r: map<Slot, AttestationConsensusValidityCheckState>)
     // Questions: It seems r.Keys == m.Keys, not <=
     ensures r.Keys <= m.Keys
     {
@@ -114,7 +114,7 @@ module DVC_Spec {
   
     function updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_active_attestation_consensus_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
     {
