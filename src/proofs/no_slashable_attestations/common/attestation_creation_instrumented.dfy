@@ -365,7 +365,55 @@ module DVC_Spec {
                                             signing_root := Some(hash_tree_root(attestation_data)));
         
         attestation_slashing_db + {slashing_db_attestation}
-    }      
+    }    
+
+    function f_calc_att_with_sign_share_from_decided_att_data(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData
+    ): AttestationShare
+    requires process.current_attestation_duty.isPresent()
+    {
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+
+        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+        var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := decided_attestation_data, 
+                    signature := attestation_signature_share
+                ); 
+
+        attestation_with_signature_share
+    }  
+
+    function f_update_att_slashing_db_and_consensus_engine_after_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData,
+        attestation_with_signature_share: AttestationShare
+    ): DVCState
+    requires process.current_attestation_duty.isPresent()
+    requires id == process.current_attestation_duty.safe_get().slot
+    {
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+
+        var ret_process := 
+                process.(
+                    current_attestation_duty := None,
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        process.attestation_consensus_engine_state,
+                        attestation_slashing_db
+                    )
+                );
+        
+        ret_process
+    }
 
     function f_att_consensus_decided(
         process: DVCState,
@@ -379,28 +427,17 @@ module DVC_Spec {
             && id == process.current_attestation_duty.safe_get().slot then
 
             var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-
-            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-            var attestation_with_signature_share := AttestationShare(
-                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                    data := decided_attestation_data, 
-                    signature := attestation_signature_share
-                ); 
-
-            var process := 
-                process.(
-                    current_attestation_duty := None,
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                    attestation_slashing_db := attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        attestation_slashing_db
-                    )
-                );
-
+            var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(
+                                                        process,
+                                                        id,
+                                                        decided_attestation_data
+                                                    );       
+            var process := f_update_att_slashing_db_and_consensus_engine_after_att_consensus_decided(
+                                process,
+                                id,
+                                decided_attestation_data,
+                                attestation_with_signature_share
+                            );           
             var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process);
 
             ret_check_for_next_queued_duty.(

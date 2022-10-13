@@ -405,6 +405,8 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         {
             ...;
         }
+        
+        
 
         function f_att_consensus_decided_helper(
             process: DVCState,

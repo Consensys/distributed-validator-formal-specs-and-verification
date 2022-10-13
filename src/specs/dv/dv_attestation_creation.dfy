@@ -545,6 +545,8 @@ module DV
         && s'.adversary == s.adversary
     }    
 
+    
+
     predicate NextAdversary(
         s: DVState,
         node: BLSPubkey,
