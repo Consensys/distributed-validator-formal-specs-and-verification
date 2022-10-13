@@ -346,7 +346,6 @@ module DVC_Spec_NonInstr {
     requires process.current_attestation_duty.isPresent()
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
         var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
@@ -364,22 +363,22 @@ module DVC_Spec_NonInstr {
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,
-        attestation_with_signature_share: AttestationShare
+        attestation_with_signature_share: AttestationShare,
+        new_attestation_slashing_db: set<SlashingDBAttestation>
     ): DVCState
     requires process.current_attestation_duty.isPresent()
     requires id == process.current_attestation_duty.safe_get().slot
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-
+        
         var ret_process := 
                 process.(
                     current_attestation_duty := None,
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                    attestation_slashing_db := attestation_slashing_db,
+                    attestation_slashing_db := new_attestation_slashing_db,
                     attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process.attestation_consensus_engine_state,
-                        attestation_slashing_db
+                        new_attestation_slashing_db
                     )
                 );
         
@@ -398,7 +397,7 @@ module DVC_Spec_NonInstr {
             && id == process.current_attestation_duty.safe_get().slot then
 
             var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(
                                                         process,
@@ -409,7 +408,8 @@ module DVC_Spec_NonInstr {
                                 process,
                                 id,
                                 decided_attestation_data,
-                                attestation_with_signature_share
+                                attestation_with_signature_share,
+                                new_attestation_slashing_db
                             );         
 
             var ret_check_for_next_queued_duty := f_check_for_next_queued_duty(process);
@@ -460,12 +460,20 @@ module DVC_Spec_NonInstr {
                             
                 if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent() then
                 
+                    // var aggregated_attestation := 
+                    //         Attestation(
+                    //             aggregation_bits := attestation_share.aggregation_bits,
+                    //             data := attestation_share.data,
+                    //             signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
+                    //         );
+
                     var aggregated_attestation := 
-                            Attestation(
-                                aggregation_bits := attestation_share.aggregation_bits,
-                                data := attestation_share.data,
-                                signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
-                            );
+                        f_construct_aggregated_attestation_for_new_attestation_share(
+                            attestation_share,
+                            k, 
+                            process.construct_signed_attestation_signature,
+                            process.rcvd_attestation_shares
+                        );
 
                     DVCStateAndOuputs(
                         state := process.(

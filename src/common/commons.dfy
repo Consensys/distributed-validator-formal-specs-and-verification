@@ -712,5 +712,20 @@ module CommonFunctions{
 
     }
 
-
+    function method f_construct_aggregated_attestation_for_new_attestation_share(
+        attestation_share: AttestationShare, 
+        k: (AttestationData, seq<bool>),
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>, 
+        rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>
+    ): Attestation
+    requires attestation_share.data.slot in rcvd_attestation_shares.Keys
+    requires k in rcvd_attestation_shares[attestation_share.data.slot]
+    requires construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()    
+    {
+        Attestation(
+            aggregation_bits := attestation_share.aggregation_bits,
+            data := attestation_share.data,
+            signature := construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
+        )
+    }
 }

@@ -486,12 +486,20 @@ module DVC_Spec {
                             
                 if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent() then
                 
+                    // var aggregated_attestation := 
+                    //         Attestation(
+                    //             aggregation_bits := attestation_share.aggregation_bits,
+                    //             data := attestation_share.data,
+                    //             signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
+                    //         );
+
                     var aggregated_attestation := 
-                            Attestation(
-                                aggregation_bits := attestation_share.aggregation_bits,
-                                data := attestation_share.data,
-                                signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
-                            );
+                        f_construct_aggregated_attestation_for_new_attestation_share(
+                            attestation_share,
+                            k, 
+                            process.construct_signed_attestation_signature,
+                            process.rcvd_attestation_shares
+                        );
 
                     DVCStateAndOuputs(
                         state := process.(

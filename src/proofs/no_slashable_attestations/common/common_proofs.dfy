@@ -75,9 +75,9 @@ module Common_Proofs
 
     // TODO: Moved from invs_dv_next_3.dfy
     lemma lem_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>
+        m': map<Slot, AttestationConsensusValidityCheckState>
     )    
     requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
     ensures m.Keys == m'.Keys
@@ -107,7 +107,7 @@ module Common_Proofs
 
     lemma lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_active_attestation_consensus_instances : map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
     )    

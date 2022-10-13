@@ -1987,9 +1987,9 @@ module Invs_DV_Next_3
     }   
 
     lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>,
+        m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
-        m': map<Slot, DVC_Spec_NonInstr.AttestationConsensusValidityCheckState>
+        m': map<Slot, AttestationConsensusValidityCheckState>
     )    
     requires m' == updateConsensusInstanceValidityCheckHelper(m, new_attestation_slashing_db)
     requires forall k | k in m :: inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body_body(k, m[k].attestation_duty, m[k].validityPredicate)
@@ -2203,7 +2203,7 @@ module Invs_DV_Next_3
                 var attestation_duty := process.attestation_duties_queue[0];
                 var attestation_slashing_db := process.attestation_slashing_db;
 
-                var acvc := DVC_Spec_NonInstr.AttestationConsensusValidityCheckState(
+                var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
                     validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );     
