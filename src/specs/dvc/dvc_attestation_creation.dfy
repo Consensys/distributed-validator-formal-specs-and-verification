@@ -9,12 +9,6 @@ module DVC_Spec_NonInstr {
     import opened DVC_Externs
     import opened DVC_Spec_Axioms
 
-
-    datatype AttestationConsensusValidityCheckState = AttestationConsensusValidityCheckState(
-        attestation_duty: AttestationDuty,
-        validityPredicate: AttestationData -> bool
-    )
-
     datatype ConsensusEngineState = ConsensusEngineState(
         active_attestation_consensus_instances: map<Slot, AttestationConsensusValidityCheckState>
     )

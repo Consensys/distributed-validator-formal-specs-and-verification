@@ -160,6 +160,11 @@ module Types
         message: M,
         receipient: BLSPubkey
     ) 
+
+    datatype AttestationConsensusValidityCheckState = AttestationConsensusValidityCheckState(
+        attestation_duty: AttestationDuty,
+        validityPredicate: AttestationData -> bool
+    ) 
 }
 
 module CommonFunctions{
@@ -707,5 +712,5 @@ module CommonFunctions{
 
     }
 
-    
+
 }
