@@ -270,14 +270,16 @@ module DVC_Spec_NonInstr {
     requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     decreases process.attestation_duties_queue
     {
+        // predicate for if condition
         if  && process.attestation_duties_queue != [] 
             && (
                 || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
                 || !process.current_attestation_duty.isPresent()
             )    
         then
-            
+                // predicate for if condition
                 if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys then
+                    // function returns the dvc state passing to f_check_for_next_queue_duty
                     var queue_head := process.attestation_duties_queue[0];
                     var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
                     f_check_for_next_queued_duty(process.(

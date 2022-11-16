@@ -544,6 +544,22 @@ module Invs_DV_Next_4
     // ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     // decreases process.attestation_duties_queue    
     
+    // TODO
+
+    predicate undecided_att_duty_in_queue(process: DVCState) 
+    {
+        && process.attestation_duties_queue != [] 
+        &&  (
+                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+                || !process.current_attestation_duty.isPresent()
+            ) 
+    }
+
+    predicate first_queued_att_duty_was_decided(process: DVCState) 
+    {
+        process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+    }
+
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_check_for_next_queued_duty(
         process: DVCState,
         s': DVCState,
@@ -562,13 +578,9 @@ module Invs_DV_Next_4
     ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if  undecided_att_duty_in_queue(process)
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+            if  first_queued_att_duty_was_decided(process)
             {
                 var queue_head := process.attestation_duties_queue[0];
                 var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
