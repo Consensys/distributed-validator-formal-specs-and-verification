@@ -459,6 +459,40 @@ module DV
         && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )                
     }
 
+    predicate ConsensusInstanceStep(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event,
+        nodeOutputs: DVC_Spec.Outputs,
+        s': DVState
+    )
+    {
+        &&  (
+            forall cid | cid in s.consensus_on_attestation_data.Keys ::
+                var output := 
+                    if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                        Some(Decided(node, nodeEvent.decided_attestation_data))
+                    else
+                        None
+                    ;
+
+                && var validityPredicates := 
+                    map n |
+                            && n in s.honest_nodes_states.Keys 
+                            && cid in s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                        ::
+                            s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+                    ;
+
+                ConsensusSpec.Next(
+                    s.consensus_on_attestation_data[cid],
+                    validityPredicates,
+                    s'.consensus_on_attestation_data[cid],
+                    output
+                )
+            )
+    }
+
     predicate NextHonestAfterAddingBlockToBn(
         s: DVState,
         node: BLSPubkey,
@@ -493,30 +527,7 @@ module DV
                 case _ => {}
             ;
         && NetworkSpec.Next(s.att_network, s'.att_network, node, nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
-        && (
-            forall cid | cid in s.consensus_on_attestation_data.Keys ::
-                var output := 
-                    if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
-                        Some(Decided(node, nodeEvent.decided_attestation_data))
-                    else
-                        None
-                    ;
-
-                && var validityPredicates := 
-                    map n |
-                            && n in s.honest_nodes_states.Keys 
-                            && cid in s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
-                        ::
-                            s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
-                    ;
-
-                ConsensusSpec.Next(
-                    s.consensus_on_attestation_data[cid],
-                    validityPredicates,
-                    s'.consensus_on_attestation_data[cid],
-                    output
-                )
-        )      
+        && ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
     }    
 
