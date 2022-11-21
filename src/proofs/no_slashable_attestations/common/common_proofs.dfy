@@ -326,4 +326,39 @@ module Common_Proofs
         assert r.att_slashing_db_hist.Keys == t.att_slashing_db_hist.Keys;
         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(r, new_attestation_slashing_db);
     }
+
+    predicate first_queued_att_duty_was_decided_or_ready_to_be_served(process: DVCState) 
+    {
+        && process.attestation_duties_queue != [] 
+        &&  (
+                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
+                || !process.current_attestation_duty.isPresent()
+            ) 
+    }
+
+    predicate first_queued_att_duty_was_decided(process: DVCState)
+    {
+        process.attestation_duties_queue != [] 
+        ==>
+        process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+    }
+
+    function f_dequeue_attestation_duties_queue(process: DVCState): DVCState
+    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
+    requires first_queued_att_duty_was_decided(process)
+    {
+        var queue_head := process.attestation_duties_queue[0];
+        var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
+        var ret_process := 
+            process.(
+                        attestation_duties_queue := process.attestation_duties_queue[1..],
+                        future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
+                        attestation_slashing_db := new_attestation_slashing_db,
+                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                            process.attestation_consensus_engine_state,
+                            new_attestation_slashing_db
+                        )
+            );
+        ret_process
+    }
 }

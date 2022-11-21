@@ -137,11 +137,7 @@ module Invs_DV_Next_3
     ensures f_check_for_next_queued_duty(s).outputs == getEmptyOuputs()
     decreases s.attestation_duties_queue
     {
-        if  && s.attestation_duties_queue != [] 
-            && (
-                || s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided
-                || !s.current_attestation_duty.isPresent()
-            )    
+        if  first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
         {
             
                 if s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided.Keys 

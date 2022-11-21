@@ -2919,25 +2919,11 @@ module Fnc_Invs_2
                     index_next_attestation_duty_to_be_served)
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if  first_queued_att_duty_was_decided_or_ready_to_be_served(process)   
         {            
-                if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
+                if first_queued_att_duty_was_decided(process)
                 {
-                    var queue_head := process.attestation_duties_queue[0];
-                    var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                    var process_mod := process.(
-                        attestation_duties_queue := process.attestation_duties_queue[1..],
-                        future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                        attestation_slashing_db := new_attestation_slashing_db,
-                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                            process.attestation_consensus_engine_state,
-                            new_attestation_slashing_db
-                        )                        
-                    );
+                    var process_mod := f_dequeue_attestation_duties_queue(process);
                     assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process_mod, 

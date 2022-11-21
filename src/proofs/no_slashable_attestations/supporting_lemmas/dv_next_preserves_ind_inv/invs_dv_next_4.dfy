@@ -27,6 +27,7 @@ module Invs_DV_Next_4
     import opened Helper_Sets_Lemmas
     import opened Invs_DV_Next_3
     import opened DVC_Spec_Axioms
+    import opened Common_Proofs
 
     lemma lem_inv_attestation_duty_queue_is_ordered_3_body_body(
         dv: DVState, 
@@ -546,40 +547,7 @@ module Invs_DV_Next_4
     
     // TODO
 
-    predicate first_queued_att_duty_was_decided_or_ready_to_be_served(process: DVCState) 
-    {
-        && process.attestation_duties_queue != [] 
-        &&  (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            ) 
-    }
-
-    predicate first_queued_att_duty_was_decided(process: DVCState)
-    {
-        process.attestation_duties_queue != [] 
-        ==>
-        process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
-    }
-
-    function f_dequeue_attestation_duties_queue(process: DVCState): DVCState
-    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
-    requires first_queued_att_duty_was_decided(process)
-    {
-        var queue_head := process.attestation_duties_queue[0];
-        var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-        var ret_process := 
-            process.(
-                        attestation_duties_queue := process.attestation_duties_queue[1..],
-                        future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                        attestation_slashing_db := new_attestation_slashing_db,
-                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                            process.attestation_consensus_engine_state,
-                            new_attestation_slashing_db
-                        )
-            );
-        ret_process
-    }
+    
 
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_dequeue_attestation_duties_queue(
         process: DVCState,        
