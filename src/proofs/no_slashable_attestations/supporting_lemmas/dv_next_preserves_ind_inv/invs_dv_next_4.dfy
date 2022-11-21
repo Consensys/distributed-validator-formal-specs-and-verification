@@ -6,6 +6,7 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
+include "../../../common/helper_pred_fcn.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
 include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
@@ -28,6 +29,7 @@ module Invs_DV_Next_4
     import opened Invs_DV_Next_3
     import opened DVC_Spec_Axioms
     import opened Common_Proofs
+    import opened Helper_Pred_Fcn
 
     lemma lem_inv_attestation_duty_queue_is_ordered_3_body_body(
         dv: DVState, 
@@ -723,9 +725,9 @@ module Invs_DV_Next_4
     ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     decreases process.attestation_duties_queue
     {
-        if  first_queued_att_duty_was_decided_or_ready_to_be_served(process)
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)
         {
-            if  first_queued_att_duty_was_decided(process)
+            if first_queued_att_duty_was_decided(process)
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 

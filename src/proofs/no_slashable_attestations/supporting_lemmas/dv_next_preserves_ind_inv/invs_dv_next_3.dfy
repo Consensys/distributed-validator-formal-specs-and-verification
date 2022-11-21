@@ -10,8 +10,9 @@ include "../../../no_slashable_attestations/common/common_proofs.dfy"
 include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
 include "invs_dv_next_1.dfy"
-
 include "../inv.dfy"
+include "../../../common/helper_pred_fcn.dfy"
+
 
 module Invs_DV_Next_3
 {
@@ -27,6 +28,7 @@ module Invs_DV_Next_3
     import opened Invs_DV_Next_1
     import DVC_Spec_NonInstr
     import opened DVC_Spec_Axioms
+    import opened Helper_Pred_Fcn
 
     predicate lem_ServeAttstationDuty2_predicate(
         s': DVState,
@@ -2159,6 +2161,49 @@ module Invs_DV_Next_3
         lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_f_check_for_next_queued_duty(s_mod, s');        
     }    
 
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_f_check_for_next_queued_duty_helper(
+        process: DVCState,
+        s': DVCState
+    )
+    requires f_check_for_next_queued_duty.requires(process)
+    requires s' == f_check_for_next_queued_duty(process).state   
+    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(process) 
+    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
+    requires !first_queued_att_duty_was_decided(process)
+    ensures  inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s')
+    {
+        var attestation_duty := process.attestation_duties_queue[0];
+        var attestation_slashing_db := process.attestation_slashing_db;
+
+        var acvc := AttestationConsensusValidityCheckState(
+            attestation_duty := attestation_duty,
+            validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+        );     
+
+        assert s'.attestation_consensus_engine_state.active_attestation_consensus_instances == process.attestation_consensus_engine_state.active_attestation_consensus_instances[attestation_duty.slot := acvc];
+
+
+        forall cid | cid in s'.attestation_consensus_engine_state.active_attestation_consensus_instances  
+            ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
+        {
+            if cid != attestation_duty.slot 
+            {
+                assert cid in process.attestation_consensus_engine_state.active_attestation_consensus_instances;
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
+            }
+            else 
+            {
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(
+                    cid,
+                    attestation_duty,
+                    attestation_slashing_db,
+                    acvc.validityPredicate
+                );
+                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
+            }
+        }   
+    }
+
     lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_f_check_for_next_queued_duty(
         process: DVCState,
         s': DVCState
@@ -2169,25 +2214,13 @@ module Invs_DV_Next_3
     ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
-            {
+            if first_queued_att_duty_was_decided(process)
+            {                
                 var queue_head := process.attestation_duties_queue[0];
                 var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
+                var s_mod := f_dequeue_attestation_duties_queue(process);
 
                 lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_updateConsensusInstanceValidityCheckHelper(
                         process.attestation_consensus_engine_state.active_attestation_consensus_instances,
@@ -2200,38 +2233,10 @@ module Invs_DV_Next_3
             }
             else 
             {
-                var attestation_duty := process.attestation_duties_queue[0];
-                var attestation_slashing_db := process.attestation_slashing_db;
-
-                var acvc := AttestationConsensusValidityCheckState(
-                    attestation_duty := attestation_duty,
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
-                );     
-
-                assert s'.attestation_consensus_engine_state.active_attestation_consensus_instances == process.attestation_consensus_engine_state.active_attestation_consensus_instances[attestation_duty.slot := acvc];
-
-                forall cid | 
-                    && cid in s'.attestation_consensus_engine_state.active_attestation_consensus_instances  
-                ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
-                {
-                    if cid != attestation_duty.slot 
-                    {
-                        assert cid in process.attestation_consensus_engine_state.active_attestation_consensus_instances;
-                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
-                    }
-                    else 
-                    {
-                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_body(
-                            cid,
-                            attestation_duty,
-                            attestation_slashing_db,
-                            acvc.validityPredicate
-                        );
-                        assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2_body(s', cid); 
-                    }
-                }              
-
-                assert inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
+                lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_f_check_for_next_queued_duty_helper(
+                    process,
+                    s'
+                );                
             }
         } 
         else 

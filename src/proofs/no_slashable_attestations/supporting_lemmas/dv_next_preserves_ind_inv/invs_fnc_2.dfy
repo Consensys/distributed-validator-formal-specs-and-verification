@@ -9,6 +9,8 @@ include "../../common/common_proofs.dfy"
 include "../../common/dvc_spec_axioms.dfy"
 include "invs_fnc_1.dfy"
 
+include "../../../common/helper_pred_fcn.dfy"
+
 
 module Fnc_Invs_2
 {
@@ -23,7 +25,8 @@ module Fnc_Invs_2
     import opened Common_Proofs
     import opened Fnc_Invs_1
     import opened DVC_Spec_Axioms
-    
+    import opened Helper_Pred_Fcn
+
     
     
 

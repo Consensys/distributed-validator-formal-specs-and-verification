@@ -1054,7 +1054,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             }
         }
 
-
+        // TODO: Type issues
         lemma f_check_for_next_queued_duty_empty_outputs(
             process: DVCState
         )
