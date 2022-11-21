@@ -36,9 +36,11 @@ module Helper_Pred_Fcn
         process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
     }
 
-    function f_dequeue_attestation_duties_queue(process: DVCState): DVCState
+    function f_dequeue_attestation_duties_queue(process: DVCState)
+        : (ret_process: DVCState)
     requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
     requires first_queued_att_duty_was_decided(process)
+    ensures |ret_process.attestation_duties_queue| < |process.attestation_duties_queue|
     {
         var queue_head := process.attestation_duties_queue[0];
         var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
