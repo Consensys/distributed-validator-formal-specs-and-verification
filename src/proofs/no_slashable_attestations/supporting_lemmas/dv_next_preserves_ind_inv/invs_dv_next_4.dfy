@@ -672,19 +672,7 @@ module Invs_DV_Next_4
     requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
     requires first_queued_att_duty_was_decided(process)
     requires s_mod == f_dequeue_attestation_duties_queue(process)
-    
-    ensures forall i: nat, k, l, t  ::
-                inv_attestation_duty_queue_is_ordered_3_body_body_premise(
-                        dv,
-                        n, 
-                        s_mod,
-                        i,
-                        k, 
-                        l, 
-                        t
-                    )
-                ==> 
-                s_mod.attestation_duties_queue[i-1].slot == dv.sequence_attestation_duties_to_be_served[t].attestation_duty.slot      
+    ensures inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s_mod);      
     {
         forall i: nat, k, l, t  |
                     inv_attestation_duty_queue_is_ordered_3_body_body_premise(
@@ -715,6 +703,8 @@ module Invs_DV_Next_4
                         t                        
                     );
                 } 
+
+        assert inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s_mod);
     }
 
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_dequeue_attestation_duties_queue_helper2(
@@ -733,9 +723,7 @@ module Invs_DV_Next_4
     requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
     requires first_queued_att_duty_was_decided(process)
     requires s_mod == f_dequeue_attestation_duties_queue(process)
-    ensures  forall ad  ::
-                    ad in s_mod.attestation_duties_queue
-                ==> ad in process.attestation_duties_queue
+    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served);
     {
         forall ad  |
                     && ad in s_mod.attestation_duties_queue
@@ -745,7 +733,9 @@ module Invs_DV_Next_4
                                 && s_mod.attestation_duties_queue[i] == ad;
                     assert ad in process.attestation_duties_queue;
                 }
-    }
+
+        assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served);
+    } 
 
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_check_for_next_queued_duty(
         process: DVCState,
@@ -771,18 +761,13 @@ module Invs_DV_Next_4
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                if  && |s_mod.attestation_duties_queue| > 0 
-                    && !s_mod.current_attestation_duty.isPresent()
-                {
-                    lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_dequeue_attestation_duties_queue(
-                        process,
-                        dv,
-                        n,
-                        index_next_attestation_duty_to_be_served,
-                        s_mod
-                    );                                      
-                }
-                assert inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, s_mod);
+                lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_dequeue_attestation_duties_queue(
+                    process,
+                    dv,
+                    n,
+                    index_next_attestation_duty_to_be_served,
+                    s_mod
+                );                                      
 
                 lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_dequeue_attestation_duties_queue_helper1(
                         process,
@@ -798,13 +783,7 @@ module Invs_DV_Next_4
                         n,
                         index_next_attestation_duty_to_be_served,
                         s_mod
-                );   
-                    // ::
-                    // exists i: nat :: 
-                    //     && i < index_next_attestation_duty_to_be_served
-                    //     && var an := dv.sequence_attestation_duties_to_be_served[i];
-                    //     && an.attestation_duty == ad
-                    //     && an.node == n                       
+                );                     
 
                 lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_check_for_next_queued_duty(s_mod, s', dv, n , index_next_attestation_duty_to_be_served);
             }
