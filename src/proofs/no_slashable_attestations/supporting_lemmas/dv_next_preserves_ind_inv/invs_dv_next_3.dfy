@@ -2218,13 +2218,11 @@ module Invs_DV_Next_3
         {
             if first_queued_att_duty_was_decided(process)
             {                
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
                 lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_updateConsensusInstanceValidityCheckHelper(
                         process.attestation_consensus_engine_state.active_attestation_consensus_instances,
-                        new_attestation_slashing_db,
+                        s_mod.attestation_slashing_db,
                         s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
                 );
 
