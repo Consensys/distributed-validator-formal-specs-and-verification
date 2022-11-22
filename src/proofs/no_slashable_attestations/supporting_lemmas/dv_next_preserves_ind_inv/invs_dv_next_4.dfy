@@ -5448,7 +5448,7 @@ module Invs_DV_Next_4
     ensures inv_g_d_b_body_body(dv, n, s')
     decreases process.attestation_duties_queue
     {
-        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)        
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)
         {
             if first_queued_att_duty_was_decided(process)
             {
