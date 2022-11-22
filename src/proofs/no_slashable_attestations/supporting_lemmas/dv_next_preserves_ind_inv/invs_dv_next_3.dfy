@@ -3018,94 +3018,14 @@ module Invs_DV_Next_3
         {
             if first_queued_att_duty_was_decided(process)
             {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
                 var s_mod := f_dequeue_attestation_duties_queue(process);
-
-                assert |s_mod.attestation_duties_queue| < |process.attestation_duties_queue|;
 
                 lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                     process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db,
+                    s_mod.attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state
                 );
 
-                /* forall s1: nat, s2: nat, vp, db2 |
-                    && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                    && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
-                    && s1 < s2       
-                    && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
-                    && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
-                ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv, s1, db2)
-                {
-                    assert  || s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                            || s2 in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
-                    assert s2 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                    assert s1 in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-
-                    assert dv.consensus_on_attestation_data[s1].decided_value.isPresent();
-                    var decided_a_data := dv.consensus_on_attestation_data[s1].decided_value.safe_get();
-                    var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
-
-                    assert 
-                        && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
-                        && db2 in process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
-                        ==>
-                        inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv, s1, db2);   
-
-                    if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
-                    {
-                        assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
-                        assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {new_attestation_slashing_db};
-                        assert sdba in db2;
-                    }
-                    else 
-                    {
-                        if s2 in s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
-                        {
-                            if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
-                            {
-                                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
-                                    process.attestation_consensus_engine_state,
-                                    new_attestation_slashing_db,
-                                    s_mod.attestation_consensus_engine_state,
-                                    s2,
-                                    vp
-                                );
-                                assert sdba in db2;
-                            }
-                            else 
-                            {
-                                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
-                                    process.attestation_consensus_engine_state,
-                                    new_attestation_slashing_db,
-                                    s_mod.attestation_consensus_engine_state,
-                                    s2,
-                                    vp
-                                );
-                                assert sdba in db2;
-                            }
-                        }
-                        else 
-                        {
-                            lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
-                                process.attestation_consensus_engine_state,
-                                new_attestation_slashing_db,
-                                s_mod.attestation_consensus_engine_state,
-                                s2,
-                                vp
-                            );
-                            assert sdba in db2;
-                        }
-                    }
-                    assert sdba in db2;
-                    assert  inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv, s1, db2);
-                }                       
-
-                assert inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, s_mod); 
-
-                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
- */
                 lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_helper(
                     process,
                     s',
@@ -3113,9 +3033,8 @@ module Invs_DV_Next_3
                     n,
                     index_next_attestation_duty_to_be_served,
                     s_mod,
-                    new_attestation_slashing_db
+                    s_mod.attestation_slashing_db
                 );
-                assert inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, s');
 
                 lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
