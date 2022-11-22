@@ -1046,42 +1046,21 @@ module Invs_DV_Next_5
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+            if first_queued_att_duty_was_decided(process)
             {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
+                var s_mod := f_dequeue_attestation_duties_queue(process);
 
                 lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                     process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db,
+                    s_mod.attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state
                 );
 
                 assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
-                forall ad  |
-                    && ad in s_mod.attestation_duties_queue
-                ensures ad in process.attestation_duties_queue
-                {
-                    var i :| 0 <= i < |s_mod.attestation_duties_queue|
-                                && s_mod.attestation_duties_queue[i] == ad;
-                    assert ad in process.attestation_duties_queue;
-                }                 
+                lem_f_check_for_next_queued_duty_checker(process, s_mod);                 
 
                 lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
@@ -1456,25 +1435,11 @@ module Invs_DV_Next_5
     ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)   
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+            if first_queued_att_duty_was_decided(process)
             {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
+                var s_mod := f_dequeue_attestation_duties_queue(process);
            
                 lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(
                     s_mod,

@@ -703,6 +703,30 @@ module Invs_DV_Next_4
         assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served);
     } 
 
+    // TODO: apply this lemma 
+    lemma lem_f_check_for_next_queued_duty_checker(
+        process: DVCState,        
+        s_mod: DVCState
+    )
+    requires f_check_for_next_queued_duty.requires(process)
+    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
+    requires first_queued_att_duty_was_decided(process)
+    requires s_mod == f_dequeue_attestation_duties_queue(process)
+    ensures forall ad ::
+                ad in s_mod.attestation_duties_queue
+                ==>
+                ad in process.attestation_duties_queue 
+    {
+        forall ad |
+            && ad in s_mod.attestation_duties_queue
+        ensures ad in process.attestation_duties_queue
+        {
+            var i :| 0 <= i < |s_mod.attestation_duties_queue|
+                        && s_mod.attestation_duties_queue[i] == ad;
+            assert ad in process.attestation_duties_queue;
+        }
+    }
+
     lemma lem_f_check_for_next_queued_duty_helper(
         process: DVCState,        
         dv: DVState,
