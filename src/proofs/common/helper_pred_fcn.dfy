@@ -56,4 +56,16 @@ module Helper_Pred_Fcn
             );
         ret_process
     }
+
+    function f_dequeue_first_queued_att_duty(process: DVCState)
+        : (ret_process: DVCState)
+    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
+    ensures |ret_process.attestation_duties_queue| < |process.attestation_duties_queue|
+    {
+        var ret_process := 
+            process.(
+                attestation_duties_queue := process.attestation_duties_queue[1..]
+            );   
+        ret_process
+    }
 }

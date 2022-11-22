@@ -166,7 +166,6 @@ module Invs_DV_Next_5
             }
             else
             {
-
             }
         }
     }      
@@ -613,7 +612,6 @@ module Invs_DV_Next_5
             }
             else
             {
-
             }
         }
     }      
@@ -1065,6 +1063,7 @@ module Invs_DV_Next_5
                 lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
             else 
+            // TODO: Unclear
             {        
                 lemmaStartConsensusInstance(
                     process.attestation_consensus_engine_state,

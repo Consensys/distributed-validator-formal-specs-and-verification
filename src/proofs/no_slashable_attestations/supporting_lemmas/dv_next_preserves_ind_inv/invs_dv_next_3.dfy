@@ -3042,9 +3042,7 @@ module Invs_DV_Next_3
                     attestation_duties_queue := process.attestation_duties_queue[1..]
                 );                  
                 assert s'.latest_attestation_duty == Some( process.attestation_duties_queue[0]);
-
       
-
                 if process.latest_attestation_duty.isPresent()
                 {
                     assert inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, s');           

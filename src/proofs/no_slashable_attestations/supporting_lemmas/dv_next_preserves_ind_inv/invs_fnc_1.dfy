@@ -1326,36 +1326,22 @@ module Fnc_Invs_1
     ensures inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process')
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
         {            
-                if first_queued_att_duty_was_decided(process)
-                {
-                    var queue_head := process.attestation_duties_queue[0];
-                    var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                    var process_mod := process.(
-                        attestation_duties_queue := process.attestation_duties_queue[1..],
-                        future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                        attestation_slashing_db := new_attestation_slashing_db,
-                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                            process.attestation_consensus_engine_state,
-                            new_attestation_slashing_db
-                        )                        
-                    );
-                    lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_check_for_next_queued_duty(process_mod, process');
-                }
-                else
-                { 
-                    var process_mod := process.(
-                        attestation_duties_queue := process.attestation_duties_queue[1..]
-                    );     
-                    assert inv_none_latest_served_duty_implies_none_current_att_duty_body(process_mod) || inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process_mod);
+            if first_queued_att_duty_was_decided(process)
+            {
+                var process_mod := f_dequeue_attestation_duties_queue(process);
+                lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_check_for_next_queued_duty(process_mod, process');
+            }
+            else
+            { 
+                var process_mod := process.(
+                    attestation_duties_queue := process.attestation_duties_queue[1..]
+                );     
+                assert inv_none_latest_served_duty_implies_none_current_att_duty_body(process_mod) || inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process_mod);
 
-                    lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
-                }
+                lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
+            }
         }
         else
         { 
@@ -2019,9 +2005,7 @@ module Fnc_Invs_1
             }
             else
             { 
-                var process_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );     
+                var process_mod := f_dequeue_first_queued_att_duty(process);
                 assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process_mod);
 
                 lem_inv_no_active_consensus_instance_before_receiving_att_duty_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
@@ -2211,10 +2195,9 @@ module Fnc_Invs_1
                 assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
             }
             else
+            // TODO: Unclear
             { 
-                var process_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );     
+                var process_mod := f_dequeue_first_queued_att_duty(process);
 
                 if process_mod.latest_attestation_duty.isPresent()
                 {
@@ -2503,9 +2486,7 @@ module Fnc_Invs_1
             }
             else
             { 
-                var process_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );     
+                var process_mod := f_dequeue_first_queued_att_duty(process);
                 assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
 
                 lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
@@ -2711,9 +2692,7 @@ module Fnc_Invs_1
             }
             else
             { 
-                var process_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );     
+                var process_mod := f_dequeue_first_queued_att_duty(process);
                 assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
 
                 lem_inv_consensus_instances_only_for_rcvd_duties_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');

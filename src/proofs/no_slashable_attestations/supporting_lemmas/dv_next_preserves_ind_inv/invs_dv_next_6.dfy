@@ -282,11 +282,9 @@ module Invs_DV_Next_6
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
                 lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
-
             }
             else 
             {    
-
             }
         } 
         else 

@@ -809,11 +809,7 @@ module Invs_DV_Next_4
             }
             else 
             {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );   
-
-                var queue_head := process.attestation_duties_queue[0];       
+                var new_process := f_dequeue_first_queued_att_duty(process);
 
                 assert get_upperlimit_decided_instances(s') == s'.latest_attestation_duty.safe_get().slot;
 
@@ -824,9 +820,7 @@ module Invs_DV_Next_4
                 else 
                 {
                     assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
-                }
-
-                
+                }                
             }
         } 
         else 
@@ -1802,15 +1796,7 @@ module Invs_DV_Next_4
             }
             else 
             {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );   
-
-                var queue_head := process.attestation_duties_queue[0];       
-
-
                 assert inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, s');
-
             }
         } 
         else 
@@ -2325,19 +2311,12 @@ module Invs_DV_Next_4
             }
             else 
             {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );   
-
-                var queue_head := process.attestation_duties_queue[0];       
-
                 assert s'.attestation_duties_queue == process.attestation_duties_queue[1..];
 
                 assert forall ad  |
                     && ad in s'.attestation_duties_queue  :: ad in process.attestation_duties_queue;            
 
                 assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
-
             }
         } 
         else 
@@ -3357,11 +3336,7 @@ module Invs_DV_Next_4
             }
             else 
             {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );   
-
-                var queue_head := process.attestation_duties_queue[0];      
+                var new_process := f_dequeue_first_queued_att_duty(process);   
                 lemma3_inv_attestation_duty_queue_is_ordered_4_body_body(dv, n, process, new_process, index_next_attestation_duty_to_be_served);                 
 
 
@@ -4320,10 +4295,6 @@ module Invs_DV_Next_4
             }
             else 
             {
-                var new_process := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..]
-                );          
-
                 assert inv_g_a_iii_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
 
             }
@@ -4966,14 +4937,12 @@ module Invs_DV_Next_4
                     s_mod
                 );      
 
-
-
                 lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
-
 
                 lem_inv_g_a_iv_f_check_for_next_queued_duty(s_mod, s', dv, n , index_next_attestation_duty_to_be_served);
             }
             else 
+            // TODO: Unclear
             {
                 var new_process := process.(
                     attestation_duties_queue := process.attestation_duties_queue[1..]
