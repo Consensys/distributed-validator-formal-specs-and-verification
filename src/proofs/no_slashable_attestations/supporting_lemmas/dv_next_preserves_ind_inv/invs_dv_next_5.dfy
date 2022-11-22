@@ -1028,6 +1028,55 @@ module Invs_DV_Next_5
         }        
     }        
 
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty_helper(
+        process: DVCState,
+        s': DVCState,
+        dv: DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_check_for_next_queued_duty.requires(process)
+    requires s' == f_check_for_next_queued_duty(process).state  
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    {
+        forall slot  |
+            slot in s'.attestation_consensus_engine_state.att_slashing_db_hist
+        ensures 
+                    exists i: nat :: 
+                        && i < index_next_attestation_duty_to_be_served
+                        && var an := dv.sequence_attestation_duties_to_be_served[i];
+                        && an.attestation_duty.slot == slot 
+                        && an.node == n
+                ;                                    
+        {
+            if slot in process.attestation_consensus_engine_state.att_slashing_db_hist
+            {
+                assert 
+                    exists i: nat :: 
+                        && i < index_next_attestation_duty_to_be_served
+                        && var an := dv.sequence_attestation_duties_to_be_served[i];
+                        && an.attestation_duty.slot == slot 
+                        && an.node == n
+                ;
+            }
+            else
+            {
+                assert slot == process.attestation_duties_queue[0].slot;
+                // assert slot in process.attestation_duties_queue.Keys;
+                assert process.attestation_duties_queue[0] in process.attestation_duties_queue;
+                assert 
+                    exists i: nat :: 
+                        && i < index_next_attestation_duty_to_be_served
+                        && var an := dv.sequence_attestation_duties_to_be_served[i];
+                        && an.attestation_duty.slot == slot 
+                        && an.node == n
+                ;                        
+            }
+        }
+    }
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(
         process: DVCState,
@@ -1073,40 +1122,7 @@ module Invs_DV_Next_5
                     s'.attestation_consensus_engine_state
                 );
 
-                forall slot  |
-                    slot in s'.attestation_consensus_engine_state.att_slashing_db_hist
-                ensures 
-                            exists i: nat :: 
-                                && i < index_next_attestation_duty_to_be_served
-                                && var an := dv.sequence_attestation_duties_to_be_served[i];
-                                && an.attestation_duty.slot == slot 
-                                && an.node == n
-                        ;                                    
-                {
-                    if slot in process.attestation_consensus_engine_state.att_slashing_db_hist
-                    {
-                        assert 
-                            exists i: nat :: 
-                                && i < index_next_attestation_duty_to_be_served
-                                && var an := dv.sequence_attestation_duties_to_be_served[i];
-                                && an.attestation_duty.slot == slot 
-                                && an.node == n
-                        ;
-                    }
-                    else
-                    {
-                        assert slot == process.attestation_duties_queue[0].slot;
-                        // assert slot in process.attestation_duties_queue.Keys;
-                        assert process.attestation_duties_queue[0] in process.attestation_duties_queue;
-                        assert 
-                            exists i: nat :: 
-                                && i < index_next_attestation_duty_to_be_served
-                                && var an := dv.sequence_attestation_duties_to_be_served[i];
-                                && an.attestation_duty.slot == slot 
-                                && an.node == n
-                        ;                        
-                    }
-                }
+                
                 
             }
         } 

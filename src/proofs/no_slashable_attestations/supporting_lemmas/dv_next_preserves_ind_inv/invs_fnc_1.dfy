@@ -2171,6 +2171,34 @@ module Fnc_Invs_1
     ensures inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process')
     { } 
 
+    lemma lem_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_check_for_next_queued_duty_helper(
+        process: DVCState,
+        process': DVCState,
+        process_mod: DVCState
+    )
+    requires f_check_for_next_queued_duty.requires(process)
+    requires process' == f_check_for_next_queued_duty(process).state        
+    requires inv_strictly_increasing_queue_of_att_duties_body(process)
+    requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
+    requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
+    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
+    requires && first_queued_att_duty_was_decided_or_ready_to_be_served(process) 
+             && !first_queued_att_duty_was_decided(process)
+    requires process_mod == f_dequeue_first_queued_att_duty(process)
+    ensures inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process')
+    {
+        forall k: Slot | k in process_mod.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
+        ensures k < process.attestation_duties_queue[0].slot;
+        {
+            assert k in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+            assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process);
+            assert k <= process.latest_attestation_duty.safe_get().slot;
+            assert process.latest_attestation_duty.safe_get().slot < process.attestation_duties_queue[0].slot;
+            assert k < process.attestation_duties_queue[0].slot;
+        }
+    }
+    
+
     lemma lem_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_check_for_next_queued_duty(
         process: DVCState,
         process': DVCState
@@ -2195,7 +2223,6 @@ module Fnc_Invs_1
                 assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
             }
             else
-            // TODO: Unclear
             { 
                 var process_mod := f_dequeue_first_queued_att_duty(process);
 
@@ -2211,15 +2238,11 @@ module Fnc_Invs_1
                     assert process_mod.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
                                 == process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
-                    forall k: Slot | k in process_mod.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
-                    ensures k < process.attestation_duties_queue[0].slot;
-                    {
-                        assert k in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
-                        assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process);
-                        assert k <= process.latest_attestation_duty.safe_get().slot;
-                        assert process.latest_attestation_duty.safe_get().slot < process.attestation_duties_queue[0].slot;
-                        assert k < process.attestation_duties_queue[0].slot;
-                    }
+                    lem_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_check_for_next_queued_duty_helper(
+                        process,
+                        process',
+                        process_mod     
+                    );
                     lem_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_start_next_duty(process_mod, process.attestation_duties_queue[0], process');
                 }
                 else 
