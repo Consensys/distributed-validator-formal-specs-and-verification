@@ -16,6 +16,8 @@ include "invs_dv_next_4.dfy"
 
 include "../inv.dfy"
 
+include "../../../common/helper_pred_fcn.dfy"
+
 
 module Invs_DV_Next_5
 {
@@ -33,7 +35,7 @@ module Invs_DV_Next_5
     import opened Invs_DV_Next_4
     import opened Common_Proofs
     import opened DVC_Spec_Axioms
- 
+    import opened Helper_Pred_Fcn
 
     lemma lem_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
         process: DVCState,
@@ -148,29 +150,15 @@ module Invs_DV_Next_5
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
     decreases s.attestation_duties_queue
     {
-        if  && s.attestation_duties_queue != [] 
-            && (
-                || s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided
-                || !s.current_attestation_duty.isPresent()
-            )    
-        {
-            
-            if s.attestation_duties_queue[0].slot in s.future_att_consensus_instances_already_decided.Keys 
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(s)      
+        {            
+            if first_queued_att_duty_was_decided(s)
             {
-                var queue_head := s.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(s.attestation_slashing_db, s.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := s.(
-                    attestation_duties_queue := s.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := s.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        s.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
+                var s_mod := f_dequeue_attestation_duties_queue(s);
+
                 lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                     s.attestation_consensus_engine_state,
-                    new_attestation_slashing_db,
+                    s_mod.attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state
                 );
                 assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
