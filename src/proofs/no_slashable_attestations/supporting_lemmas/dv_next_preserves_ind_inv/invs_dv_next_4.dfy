@@ -639,7 +639,7 @@ module Invs_DV_Next_4
     requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
     requires first_queued_att_duty_was_decided(process)
     requires s_mod == f_dequeue_attestation_duties_queue(process)
-    ensures inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s_mod);      
+    ensures inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s_mod)   
     {
         forall i: nat, k, l, t  |
                     inv_attestation_duty_queue_is_ordered_3_body_body_premise(
@@ -689,7 +689,7 @@ module Invs_DV_Next_4
     requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
     requires first_queued_att_duty_was_decided(process)
     requires s_mod == f_dequeue_attestation_duties_queue(process)
-    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served);
+    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served)
     {
         forall ad  |
                     && ad in s_mod.attestation_duties_queue
@@ -702,6 +702,52 @@ module Invs_DV_Next_4
 
         assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served);
     } 
+
+    lemma lem_f_check_for_next_queued_duty_helper(
+        process: DVCState,        
+        dv: DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat,
+        s_mod: DVCState
+    )
+    requires f_check_for_next_queued_duty.requires(process)
+    requires inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, process)    
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_g_d_a_body_body(dv, n, process)
+    requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)  
+    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
+    requires first_queued_att_duty_was_decided(process)
+    requires s_mod == f_dequeue_attestation_duties_queue(process)
+    ensures ( && |s_mod.attestation_duties_queue| > 0 
+              && !s_mod.current_attestation_duty.isPresent() )
+                    ==> inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, s_mod)
+    ensures inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s_mod)
+    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served)
+    {
+        lem_inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(
+            process,
+            dv,
+            n,
+            index_next_attestation_duty_to_be_served,
+            s_mod
+        );   
+
+        lem_inv_attestation_duty_queue_is_ordered_3_body_body_f_dequeue_attestation_duties_queue(
+                process,
+                dv,
+                n,
+                index_next_attestation_duty_to_be_served,
+                s_mod
+        );  
+
+        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body_f_dequeue_attestation_duties_queue_helper2(
+                process,
+                dv,
+                n,
+                index_next_attestation_duty_to_be_served,
+                s_mod
+        );     
+    }
 
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_check_for_next_queued_duty(
         process: DVCState,
@@ -727,29 +773,13 @@ module Invs_DV_Next_4
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                lem_inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(
+                lem_f_check_for_next_queued_duty_helper(
                     process,
                     dv,
                     n,
                     index_next_attestation_duty_to_be_served,
                     s_mod
-                );                                      
-
-                lem_inv_attestation_duty_queue_is_ordered_3_body_body_f_dequeue_attestation_duties_queue(
-                        process,
-                        dv,
-                        n,
-                        index_next_attestation_duty_to_be_served,
-                        s_mod
-                );     
-
-                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body_f_dequeue_attestation_duties_queue_helper2(
-                        process,
-                        dv,
-                        n,
-                        index_next_attestation_duty_to_be_served,
-                        s_mod
-                );                     
+                );                                                                          
 
                 lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_check_for_next_queued_duty(s_mod, s', dv, n , index_next_attestation_duty_to_be_served);
             }
@@ -1736,24 +1766,7 @@ module Invs_DV_Next_4
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                lem_inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(
-                    process,
-                    dv,
-                    n,
-                    index_next_attestation_duty_to_be_served,
-                    s_mod
-                ); 
-                assert inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, s_mod);
-
-                lem_inv_attestation_duty_queue_is_ordered_3_body_body_f_dequeue_attestation_duties_queue(
-                        process,
-                        dv,
-                        n,
-                        index_next_attestation_duty_to_be_served,
-                        s_mod
-                );     
-
-                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body_f_dequeue_attestation_duties_queue_helper2(
+                lem_f_check_for_next_queued_duty_helper(
                         process,
                         dv,
                         n,
@@ -2270,125 +2283,19 @@ module Invs_DV_Next_4
     ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)       
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+            if first_queued_att_duty_was_decided(process)
             {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
+                var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                // TODO: Put the following proofs in a lemma. They are repeates elsewhere like in
-                // lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_check_for_next_queued_duty
-                if  && |s_mod.attestation_duties_queue| > 0 
-                    &&   !s_mod.current_attestation_duty.isPresent()
-                {
-                  
-                    forall an |
-                        && an in dv.sequence_attestation_duties_to_be_served.Values 
-                        && an.node == n 
-                        && an.attestation_duty.slot < s_mod.attestation_duties_queue[0].slot
-                    ensures 
-                        var slot := an.attestation_duty.slot;
-                        && dv.consensus_on_attestation_data[slot].decided_value.isPresent()
-                        && construct_SlashingDBAttestation_from_att_data(dv.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db     
-                    ;                          
-                    {
-                        var slot := an.attestation_duty.slot;
-                   
-                        if an.attestation_duty.slot < process.attestation_duties_queue[0].slot  
-                        {
-                            assert 
-                                && dv.consensus_on_attestation_data[slot].decided_value.isPresent()
-                                && construct_SlashingDBAttestation_from_att_data(dv.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db     
-                            ;
-                        }
-                        else 
-                        {
-                            var t :|  dv.sequence_attestation_duties_to_be_served[t] == an;
-                            assert process.attestation_duties_queue[0] in process.attestation_duties_queue;
-                            var i :|  
-                                    && dv.sequence_attestation_duties_to_be_served[i].node == n 
-                                    && dv.sequence_attestation_duties_to_be_served[i].attestation_duty == process.attestation_duties_queue[0];
-                            assert process.attestation_duties_queue[1] in process.attestation_duties_queue;
-                            var j :|  
-                                    && dv.sequence_attestation_duties_to_be_served[j].node == n 
-                                    && dv.sequence_attestation_duties_to_be_served[j].attestation_duty == process.attestation_duties_queue[1];   
-
-                            lem_inv_attestation_duty_queue_is_ordered_3_body_body(
-                                dv,
-                                n,
-                                process,
-                                1,
-                                i,
-                                j,
-                                t
-                            ); 
-
-                        
-                            assert 
-                                && dv.consensus_on_attestation_data[slot].decided_value.isPresent()
-                                && construct_SlashingDBAttestation_from_att_data(dv.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db     
-                            ;
-                            
-                        }
-                    }                  
-                }
-                assert inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, s_mod);
-
-
-                forall i: nat, k, l, t  |
-                    inv_attestation_duty_queue_is_ordered_3_body_body_premise(
-                        dv,
-                        n, 
-                        s_mod,
-                        i,
-                        k, 
-                        l, 
-                        t
-                    )
-                ensures 
-                    s_mod.attestation_duties_queue[i-1].slot == dv.sequence_attestation_duties_to_be_served[t].attestation_duty.slot      
-                {
-                    assert process.attestation_duties_queue != [];
-                    assert i > 0;
-                    lem_on_first_seq_element_elimination(process.attestation_duties_queue, s_mod.attestation_duties_queue, i);
-                    // assert i - 1 >= 0;
-                    lem_on_first_seq_element_elimination(process.attestation_duties_queue, s_mod.attestation_duties_queue, i-1);
-                    // assert s_mod.attestation_duties_queue[i-1] == process.attestation_duties_queue[i]; 
-                    assert inv_attestation_duty_queue_is_ordered_3_body_body_premise(
-                        dv,
-                        n, 
-                        process,
-                        i+1,
-                        k, 
-                        l, 
-                        t                        
-                    );
-                }   
-
-                forall ad  |
-                    && ad in s_mod.attestation_duties_queue
-                ensures ad in process.attestation_duties_queue
-                {
-                    var i :| 0 <= i < |s_mod.attestation_duties_queue|
-                                && s_mod.attestation_duties_queue[i] == ad;
-                    assert ad in process.attestation_duties_queue;
-                }                              
-
-
+                lem_f_check_for_next_queued_duty_helper(
+                    process,
+                    dv,
+                    n,
+                    index_next_attestation_duty_to_be_served,
+                    s_mod
+                );                         
 
                 lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_f_check_for_next_queued_duty(s_mod, s', dv, n , index_next_attestation_duty_to_be_served);
             }
@@ -2741,31 +2648,16 @@ module Invs_DV_Next_4
     ensures inv_g_d_a_body_body(dv, n, s')
     decreases process.attestation_duties_queue
     {
-        if  && process.attestation_duties_queue != [] 
-            && (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            )    
+        if first_queued_att_duty_was_decided_or_ready_to_be_served(process)     
         {
-            if process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
+            if first_queued_att_duty_was_decided(process)
             {
-                var queue_head := process.attestation_duties_queue[0];
-                var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                var s_mod := process.(
-                    attestation_duties_queue := process.attestation_duties_queue[1..],
-                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                    attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        new_attestation_slashing_db
-                    )                        
-                );
+                var s_mod := f_dequeue_attestation_duties_queue(process);
 
                 lem_inv_g_d_a_f_check_for_next_queued_duty(s_mod, s', dv, n );
             }
             else 
             {        
-
                 assert inv_g_d_a_body_body(dv, n, s');
 
             }
