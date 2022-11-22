@@ -4841,6 +4841,7 @@ module Invs_DV_Next_4
     requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)        
     requires first_queued_att_duty_was_decided(process)
     requires s_mod == f_dequeue_attestation_duties_queue(process)
+    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served)
     ensures inv_g_a_iv_a_body_body(dv, n, s_mod)
     {
         forall ad  |
@@ -4940,6 +4941,7 @@ module Invs_DV_Next_4
                     index_next_attestation_duty_to_be_served,
                     s_mod
                 );      
+
 
 
                 lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
