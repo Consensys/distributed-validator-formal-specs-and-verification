@@ -1028,7 +1028,7 @@ module Invs_DV_Next_5
         }        
     }        
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty_helper(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body_f_check_for_next_queued_duty_helper(
         process: DVCState,
         s': DVCState,
         dv: DVState,
@@ -1040,8 +1040,18 @@ module Invs_DV_Next_5
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
+    requires !first_queued_att_duty_was_decided(process)
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
+        lemmaStartConsensusInstance(
+            process.attestation_consensus_engine_state,
+            process.attestation_duties_queue[0].slot,
+            process.attestation_duties_queue[0],
+            process.attestation_slashing_db,
+            s'.attestation_consensus_engine_state
+        );
+
         forall slot  |
             slot in s'.attestation_consensus_engine_state.att_slashing_db_hist
         ensures 
@@ -1112,18 +1122,14 @@ module Invs_DV_Next_5
                 lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
             else 
-            // TODO: Unclear
             {        
-                lemmaStartConsensusInstance(
-                    process.attestation_consensus_engine_state,
-                    process.attestation_duties_queue[0].slot,
-                    process.attestation_duties_queue[0],
-                    process.attestation_slashing_db,
-                    s'.attestation_consensus_engine_state
+                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body_f_check_for_next_queued_duty_helper(
+                    process,
+                    s',
+                    dv,
+                    n,
+                    index_next_attestation_duty_to_be_served
                 );
-
-                
-                
             }
         } 
         else 
