@@ -2254,39 +2254,19 @@ module Invs_DV_Next_3
     requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(process) 
     ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_single_dvc_2(s'); 
     {
-        if  || !process.current_attestation_duty.isPresent()
-            || id != process.current_attestation_duty.safe_get().slot 
+        if !pred_curr_att_duty_has_been_decided(process, id) 
         {
             return;
         }
 
-        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-
-        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                data := decided_attestation_data, 
-                signature := attestation_signature_share
-            ); 
-
-        var s_mod := 
-            process.(
-                current_attestation_duty := None,
-                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    attestation_slashing_db
-                )
-            );
+        var s_mod := f_update_process_after_att_duty_decided(
+                        process,
+                        id,
+                        decided_attestation_data);
 
         lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc_updateConsensusInstanceValidityCheckHelper(
                 process.attestation_consensus_engine_state.active_attestation_consensus_instances,
-                attestation_slashing_db,
+                s_mod.attestation_slashing_db,
                 s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
         );            
 
@@ -2494,35 +2474,16 @@ module Invs_DV_Next_3
     requires pred_inv_current_latest_attestation_duty_match_body_body(process)
     ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, s');  
     {     
-        if  && process.current_attestation_duty.isPresent()
-            && id == process.current_attestation_duty.safe_get().slot
+        if  pred_curr_att_duty_has_been_decided(process, id)
         {
-            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
-            var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-
-            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
-            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-            var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-            var attestation_with_signature_share := AttestationShare(
-                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                    data := decided_attestation_data, 
-                    signature := attestation_signature_share
-                ); 
-
-            var s_mod := 
-                process.(
-                    current_attestation_duty := None,
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
-                    attestation_slashing_db := attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                        process.attestation_consensus_engine_state,
-                        attestation_slashing_db
-                    )
-                );
+            var s_mod := f_update_process_after_att_duty_decided(
+                                process,
+                                id,
+                                decided_attestation_data);
 
             lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
                 process.attestation_consensus_engine_state,
-                attestation_slashing_db,
+                s_mod.attestation_slashing_db,
                 s_mod.attestation_consensus_engine_state
             );           
 
@@ -2553,7 +2514,7 @@ module Invs_DV_Next_3
                 if vp !in process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
                 {
                     assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
-                    assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {attestation_slashing_db};
+                    assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {s_mod.attestation_slashing_db};
                     assert sdba in db2;
                 }
                 else 
@@ -2564,7 +2525,7 @@ module Invs_DV_Next_3
                         {
                             lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
                                 process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
+                                s_mod.attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
                                 s2,
                                 vp
@@ -2575,7 +2536,7 @@ module Invs_DV_Next_3
                         {
                             lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
                                 process.attestation_consensus_engine_state,
-                                attestation_slashing_db,
+                                s_mod.attestation_slashing_db,
                                 s_mod.attestation_consensus_engine_state,
                                 s2,
                                 vp
@@ -2587,7 +2548,7 @@ module Invs_DV_Next_3
                     {
                         lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
                             process.attestation_consensus_engine_state,
-                            attestation_slashing_db,
+                            s_mod.attestation_slashing_db,
                             s_mod.attestation_consensus_engine_state,
                             s2,
                             vp

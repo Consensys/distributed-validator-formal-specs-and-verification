@@ -81,4 +81,46 @@ module Helper_Pred_Fcn
             );  
         ret_process
     }
+
+    predicate pred_curr_att_duty_has_been_decided(
+        process: DVCState,
+        id: Slot) 
+    {
+        && process.current_attestation_duty.isPresent()
+        && id == process.current_attestation_duty.safe_get().slot
+    }
+
+    function f_update_process_after_att_duty_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData
+    ) : (ret_process: DVCState)
+    requires && process.current_attestation_duty.isPresent()
+             && id == process.current_attestation_duty.safe_get().slot
+    {
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+
+        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+        var attestation_with_signature_share := AttestationShare(
+                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                data := decided_attestation_data, 
+                signature := attestation_signature_share
+            ); 
+
+        var ret_process := 
+            process.(
+                current_attestation_duty := None,
+                attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
+                attestation_slashing_db := attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process.attestation_consensus_engine_state,
+                    attestation_slashing_db
+                )
+            );
+
+        ret_process
+    }
 }
