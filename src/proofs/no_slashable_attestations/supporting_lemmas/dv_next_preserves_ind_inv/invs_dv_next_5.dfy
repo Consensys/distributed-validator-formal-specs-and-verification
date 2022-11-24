@@ -46,10 +46,10 @@ module Invs_DV_Next_5
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
     ensures process.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
     {
-        var s_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );
+        var s_mod := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
         lem_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(s_mod, s');        
     }       
 
@@ -481,10 +481,10 @@ module Invs_DV_Next_5
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures process.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
     {
-        var s_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );
+        var s_mod := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
         lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);        
     }           
 
@@ -921,10 +921,10 @@ module Invs_DV_Next_5
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
     }       
@@ -1323,10 +1323,10 @@ module Invs_DV_Next_5
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if process.attestation_duties_queue != []
         {

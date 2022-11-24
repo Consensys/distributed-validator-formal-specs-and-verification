@@ -202,10 +202,10 @@ module Fnc_Invs_2
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process)
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
@@ -476,10 +476,10 @@ module Fnc_Invs_2
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process)
     ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
@@ -727,10 +727,10 @@ module Fnc_Invs_2
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process)
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
@@ -937,10 +937,10 @@ module Fnc_Invs_2
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     ensures process.attestation_slashing_db <= process'.attestation_slashing_db
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
 
@@ -1246,10 +1246,10 @@ module Fnc_Invs_2
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);
@@ -1478,10 +1478,10 @@ module Fnc_Invs_2
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     ensures concl_monotonic_att_slashing_db_hist_body(process, process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
 
@@ -1672,10 +1672,10 @@ module Fnc_Invs_2
     requires inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_body(process)
     ensures inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_body(process')   
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
 
@@ -2016,10 +2016,10 @@ module Fnc_Invs_2
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     ensures process'.rcvd_attestation_shares == process.rcvd_attestation_shares
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert process.attestation_slashing_db <= process_mod.attestation_slashing_db;
 
@@ -2268,10 +2268,10 @@ module Fnc_Invs_2
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     ensures process'.attestation_shares_to_broadcast == process.attestation_shares_to_broadcast
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
 
         lem_inv_attestation_shares_to_broadcast_are_sent_messages_f_check_for_next_queued_duty(process_mod, process');        
@@ -2733,10 +2733,10 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served + 1)
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );   
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         var new_index_next_attestation_duty_to_be_served := index_next_attestation_duty_to_be_served + 1;
 

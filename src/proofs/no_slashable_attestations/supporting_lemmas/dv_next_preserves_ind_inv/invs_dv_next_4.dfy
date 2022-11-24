@@ -240,10 +240,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv, n, s');
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if |process.attestation_duties_queue| == 0 
         {
@@ -1379,10 +1379,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(dv, n, s');
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if |process.attestation_duties_queue| == 0 
         {
@@ -1975,10 +1975,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if |process.attestation_duties_queue| == 0 
         {
@@ -2526,10 +2526,10 @@ module Invs_DV_Next_4
     requires inv_g_d_a_body_body(dv, n, process)
     ensures inv_g_d_a_body_body(dv, n, s');
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         lem_inv_g_d_a_f_check_for_next_queued_duty(new_p, s', dv, n);
     }    
@@ -2846,10 +2846,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s');
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if |process.attestation_duties_queue| == 0 
         {
@@ -3202,10 +3202,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_attestation_duty_queue_is_ordered_4_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         assert inv_attestation_duty_queue_is_ordered_4_body_body(dv, n, new_p, index_next_attestation_duty_to_be_served);         
 
@@ -3605,10 +3605,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_a_iii_body_body(dv, n, s', index_next_attestation_duty_to_be_served);
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if |process.attestation_duties_queue| == 0 
         {
@@ -4751,10 +4751,10 @@ module Invs_DV_Next_4
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_g_a_iv_a_body_body(dv, n, s') 
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if |process.attestation_duties_queue| == 0 
         {
@@ -5457,10 +5457,10 @@ module Invs_DV_Next_4
     requires inv_g_d_b_body_body(dv, n, process)
     ensures inv_g_d_b_body_body(dv, n, s');
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         lem_inv_g_d_b_f_check_for_next_queued_duty(new_p, s', dv, n);
     }   

@@ -68,4 +68,17 @@ module Helper_Pred_Fcn
             );   
         ret_process
     }
+
+    function f_enqueue_new_att_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty
+    ) : (ret_process: DVCState)
+    {
+        var ret_process := 
+            process.(
+                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
+                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
+            );  
+        ret_process
+    }
 }

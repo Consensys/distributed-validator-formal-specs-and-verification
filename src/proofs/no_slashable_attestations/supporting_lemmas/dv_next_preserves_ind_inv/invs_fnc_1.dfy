@@ -35,10 +35,10 @@ module Fnc_Invs_1
     requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
     ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {attestation_duty}    
     {
-        var dvc_mod := dvc.(
-                attestation_duties_queue := dvc.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := dvc.all_rcvd_duties + {attestation_duty}
-            );        
+        var dvc_mod := f_enqueue_new_att_duty(
+                                dvc,
+                                attestation_duty
+                            );       
 
         lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(dvc_mod, dvc');        
     }
@@ -251,10 +251,10 @@ module Fnc_Invs_1
     requires inv_queued_att_duty_is_rcvd_duty_body(process)
     ensures inv_queued_att_duty_is_rcvd_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
 
@@ -426,10 +426,10 @@ module Fnc_Invs_1
     requires inv_current_att_duty_is_rcvd_duty_body(process)
     ensures inv_current_att_duty_is_rcvd_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_current_att_duty_is_rcvd_duty_body(process_mod);
 
@@ -604,10 +604,10 @@ module Fnc_Invs_1
     requires inv_latest_served_duty_is_rcvd_duty_body(process)
     ensures inv_latest_served_duty_is_rcvd_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_latest_served_duty_is_rcvd_duty_body(process_mod);
 
@@ -780,10 +780,10 @@ module Fnc_Invs_1
     requires inv_none_latest_served_duty_implies_none_current_att_duty_body(process)
     ensures inv_none_latest_served_duty_implies_none_current_att_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
         
 
         lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_check_for_next_queued_duty(process_mod, process');        
@@ -973,10 +973,10 @@ module Fnc_Invs_1
     requires inv_current_att_duty_is_either_none_or_latest_served_duty_body(process)
     ensures inv_current_att_duty_is_either_none_or_latest_served_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
         
         lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_check_for_next_queued_duty(process_mod, process');        
     } 
@@ -1164,10 +1164,10 @@ module Fnc_Invs_1
     requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
     ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
         
         lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_check_for_next_queued_duty(process_mod, process');        
     } 
@@ -1360,10 +1360,10 @@ module Fnc_Invs_1
     requires inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process)
     ensures inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
         
         lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_check_for_next_queued_duty(process_mod, process');        
     } 
@@ -1694,10 +1694,10 @@ module Fnc_Invs_1
     requires inv_strictly_increasing_queue_of_att_duties_body(process)
     ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
         
         lem_inv_strictly_increasing_queue_of_att_duties_f_check_for_next_queued_duty(process_mod, process');        
     } 
@@ -1808,10 +1808,10 @@ module Fnc_Invs_1
                         queued_duty.slot < attestation_duty.slot
     ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );  
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         if process.latest_attestation_duty.isPresent() 
         {
@@ -2132,10 +2132,10 @@ module Fnc_Invs_1
     requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
     ensures inv_no_active_consensus_instance_before_receiving_att_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
         
         lem_inv_no_active_consensus_instance_before_receiving_att_duty_f_check_for_next_queued_duty(process_mod, process');        
     } 
@@ -2304,10 +2304,10 @@ module Fnc_Invs_1
     requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
     ensures inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_latest_served_duty_is_rcvd_duty_body(process_mod);
@@ -2588,10 +2588,10 @@ module Fnc_Invs_1
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process)
     ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process_mod);
@@ -2794,10 +2794,10 @@ module Fnc_Invs_1
     requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
     {
-        var process_mod := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );        
+        var process_mod := f_enqueue_new_att_duty(
+                                    process,
+                                    attestation_duty
+                                );
 
         assert inv_queued_att_duty_is_rcvd_duty_body(process_mod);
         assert inv_consensus_instances_only_for_rcvd_duties_body(process_mod);

@@ -189,11 +189,10 @@ module Invs_DV_Next_6
 
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );  
-
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
         if process.attestation_duties_queue != []
         {
             assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
