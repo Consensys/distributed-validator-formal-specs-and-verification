@@ -123,4 +123,12 @@ module Helper_Pred_Fcn
 
         ret_process
     }
+
+    predicate no_curr_duty_and_nonempty_duty_queue(s_mod: DVCState) 
+    {
+        && |s_mod.attestation_duties_queue| > 0 
+        && !s_mod.current_attestation_duty.isPresent()   
+    }
+
+    
 }
