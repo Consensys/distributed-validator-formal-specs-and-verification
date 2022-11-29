@@ -124,7 +124,7 @@ module Invs_DV_Next_4
       
     }    
 
-    lemma lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(
+    lemma lemma_inv_attestation_duty_queue_is_ordered_3_body_body(
         dv: DVState, 
         n: BLSPubkey,
         n_state: DVCState,
@@ -2906,12 +2906,12 @@ module Invs_DV_Next_4
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
+                lemma_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
                 lem_inv_attestation_duty_queue_is_ordered_3_f_check_for_next_queued_duty(s_mod, s', dv, n );
             }
             else 
             {        
-                lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s');
+                lemma_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s');
                 assert inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, s');
 
             }
@@ -4196,7 +4196,7 @@ module Invs_DV_Next_4
                 assert inv_g_a_iv_a_body_body(dv, n, s_mod);         
 
 
-                lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
+                lemma_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
 
 
                 lem_inv_g_a_iii_f_check_for_next_queued_duty(s_mod, s', dv, n , index_next_attestation_duty_to_be_served);
@@ -4949,7 +4949,7 @@ module Invs_DV_Next_4
                     s_mod
                 );      
 
-                lemma3_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
+                lemma_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
 
                 lem_inv_g_a_iv_f_check_for_next_queued_duty(s_mod, s', dv, n , index_next_attestation_duty_to_be_served);
             }
