@@ -348,137 +348,100 @@ module Invs_DV_Next_3
     {
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
-        if 
-            || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
-            || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
-            || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
-            {
-                var k := (attestation_share.data, attestation_share.aggregation_bits);
-                var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
-                
-                var new_attestation_shares_db := 
-                        process.rcvd_attestation_shares[
-                            attestation_share.data.slot := 
-                                attestation_shares_db_at_slot[
-                                            k := 
-                                                getOrDefault(attestation_shares_db_at_slot, k, {}) + 
-                                                {attestation_share}
-                                            ]
-                                ];
+        if pred_listen_for_attestation_shares_checker(
+                process,
+                attestation_share) 
+        {
+            var k := (attestation_share.data, attestation_share.aggregation_bits);
+            var process := f_add_new_attestation_share(
+                                    process,
+                                    attestation_share
+                                );
 
-                var process := process.(
-                    rcvd_attestation_shares := new_attestation_shares_db
+                        
+            if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
+            {
+                var aggregated_attestation := 
+                        Attestation(
+                            aggregation_bits := attestation_share.aggregation_bits,
+                            data := attestation_share.data,
+                            signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
+                        );
+
+                var att_shares := process.rcvd_attestation_shares[attestation_share.data.slot][k];
+                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                    process.construct_signed_attestation_signature,
+                    process.dv_pubkey,
+                    dv.all_nodes                    
                 );
 
-                            
-                if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
+                assert process.construct_signed_attestation_signature(att_shares).isPresent();
+
+                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                    process.construct_signed_attestation_signature,
+                    process.dv_pubkey,
+                    dv.all_nodes
+                );
+
+                var data: AttestationData :|
+                    construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+                        process.construct_signed_attestation_signature,
+                        process.dv_pubkey,
+                        dv.all_nodes,
+                        att_shares,
+                        data                
+                    );
+
+                assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process);
+                assert att_shares <= dv.att_network.allMessagesSent;
+
+                var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
+                var signing_root := compute_attestation_signing_root(data, fork_version);
+
+
+                var signers := 
+                set signer, att_share | 
+                    && att_share in att_shares
+                    && signer in dv.all_nodes
+                    && verify_bls_siganture(signing_root, att_share.signature, signer)
+                ::
+                    signer;
+
+                assert signers <= dv.all_nodes;
+
+                lemmaThereExistsAnHonestInQuorum(dv.all_nodes, dv.all_nodes - dv.honest_nodes_states.Keys, signers);
+
+                var h_s :| h_s in dv.honest_nodes_states.Keys && h_s in signers;
+                var h_s_att :| h_s_att in att_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);               
+
+                assert 
+                && h_s in dv.honest_nodes_states.Keys
+                && h_s_att in dv.att_network.allMessagesSent
+                && h_s_att.data == data
+                && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+
+                assert 
+                && h_s in dv.honest_nodes_states.Keys
+                && h_s_att in dv.att_network.allMessagesSent
+                && h_s_att.data == data
+                && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
+                    dv,
+                    h_s,
+                    h_s_att,
+                    aggregated_attestation
+                );
+
+                var state := f_add_new_submitted_attestation(process, aggregated_attestation);
+
+                forall a | a in state.bn.attestations_submitted 
                 {
-                    var aggregated_attestation := 
-                            Attestation(
-                                aggregation_bits := attestation_share.aggregation_bits,
-                                data := attestation_share.data,
-                                signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
-                            );
-
-                    var att_shares := process.rcvd_attestation_shares[attestation_share.data.slot][k];
-                    assert construct_signed_attestation_signature_assumptions_helper_reverse(
-                        process.construct_signed_attestation_signature,
-                        process.dv_pubkey,
-                        dv.all_nodes                    
-                    );
-
-                    assert process.construct_signed_attestation_signature(att_shares).isPresent();
-
-                    assert construct_signed_attestation_signature_assumptions_helper_reverse(
-                        process.construct_signed_attestation_signature,
-                        process.dv_pubkey,
-                        dv.all_nodes
-                    );
-
-                    var data: AttestationData :|
-                        construct_signed_attestation_signature_assumptions_helper_reverse_helper(
-                            process.construct_signed_attestation_signature,
-                            process.dv_pubkey,
-                            dv.all_nodes,
-                            att_shares,
-                            data                
-                        );
-
-                    assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process);
-                    assert att_shares <= dv.att_network.allMessagesSent;
-
-                    var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
-                    var signing_root := compute_attestation_signing_root(data, fork_version);
- 
-
-                    var signers := 
-                    set signer, att_share | 
-                        && att_share in att_shares
-                        && signer in dv.all_nodes
-                        && verify_bls_siganture(signing_root, att_share.signature, signer)
-                    ::
-                        signer;
-
-                    assert signers <= dv.all_nodes;
-
-                    lemmaThereExistsAnHonestInQuorum(dv.all_nodes, dv.all_nodes - dv.honest_nodes_states.Keys, signers);
-
-                    var h_s :| h_s in dv.honest_nodes_states.Keys && h_s in signers;
-                    var h_s_att :| h_s_att in att_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
-
-                    // var attestation_signing_root := compute_attestation_signing_root(data, fork_version);
-
-                    // assert signing_root == attestation_signing_root;                    
-
-                    assert 
-                    && h_s in dv.honest_nodes_states.Keys
-                    && h_s_att in dv.att_network.allMessagesSent
-                    && h_s_att.data == data
-                    && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
-
-                    assert 
-                    && h_s in dv.honest_nodes_states.Keys
-                    && h_s_att in dv.att_network.allMessagesSent
-                    && h_s_att.data == data
-                    // && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
-                    && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
-
-                    // assert pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
-                    //     dv,
-                    //     h_s_att,
-                    //     h_s,
-                    //     signing_root
-                    // );
-
-                    // var att_share' :| pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(dv, att_share', signing_root, h_s_att.signature);
-
-                    
-
-                    // assert verify_bls_siganture(attestation_signing_root, h_s_att.signature, h_s);
-
-                    assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
-                        dv,
-                        h_s,
-                        h_s_att,
-                        aggregated_attestation
-                    );
-
-                               
-                    
-                    var    state := process.(
-                            bn := process.bn.(
-                                attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
-                            )
-                        );
-
-                    forall a | a in state.bn.attestations_submitted 
-                    {
-                        assert exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
-                    }
-                    assert s' == state;
+                    assert exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
                 }
-            }   
+                assert s' == state;
+            }
+        }   
     }
 
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_f_listen_for_attestation_shares(
@@ -509,143 +472,130 @@ module Invs_DV_Next_3
     {
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
-        if 
-            || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
-            || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
-            || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
+        if pred_listen_for_attestation_shares_checker(
+                process,
+                attestation_share) 
+        {
+            var k := (attestation_share.data, attestation_share.aggregation_bits);
+            var process := f_add_new_attestation_share(
+                        process,
+                        attestation_share
+                    );
+
+                        
+            if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
             {
-                var k := (attestation_share.data, attestation_share.aggregation_bits);
-                var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
-                
-                var new_attestation_shares_db := 
-                        process.rcvd_attestation_shares[
-                            attestation_share.data.slot := 
-                                attestation_shares_db_at_slot[
-                                            k := 
-                                                getOrDefault(attestation_shares_db_at_slot, k, {}) + 
-                                                {attestation_share}
-                                            ]
-                                ];
-
-                var process := process.(
-                    rcvd_attestation_shares := new_attestation_shares_db
-                );
-
-                            
-                if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
-                {
-                    var aggregated_attestation := 
-                            Attestation(
-                                aggregation_bits := attestation_share.aggregation_bits,
-                                data := attestation_share.data,
-                                signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
-                            );
-
-                    var att_shares := process.rcvd_attestation_shares[attestation_share.data.slot][k];
-                    assert construct_signed_attestation_signature_assumptions_helper_reverse(
-                        process.construct_signed_attestation_signature,
-                        process.dv_pubkey,
-                        dv.all_nodes                    
-                    );
-
-                    assert process.construct_signed_attestation_signature(att_shares).isPresent();
-
-                    assert construct_signed_attestation_signature_assumptions_helper_reverse(
-                        process.construct_signed_attestation_signature,
-                        process.dv_pubkey,
-                        dv.all_nodes
-                    );
-
-                    var data: AttestationData :|
-                        construct_signed_attestation_signature_assumptions_helper_reverse_helper(
-                            process.construct_signed_attestation_signature,
-                            process.dv_pubkey,
-                            dv.all_nodes,
-                            att_shares,
-                            data                
+                var aggregated_attestation := 
+                        Attestation(
+                            aggregation_bits := attestation_share.aggregation_bits,
+                            data := attestation_share.data,
+                            signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
                         );
 
-                    // assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process);
-                    // assert att_shares <= dv.att_network.allMessagesSent;
+                var att_shares := process.rcvd_attestation_shares[attestation_share.data.slot][k];
+                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                    process.construct_signed_attestation_signature,
+                    process.dv_pubkey,
+                    dv.all_nodes                    
+                );
 
-                    var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
-                    var signing_root := compute_attestation_signing_root(data, fork_version);
- 
+                assert process.construct_signed_attestation_signature(att_shares).isPresent();
 
-                    var signers := 
-                    set signer, att_share | 
-                        && att_share in att_shares
-                        && signer in dv.all_nodes
-                        && verify_bls_siganture(signing_root, att_share.signature, signer)
-                    ::
-                        signer;
+                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                    process.construct_signed_attestation_signature,
+                    process.dv_pubkey,
+                    dv.all_nodes
+                );
 
-                    assert signers <= dv.all_nodes;
-
-                    lemmaThereExistsAnHonestInQuorum(dv.all_nodes, dv.all_nodes - dv.honest_nodes_states.Keys, signers);
-
-                    var h_s :| h_s in dv.honest_nodes_states.Keys && h_s in signers;
-                    var h_s_att :| h_s_att in att_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
-
-                    // var attestation_signing_root := compute_attestation_signing_root(data, fork_version);
-
-                    // assert signing_root == attestation_signing_root;                    
-
-                    assert 
-                    && h_s in dv.honest_nodes_states.Keys
-                    && h_s_att in dv.att_network.allMessagesSent
-                    && h_s_att.data == data
-                    && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
-
-                    assert 
-                    && h_s in dv.honest_nodes_states.Keys
-                    && h_s_att in dv.att_network.allMessagesSent
-                    && h_s_att.data == data
-                    // && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
-                    && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
-
-                    // assert pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
-                    //     dv,
-                    //     h_s_att,
-                    //     h_s,
-                    //     signing_root
-                    // );
-
-                    // var att_share' :| pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(dv, att_share', signing_root, h_s_att.signature);
-
-                    
-
-                    // assert verify_bls_siganture(attestation_signing_root, h_s_att.signature, h_s);
-
-                    assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
-                        dv,
-                        h_s,
-                        h_s_att,
-                        aggregated_attestation
+                var data: AttestationData :|
+                    construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+                        process.construct_signed_attestation_signature,
+                        process.dv_pubkey,
+                        dv.all_nodes,
+                        att_shares,
+                        data                
                     );
 
-                    assert f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted == {aggregated_attestation};
+                // assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process);
+                // assert att_shares <= dv.att_network.allMessagesSent;
 
-                    assert forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted ::
-                        exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
- 
+                var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
+                var signing_root := compute_attestation_signing_root(data, fork_version);
 
-                               
-                    
-                    // var    state := process.(
-                    //         bn := process.bn.(
-                    //             attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
-                    //         )
-                    //     );
 
-                    // forall a | a in state.bn.attestations_submitted 
-                    // {
-                    //     assert exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
-                    // }
-                    // assert s' == state;
-                }
-            }   
+                var signers := 
+                set signer, att_share | 
+                    && att_share in att_shares
+                    && signer in dv.all_nodes
+                    && verify_bls_siganture(signing_root, att_share.signature, signer)
+                ::
+                    signer;
+
+                assert signers <= dv.all_nodes;
+
+                lemmaThereExistsAnHonestInQuorum(dv.all_nodes, dv.all_nodes - dv.honest_nodes_states.Keys, signers);
+
+                var h_s :| h_s in dv.honest_nodes_states.Keys && h_s in signers;
+                var h_s_att :| h_s_att in att_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+
+                // var attestation_signing_root := compute_attestation_signing_root(data, fork_version);
+
+                // assert signing_root == attestation_signing_root;                    
+
+                assert 
+                && h_s in dv.honest_nodes_states.Keys
+                && h_s_att in dv.att_network.allMessagesSent
+                && h_s_att.data == data
+                && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+
+                assert 
+                && h_s in dv.honest_nodes_states.Keys
+                && h_s_att in dv.att_network.allMessagesSent
+                && h_s_att.data == data
+                // && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
+                && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+
+                // assert pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper(
+                //     dv,
+                //     h_s_att,
+                //     h_s,
+                //     signing_root
+                // );
+
+                // var att_share' :| pred_attestations_signature_by_honest_node_implies_existence_of_attestation_with_correct_data_helper_helper(dv, att_share', signing_root, h_s_att.signature);
+
+                
+
+                // assert verify_bls_siganture(attestation_signing_root, h_s_att.signature, h_s);
+
+                assert concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
+                    dv,
+                    h_s,
+                    h_s_att,
+                    aggregated_attestation
+                );
+
+                assert f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted == {aggregated_attestation};
+
+                assert forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted ::
+                    exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
+
+
+                            
+                
+                // var    state := process.(
+                //         bn := process.bn.(
+                //             attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
+                //         )
+                //     );
+
+                // forall a | a in state.bn.attestations_submitted 
+                // {
+                //     assert exists hn', att_share: AttestationShare :: concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
+                // }
+                // assert s' == state;
+            }
+        }   
     }    
 
 
@@ -664,51 +614,34 @@ module Invs_DV_Next_3
     {
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
-        if 
-            || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
-            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
-            || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
-            || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
+        if pred_listen_for_attestation_shares_checker(
+                process,
+                attestation_share) 
+        {
+            var k := (attestation_share.data, attestation_share.aggregation_bits);
+            var process := f_add_new_attestation_share(
+                        process,
+                        attestation_share
+                    );
+
+                        
+            if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
             {
-                var k := (attestation_share.data, attestation_share.aggregation_bits);
-                var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
-                
-                var new_attestation_shares_db := 
-                        process.rcvd_attestation_shares[
-                            attestation_share.data.slot := 
-                                attestation_shares_db_at_slot[
-                                            k := 
-                                                getOrDefault(attestation_shares_db_at_slot, k, {}) + 
-                                                {attestation_share}
-                                            ]
-                                ];
-
-                var process := process.(
-                    rcvd_attestation_shares := new_attestation_shares_db
-                );
-
-                            
-                if process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
-                {
-                    var aggregated_attestation := 
-                            Attestation(
-                                aggregation_bits := attestation_share.aggregation_bits,
-                                data := attestation_share.data,
-                                signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
-                            );
-                               
-                    
-                    var    state := process.(
-                            bn := process.bn.(
-                                attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
-                            )
+                var aggregated_attestation := 
+                        Attestation(
+                            aggregation_bits := attestation_share.aggregation_bits,
+                            data := attestation_share.data,
+                            signature := process.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
                         );
+                            
+                
+                var state := f_add_new_submitted_attestation(process, aggregated_attestation);
 
-                    assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, s');
+                assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, s');
 
-                    assert s' == state;
-                }
-            }   
+                assert s' == state;
+            }
+        }   
     }    
 
     lemma lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(
@@ -2429,10 +2362,10 @@ module Invs_DV_Next_3
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served, attestation_duty, n)
     ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv, s');  
     {
-        var new_p := process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-        );
+        var new_p := f_enqueue_new_att_duty(
+                            process,
+                            attestation_duty
+                        );
 
         if process.attestation_duties_queue != []
         {

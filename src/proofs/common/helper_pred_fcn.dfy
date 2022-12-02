@@ -130,5 +130,70 @@ module Helper_Pred_Fcn
         && !s_mod.current_attestation_duty.isPresent()   
     }
 
+    function f_add_new_att_duty_to_the_queue(
+        process: DVCState,
+        attestation_duty: AttestationDuty
+    ): DVCState
+    {
+        process.(
+            attestation_duties_queue := process.attestation_duties_queue + [attestation_duty]
+        )        
+    } 
     
+    predicate pred_listen_for_attestation_shares_checker(
+        process: DVCState,
+        attestation_share: AttestationShare
+    ) 
+    {
+        && var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+        && (
+            || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
+            || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
+        )
+    }
+
+    function f_add_new_attestation_share(
+        process: DVCState,
+        attestation_share: AttestationShare
+    ): DVCState
+    requires pred_listen_for_attestation_shares_checker(
+                process,
+                attestation_share) 
+    {
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+
+        var k := (attestation_share.data, attestation_share.aggregation_bits);
+        var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
+        
+        var new_attestation_shares_db := 
+                process.rcvd_attestation_shares[
+                    attestation_share.data.slot := 
+                        attestation_shares_db_at_slot[
+                                    k := 
+                                        getOrDefault(attestation_shares_db_at_slot, k, {}) + 
+                                        {attestation_share}
+                                    ]
+                        ];
+
+        var ret_process := process.(
+            rcvd_attestation_shares := new_attestation_shares_db
+        );
+
+        ret_process
+    }
+
+    function f_add_new_submitted_attestation(
+        process: DVCState,
+        aggregated_attestation: Attestation
+    ): DVCState
+
+    {
+        process.(
+            bn := process.bn.(
+                attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
+            )
+        )
+    }
 }
