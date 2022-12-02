@@ -196,4 +196,30 @@ module Helper_Pred_Fcn
             )
         )
     }
+
+    function f_stopConsensusInstances_after_receiving_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock
+    ): DVCState
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var future_att_consensus_instances_already_decided := 
+            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
+
+        var ret_process :=
+                process.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
+                );    
+
+        ret_process  
+    }
 }

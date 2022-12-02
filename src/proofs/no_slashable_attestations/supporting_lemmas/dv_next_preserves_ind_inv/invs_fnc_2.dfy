@@ -212,16 +212,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );    
         
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process);
@@ -465,16 +459,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );   
         
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
         assert inv_consensus_instances_only_for_rcvd_duties_body(process);
@@ -695,16 +683,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );   
         
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process);
@@ -879,16 +861,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );    
                 
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -1193,16 +1169,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );     
         
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
         assert inv_consensus_instances_only_for_rcvd_duties_body(process);
@@ -1399,16 +1369,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );  
                 
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -1574,15 +1538,10 @@ module Fnc_Invs_2
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
         var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+                f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );      
                 
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -1742,16 +1701,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );     
                 
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -1963,16 +1916,10 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );    
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );     
                 
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
@@ -2634,16 +2581,11 @@ module Fnc_Invs_2
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
-        var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );
+        var process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );   
+
         assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                                 hn, 
                                 process, 

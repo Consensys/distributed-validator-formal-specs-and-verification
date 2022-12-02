@@ -327,15 +327,10 @@ module Invs_DV_Next_6
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
         var process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
-                );                     
+                f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );                       
 
         if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
         {
