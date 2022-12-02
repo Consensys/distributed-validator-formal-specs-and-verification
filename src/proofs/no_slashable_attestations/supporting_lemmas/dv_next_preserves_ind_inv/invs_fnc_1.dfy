@@ -140,18 +140,12 @@ module Fnc_Invs_1
                                 block
                             );                      
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_queued_duty(process, process');
         }
         else
@@ -291,9 +285,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -303,18 +294,12 @@ module Fnc_Invs_1
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
 
             assert inv_queued_att_duty_is_rcvd_duty_body(process);
 
@@ -444,9 +429,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -456,18 +438,12 @@ module Fnc_Invs_1
         assert inv_current_att_duty_is_rcvd_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
 
             assert inv_queued_att_duty_is_rcvd_duty_body(process);
             assert inv_current_att_duty_is_rcvd_duty_body(process);
@@ -599,9 +575,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -611,18 +584,12 @@ module Fnc_Invs_1
         assert inv_latest_served_duty_is_rcvd_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
 
             assert inv_queued_att_duty_is_rcvd_duty_body(process);
             assert inv_latest_served_duty_is_rcvd_duty_body(process);
@@ -747,9 +714,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -759,18 +723,12 @@ module Fnc_Invs_1
         assert inv_none_latest_served_duty_implies_none_current_att_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_none_latest_served_duty_implies_none_current_att_duty_body(process);
 
@@ -916,9 +874,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -928,18 +883,12 @@ module Fnc_Invs_1
         assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(process);
 
@@ -1083,9 +1032,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -1095,18 +1041,12 @@ module Fnc_Invs_1
         assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_not_none_current_att_duty_is_latest_served_att_duty_body(process);
 
@@ -1252,9 +1192,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -1264,18 +1201,12 @@ module Fnc_Invs_1
         assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process);
 
@@ -1372,9 +1303,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -1384,18 +1312,12 @@ module Fnc_Invs_1
         assert inv_strictly_increasing_queue_of_att_duties_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_strictly_increasing_queue_of_att_duties_body(process);
 
@@ -1624,9 +1546,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -1638,19 +1557,12 @@ module Fnc_Invs_1
         assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process);
                     
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
-
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             assert inv_queued_att_duty_is_rcvd_duty_body(process);
             assert inv_strictly_increasing_queue_of_att_duties_body(process);
             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process);
@@ -1808,9 +1720,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -1819,18 +1728,12 @@ module Fnc_Invs_1
         
         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process);
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process);
 
@@ -2056,9 +1959,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process_mod :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -2070,18 +1970,12 @@ module Fnc_Invs_1
         assert inv_no_active_consensus_instance_before_receiving_att_duty_body(process_mod);
         assert inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process_mod);
 
-        if process_mod.current_attestation_duty.isPresent() && process_mod.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process_mod, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process_mod.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process_mod.attestation_slashing_db, decided_attestation_data);
-            var temp_process := process_mod.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process_mod.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var temp_process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process_mod,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_strictly_increasing_queue_of_att_duties_body(temp_process);
             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(temp_process);
@@ -2292,9 +2186,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -2304,18 +2195,12 @@ module Fnc_Invs_1
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process);
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_queued_att_duty_is_rcvd_duty_body(process);
             assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(process);
@@ -2473,9 +2358,6 @@ module Fnc_Invs_1
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var process :=
                 f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
@@ -2485,18 +2367,12 @@ module Fnc_Invs_1
         assert inv_queued_att_duty_is_rcvd_duty_body(process);
         assert inv_consensus_instances_only_for_rcvd_duties_body(process);
 
-        if process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
         {
-            var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
-            var process := process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    att_consensus_instances_already_decided
+                                );
             
             assert inv_queued_att_duty_is_rcvd_duty_body(process);
             assert inv_consensus_instances_only_for_rcvd_duties_body(process);

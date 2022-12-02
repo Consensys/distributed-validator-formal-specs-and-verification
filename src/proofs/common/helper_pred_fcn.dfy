@@ -222,4 +222,32 @@ module Helper_Pred_Fcn
 
         ret_process  
     }
+
+    predicate pred_listen_for_new_imported_blocks_checker(
+        process: DVCState,
+        att_consensus_instances_already_decided: map<Slot, AttestationData>
+    )
+    {
+        && process.current_attestation_duty.isPresent() 
+        && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided 
+    } 
+
+    function f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+        process: DVCState,
+        att_consensus_instances_already_decided: map<Slot, AttestationData>
+    ): DVCState
+    requires pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
+    {
+        var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
+        var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        var ret_process := process.(
+            current_attestation_duty := None,
+            attestation_slashing_db := new_attestation_slashing_db,
+            attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                process.attestation_consensus_engine_state,
+                new_attestation_slashing_db
+            )                
+        );
+        ret_process
+    }   
 }

@@ -449,27 +449,19 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );                   
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
             var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
 
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv', n, process, s_mod);
 
@@ -1512,28 +1504,19 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );                   
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
             var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
 
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv', n, process, s_mod);
 
 
@@ -2061,19 +2044,13 @@ module Invs_DV_Next_4
                                 block
                             );                
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
             var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
 
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv', n, process, s_mod);
 
@@ -2462,9 +2439,6 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
@@ -2477,19 +2451,12 @@ module Invs_DV_Next_4
             new_consensus_instances_already_decided
         );                                    
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
             
             lem_inv_g_d_a_f_check_for_next_queued_duty(s_mod, s', dv', n);   
         }      
@@ -2805,28 +2772,18 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );    
                                  
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
             
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv', n, process, s_mod);
             lem_inv_attestation_duty_queue_is_ordered_3_f_check_for_next_queued_duty(s_mod, s', dv', n);
@@ -3087,28 +3044,18 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );    
                                  
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
             
             lemma2_inv_attestation_duty_queue_is_ordered_4_body_body(dv', n, process, s_mod, index_next_attestation_duty_to_be_served);
             lem_inv_attestation_duty_queue_is_ordered_4_f_check_for_next_queued_duty(s_mod, s', dv', n, index_next_attestation_duty_to_be_served);
@@ -3554,24 +3501,14 @@ module Invs_DV_Next_4
 
             var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-            var future_att_consensus_instances_already_decided := 
-                f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided); 
-
             var new_process :=
-                process.(
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
-                                    process.attestation_consensus_engine_state,
-                                    att_consensus_instances_already_decided.Keys
-                    ),
-                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
-                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys
-                ); 
+                f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );  
 
             var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
             
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);         
-
             // lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process, s_mod);
 
 
@@ -3684,27 +3621,17 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );                  
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
 
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv', n, process, s_mod);
 
@@ -4596,27 +4523,17 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );                    
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
 
             lemma2_inv_attestation_duty_queue_is_ordered_3_body_body(dv', n, process, s_mod);
 
@@ -5190,9 +5107,6 @@ module Invs_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
         var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
@@ -5205,19 +5119,12 @@ module Invs_DV_Next_4
             new_consensus_instances_already_decided
         );                                    
 
-        if new_process.current_attestation_duty.isPresent() && new_process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided
+        if pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
         {
-            // Stop(current_attestation_duty.safe_get().slot);
-            var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-            var new_attestation_slashing_db := f_update_attestation_slashing_db(new_process.attestation_slashing_db, decided_attestation_data);
-            var s_mod := new_process.(
-                current_attestation_duty := None,
-                attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                    new_process.attestation_consensus_engine_state,
-                    new_attestation_slashing_db
-                )                
-            );
+            var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    new_process,
+                                    att_consensus_instances_already_decided
+                                );
             
             lem_inv_g_d_b_f_check_for_next_queued_duty(s_mod, s', dv', n);   
         }      
