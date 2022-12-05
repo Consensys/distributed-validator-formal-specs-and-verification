@@ -2567,7 +2567,303 @@ module Invs_DV_Next_3
             && dv.consensus_on_attestation_data[slot].decided_value.safe_get() == new_consensus_instances_already_decided[slot]
             ;              
         }
-    }       
+    }  
+
+    lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks_helper_1(
+        process: DVCState,
+        block: BeaconBlock,       
+        dv': DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat        
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, process)    
+    requires inv_g_d_b_body_body(dv', n, process)   
+    requires pred_inv_current_latest_attestation_duty_match_body_body(process)
+    requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv')
+    requires pred_data_of_att_share_is_decided_value(dv')
+    requires pred_axiom_is_my_attestation_2(dv', process, block)
+    requires && var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+             && var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+             && var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );
+             && pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
+             && var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+             && decided_attestation_data in new_consensus_instances_already_decided.Values
+    ensures && var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+            && var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+            && var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );
+            && var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                new_process,
+                                att_consensus_instances_already_decided
+                            );
+            && inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, s_mod);  
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );  
+
+        var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+
+        var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                new_process,
+                                att_consensus_instances_already_decided
+                            );
+            
+        forall an |
+            && an in dv'.sequence_attestation_duties_to_be_served.Values 
+            && an.node == n 
+            && an.attestation_duty.slot < get_upperlimit_decided_instances(s_mod)
+        ensures 
+            var slot := an.attestation_duty.slot;
+            && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
+            && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db                    
+        {
+            if an.attestation_duty.slot < s_mod.latest_attestation_duty.safe_get().slot 
+            {
+                var slot := an.attestation_duty.slot;
+                assert
+                && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                ;
+            }
+            else 
+            {
+                var slot := an.attestation_duty.slot;
+
+                lem_f_listen_for_new_imported_blocks_helper_1(
+                    dv',
+                    process,
+                    block,
+                    new_consensus_instances_already_decided
+                );
+
+                assert
+                && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                ;                        
+            }
+        } 
+        assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, s_mod);                   
+               
+    }      
+
+    lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks_helper_2(
+        process: DVCState,
+        block: BeaconBlock,       
+        dv': DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat        
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, process)    
+    requires inv_g_d_a_body_body(dv', n, process)  
+    requires pred_inv_current_latest_attestation_duty_match_body_body(process)
+    requires && var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+             && var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+             && var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );
+             && pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
+             && var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+             && !(decided_attestation_data in new_consensus_instances_already_decided.Values)
+    ensures && var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+            && var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+            && var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );
+            && var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                new_process,
+                                att_consensus_instances_already_decided
+                            );
+            && inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, s_mod);  
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );  
+
+        var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+
+        var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                new_process,
+                                att_consensus_instances_already_decided
+                            );
+        
+        assert decided_attestation_data in process.future_att_consensus_instances_already_decided.Values;
+
+        assert decided_attestation_data == process.future_att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+
+        forall an |
+            && an in dv'.sequence_attestation_duties_to_be_served.Values 
+            && an.node == n 
+            && an.attestation_duty.slot < get_upperlimit_decided_instances(s_mod)
+        ensures 
+            var slot := an.attestation_duty.slot;
+            && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
+            && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+            ;                      
+        {
+            if an.attestation_duty.slot < s_mod.latest_attestation_duty.safe_get().slot 
+            {
+                var slot := an.attestation_duty.slot;
+                assert
+                && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                ;
+            }
+            else 
+            {
+                assert an.attestation_duty.slot == s_mod.latest_attestation_duty.safe_get().slot;
+
+                var slot := an.attestation_duty.slot;
+                assert slot in process.future_att_consensus_instances_already_decided;
+                assert
+                && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
+                ;                        
+            }
+        }
+
+        assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, s_mod);
+    }  
+
+    lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks_helper_3(
+        process: DVCState,
+        block: BeaconBlock,
+        dv': DVState,
+        n: BLSPubkey,
+        index_next_attestation_duty_to_be_served: nat,
+        s_mod: DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(dv', process)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv', n, process, index_next_attestation_duty_to_be_served)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv', n, process)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process) 
+    requires && var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+             && var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+             && var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );
+             && pred_listen_for_new_imported_blocks_checker(new_process, att_consensus_instances_already_decided)
+             && inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, new_process)
+             && var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+             && s_mod == f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                new_process,
+                                att_consensus_instances_already_decided
+                            )
+    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body(
+                        dv', 
+                        s_mod
+                    ) 
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );                 
+
+        
+        var decided_attestation_data := att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
+
+        var s_mod := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                new_process,
+                                att_consensus_instances_already_decided
+                            );
+
+        forall s1: nat, s2: nat, vp, db2 |
+            && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
+            && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+            && s1 < s2       
+            && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
+            && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
+        ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv', s1, db2)
+        {
+            assert  || s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                    || s2 in new_process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+            assert s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+            assert s1 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+
+            assert dv'.consensus_on_attestation_data[s1].decided_value.isPresent();
+            var decided_a_data := dv'.consensus_on_attestation_data[s1].decided_value.safe_get();
+            var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
+
+            assert 
+                && vp in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
+                && db2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
+                ==>
+                inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv', s1, db2);   
+
+            if vp !in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
+            {
+                assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
+                assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {s_mod.attestation_slashing_db};
+                assert sdba in db2;
+            }
+            else 
+            {
+                if s2 in s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
+                {
+                    if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
+                    {
+                        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
+                            new_process.attestation_consensus_engine_state,
+                            s_mod.attestation_slashing_db,
+                            s_mod.attestation_consensus_engine_state,
+                            s2,
+                            vp
+                        );
+                        assert sdba in db2;
+                    }
+                    else 
+                    {
+                        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
+                            new_process.attestation_consensus_engine_state,
+                            s_mod.attestation_slashing_db,
+                            s_mod.attestation_consensus_engine_state,
+                            s2,
+                            vp
+                        );
+                        assert sdba in db2;
+                    }
+                }
+                else 
+                {
+                    lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
+                        new_process.attestation_consensus_engine_state,
+                        s_mod.attestation_slashing_db,
+                        s_mod.attestation_consensus_engine_state,
+                        s2,
+                        vp
+                    );
+                    assert sdba in db2;
+                }
+            }
+            assert sdba in db2;
+            assert  inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv', s1, db2);
+        }                           
+    } 
 
     lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks(
         process: DVCState,
@@ -2622,153 +2918,33 @@ module Invs_DV_Next_3
 
             if decided_attestation_data in new_consensus_instances_already_decided.Values
             {
-                forall an |
-                    && an in dv'.sequence_attestation_duties_to_be_served.Values 
-                    && an.node == n 
-                    && an.attestation_duty.slot < get_upperlimit_decided_instances(s_mod)
-                ensures 
-                    var slot := an.attestation_duty.slot;
-                    && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                    && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db                    
-                {
-                    if an.attestation_duty.slot < s_mod.latest_attestation_duty.safe_get().slot 
-                    {
-                        var slot := an.attestation_duty.slot;
-                        assert
-                        && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                        && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
-                        ;
-                    }
-                    else 
-                    {
-                        var slot := an.attestation_duty.slot;
-
-                        lem_f_listen_for_new_imported_blocks_helper_1(
-                            dv',
-                            process,
-                            block,
-                            new_consensus_instances_already_decided
-                        );
-
-                        assert
-                        && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                        && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
-                        ;                        
-                    }
-                } 
-                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, s_mod);                   
+                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks_helper_1(
+                        process,
+                        block,       
+                        dv',
+                        n,
+                        index_next_attestation_duty_to_be_served        
+                    );          
             }
             else 
             {
-                assert decided_attestation_data in process.future_att_consensus_instances_already_decided.Values;
-
-                assert decided_attestation_data == process.future_att_consensus_instances_already_decided[new_process.current_attestation_duty.safe_get().slot];
-
-                forall an |
-                    && an in dv'.sequence_attestation_duties_to_be_served.Values 
-                    && an.node == n 
-                    && an.attestation_duty.slot < get_upperlimit_decided_instances(s_mod)
-                ensures 
-                    var slot := an.attestation_duty.slot;
-                    && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                    && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
-                    ;                      
-                {
-                    if an.attestation_duty.slot < s_mod.latest_attestation_duty.safe_get().slot 
-                    {
-                        var slot := an.attestation_duty.slot;
-                        assert
-                        && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                        && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
-                        ;
-                    }
-                    else 
-                    {
-                        assert an.attestation_duty.slot == s_mod.latest_attestation_duty.safe_get().slot;
-
-                        var slot := an.attestation_duty.slot;
-                        assert slot in process.future_att_consensus_instances_already_decided;
-                        assert
-                        && dv'.consensus_on_attestation_data[slot].decided_value.isPresent()
-                        && construct_SlashingDBAttestation_from_att_data(dv'.consensus_on_attestation_data[slot].decided_value.safe_get()) in s_mod.attestation_slashing_db
-                        ;                        
-                    }
-                }
-
-                assert inv_inv_decided_values_of_previous_duties_are_known_body_body_new(dv', n, s_mod);
+                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks_helper_2(
+                        process,
+                        block,       
+                        dv',
+                        n,
+                        index_next_attestation_duty_to_be_served        
+                    );     
             }
 
-            forall s1: nat, s2: nat, vp, db2 |
-                && s1 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                && s2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
-                && s1 < s2       
-                && vp in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
-                && db2 in s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]  
-            ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv', s1, db2)
-            {
-                assert  || s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                        || s2 in new_process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
-                assert s2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                assert s1 in new_process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-
-                assert dv'.consensus_on_attestation_data[s1].decided_value.isPresent();
-                var decided_a_data := dv'.consensus_on_attestation_data[s1].decided_value.safe_get();
-                var sdba := construct_SlashingDBAttestation_from_att_data(decided_a_data);  
-
-                assert 
-                    && vp in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys 
-                    && db2 in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]
-                    ==>
-                    inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv', s1, db2);   
-
-                if vp !in new_process.attestation_consensus_engine_state.att_slashing_db_hist[s2]
-                {
-                    assert s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate == vp;
-                    assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp] ==  {s_mod.attestation_slashing_db};
-                    assert sdba in db2;
-                }
-                else 
-                {
-                    if s2 in s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances
-                    {
-                        if vp == s_mod.attestation_consensus_engine_state.active_attestation_consensus_instances[s2].validityPredicate
-                        {
-                            lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck2(
-                                new_process.attestation_consensus_engine_state,
-                                s_mod.attestation_slashing_db,
-                                s_mod.attestation_consensus_engine_state,
-                                s2,
-                                vp
-                            );
-                            assert sdba in db2;
-                        }
-                        else 
-                        {
-                            lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck3(
-                                new_process.attestation_consensus_engine_state,
-                                s_mod.attestation_slashing_db,
-                                s_mod.attestation_consensus_engine_state,
-                                s2,
-                                vp
-                            );
-                            assert sdba in db2;
-                        }
-                    }
-                    else 
-                    {
-                        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck4(
-                            new_process.attestation_consensus_engine_state,
-                            s_mod.attestation_slashing_db,
-                            s_mod.attestation_consensus_engine_state,
-                            s2,
-                            vp
-                        );
-                        assert sdba in db2;
-                    }
-                }
-                assert sdba in db2;
-                assert  inv_db_of_validity_predicate_contains_all_previous_decided_values_body_body_body(dv', s1, db2);
-            }                
+            lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_listen_for_new_imported_blocks_helper_3(
+                        process,
+                        block,
+                        dv',
+                        n,
+                        index_next_attestation_duty_to_be_served,
+                        s_mod
+                    );           
 
             lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty(s_mod, s', dv', n, index_next_attestation_duty_to_be_served);                    
         }        
