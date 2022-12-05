@@ -1992,7 +1992,6 @@ module Fnc_Invs_1
         }
     } 
 
-    // TODO
     lemma lem_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_f_att_consensus_decided(
         process: DVCState,
         id: Slot,

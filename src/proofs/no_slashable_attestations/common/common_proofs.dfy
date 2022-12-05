@@ -22,7 +22,6 @@ module Common_Proofs
     import opened DVC_Spec_Axioms
     import DVC_Spec_NonInstr
 
-    // TODO: Moved from invs_dv_next_3.dfy
     lemma lem_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
@@ -73,7 +72,6 @@ module Common_Proofs
         }
     }
 
-    // TODO: Moved from invs_dv_next_3.dfy
     lemma lem_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,

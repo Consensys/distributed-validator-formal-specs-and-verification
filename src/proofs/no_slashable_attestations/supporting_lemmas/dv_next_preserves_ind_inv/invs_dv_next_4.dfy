@@ -759,7 +759,6 @@ module Invs_DV_Next_4
         assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, s_mod, index_next_attestation_duty_to_be_served);
     } 
 
-    // TODO: apply this lemma 
     lemma lem_f_check_for_next_queued_duty_checker(
         process: DVCState,        
         s_mod: DVCState
@@ -1321,7 +1320,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -1814,7 +1813,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_exists_decided_value_for_every_duty_before_queued_duties_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -2228,7 +2227,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -2525,7 +2524,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_g_d_a_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -2843,7 +2842,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_attestation_duty_queue_is_ordered_3_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -3114,7 +3113,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_attestation_duty_queue_is_ordered_4_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -4104,7 +4103,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         // assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_g_a_iii_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -4617,13 +4616,9 @@ module Invs_DV_Next_4
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_attestation_duty_queue_is_ordered_3_body_body(dv, n, process)
     requires inv_g_d_a_body_body(dv, n, process)
-    // TODO: Think about 
     requires && first_queued_att_duty_was_decided_or_ready_to_be_served(process)        
              && !first_queued_att_duty_was_decided(process)
-             && |s'.attestation_duties_queue| > 0 
-             && s'.latest_attestation_duty.isPresent()
-    requires new_process == f_dequeue_first_queued_att_duty(process)
-
+             && no_curr_duty_and_nonempty_duty_queue(s')
     ensures inv_g_a_iv_a_body_body(dv, n, s')
     {
         assert |process.attestation_duties_queue| > 0;
@@ -4841,7 +4836,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         // assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_g_a_iv_a_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -5236,7 +5231,7 @@ module Invs_DV_Next_4
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_g_d_b_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,

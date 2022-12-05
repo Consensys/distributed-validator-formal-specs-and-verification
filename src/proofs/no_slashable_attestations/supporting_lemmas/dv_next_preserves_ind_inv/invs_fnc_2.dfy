@@ -995,7 +995,44 @@ module Fnc_Invs_2
         }
     }
 
-    //TODO
+    lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces_f_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
+    requires pred_curr_att_duty_has_been_decided(process, id)
+    ensures && var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            && inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process.attestation_consensus_engine_state, 
+                            attestation_slashing_db)
+    {
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+        assert process.attestation_slashing_db <= attestation_slashing_db;
+        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process.attestation_consensus_engine_state, 
+                            process.attestation_slashing_db); 
+
+        forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
+                            ( && s  in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                            && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s]
+                            && db in process.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                            )   
+        ensures db <= attestation_slashing_db               
+        {
+            calc {
+                db; 
+                <=
+                process.attestation_slashing_db;
+                <=
+                attestation_slashing_db;
+            }                        
+        }
+
+        assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process.attestation_consensus_engine_state, 
+                            attestation_slashing_db);
+    }
+
     lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
@@ -1018,24 +1055,11 @@ module Fnc_Invs_2
             assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process.attestation_consensus_engine_state, 
                                 process.attestation_slashing_db); 
 
-            forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
-                                ( && s  in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                                && vp in process.attestation_consensus_engine_state.att_slashing_db_hist[s]
-                                && db in process.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-                                )   
-            ensures db <= attestation_slashing_db               
-            {
-                calc {
-                    db; 
-                    <=
-                    process.attestation_slashing_db;
-                    <=
-                    attestation_slashing_db;
-                }                        
-            }
-
-            assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process.attestation_consensus_engine_state, 
-                                attestation_slashing_db);
+            lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces_f_att_consensus_decided(
+                    process,
+                    id,
+                    decided_attestation_data
+                );
 
             var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
             var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
@@ -2320,7 +2344,6 @@ module Fnc_Invs_2
             if first_queued_att_duty_was_decided(process)
             {
                 var process_mod := f_dequeue_attestation_duties_queue(process);
-                // TODO: Simplifying the following proofs may be possible.
                 assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
                             hn, 
                             process_mod, 

@@ -456,7 +456,6 @@ module Invs_DV_Next_5
         lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);        
     }           
 
-    // TODO: Unclear
     lemma lem_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(
         s: DVCState,
         id: Slot,
@@ -1088,7 +1087,7 @@ module Invs_DV_Next_5
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -1410,7 +1409,7 @@ module Invs_DV_Next_5
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,

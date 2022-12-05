@@ -372,7 +372,7 @@ module Invs_DV_Next_6
                 {
                     case ServeAttstationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty2(s, event, s');
+                        lem_ServeAttstationDuty(s, event, s');
                         lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
