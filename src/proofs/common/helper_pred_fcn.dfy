@@ -250,4 +250,10 @@ module Helper_Pred_Fcn
         );
         ret_process
     }   
+
+    predicate latest_att_duty_and_nonempty_duty_queue(s: DVCState) 
+    {
+        && |s.attestation_duties_queue| > 0 
+        && s.latest_attestation_duty.isPresent()  
+    }
 }

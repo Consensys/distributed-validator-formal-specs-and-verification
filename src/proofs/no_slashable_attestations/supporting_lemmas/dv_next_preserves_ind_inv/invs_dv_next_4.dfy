@@ -4618,7 +4618,7 @@ module Invs_DV_Next_4
     requires inv_g_d_a_body_body(dv, n, process)
     requires && first_queued_att_duty_was_decided_or_ready_to_be_served(process)        
              && !first_queued_att_duty_was_decided(process)
-             && no_curr_duty_and_nonempty_duty_queue(s')
+             && latest_att_duty_and_nonempty_duty_queue(s')
     ensures inv_g_a_iv_a_body_body(dv, n, s')
     {
         assert |process.attestation_duties_queue| > 0;
@@ -4760,9 +4760,7 @@ module Invs_DV_Next_4
             {
                 var new_process := f_dequeue_first_queued_att_duty(process);          
 
-                if 
-                    &&  |s'.attestation_duties_queue| > 0 
-                    &&  s'.latest_attestation_duty.isPresent()     
+                if latest_att_duty_and_nonempty_duty_queue(s')   
                 {
                     lem_inv_g_a_iv_f_check_for_next_queued_duty_helper_2(
                         process,
