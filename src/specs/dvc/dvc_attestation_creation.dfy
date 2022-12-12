@@ -219,6 +219,7 @@ module DVC_Spec_NonInstr {
         && f_process_event(s, event ) == newNodeStateAndOutputs
     }
 
+    // TODO: Remove the queue of attestation duties
     function f_process_event(
         s: DVCState,
         event: Event
