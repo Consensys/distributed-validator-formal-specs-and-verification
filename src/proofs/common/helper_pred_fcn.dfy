@@ -20,59 +20,6 @@ module Helper_Pred_Fcn
     
     
 
-    predicate first_queued_att_duty_was_decided(process: DVCState)
-    {
-        process.attestation_duties_queue != [] 
-        ==>
-        process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys
-    }
-
-    function f_dequeue_attestation_duties_queue(process: DVCState)
-        : (ret_process: DVCState)
-    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
-    requires first_queued_att_duty_was_decided(process)
-    ensures |ret_process.attestation_duties_queue| < |process.attestation_duties_queue|
-    {
-        var queue_head := process.attestation_duties_queue[0];
-        var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-        var ret_process := 
-            process.(
-                        attestation_duties_queue := process.attestation_duties_queue[1..],
-                        future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
-                        attestation_slashing_db := new_attestation_slashing_db,
-                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
-                            process.attestation_consensus_engine_state,
-                            new_attestation_slashing_db
-                        )
-            );
-        ret_process
-    }
-
-    function f_dequeue_first_queued_att_duty(process: DVCState)
-        : (ret_process: DVCState)
-    requires first_queued_att_duty_was_decided_or_ready_to_be_served(process)
-    ensures |ret_process.attestation_duties_queue| < |process.attestation_duties_queue|
-    {
-        var ret_process := 
-            process.(
-                attestation_duties_queue := process.attestation_duties_queue[1..]
-            );   
-        ret_process
-    }
-
-    function f_enqueue_new_att_duty(
-        process: DVCState,
-        attestation_duty: AttestationDuty
-    ) : (ret_process: DVCState)
-    {
-        var ret_process := 
-            process.(
-                attestation_duties_queue := process.attestation_duties_queue + [attestation_duty],
-                all_rcvd_duties := process.all_rcvd_duties + {attestation_duty}
-            );  
-        ret_process
-    }
-
     predicate pred_curr_att_duty_has_been_decided(
         process: DVCState,
         id: Slot) 
@@ -115,21 +62,12 @@ module Helper_Pred_Fcn
         ret_process
     }
 
-    predicate no_curr_duty_and_nonempty_duty_queue(s_mod: DVCState) 
+    predicate no_curr_duty(s_mod: DVCState) 
     {
-        && |s_mod.attestation_duties_queue| > 0 
         && !s_mod.current_attestation_duty.isPresent()   
     }
 
-    function f_add_new_att_duty_to_the_queue(
-        process: DVCState,
-        attestation_duty: AttestationDuty
-    ): DVCState
-    {
-        process.(
-            attestation_duties_queue := process.attestation_duties_queue + [attestation_duty]
-        )        
-    } 
+    
     
     predicate pred_listen_for_attestation_shares_checker(
         process: DVCState,
@@ -140,7 +78,6 @@ module Helper_Pred_Fcn
         && (
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
             || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
-            || (activate_att_consensus_intances == {} && process.current_attestation_duty.isPresent() && process.current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
             || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
         )
     }
@@ -192,6 +129,15 @@ module Helper_Pred_Fcn
         process: DVCState,
         block: BeaconBlock
     ): DVCState
+    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+    requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+                forall a1, a2 | 
+                        && a1 in block.body.attestations
+                        && DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && a2 in block.body.attestations
+                        && DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                    ::
+                        a1.data.slot == a2.data.slot ==> a1 == a2  
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
@@ -242,9 +188,8 @@ module Helper_Pred_Fcn
         ret_process
     }   
 
-    predicate latest_att_duty_and_nonempty_duty_queue(s: DVCState) 
+    predicate nonempty_latest_att_duty(s: DVCState) 
     {
-        && |s.attestation_duties_queue| > 0 
         && s.latest_attestation_duty.isPresent()  
     }
 }

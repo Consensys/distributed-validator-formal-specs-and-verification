@@ -499,7 +499,7 @@ module DVC_Spec {
                         );
 
                             
-                if process_with_new_att_shares_db.construct_signed_attestation_signature(process.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent() 
+                if process_with_new_att_shares_db.construct_signed_attestation_signature(process_with_new_att_shares_db.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent() 
                 then
                     var aggregated_attestation := 
                         f_construct_aggregated_attestation_for_new_attestation_share(

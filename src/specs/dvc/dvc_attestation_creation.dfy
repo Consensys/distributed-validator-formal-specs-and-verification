@@ -2,7 +2,6 @@ include "../../common/commons.dfy"
 include "../../dvc_implementation/attestation_creation.dfy"
 include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
-
 module DVC_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
