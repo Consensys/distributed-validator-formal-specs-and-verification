@@ -356,20 +356,9 @@ module DV
         && (event.HonestNodeTakingStep? ==> NextHonestNodePrecond(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event))      
     }
 
-    predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(
-        dv: DVState
-    )
-    {
-        forall n | n in dv.honest_nodes_states.Keys ::
-            inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(dv.honest_nodes_states[n])
-    }
+    
 
-    predicate inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(
-        process: DVCState
-    )
-    {
-        forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
-    }    
+    
 
 
 
@@ -383,11 +372,11 @@ module DV
             case ServeAttstationDuty(attestation_duty) => 
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
-                && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s)
+                true
             case ReceivedAttestationShare(attestation_share) => 
                 true
             case ImportedNewBlock(block) => 
-                && inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s)
+                true
             case ResendAttestationShares => 
                 true
             case NoEvent => 

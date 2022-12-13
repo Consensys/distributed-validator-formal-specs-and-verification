@@ -5,7 +5,6 @@ include "../../specs/network/network.dfy"
 include "../../specs/dv/dv_attestation_creation.dfy"
 include "../common/helper_sets_lemmas.dfy"
 include "../no_slashable_attestations/common/attestation_creation_instrumented.dfy"
-include "../no_slashable_attestations/supporting_lemmas/inv.dfy"
 
 module Helper_Pred_Fcn
 {
@@ -15,19 +14,11 @@ module Helper_Pred_Fcn
     import opened NetworkSpec
     import opened DVC_Spec
     import opened DV
-    import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened DVC_Spec_Axioms
     import DVC_Spec_NonInstr
     
-    predicate first_queued_att_duty_was_decided_or_ready_to_be_served(process: DVCState) 
-    {
-        && process.attestation_duties_queue != [] 
-        &&  (
-                || process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided
-                || !process.current_attestation_duty.isPresent()
-            ) 
-    }
+    
 
     predicate first_queued_att_duty_was_decided(process: DVCState)
     {
