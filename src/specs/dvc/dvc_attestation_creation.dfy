@@ -386,7 +386,8 @@ module DVC_Spec_NonInstr {
         var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
         var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
         var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
-        var attestation_with_signature_share := AttestationShare(
+        var attestation_with_signature_share := 
+                AttestationShare(
                     aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
                     data := decided_attestation_data, 
                     signature := attestation_signature_share
@@ -613,6 +614,7 @@ module DVC_Spec_NonInstr {
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
+        // TODO: Do we need to stop consensus instances here?
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
@@ -624,6 +626,7 @@ module DVC_Spec_NonInstr {
                     rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
                 );                    
 
+        // TODO: Do we still need to have the if branch
         if process_after_stopping_consensus_instance.current_attestation_duty.isPresent() && process_after_stopping_consensus_instance.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided then
             var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);

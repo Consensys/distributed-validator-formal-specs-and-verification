@@ -19,7 +19,6 @@ abstract module DVC_Implementation
 
         var current_attestation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
-        var attestation_duties_queue: seq<AttestationDuty>;
         var rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
         var attestation_shares_to_broadcast: map<Slot, AttestationShare>
         var construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>;
@@ -51,7 +50,6 @@ abstract module DVC_Implementation
         {
             current_attestation_duty := None;
             latest_attestation_duty := None;
-            attestation_duties_queue := [];
             slashing_db := initial_slashing_db;
             attestation_shares_to_broadcast := map[];
             rcvd_attestation_shares := map[];
@@ -104,34 +102,53 @@ abstract module DVC_Implementation
         requires ValidRepr()
         modifies getRepr()
         {
-            attestation_duties_queue := attestation_duties_queue + [attestation_duty];
-            { :- check_for_next_queued_duty();}
+            { 
+                // Error: terminate_current_attestation_duty();
+                if current_attestation_duty.isPresent()
+                {
+                    current_attestation_duty := None;           
+                }
+                else
+                {
+                }
+                :- check_for_next_duty(attestation_duty);
+            }
 
             return Success;
         }
 
-        method check_for_next_queued_duty() returns (s: Status) // TODO T/O
+        // Using this method raises errors
+        // method terminate_current_attestation_duty() 
+        // // returns (s: Status)
+        // requires ValidRepr()
+        // modifies getRepr()
+        // ensures  ValidRepr()
+        // {
+        //     if current_attestation_duty.isPresent()
+        //     {
+        //         current_attestation_duty := None;           
+        //     }
+        //     else
+        //     {
+        //     }
+
+        //     // return Success;
+        // }  
+
+        method check_for_next_duty(
+            attestation_duty: AttestationDuty
+        ) returns (s: Status) // TODO T/O
         requires ValidRepr()
         modifies getRepr()
-        decreases attestation_duties_queue
         {
-            if attestation_duties_queue != []
+            if attestation_duty.slot in future_att_consensus_instances_already_decided.Keys
             {
-                if attestation_duties_queue[0].slot in future_att_consensus_instances_already_decided.Keys
-                {
-                    var queue_head := attestation_duties_queue[0];
-                    attestation_duties_queue := attestation_duties_queue[1..];
-                    update_attestation_slashing_db(future_att_consensus_instances_already_decided[queue_head.slot]);
-                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided - {queue_head.slot};                    
-                    { :- check_for_next_queued_duty();}
-                }
-                else if !current_attestation_duty.isPresent()
-                {
-                    var queue_head := attestation_duties_queue[0];
-                    attestation_duties_queue := attestation_duties_queue[1..];
-
-                    :- start_next_duty(queue_head);
-                }
+                update_attestation_slashing_db(future_att_consensus_instances_already_decided[attestation_duty.slot]);
+                future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided - {attestation_duty.slot};                    
+            }
+            else if !current_attestation_duty.isPresent()
+            {
+                :- start_next_duty(attestation_duty);
             }
 
             return Success;
@@ -173,23 +190,21 @@ abstract module DVC_Implementation
                 && current_attestation_duty.safe_get().slot == id
             {
                 var local_current_attestation_duty := current_attestation_duty.safe_get();    
-
                 update_attestation_slashing_db(decided_attestation_data);
     
                 var fork_version := bn.get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
                 var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
                 var attestation_signature_share := rs.sign_attestation(decided_attestation_data, fork_version, attestation_signing_root);
-                var attestation_with_signature_share := AttestationShare(
-                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
-                    data := decided_attestation_data, 
-                    signature :=attestation_signature_share
-                ); 
+                var attestation_with_signature_share := 
+                        AttestationShare(
+                            aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                            data := decided_attestation_data, 
+                            signature :=attestation_signature_share
+                        ); 
 
                 attestation_shares_to_broadcast := attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share];
                 network.send_att_share(attestation_with_signature_share, peers);  
                 current_attestation_duty := None;
-                
-                { :- check_for_next_queued_duty(); }
             }
 
             return Success;         
@@ -213,7 +228,7 @@ abstract module DVC_Implementation
             if 
                 || (activate_att_consensus_intances == {} && !latest_attestation_duty.isPresent())
                 || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
-                || (activate_att_consensus_intances == {} && current_attestation_duty.isPresent() && current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
+                // || (activate_att_consensus_intances == {} && current_attestation_duty.isPresent() && current_attestation_duty.safe_get().slot <= attestation_share.data.slot)                
                 || (activate_att_consensus_intances == {} && !current_attestation_duty.isPresent() && latest_attestation_duty.isPresent() && latest_attestation_duty.safe_get().slot < attestation_share.data.slot)
             {
                 // TODO: The check above is not consistent with the clean-up operation done in
@@ -236,12 +251,6 @@ abstract module DVC_Implementation
                             
                 if construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()
                 {
-                    // var aggregated_attestation := 
-                    //         Attestation(
-                    //             aggregation_bits := attestation_share.aggregation_bits,
-                    //             data := attestation_share.data,
-                    //             signature := construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
-                    //         );
                     var aggregated_attestation := 
                         f_construct_aggregated_attestation_for_new_attestation_share(
                             attestation_share,
@@ -280,6 +289,9 @@ abstract module DVC_Implementation
                 && var i:nat :| i < |committee| && committee[i] == valIndex.v;
                 && i < |a.aggregation_bits|
                 && a.aggregation_bits[i]
+                && ( || !latest_attestation_duty.isPresent()
+                     || ( && latest_attestation_duty.isPresent() 
+                          && latest_attestation_duty.safe_get().slot < a.data.slot ) )
                 {
                     att_consensus_instances_already_decided := att_consensus_instances_already_decided[a.data.slot := a.data];
                 }
@@ -293,6 +305,7 @@ abstract module DVC_Implementation
             attestation_shares_to_broadcast := attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys;
             rcvd_attestation_shares := rcvd_attestation_shares - att_consensus_instances_already_decided.Keys;
 
+            // This block refers to f_..._helper_2
             if latest_attestation_duty.isPresent()
             {
                 var old_instances := 
@@ -311,7 +324,6 @@ abstract module DVC_Implementation
             {
                 update_attestation_slashing_db(att_consensus_instances_already_decided[current_attestation_duty.safe_get().slot]);
                 current_attestation_duty := None;
-                { :- check_for_next_queued_duty();}
             }
 
             return Success;                              
