@@ -41,7 +41,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         &&  inv_unchanged_honesty(dv)
         &&  inv_only_dv_construct_signed_attestation_signature(dv)
         &&  inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
-        &&  inv_queued_att_duty_is_rcvd_duty(dv)
+        // &&  inv_queued_att_duty_is_rcvd_duty(dv)
         &&  inv_current_att_duty_is_rcvd_duty(dv)
         &&  inv_latest_served_duty_is_rcvd_duty(dv)
     }
@@ -56,9 +56,10 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_3(dv: DVState)       
     {        
-        &&  inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv)  
-        &&  inv_strictly_increasing_queue_of_att_duties(dv)  
-        &&  inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)  
+        // &&  inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv)  
+        // &&  inv_strictly_increasing_queue_of_att_duties(dv)  
+        // &&  inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)  
+        && true
     }
 
     predicate invs_group_4(dv: DVState)       
@@ -124,23 +125,24 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     
     predicate invs_group_12(dv: DVState)       
     {
-        && inv_attestation_duty_queue_is_ordered_3(dv)
-        && inv_attestation_duty_queue_is_ordered_4(dv)
+        // && inv_attestation_duty_queue_is_ordered_3(dv)
+        // && inv_attestation_duty_queue_is_ordered_4(dv)
+        && true
     }
 
     predicate invs_group_13(dv: DVState)       
     {                
-        && inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv)    
+        // && inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv)    
         && inv_decided_values_of_previous_duties_are_known_new(dv)    
         && inv_g_d_a(dv)
         && inv_g_d_b(dv)  
-        && inv_exists_decided_value_for_every_duty_before_queued_duties(dv)        
+        // && inv_exists_decided_value_for_every_duty_before_queued_duties(dv)        
     }
     
     predicate invs_group_14(dv: DVState)       
     {                
-        && inv_g_a_iii(dv)
-        && inv_g_a_iv_a(dv)
+        // && inv_g_a_iii(dv)
+        // && inv_g_a_iv_a(dv)
         && inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)        
     }
 
