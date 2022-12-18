@@ -176,7 +176,7 @@ module Spec_Spec_NonInstr_Refinement
         DVC_Spec_NonInstr.f_att_consensus_decided(dvcni, id, decided_attestation_data)
     );       
     {
-        if pred_curr_att_duty_has_been_decided(
+        if pred_att_duty_was_already_decided(
                     dvci,
                     id) 
         {
