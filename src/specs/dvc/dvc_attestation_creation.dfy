@@ -307,7 +307,7 @@ module DVC_Spec_NonInstr {
         // or it knew a decision for the last attestation duty.
         else 
             process
-    }    
+    }      
 
     function f_check_for_next_duty(
         process: DVCState,
@@ -427,11 +427,11 @@ module DVC_Spec_NonInstr {
         id: Slot,
         decided_attestation_data: AttestationData
     ): DVCStateAndOuputs
+    requires id == decided_attestation_data.slot
     {
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot then
 
-            var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
             var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(

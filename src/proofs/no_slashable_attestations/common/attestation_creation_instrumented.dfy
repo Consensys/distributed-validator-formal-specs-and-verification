@@ -278,7 +278,8 @@ module DVC_Spec {
     function f_wrap_DVCState_with_Outputs(
         dvc: DVCState,
         outputs: Outputs
-    ): DVCStateAndOuputs
+    ): (ret: DVCStateAndOuputs)
+    ensures ret.state == dvc
     {
         DVCStateAndOuputs(
                 state := dvc,
