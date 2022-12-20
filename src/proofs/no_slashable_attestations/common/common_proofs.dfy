@@ -235,7 +235,7 @@ module Common_Proofs
         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r);
     }
 
-    lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_updateConsensusInstanceValidityCheck(
+    lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         r: ConsensusEngineState
