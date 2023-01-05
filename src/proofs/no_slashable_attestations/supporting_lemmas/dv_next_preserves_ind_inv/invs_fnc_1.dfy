@@ -26,149 +26,93 @@ module Fnc_Invs_1
     import opened Helper_Pred_Fcn
 
     
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_serve_attestation_duty(
-    // //     dvc: DVCState,
-    // //     attestation_duty: AttestationDuty,
-    // //     dvc': DVCState
-    // // )  
-    // // requires f_serve_attestation_duty.requires(dvc, attestation_duty)
-    // // requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
-    // // ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {attestation_duty}    
-    // // {
-    // //     var dvc_mod := f_enqueue_new_att_duty(
-    // //                             dvc,
-    // //                             attestation_duty
-    // //                         );       
+    lemma lem_updated_all_rcvd_duties_f_serve_attestation_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty,
+        dvc': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
+    ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {attestation_duty}    
+    { }
 
-    // //     lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_duty(dvc_mod, dvc');        
-    // // }
+    lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty, 
+        dvc': DVCState
+    )
+    requires f_check_for_next_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_check_for_next_duty(dvc, attestation_duty).state
+    ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties
+    { }
 
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_duty(
-    // //     dvc: DVCState,
-    // //     dvc': DVCState
-    // // )
-    // // requires f_check_for_next_duty.requires(dvc)
-    // // requires dvc' == f_check_for_next_duty(dvc).state
-    // // ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties
-    // // decreases dvc.attestation_duties_queue
-    // // {
-    // //     if first_queued_att_duty_was_decided_or_ready_to_be_served(dvc)   
-    // //     {            
-    // //         if first_queued_att_duty_was_decided(dvc)
-    // //         {
-    // //             var dvc_mod := f_dequeue_attestation_duties_queue(dvc);
-    // //             lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_duty(dvc_mod, dvc');
-    // //         }
-    // //         else
-    // //         { 
-    // //             var dvc_mod := dvc.(
-    // //                 attestation_duties_queue := dvc.attestation_duties_queue[1..]
-    // //             );         
-    // //             lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_start_next_duty(dvc_mod, dvc.attestation_duties_queue[0], dvc');
-    // //         }
-    // //     }
-    // //     else
-    // //     { 
-    // //         assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties;
-    // //     }
-    // // }
+    lemma lem_updated_all_rcvd_duties_f_start_next_duty(
+        dvc: DVCState, 
+        attestation_duty: AttestationDuty, 
+        dvc': DVCState)
+    requires f_start_next_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_start_next_duty(dvc, attestation_duty).state
+    ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties        
+    { }  
 
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_start_next_duty(dvc: DVCState, attestation_duty: AttestationDuty, dvc': DVCState)
-    // // requires f_start_next_duty.requires(dvc, attestation_duty)
-    // // requires dvc' == f_start_next_duty(dvc, attestation_duty).state
-    // // ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties        
-    // // {  
-    // //     assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties;
-    // // }  
-
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_att_consensus_decided(
-    // //     process: DVCState,
-    // //     id: Slot,
-    // //     decided_attestation_data: AttestationData, 
-    // //     process': DVCState
-    // // )
-    // // requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
-    // // requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
-    // // ensures process'.all_rcvd_duties == process.all_rcvd_duties
-    // // {
-        
-    // //     if  pred_curr_att_duty_has_been_decided(process, id)
-    // //     {
-    // //         var process_mod := f_update_process_after_att_duty_decided(
-    // //                             process,
-    // //                             id,
-    // //                             decided_attestation_data);
-
-    // //         var ret_check_for_next_queued_duty := f_check_for_next_duty(process_mod);
-            
-    // //         lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_duty(process_mod, ret_check_for_next_queued_duty.state);
-
-    // //         assert process' == ret_check_for_next_queued_duty.state;
-    // //     } 
-    // // }  
+    lemma lem_updated_all_rcvd_duties_f_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
+    ensures process'.all_rcvd_duties == process.all_rcvd_duties
+    { }  
 
 
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_listen_for_attestation_shares(
-    // //     process: DVCState,
-    // //     attestation_share: AttestationShare,
-    // //     process': DVCState
-    // // )
-    // // requires f_listen_for_attestation_shares.requires(process, attestation_share)
-    // // requires process' == f_listen_for_attestation_shares(process, attestation_share).state
-    // // ensures process.all_rcvd_duties == process'.all_rcvd_duties
-    // // {}
+    lemma lem_updated_all_rcvd_duties_f_listen_for_attestation_shares(
+        process: DVCState,
+        attestation_share: AttestationShare,
+        process': DVCState
+    )
+    requires f_listen_for_attestation_shares.requires(process, attestation_share)
+    requires process' == f_listen_for_attestation_shares(process, attestation_share).state
+    ensures process.all_rcvd_duties == process'.all_rcvd_duties
+    {}
 
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_listen_for_new_imported_blocks(
-    // //     process: DVCState,
-    // //     block: BeaconBlock,
-    // //     process': DVCState
-    // // )
-    // // requires f_listen_for_new_imported_blocks.requires(process, block)
-    // // requires process' == f_listen_for_new_imported_blocks(process, block).state
-    // // ensures process.all_rcvd_duties == process'.all_rcvd_duties
-    // // {
-    // //     var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+    lemma lem_updated_all_rcvd_duties_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    ensures process.all_rcvd_duties == process'.all_rcvd_duties
+    { }   
 
-    // //     var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+    lemma lem_updated_all_rcvd_duties_f_add_block_to_bn(
+        s: DVCState,
+        block: BeaconBlock,
+        s': DVCState 
+    )
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)
+    requires s.all_rcvd_duties == s'.all_rcvd_duties
+    { } 
 
-    // //     var future_att_consensus_instances_already_decided := 
-    // //         f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
-
-    // //     var process :=
-    // //             f_stopConsensusInstances_after_receiving_new_imported_blocks(
-    // //                             process,
-    // //                             block
-    // //                         );                      
-
-    // //     if pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
-    // //     {
-    // //         var process := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
-    // //                                 process,
-    // //                                 att_consensus_instances_already_decided
-    // //                             );
-    // //         lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_f_check_for_next_duty(process, process');
-    // //     }
-    // //     else
-    // //     {}
-    // // }   
-
-    // // lemma lem_inv_queued_att_duty_is_dvn_seq_of_att_duty_add_block_to_bn(
-    // //     s: DVCState,
-    // //     block: BeaconBlock,
-    // //     s': DVCState 
-    // // )
-    // // requires add_block_to_bn.requires(s, block)
-    // // requires s' == add_block_to_bn(s, block)
-    // // requires s.all_rcvd_duties == s'.all_rcvd_duties
-    // // { } 
+    lemma lem_updated_all_rcvd_duties_f_resend_attestation_share(
+        s: DVCState,
+        s': DVCState 
+    )
+    requires f_resend_attestation_share.requires(s)
+    requires s' == f_resend_attestation_share(s).state
+    requires s.all_rcvd_duties == s'.all_rcvd_duties
+    { } 
 
     // // lemma lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(
     // //     s: DVCState,
     // //     block: BeaconBlock,
     // //     s': DVCState 
     // // )
-    // // requires add_block_to_bn.requires(s, block)
-    // // requires s' == add_block_to_bn(s, block)
+    // // requires f_add_block_to_bn.requires(s, block)
+    // // requires s' == f_add_block_to_bn(s, block)
     // // requires inv_queued_att_duty_is_rcvd_duty_body(s)
     // // ensures inv_queued_att_duty_is_rcvd_duty_body(s')
     // // { } 
@@ -593,8 +537,8 @@ module Fnc_Invs_1
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)
     requires inv_none_latest_served_duty_implies_none_current_att_duty_body(s)
     ensures inv_none_latest_served_duty_implies_none_current_att_duty_body(s')
     { }    
@@ -690,44 +634,44 @@ module Fnc_Invs_1
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)
     requires inv_current_att_duty_is_either_none_or_latest_served_duty_body(s)
     ensures inv_current_att_duty_is_either_none_or_latest_served_duty_body(s')
     { }
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_start_next_duty(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_start_next_duty(
         process: DVCState, 
         attestation_duty: AttestationDuty, 
         process': DVCState)
     requires f_start_next_duty.requires(process, attestation_duty)
     requires process' == f_start_next_duty(process, attestation_duty).state        
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }  
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_check_for_next_duty(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_check_for_next_duty(
         process: DVCState,
         attestation_duty: AttestationDuty, 
         process': DVCState
     )
     requires f_check_for_next_duty.requires(process, attestation_duty)
     requires process' == f_check_for_next_duty(process, attestation_duty).state    
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_terminate_current_attestation_duty(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_terminate_current_attestation_duty(
         process: DVCState,
         process': DVCState
     )
     requires f_terminate_current_attestation_duty.requires(process)
     requires process' == f_terminate_current_attestation_duty(process)
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
@@ -735,24 +679,24 @@ module Fnc_Invs_1
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv_none_latest_served_duty_implies_none_current_att_duty_body(process)  
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     {
         var process_rcvd_duty := 
                 process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
         var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
-        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_terminate_current_attestation_duty(
+        lem_inv_available_current_att_duty_is_latest_served_att_duty_f_terminate_current_attestation_duty(
             process_rcvd_duty,
             process_after_stopping_active_consensus_instance
         );
-        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_check_for_next_duty(
+        lem_inv_available_current_att_duty_is_latest_served_att_duty_f_check_for_next_duty(
             process_after_stopping_active_consensus_instance,
             attestation_duty,
             process'
         );         
     } 
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_att_consensus_decided(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_att_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData, 
@@ -760,50 +704,50 @@ module Fnc_Invs_1
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state     
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }  
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         process': DVCState
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state    
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }  
 
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_f_resend_attestation_share(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_f_resend_attestation_share(
         process: DVCState,
         process': DVCState)
     requires f_resend_attestation_share.requires(process)
     requires process' == f_resend_attestation_share(process).state    
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(process)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(process')
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(process')
     { }       
          
-    lemma lem_inv_not_none_current_att_duty_is_latest_served_att_duty_add_block_to_bn(
+    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty_body(s)
-    ensures inv_not_none_current_att_duty_is_latest_served_att_duty_body(s')
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(s)
+    ensures inv_available_current_att_duty_is_latest_served_att_duty_body(s')
     { }
 
     // // lemma lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty, process': DVCState)
@@ -960,8 +904,8 @@ module Fnc_Invs_1
     // //     block: BeaconBlock,
     // //     s': DVCState 
     // // )
-    // // requires add_block_to_bn.requires(s, block)
-    // // requires s' == add_block_to_bn(s, block)
+    // // requires f_add_block_to_bn.requires(s, block)
+    // // requires s' == f_add_block_to_bn(s, block)
     // // requires inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(s)
     // // ensures inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(s')
     // // { }
@@ -1071,8 +1015,8 @@ module Fnc_Invs_1
     // //     block: BeaconBlock,
     // //     s': DVCState 
     // // )
-    // // requires add_block_to_bn.requires(s, block)
-    // // requires s' == add_block_to_bn(s, block)
+    // // requires f_add_block_to_bn.requires(s, block)
+    // // requires s' == f_add_block_to_bn(s, block)
     // // requires inv_strictly_increasing_queue_of_att_duties_body(s)
     // // ensures inv_strictly_increasing_queue_of_att_duties_body(s')
     // // { }
@@ -1156,8 +1100,8 @@ module Fnc_Invs_1
     // //     block: BeaconBlock,
     // //     s': DVCState 
     // // )
-    // // requires add_block_to_bn.requires(s, block)
-    // // requires s' == add_block_to_bn(s, block)
+    // // requires f_add_block_to_bn.requires(s, block)
+    // // requires s' == f_add_block_to_bn(s, block)
     // // requires inv_queued_att_duty_is_rcvd_duty_body(s)
     // // requires inv_strictly_increasing_queue_of_att_duties_body(s)
     // // requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(s)
@@ -1341,8 +1285,8 @@ module Fnc_Invs_1
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)    
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)    
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty_body(s)
     ensures inv_no_active_consensus_instance_before_receiving_an_att_duty_body(s')
     { }
@@ -1447,8 +1391,8 @@ module Fnc_Invs_1
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)    
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)    
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(s)
     ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(s')
     { }
@@ -1556,8 +1500,8 @@ module Fnc_Invs_1
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)    
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)    
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(s)
     ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(s')
     { }
@@ -1668,8 +1612,8 @@ module Fnc_Invs_1
         block: BeaconBlock,
         s': DVCState 
     )
-    requires add_block_to_bn.requires(s, block)
-    requires s' == add_block_to_bn(s, block)    
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)    
     requires inv_consensus_instances_only_for_rcvd_duties_body(s)
     ensures inv_consensus_instances_only_for_rcvd_duties_body(s')
     { }
@@ -1710,6 +1654,7 @@ module Fnc_Invs_1
     requires f_check_for_next_duty.requires(process, attestation_duty)
     requires process' == f_check_for_next_duty(process, attestation_duty).state    
     requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    requires attestation_duty in process.all_rcvd_duties
     ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
     { }
 
@@ -1736,7 +1681,7 @@ module Fnc_Invs_1
     ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
     { }
 
-    lemma lem_inv_consensus_instances_only_for_rcvd_duties_f_listen_for_new_imported_blocks(
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -1746,4 +1691,6 @@ module Fnc_Invs_1
     requires inv_consensus_instances_only_for_rcvd_duties_body(process)
     ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
     { } 
+
+    
 }
