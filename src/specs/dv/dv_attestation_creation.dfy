@@ -254,7 +254,7 @@ module DV
         block: BeaconBlock
     )
     {
-        var new_p := add_block_to_bn(process, block);
+        var new_p := f_add_block_to_bn(process, block);
         blockIsValidAfterAdd(dv, new_p, block)
     }
 
@@ -411,14 +411,14 @@ module DV
     {
         if nodeEvent.ImportedNewBlock? then 
             s.(
-                honest_nodes_states := s.honest_nodes_states[node := add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                honest_nodes_states := s.honest_nodes_states[node := f_add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
             )
         else 
             s 
                   
     }
 
-    function add_block_to_bn(
+    function f_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock
     ): DVCState

@@ -133,10 +133,6 @@ module DVC_Spec_NonInstr {
         )
     }  
 
-    // TODO
-    // Remove attestation_duties_queue
-    // Keep future_att_consensus_instances_already_decided
-    // Not sure latest_attestation_duty
     datatype DVCState = DVCState(
         current_attestation_duty: Optional<AttestationDuty>,
         latest_attestation_duty: Optional<AttestationDuty>,
@@ -272,6 +268,7 @@ module DVC_Spec_NonInstr {
     }  
 
     // An attestation duty has been delivered to a process.
+    // Importatnt: Attestation duties are always delivered.
     function f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty
@@ -427,10 +424,11 @@ module DVC_Spec_NonInstr {
         id: Slot,
         decided_attestation_data: AttestationData
     ): DVCStateAndOuputs
-    requires id == decided_attestation_data.slot
     {
         if  && process.current_attestation_duty.isPresent()
-            && id == process.current_attestation_duty.safe_get().slot then
+            && id == process.current_attestation_duty.safe_get().slot
+            && id == decided_attestation_data.slot
+        then
 
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
@@ -554,7 +552,7 @@ module DVC_Spec_NonInstr {
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2    
     {
-        // The following code allows a process to import decisions of past attestation duties.
+        // Important: The following code allows a process to import decisions of past attestation duties.
         // We proved correctness of this code in version 1.
         // In version 2, we want to simplify the specification by forcing a process not to import
         // decisions of past attestation duties.
