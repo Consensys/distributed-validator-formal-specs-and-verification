@@ -50,7 +50,7 @@ module Invs_DV_Next_5
                             process,
                             attestation_duty
                         );
-        lem_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(s_mod, s');        
+        lem_att_slashing_db_hist_is_monotonic_f_check_for_next_duty(s_mod, s');        
     }       
 
     lemma lem_att_slashing_db_hist_is_monotonic_f_att_consensus_decided(
@@ -74,7 +74,7 @@ module Invs_DV_Next_5
                                 id,
                                 decided_attestation_data);
 
-        lem_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(s_mod, s');             
+        lem_att_slashing_db_hist_is_monotonic_f_check_for_next_duty(s_mod, s');             
     }     
 
     lemma lem_att_slashing_db_hist_is_monotonic_f_listen_for_new_imported_blocks(
@@ -104,17 +104,17 @@ module Invs_DV_Next_5
                                     s,
                                     att_consensus_instances_already_decided
                                 );
-            assert s' == f_check_for_next_queued_duty(s).state;
-            lem_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(s, s');
+            assert s' == f_check_for_next_duty(s).state;
+            lem_att_slashing_db_hist_is_monotonic_f_check_for_next_duty(s, s');
         }
     }      
 
-    lemma lem_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(
+    lemma lem_att_slashing_db_hist_is_monotonic_f_check_for_next_duty(
         s: DVCState,
         s': DVCState
     )
-    requires f_check_for_next_queued_duty.requires(s)
-    requires s' == f_check_for_next_queued_duty(s).state
+    requires f_check_for_next_duty.requires(s)
+    requires s' == f_check_for_next_duty(s).state
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
     decreases s.attestation_duties_queue
     {
@@ -124,13 +124,13 @@ module Invs_DV_Next_5
             {
                 var s_mod := f_dequeue_attestation_duties_queue(s);
 
-                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateConsensusInstanceValidityCheck(
                     s.attestation_consensus_engine_state,
                     s_mod.attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state
                 );
                 assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                lem_att_slashing_db_hist_is_monotonic_f_check_for_next_queued_duty(s_mod, s');
+                lem_att_slashing_db_hist_is_monotonic_f_check_for_next_duty(s_mod, s');
             }
             else
             {
@@ -197,7 +197,7 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv_queued_att_duty_is_rcvd_duty3(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid)
@@ -210,7 +210,7 @@ module Invs_DV_Next_5
             
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
 
-                var s_w_honest_node_states_updated := lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                var s_w_honest_node_states_updated := lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
 
                 assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
@@ -298,7 +298,7 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv_queued_att_duty_is_rcvd_duty3(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)   
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
@@ -341,7 +341,7 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv_queued_att_duty_is_rcvd_duty3(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)   
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)   
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s)   
@@ -453,7 +453,7 @@ module Invs_DV_Next_5
                             process,
                             attestation_duty
                         );
-        lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);        
+        lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(s_mod, s', cid);        
     }           
 
     lemma lem_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(
@@ -476,7 +476,7 @@ module Invs_DV_Next_5
                                 id,
                                 decided_attestation_data);
 
-            lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);
+            lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(s_mod, s', cid);
         }            
     }         
 
@@ -511,18 +511,18 @@ module Invs_DV_Next_5
                                     s,
                                     att_consensus_instances_already_decided
                                 );
-            assert s' == f_check_for_next_queued_duty(s).state;
-            lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s, s', cid);
+            assert s' == f_check_for_next_duty(s).state;
+            lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(s, s', cid);
         }
     }   
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(
+    lemma lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(
         s: DVCState,
         s': DVCState,
         cid: Slot
     )
-    requires f_check_for_next_queued_duty.requires(s)
-    requires s' == f_check_for_next_queued_duty(s).state
+    requires f_check_for_next_duty.requires(s)
+    requires s' == f_check_for_next_duty(s).state
     requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
@@ -534,14 +534,14 @@ module Invs_DV_Next_5
             if first_queued_att_duty_was_decided(s)
             {
                 var s_mod := f_dequeue_attestation_duties_queue(s);
-                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck5(
+                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateConsensusInstanceValidityCheck5(
                     s.attestation_consensus_engine_state,
                     s_mod.attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state,
                     cid
                 );
                 assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_queued_duty(s_mod, s', cid);
+                lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(s_mod, s', cid);
                 assert s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
             }
             else
@@ -615,7 +615,7 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv_queued_att_duty_is_rcvd_duty3(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid)
@@ -631,7 +631,7 @@ module Invs_DV_Next_5
             
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
 
-                var s_w_honest_node_states_updated := lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
+                var s_w_honest_node_states_updated := lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_get_s_w_honest_node_states_updated(s, node, nodeEvent);           
 
                 assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
@@ -761,7 +761,7 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv_queued_att_duty_is_rcvd_duty3(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)  
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s) 
@@ -860,7 +860,7 @@ module Invs_DV_Next_5
                             attestation_duty
                         );
 
-        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
+        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served);
     }       
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_att_consensus_decided(
@@ -886,7 +886,7 @@ module Invs_DV_Next_5
                                 id,
                                 decided_attestation_data);
 
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);     
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);     
         }
     }    
 
@@ -922,19 +922,19 @@ module Invs_DV_Next_5
                                     att_consensus_instances_already_decided
                                 );
                    
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv', n, index_next_attestation_duty_to_be_served);                    
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_duty(s_mod, s', dv', n, index_next_attestation_duty_to_be_served);                    
         }        
     }        
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body_f_check_for_next_queued_duty_helper(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body_f_check_for_next_duty_helper(
         process: DVCState,
         s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state  
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires s' == f_check_for_next_duty(process, attestation_duty).state  
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
@@ -986,15 +986,15 @@ module Invs_DV_Next_5
         }
     }
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_duty(
         process: DVCState,
         s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state  
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires s' == f_check_for_next_duty(process, attestation_duty).state  
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
@@ -1007,7 +1007,7 @@ module Invs_DV_Next_5
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_queued_duty_updateConsensusInstanceValidityCheck(
+                lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateConsensusInstanceValidityCheck(
                     process.attestation_consensus_engine_state,
                     s_mod.attestation_slashing_db,
                     s_mod.attestation_consensus_engine_state
@@ -1015,13 +1015,13 @@ module Invs_DV_Next_5
 
                 assert s_mod.attestation_consensus_engine_state.att_slashing_db_hist.Keys == process.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
 
-                lem_f_check_for_next_queued_duty_checker(process, s_mod);                 
+                lem_f_check_for_next_duty_checker(process, s_mod);                 
 
-                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
+                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_f_check_for_next_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
             else 
             {        
-                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body_f_check_for_next_queued_duty_helper(
+                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_body_f_check_for_next_duty_helper(
                     process,
                     s',
                     dv,
@@ -1235,7 +1235,7 @@ module Invs_DV_Next_5
             assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
         }        
 
-        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(new_p, s', dv, n);
+        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_duty(new_p, s', dv, n);
     }  
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_att_consensus_decided(
@@ -1262,7 +1262,7 @@ module Invs_DV_Next_5
                                 id,
                                 decided_attestation_data);
 
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(s_mod, s', dv, n);   
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_duty(s_mod, s', dv, n);   
         }
     }        
 
@@ -1299,18 +1299,18 @@ module Invs_DV_Next_5
                                     att_consensus_instances_already_decided
                                 );
                    
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(s_mod, s', dv', n);                    
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_duty(s_mod, s', dv', n);                    
         }        
     }            
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_duty(
         process: DVCState,
         s': DVCState,
         dv: DVState,
         n: BLSPubkey
     )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state  
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires s' == f_check_for_next_duty(process, attestation_duty).state  
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires inv_attestation_duty_queue_is_ordered_body_body(process) 
@@ -1324,7 +1324,7 @@ module Invs_DV_Next_5
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
            
-                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_queued_duty(
+                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a_f_check_for_next_duty(
                     s_mod,
                     s',
                     dv,

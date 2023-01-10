@@ -66,7 +66,7 @@ module Ind_Inv_DV_Next
     {
         lem_inv_none_latest_served_duty_implies_none_current_att_duty_dv_next(dv, e, dv');
         lem_inv_current_att_duty_is_either_none_or_latest_served_duty_dv_next(dv, e, dv');
-        lem_inv_not_none_current_att_duty_is_latest_served_att_duty_dv_next(dv, e, dv');        
+        lem_inv_available_current_att_duty_is_latest_served_att_duty_dv_next(dv, e, dv');        
         lem_inv_is_sequence_attestation_duties_to_be_serves_orders_dv_next(dv, e, dv');                
     }
 
@@ -89,7 +89,7 @@ module Ind_Inv_DV_Next
     {
         lem_inv_no_duplicated_att_duties_dv_next(dv, e, dv');
         lem_inv_every_att_duty_before_dvn_att_index_was_delivered_dv_next(dv, e, dv');        
-        lem_inv_no_active_consensus_instance_before_receiving_att_duty_dv_next(dv, e, dv');                        
+        lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_dv_next(dv, e, dv');                        
     }
 
     lemma lem_ind_inv_dv_next_invs_group_5(dv: DVState, e: DV.Event, dv': DVState)       
@@ -98,7 +98,7 @@ module Ind_Inv_DV_Next
     requires ind_inv(dv)
     ensures invs_group_5(dv')
     {
-        lem_inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_dv_next(dv, e, dv');                
+        lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_dv_next(dv, e, dv');                
         lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_dv_next(dv, e, dv');    
         lem_inv_consensus_instances_only_for_rcvd_duties_dv_next(dv, e, dv');    
     }
@@ -122,7 +122,7 @@ module Ind_Inv_DV_Next
     ensures invs_group_7(dv')
     {       
         lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_dv_next(dv, e, dv');  
-        lem_inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist_dv_next(dv, e, dv');  
+        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_dv_next(dv, e, dv');  
         lem_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
         // lem_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         // lem_inv_rcvd_attn_shares_are_from_sent_messages_dv_next(dv, e, dv');  
@@ -160,7 +160,7 @@ module Ind_Inv_DV_Next
     requires ind_inv(dv)  
     ensures inv_queued_att_duty_is_rcvd_duty0(dv)
     ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
-    ensures inv_queued_att_duty_is_rcvd_duty3(dv)    
+    ensures same_honest_nodes_in_dv_and_ci(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
@@ -207,7 +207,7 @@ module Ind_Inv_DV_Next
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     ensures inv_queued_att_duty_is_rcvd_duty0(dv)
     ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
-    ensures inv_queued_att_duty_is_rcvd_duty3(dv)    
+    ensures same_honest_nodes_in_dv_and_ci(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
@@ -240,12 +240,12 @@ module Ind_Inv_DV_Next
         assert inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);
 
         lem_ind_inv_implies_intermediate_steps(dv);
-        assert inv_queued_att_duty_is_rcvd_duty3(dv);
+        assert same_honest_nodes_in_dv_and_ci(dv);
 
 
         assert && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
                && inv_quorum_constraints(dv)
-               && inv_queued_att_duty_is_rcvd_duty3(dv)
+               && same_honest_nodes_in_dv_and_ci(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
                && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)  
                && inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
@@ -301,22 +301,22 @@ module Ind_Inv_DV_Next
         lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv')
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv')
     {
-        lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv, e, dv');
+        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv')
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv')
     {
-        lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv, e, dv');
+        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv, e, dv');
     }
 
     lemma lem_ind_inv_dv_next_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState, e: DV.Event, dv': DVState)       
@@ -338,8 +338,8 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');  
         lem_ind_inv_dv_next_inv_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv, e, dv');             
         lem_ind_inv_dv_next_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');       
-        lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv, e, dv');  
-        lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv, e, dv');   
+        lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv, e, dv');  
+        lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv, e, dv');   
     }
 
     lemma lem_ind_inv_dv_next_invNetwork(dv: DVState, e: DV.Event, dv': DVState)       
@@ -359,7 +359,7 @@ module Ind_Inv_DV_Next
     ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {
         lem_ind_inv_implies_intermediate_steps(dv);
-        assert inv_queued_att_duty_is_rcvd_duty3(dv);
+        assert same_honest_nodes_in_dv_and_ci(dv);
         lem_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
@@ -406,7 +406,7 @@ module Ind_Inv_DV_Next
     ensures invs_group_11(dv')
     {        
         lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv, e, dv');
-        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_c_dv_next(dv, e, dv');
+        lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_dv_next(dv, e, dv');
         lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv, e, dv');
         lem_ind_inv_implies_intermediate_steps(dv);
         lem_pred_data_of_att_share_is_decided_value(dv, e, dv');
@@ -661,8 +661,8 @@ module Ind_Inv_DV_Next
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
-    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
+    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
+    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
     ensures  NextPreCond(s)                
     {

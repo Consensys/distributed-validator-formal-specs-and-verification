@@ -69,7 +69,7 @@ module Ind_Inv_Implies_Safety
             && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
             && pred_data_of_att_share_is_decided_value(dv)
             && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-            && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
+            && inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
             && inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
             && a in dv.all_attestations_created
             && is_valid_attestation(a, dv.dv_pubkey)

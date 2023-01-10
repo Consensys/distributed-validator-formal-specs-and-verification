@@ -21,7 +21,7 @@ module Proofs_Intermediate_Steps
     
     lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: DVState)
     requires inv_unchanged_honesty(dv)
-    ensures inv_queued_att_duty_is_rcvd_duty3(dv)
+    ensures same_honest_nodes_in_dv_and_ci(dv)
     { }
         
     lemma lem_concl_next_att_duty_is_higher_than_current_att_duty_ind_inv(
@@ -109,7 +109,7 @@ module Proofs_Intermediate_Steps
                 assert rcvd_duty.slot <= next_duty.slot;
             }
 
-            assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
+            assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
             
         }        
     }
@@ -137,7 +137,7 @@ module Proofs_Intermediate_Steps
                              dv.sequence_attestation_duties_to_be_served,
                              dv.index_next_attestation_duty_to_be_served);
             assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
-            assert concl_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
+            assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
 
 
             forall queued_duty: AttestationDuty | queued_duty in dvc.attestation_duties_queue
@@ -164,8 +164,8 @@ module Proofs_Intermediate_Steps
         dv: DVState
     )    
     requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
-    requires inv_no_active_consensus_instance_before_receiving_att_duty(dv)
-    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)
+    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)
+    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)
     ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
     {   
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys
@@ -281,7 +281,7 @@ module Proofs_Intermediate_Steps
     lemma lem_pred_inv_current_latest_attestation_duty_match(
         dv: DVState
     )    
-    requires inv_not_none_current_att_duty_is_latest_served_att_duty(dv)    
+    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)    
     ensures pred_inv_current_latest_attestation_duty_match(dv)    
     {}
 
@@ -298,7 +298,7 @@ module Proofs_Intermediate_Steps
     lemma lem_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(
         dv: DVState
     )    
-    requires inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)    
+    requires inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)    
     ensures  inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     {}
 

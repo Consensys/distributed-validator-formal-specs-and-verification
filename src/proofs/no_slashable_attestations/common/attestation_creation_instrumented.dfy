@@ -42,6 +42,7 @@ module DVC_Spec {
         attestation_slashing_db: set<SlashingDBAttestation>
     ): ConsensusEngineState
     requires id !in s.active_attestation_consensus_instances.Keys
+    requires id == attestation_duty.slot
     {
         var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
@@ -76,13 +77,13 @@ module DVC_Spec {
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
     {
 
-            var  hist_id := getOrDefault(hist, id, map[]);
-            var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {new_attestation_slashing_db};
-            hist[
-                id := hist_id[
-                    vp := new_hist_id_vp
-                ]
+        var hist_id := getOrDefault(hist, id, map[]);
+        var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {new_attestation_slashing_db};
+        hist[
+            id := hist_id[
+                vp := new_hist_id_vp
             ]
+        ]
     }  
 
 
@@ -378,7 +379,15 @@ module DVC_Spec {
         seq(index, i => if i + 1 == index then true else false)
     } 
 
-    function f_update_attestation_slashing_db(attestation_slashing_db: set<SlashingDBAttestation>, attestation_data: AttestationData): set<SlashingDBAttestation>     
+    function f_update_attestation_slashing_db(
+        attestation_slashing_db: set<SlashingDBAttestation>, 
+        attestation_data: AttestationData
+    ): (new_attestation_slashing_db: set<SlashingDBAttestation>)   
+    ensures && var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := attestation_data.source.epoch,
+                                            target_epoch := attestation_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(attestation_data)));
+            && new_attestation_slashing_db == attestation_slashing_db + {slashing_db_attestation}
     {
         var slashing_db_attestation := SlashingDBAttestation(
                                             source_epoch := attestation_data.source.epoch,
@@ -439,10 +448,11 @@ module DVC_Spec {
         id: Slot,
         decided_attestation_data: AttestationData
     ): DVCStateAndOuputs
-    requires id == decided_attestation_data.slot
     {
         if  && process.current_attestation_duty.isPresent()
-            && id == process.current_attestation_duty.safe_get().slot then
+            && id == process.current_attestation_duty.safe_get().slot
+            && id == decided_attestation_data.slot
+        then
 
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 

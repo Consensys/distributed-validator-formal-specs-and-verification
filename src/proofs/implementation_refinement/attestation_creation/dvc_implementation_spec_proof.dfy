@@ -263,7 +263,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
         }
 
-        function  f_check_for_next_queued_duty_helper(process: DVCState): DVCState
+        function  f_check_for_next_duty_helper(process: DVCState): DVCState
         requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
         requires process.attestation_duties_queue != []
         requires process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
@@ -283,8 +283,8 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }          
 
         method check_for_next_queued_duty...
-        ensures (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCState())))==> 
-                && f_check_for_next_queued_duty(old(toDVCState())) == toDVCStateAndOuputs()
+        ensures (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState())))==> 
+                && f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs()
                 && isValidReprExtended()
                 && s.Success?
                 && unchanged(network)
@@ -304,9 +304,9 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 {
                     ...;
                     {                      
-                        if (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCState()))) 
+                        if (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) 
                         {
-                            var rs := f_check_for_next_queued_duty_helper(old(toDVCState()));                              
+                            var rs := f_check_for_next_duty_helper(old(toDVCState()));                              
 
                             forall e | e in old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                             ensures e in rs.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
@@ -316,29 +316,29 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
                             lemmaAttestationHasBeenAddedToSlashingDb(old(future_att_consensus_instances_already_decided)[queue_head.slot], rs);                       
                                                     
-                            assert f_check_for_next_queued_duty_helper(old(toDVCState())) == toDVCState(); 
+                            assert f_check_for_next_duty_helper(old(toDVCState())) == toDVCState(); 
 
                         }
                        
                         ...;
 
-                        assert (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCState()))) ==> f_check_for_next_queued_duty(old(toDVCState())) == toDVCStateAndOuputs();       
+                        assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();       
                     }
 
                 }
                 else if...
                 {
                     ...;
-                    assert (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCState()))) ==> f_check_for_next_queued_duty(old(toDVCState())) == toDVCStateAndOuputs();
+                    assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();
                 }
                 else
                 {
-                    assert (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCState()))) ==> f_check_for_next_queued_duty(old(toDVCState())) == toDVCStateAndOuputs();
+                    assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();
                 }
             }
             else
             {
-                assert (old(isValidReprExtended()) && f_check_for_next_queued_duty.requires(old(toDVCState()))) ==> f_check_for_next_queued_duty(old(toDVCState())) == toDVCStateAndOuputs();
+                assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();
             }
         }     
 
@@ -946,9 +946,9 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
             && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
             && p0 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block) 
-            && f_check_for_next_queued_duty.requires(p0)
+            && f_check_for_next_duty.requires(p0)
 
-            && toDVCState() == f_check_for_next_queued_duty(p0).state
+            && toDVCState() == f_check_for_next_duty(p0).state
         }
 
         twostate lemma lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided(
@@ -1006,17 +1006,17 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                     new_attestation_slashing_db
                 )                
             );
-            var r := f_check_for_next_queued_duty(newProces2);
+            var r := f_check_for_next_duty(newProces2);
             assert newProcess.current_attestation_duty ==  process.current_attestation_duty;       
 
             assert p0 == newProces2;   
             assert newProcess.current_attestation_duty.isPresent() && newProcess.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided_let ;
             assert att_consensus_instances_already_decided_let == att_consensus_instances_already_decided;
 
-            assert || f_check_for_next_queued_duty(newProces2) == f_listen_for_new_imported_blocks(process, block) 
+            assert || f_check_for_next_duty(newProces2) == f_listen_for_new_imported_blocks(process, block) 
             by 
             {
-                assert forall a, b :: a == b &&  (f_check_for_next_queued_duty.requires(a) ||  f_check_for_next_queued_duty.requires(b)) ==> f_check_for_next_queued_duty(a) == f_check_for_next_queued_duty(b);
+                assert forall a, b :: a == b &&  (f_check_for_next_duty.requires(a) ||  f_check_for_next_duty.requires(b)) ==> f_check_for_next_duty(a) == f_check_for_next_duty(b);
             }
                   
         }             
@@ -1047,20 +1047,20 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         requires f_listen_for_new_imported_blocks.requires(process, block)
         ensures f_listen_for_new_imported_blocks(process, block).outputs == getEmptyOuputs()
         {
-            forall p | f_check_for_next_queued_duty.requires(p)
-            ensures f_check_for_next_queued_duty(p).outputs == getEmptyOuputs()
+            forall p | f_check_for_next_duty.requires(p)
+            ensures f_check_for_next_duty(p).outputs == getEmptyOuputs()
             {
-                f_check_for_next_queued_duty_empty_outputs(p);
+                f_check_for_next_duty_empty_outputs(p);
             }
         }
 
         // TODO: Type issues
-        lemma f_check_for_next_queued_duty_empty_outputs(
+        lemma f_check_for_next_duty_empty_outputs(
             process: DVCState
         )
-        requires f_check_for_next_queued_duty.requires(process)
+        requires f_check_for_next_duty.requires(process, attestation_duty)
         decreases process.attestation_duties_queue
-        ensures f_check_for_next_queued_duty(process).outputs == getEmptyOuputs()
+        ensures f_check_for_next_duty(process).outputs == getEmptyOuputs()
         {
             if  && process.attestation_duties_queue != [] 
                 && (
@@ -1073,7 +1073,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                     {
                         var queue_head := process.attestation_duties_queue[0];
                         var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
-                        f_check_for_next_queued_duty_empty_outputs(process.(
+                        f_check_for_next_duty_empty_outputs(process.(
                             attestation_duties_queue := process.attestation_duties_queue[1..],
                             attestation_slashing_db := new_attestation_slashing_db,
                             attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
@@ -1081,20 +1081,20 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                                 new_attestation_slashing_db
                             )                        
                         ));
-                        assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();       
+                        assert f_check_for_next_duty(process).outputs == getEmptyOuputs();       
                     }
                     else
                     {
                         var new_process := process.(
                             attestation_duties_queue := process.attestation_duties_queue[1..]
                         );  
-                        assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();       
+                        assert f_check_for_next_duty(process).outputs == getEmptyOuputs();       
                     }
             }
                     
             else 
             {
-                assert f_check_for_next_queued_duty(process).outputs == getEmptyOuputs();
+                assert f_check_for_next_duty(process).outputs == getEmptyOuputs();
             }
          
         }     
@@ -1131,7 +1131,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
         // 6min - 3.7.1
         method  
-        {:fuel f_check_for_next_queued_duty, 0, 0} 
+        {:fuel f_check_for_next_duty, 0, 0} 
         {:fuel f_update_attestation_slashing_db, 0, 0} 
         {:fuel f_listen_for_new_imported_blocks_part_3, 0, 0}
         {:fuel f_listen_for_new_imported_blocks_part_4, 0, 0}
@@ -1201,7 +1201,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> 
                     && o1 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block) 
                     && isValidReprExtended()
-                    && f_check_for_next_queued_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toDVCState())
                     && unchanged(`current_attestation_duty)
                     && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                 by
@@ -1233,7 +1233,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
                     && o2 == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)
                     && isValidReprExtended()  
-                    && f_check_for_next_queued_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toDVCState())
                     && unchanged(`current_attestation_duty)
                     && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                 by
@@ -1256,7 +1256,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> 
                         && o1 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block) 
                         && isValidReprExtended()
-                        && f_check_for_next_queued_duty.requires(toDVCState())
+                        && f_check_for_next_duty.requires(toDVCState())
                         && unchanged(`current_attestation_duty)
                         && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                 by
@@ -1286,7 +1286,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
                     && o2 == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)  
                     && isValidReprExtended()
-                    && f_check_for_next_queued_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toDVCState())
                     && unchanged(`current_attestation_duty)
                     && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                 by
@@ -1313,7 +1313,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
                     && toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)
                     && isValidReprExtended()
-                    && f_check_for_next_queued_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toDVCState())
                     && unchanged(`current_attestation_duty)
                     && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                     && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
@@ -1325,7 +1325,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                     assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
                         && o4 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block)
                         && isValidReprExtended()
-                        && f_check_for_next_queued_duty.requires(toDVCState())
+                        && f_check_for_next_duty.requires(toDVCState())
                         && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
                         && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                     by 
@@ -1349,8 +1349,8 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                                 && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
                                 && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
                                 && o4 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block) 
-                                && f_check_for_next_queued_duty.requires(o4)
-                                && toDVCState() == f_check_for_next_queued_duty(o4).state
+                                && f_check_for_next_duty.requires(o4)
+                                && toDVCState() == f_check_for_next_duty(o4).state
                                 ;                                
                             }    
 
@@ -1366,7 +1366,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
                     && toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)
                     && isValidReprExtended()
-                    && f_check_for_next_queued_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toDVCState())
                     && unchanged(`current_attestation_duty)
                     ;
                 if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))

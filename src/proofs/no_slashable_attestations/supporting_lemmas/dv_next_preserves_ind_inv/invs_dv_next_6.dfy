@@ -61,8 +61,8 @@ module Invs_DV_Next_6
     requires is_sequence_attestation_duties_to_be_served_orderd(dv)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(process)
-    requires inv_no_active_consensus_instance_before_receiving_att_duty_body(process)
+    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process)
+    requires inv_no_active_consensus_instance_before_receiving_an_att_duty_body(process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served + 1, attestation_duty, n)
     {
@@ -129,8 +129,8 @@ module Invs_DV_Next_6
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
-    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
+    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
+    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)                
     {
         lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_helper_to_f_serve_attestation_duty(
@@ -156,8 +156,8 @@ module Invs_DV_Next_6
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
-    requires inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(s)
-    requires inv_no_active_consensus_instance_before_receiving_att_duty(s)
+    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
+    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
     ensures  NextEventPreCond(s, event)                
     {
@@ -202,7 +202,7 @@ module Invs_DV_Next_6
             assert inv_attestation_duty_queue_is_ordered_body_body(new_p); 
         }        
 
-        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served); 
+        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_duty(new_p, s', dv, n, index_next_attestation_duty_to_be_served); 
     }  
 
     lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_att_consensus_decided(
@@ -252,7 +252,7 @@ module Invs_DV_Next_6
             );
        
 
-        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+        lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_duty(
             s_mod, 
             s',
             dv,
@@ -261,15 +261,15 @@ module Invs_DV_Next_6
         );          
     }        
 
-    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+    lemma lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_duty(
         process: DVCState,
         s': DVCState,
         dv: DVState,
         n: BLSPubkey,
         index_next_attestation_duty_to_be_served: nat
     )
-    requires f_check_for_next_queued_duty.requires(process)
-    requires s' == f_check_for_next_queued_duty(process).state  
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires s' == f_check_for_next_duty(process, attestation_duty).state  
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     decreases process.attestation_duties_queue
@@ -280,7 +280,7 @@ module Invs_DV_Next_6
             {
                 var s_mod := f_dequeue_attestation_duties_queue(process);
 
-                lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
+                lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_duty(s_mod, s', dv, n, index_next_attestation_duty_to_be_served);
             }
             else 
             {    
@@ -337,7 +337,7 @@ module Invs_DV_Next_6
                                 );
 
 
-            lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_queued_duty(
+            lem_inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_f_check_for_next_duty(
                 s_mod, 
                 s',
                 dv',

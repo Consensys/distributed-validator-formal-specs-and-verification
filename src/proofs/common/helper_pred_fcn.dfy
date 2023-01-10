@@ -17,15 +17,88 @@ module Helper_Pred_Fcn
     import opened Helper_Sets_Lemmas
     import opened DVC_Spec_Axioms
     import DVC_Spec_NonInstr
-    
-    
 
-    predicate pred_curr_att_duty_has_been_decided(
+    function f_new_process_after_updateConsensusInstanceValidityCheck(
         process: DVCState,
-        id: Slot) 
+        attestation_duty: AttestationDuty
+    ): DVCState
+    requires attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
+    {
+        var new_attestation_slashing_db := 
+                f_update_attestation_slashing_db(
+                    process.attestation_slashing_db, 
+                    process.future_att_consensus_instances_already_decided[attestation_duty.slot]
+                );
+                
+        var new_process := 
+                process.(
+                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
+                    attestation_slashing_db := new_attestation_slashing_db,
+                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        process.attestation_consensus_engine_state,
+                        new_attestation_slashing_db
+                    )                        
+                );
+
+        new_process
+    }
+
+    function f_new_process_after_starting_new_att_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty
+    ): DVCState
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    {
+        process.( current_attestation_duty := Some(attestation_duty),
+                  latest_attestation_duty := Some(attestation_duty),
+                  attestation_consensus_engine_state := startConsensusInstance(
+                    process.attestation_consensus_engine_state,
+                    attestation_duty.slot,
+                    attestation_duty,
+                    process.attestation_slashing_db
+                )
+        )
+    }
+
+    predicate is_correct_att_share(
+        s: DVState,
+        hn: BLSPubkey,
+        att_share: AttestationShare
+    )
+    {
+        && hn in s.honest_nodes_states.Keys 
+        && att_share in s.att_network.allMessagesSent
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+        && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+        && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)   
+    }
+    
+    predicate is_decided_data_for_current_slot(
+        process: DVCState,
+        decided_attestation_data: AttestationData,
+        id: Slot
+    )
     {
         && process.current_attestation_duty.isPresent()
         && id == process.current_attestation_duty.safe_get().slot
+        && id == decided_attestation_data.slot
+    }
+
+    predicate pred_att_duty_was_already_decided(
+        process: DVCState,
+        id: Slot
+    ) 
+    {
+        && process.current_attestation_duty.isPresent()
+        && id == process.current_attestation_duty.safe_get().slot 
+    }
+
+    predicate pred_decision_of_att_duty_was_known(
+        process: DVCState,
+        attestation_duty: AttestationDuty
+    ) 
+    {
+        attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
     }
 
     function f_update_process_after_att_duty_decided(

@@ -53,7 +53,7 @@ module Core_Proofs
     requires a.data.slot < a'.data.slot
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
     requires inv_queued_att_duty_is_rcvd_duty0(dv)
     // requires inv_queued_att_duty_is_rcvd_duty1(dv)
@@ -174,7 +174,7 @@ module Core_Proofs
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
     requires && a in dv.all_attestations_created
              && is_valid_attestation(a, dv.dv_pubkey)
@@ -212,7 +212,7 @@ module Core_Proofs
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
     requires && a in dv.all_attestations_created
              && is_valid_attestation(a, dv.dv_pubkey)
@@ -256,7 +256,7 @@ module Core_Proofs
     requires concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
     requires pred_data_of_att_share_is_decided_value(dv)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
     requires && a in dv.all_attestations_created
              && is_valid_attestation(a, dv.dv_pubkey)

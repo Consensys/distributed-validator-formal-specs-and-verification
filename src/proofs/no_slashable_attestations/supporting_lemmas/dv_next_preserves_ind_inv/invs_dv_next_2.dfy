@@ -467,10 +467,10 @@ module Invs_DV_Next_2
     requires inv_quorum_constraints(dv)
     requires inv_unchanged_honesty(dv)
     requires inv_only_dv_construct_signed_attestation_signature(dv)
-    requires inv_queued_att_duty_is_rcvd_duty3(dv)    
+    requires same_honest_nodes_in_dv_and_ci(dv)    
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
-    requires inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv)      
+    requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv)      
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv)       
     requires inv_attestation_shares_to_broadcast_are_sent_messages(dv)    
     ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
@@ -734,7 +734,7 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                           
-                        lem_inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_f_serve_attestation_duty(
+                        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_f_serve_attestation_duty(
                             dvc, 
                             attestation_duty, 
                             dvc',

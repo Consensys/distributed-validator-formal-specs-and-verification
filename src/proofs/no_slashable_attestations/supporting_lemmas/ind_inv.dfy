@@ -50,7 +50,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {        
         &&  inv_none_latest_served_duty_implies_none_current_att_duty(dv)   
         &&  inv_current_att_duty_is_either_none_or_latest_served_duty(dv)  
-        &&  inv_not_none_current_att_duty_is_latest_served_att_duty(dv) 
+        &&  inv_available_current_att_duty_is_latest_served_att_duty(dv) 
         &&  inv_is_sequence_attestation_duties_to_be_serves_orders(dv)              
     }
 
@@ -66,12 +66,12 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {        
         &&  inv_no_duplicated_att_duties(dv)           
         &&  inv_every_att_duty_before_dvn_att_index_was_delivered(dv) 
-        &&  inv_no_active_consensus_instance_before_receiving_att_duty(dv)              
+        &&  inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)              
     }
 
     predicate invs_group_5(dv: DVState)       
     {        
-        &&  inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv)  
+        &&  inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)  
         &&  inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)          
         &&  inv_consensus_instances_only_for_rcvd_duties(dv)  
     }
@@ -86,7 +86,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_7(dv: DVState)       
     {                
         &&  inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
-        &&  inv_active_attn_consensus_instances_are_trackedin_att_slashing_db_hist(dv)
+        &&  inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)
         &&  inv_construct_signed_attestation_signature_assumptions_helper(dv)        
     }
 
@@ -102,8 +102,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
         && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv) 
         && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist_for_dvc(dv)
-        && inv_sent_validity_predicate_is_based_on_rcvd_duty_and_slashing_db_in_hist(dv)
+        && inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv)
+        && inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
         
     }
 

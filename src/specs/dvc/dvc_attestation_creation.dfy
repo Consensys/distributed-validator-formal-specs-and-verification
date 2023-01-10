@@ -37,9 +37,12 @@ module DVC_Spec_NonInstr {
                 );
         
         assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
-        var new_active_attestation_consensus_instances := s.active_attestation_consensus_instances[
-                id := acvc
-            ];
+        
+        var new_active_attestation_consensus_instances := 
+                s.active_attestation_consensus_instances[
+                    id := acvc
+                ];
+
         s.(
             active_attestation_consensus_instances := new_active_attestation_consensus_instances
         )
