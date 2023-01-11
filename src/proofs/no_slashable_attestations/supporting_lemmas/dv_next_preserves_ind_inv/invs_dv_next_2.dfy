@@ -38,7 +38,6 @@ module Invs_DV_Next_2
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)  
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv')
@@ -52,27 +51,24 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc);                                           
-                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
-                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc_mod);
-                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -93,10 +89,9 @@ module Invs_DV_Next_2
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
-    ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
+    // ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
     {        
         match event 
         {
@@ -107,27 +102,25 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
+                        
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc);                                           
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc_mod);
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -148,7 +141,6 @@ module Invs_DV_Next_2
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
     requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)  
     ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv')
@@ -162,27 +154,25 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
+                        
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc);                                           
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc_mod);
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -214,22 +204,22 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        lem_inv_monotonic_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_monotonic_att_slashing_db_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_monotonic_att_slashing_db_body(dvc, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_monotonic_att_slashing_db_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_monotonic_att_slashing_db_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_monotonic_att_slashing_db_body(dvc, dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_monotonic_att_slashing_db_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_monotonic_att_slashing_db_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_monotonic_att_slashing_db_body(dvc, dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_monotonic_att_slashing_db_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_monotonic_att_slashing_db_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_monotonic_att_slashing_db_body(dvc, dvc_mod);
-                        lem_inv_monotonic_att_slashing_db_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_monotonic_att_slashing_db_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_monotonic_att_slashing_db_body(dvc_mod, dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -250,7 +240,6 @@ module Invs_DV_Next_2
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_queued_att_duty_is_rcvd_duty(dv)
     requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv)  
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db(dv')
@@ -264,27 +253,25 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
+                        
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc);                                           
-                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
-                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc_mod);
-                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -297,7 +284,6 @@ module Invs_DV_Next_2
                 
         }   
     }
-
 
     lemma lem_inv_monotonic_att_slashing_db_hist_dv_next(
         dv: DVState,
@@ -317,22 +303,22 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        lem_inv_monotonic_att_slashing_db_hist_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_monotonic_att_slashing_db_hist_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_monotonic_att_slashing_db_hist_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_monotonic_att_slashing_db_hist_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_monotonic_att_slashing_db_hist_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_monotonic_att_slashing_db_hist_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_monotonic_att_slashing_db_hist_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_monotonic_att_slashing_db_hist_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc_mod);
-                        lem_inv_monotonic_att_slashing_db_hist_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_monotonic_att_slashing_db_hist_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_monotonic_att_slashing_db_hist_body(dvc_mod, dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -345,8 +331,6 @@ module Invs_DV_Next_2
                 
         }   
     }
-
-    
 
     lemma lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_dv_next(
         dv: DVState,
@@ -367,22 +351,22 @@ module Invs_DV_Next_2
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
-                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
                         assert inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
                         assert inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         assert inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc_mod);
-                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
                         assert inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
@@ -422,7 +406,6 @@ module Invs_DV_Next_2
     {}
 
     
-
     lemma lem_inv_all_in_transit_messages_were_sent_dv_next(
         dv: DVState,
         event: DV.Event,
@@ -500,17 +483,18 @@ module Invs_DV_Next_2
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         var att_network := dv.att_network;
                         var att_network' := dv'.att_network;
-                        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_helper6(dv, event, dv');
-                        lem_inv_attestation_shares_to_broadcast_are_sent_messages_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
-                        assert      att_network'.allMessagesSent
-                                ==  att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
-                    
-                        
+                        if id == decided_attestation_data.slot
+                        {
+                            lem_inv_attestation_shares_to_broadcast_are_sent_messages_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc', nodeOutputs);   
+                            assert att_network'.allMessagesSent
+                                        == att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);               
+                        }
+                                                
                     case ReceivedAttestationShare(attestation_share) =>                         
                         lem_inv_attestation_shares_to_broadcast_are_sent_messages_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                                                
 
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
                         lem_inv_attestation_shares_to_broadcast_are_sent_messages_add_block_to_bn(dvc, block, dvc_mod);
                         lem_inv_attestation_shares_to_broadcast_are_sent_messages_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
                                                 
@@ -526,6 +510,7 @@ module Invs_DV_Next_2
         }        
     }  
 
+    // TODO: Rename
     lemma lem_inv39_dv_next(
         dv: DVState,
         event: DV.Event,
@@ -670,8 +655,8 @@ module Invs_DV_Next_2
                         assert inv_rcvd_attn_shares_are_from_sent_messages(dv');
 
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_rcvd_attn_shares_are_from_sent_messages_add_block_to_bn(dvc, block, dvc_mod);
+                        var dvc_mod := f_add_block_to_bn(dvc, block);
+                        lem_inv_rcvd_attn_shares_are_from_sent_messages_f_add_block_to_bn(dvc, block, dvc_mod);
                         lem_inv_rcvd_attn_shares_are_from_sent_messages_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
                                                 
                     case ResendAttestationShares =>                         
@@ -693,9 +678,8 @@ module Invs_DV_Next_2
     )    
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv)
-    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_c(dv')
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    ensures inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv')
     {        
         match event 
         {
@@ -703,114 +687,16 @@ module Invs_DV_Next_2
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];   
                 
-                assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(
-                            dv,
-                            node,
-                            dvc,
-                            dv.index_next_attestation_duty_to_be_served
-                );
-
-                assert inv_db_of_validity_predicate_contains_all_previous_decided_values_b_new_body(
-                            node,
-                            dvc,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served
-                );
-
-                assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
-                            dv,
-                            node,
-                            dvc,
-                            dv.index_next_attestation_duty_to_be_served
-                );
-
-                assert inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body(
-                            node,
-                            dvc,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served
-                );
-                
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) =>                           
-                        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_f_serve_attestation_duty(
-                            dvc, 
-                            attestation_duty, 
-                            dvc',
-                            node,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served
-                        );
-                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
-                                    dv',
-                                    node,
-                                    dvc',
-                                    dv'.index_next_attestation_duty_to_be_served
-                        );
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_f_att_consensus_decided(
-                            dvc, 
-                            id, 
-                            decided_attestation_data, 
-                            dvc',
-                            node,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served);
-                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
-                                    dv',
-                                    node,
-                                    dvc',
-                                    dv'.index_next_attestation_duty_to_be_served
-                        );
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_f_listen_for_attestation_shares(
-                            dvc, 
-                            attestation_share, 
-                            dvc',
-                            node,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served);
-                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
-                                    dv',
-                                    node,
-                                    dvc',
-                                    dv'.index_next_attestation_duty_to_be_served
-                        );
                        
                     case ImportedNewBlock(block) => 
-                        var dvc_mod := add_block_to_bn(dvc, block);
-                        lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_add_block_to_bn(
-                            dvc, 
-                            block, 
-                            dvc_mod,
-                            node,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served
-                        );
-                        assert inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body(
-                            node,
-                            dvc_mod,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served
-                        );
-                        lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_f_listen_for_new_imported_blocks(
-                            dvc_mod, 
-                            block, 
-                            dvc',
-                            node,
-                            dv.sequence_attestation_duties_to_be_served,
-                            dv.index_next_attestation_duty_to_be_served
-                        );
-                        assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(
-                                    dv',
-                                    node,
-                                    dvc',
-                                    dv'.index_next_attestation_duty_to_be_served
-                        );
-
+                
                     case ResendAttestationShares =>                                                                      
 
                     case NoEvent => 

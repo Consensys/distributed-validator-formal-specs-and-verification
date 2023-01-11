@@ -120,7 +120,7 @@ module Fnc_Invs_2
     ensures inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(process')
     { }
 
-    lemma lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_serve_attestation_duty(
+    lemma lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
@@ -145,7 +145,7 @@ module Fnc_Invs_2
         );           
     }
 
-    lemma lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_f_listen_for_new_imported_blocks(
+    lemma lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -747,7 +747,7 @@ module Fnc_Invs_2
         );   
     }
 
-    lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_f_listen_for_new_imported_blocks(
+    lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -959,7 +959,7 @@ module Fnc_Invs_2
     ensures inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(process')   
     { }
 
-    lemma lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_f_listen_for_new_imported_blocks(
+    lemma lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState

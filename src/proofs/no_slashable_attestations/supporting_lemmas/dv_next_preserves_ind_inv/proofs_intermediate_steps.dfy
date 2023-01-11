@@ -119,7 +119,7 @@ module Proofs_Intermediate_Steps
     )    
     requires inv_quorum_constraints(dv)  
     requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
-    requires inv_queued_att_duty_is_rcvd_duty(dv)
+    
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)    
@@ -136,7 +136,7 @@ module Proofs_Intermediate_Steps
             assert inv_queued_att_duty_is_dvn_seq_of_att_duty_body(hn, dvc.all_rcvd_duties,
                              dv.sequence_attestation_duties_to_be_served,
                              dv.index_next_attestation_duty_to_be_served);
-            assert inv_queued_att_duty_is_rcvd_duty_body(dvc);
+            
             assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
 
 

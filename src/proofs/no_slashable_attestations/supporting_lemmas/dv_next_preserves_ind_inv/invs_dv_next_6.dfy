@@ -59,8 +59,8 @@ module Invs_DV_Next_6
     )
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(process);
     requires is_sequence_attestation_duties_to_be_served_orderd(dv)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process)
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty_body(process)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty_body_body(process)
@@ -127,8 +127,8 @@ module Invs_DV_Next_6
     requires validEvent(s, event)
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties(s)
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)                
@@ -154,8 +154,8 @@ module Invs_DV_Next_6
     requires validEvent(s, event)
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties(s)
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   
@@ -184,7 +184,7 @@ module Invs_DV_Next_6
     requires s' == f_serve_attestation_duty(process, attestation_duty).state   
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires lem_ServeAttstationDuty2_predicate(dv, index_next_attestation_duty_to_be_served+1, attestation_duty, n)
 
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
@@ -218,7 +218,7 @@ module Invs_DV_Next_6
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
     requires is_sequence_attestation_duties_to_be_served_orderd(dv);
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv, n, process, index_next_attestation_duty_to_be_served)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
         if  || !process.current_attestation_duty.isPresent()
@@ -316,7 +316,7 @@ module Invs_DV_Next_6
     requires s' == f_listen_for_new_imported_blocks(process, block).state
     requires inv_attestation_duty_queue_is_ordered_body_body(process)
     requires is_sequence_attestation_duties_to_be_served_orderd(dv');
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b_body_body(dv', n, process, index_next_attestation_duty_to_be_served)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(dv', n, process, index_next_attestation_duty_to_be_served)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue_body_body(s')
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -359,7 +359,7 @@ module Invs_DV_Next_6
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s)
     requires inv_attestation_duty_queue_is_ordered(s)
     requires is_sequence_attestation_duties_to_be_served_orderd(s);
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties(s)
     ensures inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s');        
     {
         match event 

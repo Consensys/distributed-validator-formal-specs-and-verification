@@ -422,14 +422,14 @@ module Ind_Inv_DV_Next
         lem_inv_attestation_duty_queue_is_ordered_4(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv: DVState, e: DV.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_inv_queued_att_duties_are_from_dv_seq_of_att_duties(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv_db_of_validity_predicate_contains_all_previous_decided_values_b(dv')
+    ensures inv_queued_att_duties_are_from_dv_seq_of_att_duties(dv')
     {
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
-        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_dv_next(dv, e, dv');
+        lem_inv_queued_att_duties_are_from_dv_seq_of_att_duties_dv_next(dv, e, dv');
     }
 
     lemma lem_ind_inv_dv_next_inv_inv_decided_values_of_previous_duties_are_known_new(dv: DVState, e: DV.Event, dv': DVState)       
@@ -482,7 +482,7 @@ module Ind_Inv_DV_Next
     {
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
         
-        lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_b_dv_next(dv, e, dv');
+        lem_inv_queued_att_duties_are_from_dv_seq_of_att_duties_dv_next(dv, e, dv');
         lem_concl_exists_honest_dvc_that_sent_att_share_for_submitted_att_new(dv, e, dv');
         lem_inv_g_d_a(dv, e, dv');
         lem_inv_g_d_b(dv, e, dv');        
@@ -659,8 +659,8 @@ module Ind_Inv_DV_Next
     )
     requires inv_no_instance_has_been_started_for_duties_in_attestation_duty_queue(s);
     requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_b(s)
-    requires inv_db_of_validity_predicate_contains_all_previous_decided_values_c(s)
+    requires inv_queued_att_duties_are_from_dv_seq_of_att_duties(s)
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
     requires inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(s)   

@@ -353,7 +353,7 @@ module Invs_DV_Next_1
     // // requires inv_quorum_constraints(dv)  
     // // requires inv_unchanged_honesty(dv)
     // // requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
-    // // requires inv_queued_att_duty_is_rcvd_duty(dv)
+    // // 
     // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
     // // requires concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     // // requires inv_strictly_increasing_queue_of_att_duties(dv)
@@ -416,7 +416,7 @@ module Invs_DV_Next_1
     // // requires inv_quorum_constraints(dv)  
     // // requires inv_unchanged_honesty(dv)  
     // // requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
-    // // requires inv_queued_att_duty_is_rcvd_duty(dv)
+    // // 
     // // requires inv_latest_served_duty_is_rcvd_duty(dv)
     // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)  
     // // requires inv_strictly_increasing_queue_of_att_duties(dv)
@@ -445,8 +445,8 @@ module Invs_DV_Next_1
                        
     // //                 case ImportedNewBlock(block) =>                     
     // //                     var dvc_mod := f_add_block_to_bn(dvc, block);
-    // //                     lem_inv_queued_att_duty_is_rcvd_duty_add_block_to_bn(dvc, block, dvc_mod);
-    // //                     assert inv_queued_att_duty_is_rcvd_duty_body(dvc_mod);
+    // //                     
+    // //                     
     // //                     lem_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
     // //                     assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
     // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
