@@ -132,7 +132,7 @@ module Fnc_Invs_1
     // // requires process' == f_check_for_next_duty(process).state
     // // requires inv_queued_att_duty_is_rcvd_duty_body(process)
     // // ensures inv_queued_att_duty_is_rcvd_duty_body(process')
-    // // decreases process.attestation_duties_queue
+    // // 
     // // {
     // //     if first_queued_att_duty_was_decided_or_ready_to_be_served(process)
     // //     {            
@@ -765,7 +765,7 @@ module Fnc_Invs_1
     // // requires process' == f_check_for_next_duty(process, attestation_duty).state    
     // // requires inv_none_latest_served_duty_implies_none_current_att_duty_body(process) || inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process)
     // // ensures inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(process')
-    // // decreases process.attestation_duties_queue
+    // // 
     // // {
     // //     if first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
     // //     {            
@@ -925,7 +925,7 @@ module Fnc_Invs_1
     // // requires process' == f_check_for_next_duty(process, attestation_duty).state    
     // // requires inv_strictly_increasing_queue_of_att_duties_body(process)
     // // ensures inv_strictly_increasing_queue_of_att_duties_body(process')
-    // // decreases process.attestation_duties_queue
+    // // 
     // // {
     // //     if first_queued_att_duty_was_decided_or_ready_to_be_served(process)    
     // //     {            
@@ -1130,7 +1130,7 @@ module Fnc_Invs_1
     // // requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
     // // ensures inv_strictly_increasing_queue_of_att_duties_body(process')
     // // ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process')
-    // // decreases process.attestation_duties_queue
+    // // 
     // // {
     // //     if first_queued_att_duty_was_decided_or_ready_to_be_served(process)  
     // //     {            
@@ -1169,7 +1169,7 @@ module Fnc_Invs_1
     // // requires f_serve_attestation_duty.requires(process, attestation_duty)
     // // requires process' == f_serve_attestation_duty(process, attestation_duty).state
     // // requires inv_queued_att_duty_is_rcvd_duty_body(process)  
-    // // requires concl_next_att_duty_is_higher_than_latest_served_att_duty_body(process, attestation_duty)  
+    // // requires inv_next_att_duty_is_higher_than_latest_served_att_duty_body(process, attestation_duty)  
     // // requires concl_future_att_duty_is_higher_than_queued_att_duty_body(process, attestation_duty)  
     // // requires inv_strictly_increasing_queue_of_att_duties_body(process)
     // // requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)

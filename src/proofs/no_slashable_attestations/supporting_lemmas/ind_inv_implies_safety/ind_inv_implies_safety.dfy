@@ -66,18 +66,17 @@ module Ind_Inv_Implies_Safety
             assert 
             && inv_quorum_constraints(dv)
             && inv_unchanged_honesty(dv)
-            && concl_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
-            && pred_data_of_att_share_is_decided_value(dv)
+            && inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+            && inv_data_of_att_share_is_decided_value(dv)
             && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
             && inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
-            && inv_db_of_validity_predicate_contains_all_previous_decided_values(dv)
             && a in dv.all_attestations_created
             && is_valid_attestation(a, dv.dv_pubkey)
             && a' in dv.all_attestations_created
             && is_valid_attestation(a', dv.dv_pubkey)
             && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
             && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-            && inv_queued_att_duty_is_rcvd_duty0(dv)
+            && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
             && inv_queued_att_duty_is_rcvd_duty1(dv)
             ;
             lem_no_slashable_submitted_attestations(dv, a, a');

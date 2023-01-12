@@ -698,7 +698,7 @@ module Invs_DV_Next_1
     requires NextEvent(dv, event, dv')    
     requires inv_latest_served_duty_is_rcvd_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
+    requires inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)  
     ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv')

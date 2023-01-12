@@ -24,13 +24,13 @@ module Proofs_Intermediate_Steps
     ensures same_honest_nodes_in_dv_and_ci(dv)
     { }
         
-    lemma lem_concl_next_att_duty_is_higher_than_current_att_duty_ind_inv(
+    lemma lem_inv_next_att_duty_is_higher_than_current_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
     requires inv_current_att_duty_is_rcvd_duty(dv)    
-    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
-    ensures concl_next_att_duty_is_higher_than_current_att_duty(dv)
+    requires inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
+    ensures inv_next_att_duty_is_higher_than_current_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -49,13 +49,13 @@ module Proofs_Intermediate_Steps
         }
     } 
     
-    lemma lem_concl_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(
+    lemma lem_inv_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
     requires inv_latest_served_duty_is_rcvd_duty(dv)    
-    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
-    ensures concl_next_att_duty_is_higher_than_latest_served_att_duty(dv)
+    requires inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
+    ensures inv_next_att_duty_is_higher_than_latest_served_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -74,13 +74,13 @@ module Proofs_Intermediate_Steps
         }
     } 
       
-    lemma lem_concl_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(
+    lemma lem_inv_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv_quorum_constraints(dv)  
     requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    ensures concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)    
+    ensures inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)    
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -114,92 +114,6 @@ module Proofs_Intermediate_Steps
         }        
     }
 
-    lemma lem_concl_future_att_duty_is_higher_than_queued_att_duty_ind_inv(
-        dv: DVState
-    )    
-    requires inv_quorum_constraints(dv)  
-    requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
-    
-    requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    requires concl_future_att_duty_is_higher_than_rcvd_att_duty(dv)
-    ensures concl_future_att_duty_is_higher_than_queued_att_duty(dv)    
-    {   
-        var queue := dv.sequence_attestation_duties_to_be_served;
-        var index := dv.index_next_attestation_duty_to_be_served;        
-        var next_duty := queue[index].attestation_duty;
-        var hn := queue[index].node;
-
-        if hn in dv.honest_nodes_states.Keys 
-        {
-            var dvc := dv.honest_nodes_states[hn];
-
-            assert inv_queued_att_duty_is_dvn_seq_of_att_duty_body(hn, dvc.all_rcvd_duties,
-                             dv.sequence_attestation_duties_to_be_served,
-                             dv.index_next_attestation_duty_to_be_served);
-            
-            assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
-
-
-            forall queued_duty: AttestationDuty | queued_duty in dvc.attestation_duties_queue
-            ensures queued_duty.slot <= next_duty.slot
-            {
-                assert queued_duty in dvc.all_rcvd_duties;
-                
-                var k: nat :| && 0 <= k < dv.index_next_attestation_duty_to_be_served
-                              && dv.sequence_attestation_duties_to_be_served[k].node == hn
-                              && dv.sequence_attestation_duties_to_be_served[k].attestation_duty == queued_duty;
-
-                assert dv.sequence_attestation_duties_to_be_served[k].attestation_duty.slot <= next_duty.slot;
-
-                assert queued_duty.slot <= next_duty.slot;
-            }
-
-            assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, next_duty);
-            
-        }        
-    }
-
-
-    lemma lem_concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_ind_inv(
-        dv: DVState
-    )    
-    requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
-    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)
-    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)
-    ensures concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty(dv)    
-    {   
-        forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys
-        {
-            var dvc := dv.honest_nodes_states[hn];
-
-            if dvc.latest_attestation_duty.isPresent()
-            {
-                var latest_duty := dvc.latest_attestation_duty.safe_get();
-
-                forall k: Slot, n: nat | 
-                            && k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
-                            && 0 <= n < |dvc.attestation_duties_queue|
-                ensures k < dvc.attestation_duties_queue[n].slot;            
-                {
-                    calc {
-                        k; 
-                        <= 
-                        latest_duty.slot;
-                        <
-                        dvc.attestation_duties_queue[n].slot;            
-                    } 
-                }
-
-                assert concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_body(dvc);
-            }
-            else
-            {
-                assert dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {};
-                assert concl_slot_of_active_consensus_instance_is_lower_than_slot_of_queued_att_duty_body(dvc);
-            }
-        }
-    } 
-
     lemma lem_inv_queued_att_duty_is_rcvd_duty1_ind_inv(
         dv: DVState
     )    
@@ -226,11 +140,11 @@ module Proofs_Intermediate_Steps
             
     } 
 
-    lemma lem_inv_queued_att_duty_is_rcvd_duty0_ind_inv(
+    lemma lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_ind_inv(
         dv: DVState
     )    
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)
-    ensures inv_queued_att_duty_is_rcvd_duty0(dv)    
+    ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
             && is_honest_node(dv, hn)
@@ -239,7 +153,7 @@ module Proofs_Intermediate_Steps
             && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s]            
         ensures ( exists duty, db ::
                     && var hn_state := dv.honest_nodes_states[hn];
-                    && inv_queued_att_duty_is_rcvd_duty0_body(dv, hn, s, db, duty, vp) 
+                    && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, hn, s, db, duty, vp) 
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
@@ -259,30 +173,15 @@ module Proofs_Intermediate_Steps
                         && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
                     ;
 
-            assert inv_queued_att_duty_is_rcvd_duty0_body(dv, hn, s, db, duty, vp);
+            assert inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, hn, s, db, duty, vp);
         }
     }   
 
-    lemma lem_inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(
-        dv: DVState
-    )    
-    requires inv_strictly_increasing_queue_of_att_duties(dv)
-    requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
-    ensures inv_head_attetation_duty_queue_higher_than_latest_attestation_duty(dv)    
-    {}
-
-    lemma lem_inv_attestation_duty_queue_is_ordered(
-        dv: DVState
-    )    
-    requires inv_strictly_increasing_queue_of_att_duties(dv)    
-    ensures inv_attestation_duty_queue_is_ordered(dv)    
-    {}
-
-    lemma lem_pred_inv_current_latest_attestation_duty_match(
+    lemma lem_inv_current_latest_attestation_duty_match(
         dv: DVState
     )    
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)    
-    ensures pred_inv_current_latest_attestation_duty_match(dv)    
+    ensures inv_current_latest_attestation_duty_match(dv)    
     {}
 
     lemma lem_construct_signed_attestation_signature_assumptions_helper(

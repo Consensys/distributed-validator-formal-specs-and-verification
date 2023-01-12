@@ -267,7 +267,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
         requires process.attestation_duties_queue != []
         requires process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
-        decreases process.attestation_duties_queue
+        
         {
             var queue_head := process.attestation_duties_queue[0];
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, process.future_att_consensus_instances_already_decided[queue_head.slot]);
@@ -1059,7 +1059,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             process: DVCState
         )
         requires f_check_for_next_duty.requires(process, attestation_duty)
-        decreases process.attestation_duties_queue
+        
         ensures f_check_for_next_duty(process).outputs == getEmptyOuputs()
         {
             if  && process.attestation_duties_queue != [] 

@@ -598,7 +598,7 @@ module DVC_Spec {
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
         var future_att_consensus_instances_already_decided := 
-            f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
+                f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
         var process_after_stopping_consensus_instance :=
                 process.(
