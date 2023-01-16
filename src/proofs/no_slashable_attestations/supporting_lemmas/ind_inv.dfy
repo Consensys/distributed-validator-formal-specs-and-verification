@@ -37,7 +37,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         &&  inv_quorum_constraints(dv)
         &&  inv_unchanged_honesty(dv)
         &&  inv_only_dv_construct_signed_attestation_signature(dv)
-        &&  inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
+        // IMPORTANT: Wrong name, should have
+        // &&  inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
         &&  inv_current_att_duty_is_rcvd_duty(dv)
         &&  inv_latest_served_duty_is_rcvd_duty(dv)
     }
@@ -62,6 +63,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         &&  inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)  
         &&  inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)          
         &&  inv_consensus_instances_only_for_rcvd_duties(dv)  
+        &&  inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv)
     }
 
     predicate invs_group_5(dv: DVState)       
@@ -121,5 +123,9 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
         && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+        && inv_consensus_instances_are_isConditionForSafetyTrue(dv)
+        && inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv)
+        && inv_unique_rcvd_att_duty_per_slot(dv)
+        && inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv)
     }
 }
