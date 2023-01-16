@@ -1068,10 +1068,12 @@ module Fnc_Invs_2
 
         while all_mcast_msgs != {}            
             invariant all_mcast_msgs + checked_mcast_msgs == mcast_msgs
-            invariant checked_mcast_msgs == {}
-                        ==> getMessagesFromMessagesWithRecipient(checked_mcast_msgs) == {}
-            invariant checked_mcast_msgs != {}
-                        ==> getMessagesFromMessagesWithRecipient(checked_mcast_msgs) == { attestation_with_signature_share } 
+            invariant   checked_mcast_msgs == {}
+                        ==> 
+                        getMessagesFromMessagesWithRecipient(checked_mcast_msgs) == {}
+            invariant   checked_mcast_msgs != {}
+                        ==> 
+                        getMessagesFromMessagesWithRecipient(checked_mcast_msgs) == { attestation_with_signature_share } 
             decreases |all_mcast_msgs|
         {
             var msg :|  msg in all_mcast_msgs;
@@ -1252,11 +1254,13 @@ module Fnc_Invs_2
             var new_set := getOrDefault(attestation_shares_db_at_slot, k, {}) + 
                                                 {attestation_share};
 
-            assert && (k in attestation_shares_db_at_slot.Keys 
-                            ==> new_set == attestation_shares_db_at_slot[k] + {attestation_share}
+            assert && ( k in attestation_shares_db_at_slot.Keys 
+                        ==> 
+                        new_set == attestation_shares_db_at_slot[k] + {attestation_share}
                       )
-                   && (k !in attestation_shares_db_at_slot.Keys 
-                            ==> new_set == {attestation_share}
+                   && ( k !in attestation_shares_db_at_slot.Keys 
+                        ==> 
+                        new_set == {attestation_share}
                       );
                 
             var new_attestation_shares_db := 
@@ -1391,11 +1395,13 @@ module Fnc_Invs_2
             var new_set := getOrDefault(attestation_shares_db_at_slot, k, {}) + 
                                                 {attestation_share};
 
-            assert && (k in attestation_shares_db_at_slot.Keys 
-                            ==> new_set == attestation_shares_db_at_slot[k] + {attestation_share}
+            assert && ( k in attestation_shares_db_at_slot.Keys 
+                        ==> 
+                        new_set == attestation_shares_db_at_slot[k] + {attestation_share}
                       )
-                   && (k !in attestation_shares_db_at_slot.Keys 
-                            ==> new_set == {attestation_share}
+                   && ( k !in attestation_shares_db_at_slot.Keys 
+                        ==> 
+                        new_set == {attestation_share}
                       );
                 
             var new_attestation_shares_db := 
@@ -1669,4 +1675,318 @@ module Fnc_Invs_2
                     sequence_attestation_duties_to_be_served, 
                     index_next_attestation_duty_to_be_served)
     { } 
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_terminate_current_attestation_duty(
+        process: DVCState,
+        process': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_terminate_current_attestation_duty.requires(process)
+    requires process' == f_terminate_current_attestation_duty(process)
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    { }
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_start_next_duty(
+        dvc: DVCState, 
+        attestation_duty: AttestationDuty, 
+        dvc': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_start_next_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_start_next_duty(dvc, attestation_duty).state
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                dvc, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                dvc',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { } 
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_check_for_next_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty, 
+        dvc': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_check_for_next_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_check_for_next_duty(dvc, attestation_duty).state
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                dvc, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                dvc',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { } 
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_serve_attestation_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty,
+        dvc': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )  
+    requires f_serve_attestation_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(                
+                                    attestation_duty, 
+                                    hn, 
+                                    sequence_attestation_duties_to_be_served,
+                                    index_next_attestation_duty_to_be_served
+                                );
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                dvc, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                dvc',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { }
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { }  
+
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_listen_for_attestation_shares(
+        process: DVCState,
+        attestation_share: AttestationShare,
+        process': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_listen_for_attestation_shares.requires(process, attestation_share)
+    requires process' == f_listen_for_attestation_shares(process, attestation_share).state
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    {}
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                process',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { }   
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_add_block_to_bn(
+        s: DVCState,
+        block: BeaconBlock,
+        s': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat 
+    )
+    requires f_add_block_to_bn.requires(s, block)
+    requires s' == f_add_block_to_bn(s, block)
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                s, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                s',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { } 
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_resend_attestation_share(
+        s: DVCState,
+        s': DVCState,
+        hn: BLSPubkey,
+        sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
+        index_next_attestation_duty_to_be_served: nat  
+    )
+    requires f_resend_attestation_share.requires(s)
+    requires s' == f_resend_attestation_share(s).state
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                s, 
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+                s',
+                hn, 
+                sequence_attestation_duties_to_be_served, 
+                index_next_attestation_duty_to_be_served)  
+    { } 
+
+    lemma lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_start_next_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty,
+        dvc': DVCState
+    )  
+    requires f_start_next_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_start_next_duty(dvc, attestation_duty).state
+    requires dvc.all_rcvd_duties != {}
+    ensures inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc')
+    { 
+        
+    }
+
+    lemma lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_check_for_next_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty,
+        dvc': DVCState
+    )  
+    requires f_check_for_next_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_check_for_next_duty(dvc, attestation_duty).state
+    requires dvc.all_rcvd_duties != {}
+    ensures inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc')
+    { 
+        if attestation_duty.slot in dvc.future_att_consensus_instances_already_decided.Keys
+        {
+            assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc');
+        } 
+        else
+        {
+            lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_start_next_duty(
+                dvc,
+                attestation_duty,
+                dvc'
+            );
+            assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc');
+        }
+    }
+
+    lemma lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_serve_attestation_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty,
+        dvc': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
+    requires inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc)
+    ensures inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc')
+    { 
+        var process_rcvd_duty := 
+                dvc.(all_rcvd_duties := dvc.all_rcvd_duties + {attestation_duty});
+        assert process_rcvd_duty.all_rcvd_duties != {};
+        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
+        assert process_after_stopping_active_consensus_instance.all_rcvd_duties != {};
+        lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_check_for_next_duty(
+            process_after_stopping_active_consensus_instance,
+            attestation_duty,
+            dvc'
+        );  
+    }
+
+    lemma lem_inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body_f_serve_attestation_duty(
+        dvc: DVCState,
+        attestation_duty: AttestationDuty,
+        dvc': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(dvc, attestation_duty)
+    requires dvc' == f_serve_attestation_duty(dvc, attestation_duty).state
+    requires inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc)
+    requires inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc)
+    ensures inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc')
+    { 
+        var process_rcvd_duty := 
+                dvc.(all_rcvd_duties := dvc.all_rcvd_duties + { attestation_duty });
+        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
+        assert  process_after_stopping_active_consensus_instance.all_rcvd_duties
+                ==
+                process_rcvd_duty.all_rcvd_duties;
+        assert  dvc' 
+                == 
+                f_check_for_next_duty(
+                    process_after_stopping_active_consensus_instance,
+                    attestation_duty
+                ).state
+                ;
+        assert  dvc'.all_rcvd_duties
+                ==
+                process_after_stopping_active_consensus_instance.all_rcvd_duties
+                ;
+        assert  && dvc'.latest_attestation_duty.isPresent()
+                && dvc'.latest_attestation_duty.safe_get() == attestation_duty;
+
+        if !dvc.latest_attestation_duty.isPresent()
+        {
+            // assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc');
+            assert  dvc.all_rcvd_duties == {};
+            assert  process_rcvd_duty.all_rcvd_duties 
+                    ==
+                    process_after_stopping_active_consensus_instance.all_rcvd_duties
+                    ==
+                    { attestation_duty }
+                    ==
+                    dvc'.all_rcvd_duties;
+            assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc');
+        }
+        else
+        {
+            assert dvc.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
+        }
+    }
 }

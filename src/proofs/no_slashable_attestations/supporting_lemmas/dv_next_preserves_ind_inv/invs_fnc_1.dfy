@@ -1169,7 +1169,7 @@ module Fnc_Invs_1
     // // requires f_serve_attestation_duty.requires(process, attestation_duty)
     // // requires process' == f_serve_attestation_duty(process, attestation_duty).state
     // // requires inv_queued_att_duty_is_rcvd_duty_body(process)  
-    // // requires inv_next_att_duty_is_higher_than_latest_served_att_duty_body(process, attestation_duty)  
+    // // requires inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty_body(process, attestation_duty)  
     // // requires concl_future_att_duty_is_higher_than_queued_att_duty_body(process, attestation_duty)  
     // // requires inv_strictly_increasing_queue_of_att_duties_body(process)
     // // requires inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(process)
@@ -1435,7 +1435,7 @@ module Fnc_Invs_1
     requires process' == f_start_next_duty(process, attestation_duty).state   
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty_body(process)
     requires inv_latest_served_duty_is_rcvd_duty_body(process)
-    requires inv_future_att_duty_is_higher_than_rcvd_att_duty_body(process, attestation_duty)
+    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(process, attestation_duty)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process)
     ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process')
     { } 
@@ -1449,7 +1449,7 @@ module Fnc_Invs_1
     requires process' == f_check_for_next_duty(process, attestation_duty).state        
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty_body(process)
     requires inv_latest_served_duty_is_rcvd_duty_body(process)
-    requires inv_future_att_duty_is_higher_than_rcvd_att_duty_body(process, attestation_duty)
+    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(process, attestation_duty)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process)
     ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process')
     { }
@@ -1465,7 +1465,7 @@ module Fnc_Invs_1
     requires process' == f_serve_attestation_duty(process, attestation_duty).state
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty_body(process)   
     requires inv_latest_served_duty_is_rcvd_duty_body(process)
-    requires inv_future_att_duty_is_higher_than_rcvd_att_duty_body(process, attestation_duty)
+    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(process, attestation_duty)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process)
     ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(process')
     { } 
