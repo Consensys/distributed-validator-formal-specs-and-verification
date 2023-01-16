@@ -433,7 +433,7 @@ module Invs_DV_Next_1
     // //             {
     // //                 case ServeAttstationDuty(attestation_duty) =>                                                                     
                         
-    // //                     assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty); 
+    // //                     assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty); 
     // //                     assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, attestation_duty);                                             
     // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
                         
@@ -698,7 +698,7 @@ module Invs_DV_Next_1
     requires NextEvent(dv, event, dv')    
     requires inv_latest_served_duty_is_rcvd_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    requires inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
+    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
     requires inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)
     requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)  
     ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv')
@@ -713,7 +713,7 @@ module Invs_DV_Next_1
                 {
                     case ServeAttstationDuty(attestation_duty) =>   
                         assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
-                        assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, attestation_duty);
+                        assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty);
                         assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc);
                         assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc);                                           
                         lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');

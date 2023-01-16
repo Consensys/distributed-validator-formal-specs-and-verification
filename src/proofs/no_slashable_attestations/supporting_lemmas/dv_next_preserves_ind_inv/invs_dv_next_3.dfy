@@ -91,7 +91,7 @@ module Invs_DV_Next_3
     requires NextEvent(dv, event, dv')    
     requires inv_consensus_instances_only_for_rcvd_duties(dv)
     requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
-    // ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
+    ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
     {        
         match event 
         {
@@ -707,5 +707,264 @@ module Invs_DV_Next_3
                 
         }   
     }      
+
+    lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv)
+    ensures inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv')
+    {  
+        assert pred_unchanged_dvn_seq_of_att_duties(dv, dv');
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>    
+                        assert  dv'.index_next_attestation_duty_to_be_served 
+                                ==
+                                dv.index_next_attestation_duty_to_be_served + 1;
+                        assert  inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(                
+                                    attestation_duty, 
+                                    node, 
+                                    dv'.sequence_attestation_duties_to_be_served,
+                                    dv'.index_next_attestation_duty_to_be_served
+                                );
+                        lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_serve_attestation_duty( 
+                                dvc,
+                                attestation_duty,                                
+                                dvc',
+                                node,
+                                dv'.sequence_attestation_duties_to_be_served,    
+                                dv'.index_next_attestation_duty_to_be_served 
+                            );
+                        assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');    
+
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_att_consensus_decided(
+                                dvc,
+                                id,
+                                decided_attestation_data,
+                                dvc',
+                                node,
+                                dv'.sequence_attestation_duties_to_be_served,    
+                                dv'.index_next_attestation_duty_to_be_served
+                            );
+                        assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');    
+
+                    case ReceivedAttestationShare(attestation_share) =>   
+                        lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_listen_for_attestation_shares(
+                                dvc,
+                                attestation_share,
+                                dvc',
+                                node,
+                                dv'.sequence_attestation_duties_to_be_served,    
+                                dv'.index_next_attestation_duty_to_be_served
+                            );      
+                        assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');                
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_f_listen_for_new_imported_blocks(
+                            dvc,
+                            block,
+                            dvc',
+                            node,
+                            dv'.sequence_attestation_duties_to_be_served,    
+                            dv'.index_next_attestation_duty_to_be_served
+                        );
+                        assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');
+                                          
+                    case ResendAttestationShares =>  
+                        assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');                       
+                        
+                    case NoEvent => 
+                        assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');        
+                        
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');        
+                
+        }   
+    }  
+
+    
+
+    lemma lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv)
+    ensures inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv')
+    {  
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>    
+                        lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_serve_attestation_duty(
+                            dvc,
+                            attestation_duty,
+                            dvc'
+                        );
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv'); 
+                        
+
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv');         
+
+                    case ReceivedAttestationShare(attestation_share) =>   
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv');              
+   
+                    case ImportedNewBlock(block) => 
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv');     
+                                          
+                    case ResendAttestationShares =>  
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv');     
+
+                    case NoEvent => 
+                        assert dvc == dvc'; 
+                        assert dvc.all_rcvd_duties == dvc'.all_rcvd_duties;  
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv'); 
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv');        
+                
+        }   
+    }
+
+    lemma lem_inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv)
+    requires inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv)
+    ensures inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv')
+    {  
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>    
+                        lem_inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body_f_serve_attestation_duty(
+                            dvc,
+                            attestation_duty,
+                            dvc'
+                        );
+                        assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv'); 
+                        
+
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv');         
+
+                    case ReceivedAttestationShare(attestation_share) =>   
+                        assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv');              
+   
+                    case ImportedNewBlock(block) => 
+                        assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv');     
+                                          
+                    case ResendAttestationShares =>  
+                        assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv');     
+
+                    case NoEvent => 
+                        assert dvc == dvc'; 
+                        assert dvc.all_rcvd_duties == dvc'.all_rcvd_duties;  
+                        assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv'); 
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv');        
+                
+        }   
+    }
+
+
+    lemma lem_inv_unique_rcvd_att_duty_per_slot_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_unique_rcvd_att_duty_per_slot(dv)
+    requires inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv)
+    requires inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv)
+    ensures inv_unique_rcvd_att_duty_per_slot(dv')
+    {  
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>    
+                        if !dvc.latest_attestation_duty.isPresent()                            
+                        {
+                            lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(dv, event, dv');
+                            assert dvc'.all_rcvd_duties == {attestation_duty};
+                            assert inv_unique_rcvd_att_duty_per_slot(dv');
+                        }
+                        else
+                        {
+                            if dvc.latest_attestation_duty.safe_get().slot < attestation_duty.slot
+                            {
+                                assert attestation_duty !in dvc.all_rcvd_duties;
+                                assert inv_unique_rcvd_att_duty_per_slot(dv');     
+                            }   
+                            else
+                            {
+                                assert inv_unique_rcvd_att_duty_per_slot(dv');     
+                            }                            
+                        }
+                        
+
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        assert inv_unique_rcvd_att_duty_per_slot(dv');         
+
+                    case ReceivedAttestationShare(attestation_share) =>   
+                        assert inv_unique_rcvd_att_duty_per_slot(dv');              
+   
+                    case ImportedNewBlock(block) => 
+                        assert inv_unique_rcvd_att_duty_per_slot(dv');     
+                                          
+                    case ResendAttestationShares =>  
+                        assert inv_unique_rcvd_att_duty_per_slot(dv');     
+
+                    case NoEvent => 
+                        assert dvc == dvc'; 
+                        assert dvc.all_rcvd_duties == dvc'.all_rcvd_duties;  
+                        assert inv_unique_rcvd_att_duty_per_slot(dv'); 
+                }
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert inv_unique_rcvd_att_duty_per_slot(dv');        
+                
+        }   
+    }
 }   
         

@@ -24,13 +24,13 @@ module Proofs_Intermediate_Steps
     ensures same_honest_nodes_in_dv_and_ci(dv)
     { }
         
-    lemma lem_inv_next_att_duty_is_higher_than_current_att_duty_ind_inv(
+    lemma lem_inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
     requires inv_current_att_duty_is_rcvd_duty(dv)    
-    requires inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
-    ensures inv_next_att_duty_is_higher_than_current_att_duty(dv)
+    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -49,13 +49,13 @@ module Proofs_Intermediate_Steps
         }
     } 
     
-    lemma lem_inv_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(
+    lemma lem_inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty_ind_inv(
         dv: DVState
     )         
     requires inv_quorum_constraints(dv)      
     requires inv_latest_served_duty_is_rcvd_duty(dv)    
-    requires inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
-    ensures inv_next_att_duty_is_higher_than_latest_served_att_duty(dv)
+    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -74,13 +74,13 @@ module Proofs_Intermediate_Steps
         }
     } 
       
-    lemma lem_inv_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(
+    lemma lem_inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(
         dv: DVState
     )    
     requires inv_quorum_constraints(dv)  
-    requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
     requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    ensures inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)    
+    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)    
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -91,14 +91,10 @@ module Proofs_Intermediate_Steps
         {
             var dvc := dv.honest_nodes_states[hn];
 
-            assert inv_queued_att_duty_is_dvn_seq_of_att_duty_body( hn, dvc.all_rcvd_duties, 
-                              dv.sequence_attestation_duties_to_be_served, 
-                              dv.index_next_attestation_duty_to_be_served);
-
-
             forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties
             ensures rcvd_duty.slot <= next_duty.slot
             {
+                assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(dv, hn, rcvd_duty);
                 
                 var k: nat :| && 0 <= k < dv.index_next_attestation_duty_to_be_served
                               && dv.sequence_attestation_duties_to_be_served[k].node == hn
@@ -109,8 +105,7 @@ module Proofs_Intermediate_Steps
                 assert rcvd_duty.slot <= next_duty.slot;
             }
 
-            assert inv_future_att_duty_is_higher_than_rcvd_att_duty_body(dvc, next_duty);
-            
+            assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, next_duty);
         }        
     }
 

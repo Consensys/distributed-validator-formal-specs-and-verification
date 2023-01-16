@@ -70,7 +70,7 @@ module Ind_Inv_DV_Next
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures invs_group_4(dv')
+    ensures invs_group_3(dv')
     {
         lem_inv_no_duplicated_att_duties_dv_next(dv, e, dv');
         lem_inv_every_att_duty_before_dvn_att_index_was_delivered_dv_next(dv, e, dv');        
@@ -81,19 +81,20 @@ module Ind_Inv_DV_Next
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures invs_group_5(dv')
+    ensures invs_group_4(dv')
     {
+        lem_inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(dv);
         lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_dv_next(dv, e, dv');                
         lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_dv_next(dv, e, dv');    
         lem_inv_consensus_instances_only_for_rcvd_duties_dv_next(dv, e, dv');    
+        lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_dv_next(dv, e, dv');    
     }
-
 
     lemma lem_ind_inv_dv_next_invs_group_5(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures invs_group_6(dv')
+    ensures invs_group_5(dv')
     {
         lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_dv_next(dv, e, dv');    
         lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_dv_next(dv, e, dv');  
@@ -122,16 +123,15 @@ module Ind_Inv_DV_Next
         Invs_DV_Next_5.lem_inv_33(dv, e, dv');
     }
 
-
     lemma lem_ind_inv_implies_intermediate_steps_helper_1(dv: DVState)
     requires ind_inv(dv)
-    ensures inv_next_att_duty_is_higher_than_current_att_duty(dv)
-    ensures inv_next_att_duty_is_higher_than_latest_served_att_duty(dv)
-    ensures inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
     {    
-        lem_inv_next_att_duty_is_higher_than_current_att_duty_ind_inv(dv);
-        lem_inv_next_att_duty_is_higher_than_latest_served_att_duty_ind_inv(dv);
-        lem_inv_future_att_duty_is_higher_than_rcvd_att_duty_ind_inv(dv);
+        lem_inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty_ind_inv(dv);
+        lem_inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty_ind_inv(dv);
+        lem_inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(dv);
     }
 
     lemma lem_ind_inv_implies_intermediate_steps_helper_2(dv: DVState)
@@ -173,9 +173,9 @@ module Ind_Inv_DV_Next
 
     lemma lem_ind_inv_implies_intermediate_steps(dv: DVState)
     requires ind_inv(dv)
-    ensures inv_next_att_duty_is_higher_than_current_att_duty(dv)
-    ensures inv_next_att_duty_is_higher_than_latest_served_att_duty(dv)
-    ensures inv_future_att_duty_is_higher_than_rcvd_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty(dv)
+    ensures inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
     ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
     ensures same_honest_nodes_in_dv_and_ci(dv)    
@@ -372,6 +372,7 @@ module Ind_Inv_DV_Next
     ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(dv')
     {
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
+        assert lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(dv);
         lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(dv, e, dv');
     }
 
@@ -405,6 +406,10 @@ module Ind_Inv_DV_Next
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
         lem_inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv, e, dv');
         lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');
+        lem_inv_consensus_instances_are_isConditionForSafetyTrue_dv_next(dv, e, dv');  
+        lem_inv_unique_rcvd_att_duty_per_slot_dv_next(dv, e, dv');  
+        lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(dv, e, dv');  
+        lem_inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_dv_next(dv, e, dv');  
     }
     
     lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
@@ -529,10 +534,7 @@ module Ind_Inv_DV_Next
     lemma lem_NextPreCond(
         s: DVState
     )
-    requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
-    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(s)
-    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(s)
+    requires ind_inv(s)
     ensures  NextPreCond(s)                
     {
         forall event | validEvent(s, event)
@@ -540,9 +542,9 @@ module Ind_Inv_DV_Next
         {
             if event.HonestNodeTakingStep?
             {
-                lem_NextEventPreCond(s, event);
+
             }
         }
 
-    }       
+    }     
 }

@@ -36,7 +36,7 @@ module Invs_DV_Next_4
     lemma  lem_on_first_seq_element_elimination<T>(
         s1: seq<T>,
         s2: seq<T>,
-        i: nat
+        i: Slot
     )
     requires |s1| > 0 || s1 != []
     requires s2 == s1[1..]
@@ -205,6 +205,106 @@ module Invs_DV_Next_4
 
     } 
 
+    lemma lem_inv_unchanged_decision_Consensus_Next<D(!new, 0)>(
+        s: ConsensusInstance,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
+        s': ConsensusInstance,
+        output: Optional<OutCommand>
+    )
+    requires ConsensusSpec.Next.requires(s, honest_nodes_validity_predicates, s', output)
+    requires ConsensusSpec.Next(s, honest_nodes_validity_predicates, s', output)
+    requires isConditionForSafetyTrue(s)
+    ensures  s.decided_value.isPresent()
+                    ==> 
+                    ( && s'.decided_value.isPresent()
+                      && s.decided_value.safe_get()
+                                        == s'.decided_value.safe_get()
+                    )
+            ;
+    {
+
+    }
+
+    lemma lem_inv_unchanged_decision_ConsensusInstanceStep<D(!new, 0)>(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.Event,
+        nodeOutputs: DVC_Spec.Outputs,
+        s': DVState
+    )
+    requires DV.ConsensusInstanceStep.requires(s, node, nodeEvent, nodeOutputs, s')
+    requires DV.ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')
+    requires forall slot: Slot | slot in s.consensus_on_attestation_data.Keys  ::
+                    isConditionForSafetyTrue(s.consensus_on_attestation_data[slot])
+                    ;
+    ensures forall slot: Slot | 
+                    && slot in s.consensus_on_attestation_data.Keys 
+                    && s.consensus_on_attestation_data[slot].decided_value.isPresent()
+                    ::                    
+                    && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                    && s.consensus_on_attestation_data[slot].decided_value.safe_get()
+                            == s'.consensus_on_attestation_data[slot].decided_value.safe_get()
+                    ;
+    {
+
+    }
+
+    lemma lem_inv_consensus_instances_are_isConditionForSafetyTrue_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEvent.requires(dv, event, dv')  
+    requires NextEvent(dv, event, dv')  
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(dv)
+    ensures inv_consensus_instances_are_isConditionForSafetyTrue(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];   
+                
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>                           
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        
+                    case ReceivedAttestationShare(attestation_share) =>                         
+                       
+                    case ImportedNewBlock(block) => 
+                
+                    case ResendAttestationShares =>                                                                      
+
+                    case NoEvent => 
+                        
+                }
+                
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                
+        }   
+    }  
+
+    lemma lem_inv_unchanged_decision_dv(
+        s: DVState,
+        event: DV.Event,
+        s': DVState,
+        slot: Slot
+    )
+    requires NextEventPreCond(s, event) 
+    requires NextEvent(s, event, s')   
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(s)
+    requires && slot in s.consensus_on_attestation_data.Keys 
+             && s.consensus_on_attestation_data[slot].decided_value.isPresent()
+    ensures  && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
+             && s.consensus_on_attestation_data[slot].decided_value.safe_get()
+                == 
+                s'.consensus_on_attestation_data[slot].decided_value.safe_get()
+    {
+        
+    }
+
     // TODO
     lemma lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_helper_honest(
         s: DVState,
@@ -214,8 +314,9 @@ module Invs_DV_Next_4
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')     
     requires lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(s)  
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(s)
     requires event.HonestNodeTakingStep?
-    // ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', event.node, s'.honest_nodes_states[event.node]); 
+    ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', event.node, s'.honest_nodes_states[event.node]); 
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -232,93 +333,81 @@ module Invs_DV_Next_4
                 ensures && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
                         && s_node.future_att_consensus_instances_already_decided[slot] == s'.consensus_on_attestation_data[slot].decided_value.safe_get()
                 {
+                    assert && s.consensus_on_attestation_data[slot].decided_value.isPresent()
+                           && s_node.future_att_consensus_instances_already_decided[slot] == s.consensus_on_attestation_data[slot].decided_value.safe_get()
+                           ;
                     calc 
                     {
                         s_node.future_att_consensus_instances_already_decided[slot];
                         ==
-                        s.consensus_on_attestation_data[slot].decided_value.safe_get();
+                        s.consensus_on_attestation_data[slot].decided_value.safe_get();                        
                         ==
+                        { lem_inv_unchanged_decision_dv(s, event, s', slot); }
                         s'.consensus_on_attestation_data[slot].decided_value.safe_get();
                     }
                 }
 
-                // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s_node);
-
-                // // assert inv_exists_decided_value_for_every_duty_before_queued_duties_body_body(s', node, s_node);
-                // // assert inv_queued_att_duties_are_from_dv_seq_of_att_duties_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                // // assert inv_g_a_iii_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                // // assert inv_attestation_duty_queue_is_ordered_3_body_body(s', node, s_node);
-                // // assert inv_attestation_duty_queue_is_ordered_4_body_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                // assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
-                // assert inv_data_of_att_share_is_decided_value(s');             
-                // // assert inv_g_a_iv_a_body_body(s', node, s_node);
-                // // assert is_sequence_attestation_duties_to_be_served_orderd(s');
+                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s_node);
+                assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
+                assert inv_data_of_att_share_is_decided_value(s');             
 
                 match nodeEvent
                 {
                     case ServeAttstationDuty(attestation_duty) => 
-                        // assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        // lem_ServeAttstationDuty(s, event, s');
-                        // lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_serve_attestation_duty(
-                        //     s_node,
-                        //     attestation_duty,
-                        //     s'_node,
-                        //     s', 
-                        //     node,
-                        //     s'.index_next_attestation_duty_to_be_served
-                        // );
-                        // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
+                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
+                        lem_ServeAttstationDuty(s, event, s');
+                        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_serve_attestation_duty(
+                            s_node,
+                            attestation_duty,
+                            s'_node,
+                            s', 
+                            node,
+                            s'.index_next_attestation_duty_to_be_served
+                        );
+                        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
-                        // lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
-                        // assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
-                                    
-                        // lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_att_consensus_decided(
-                        //     s_node,
-                        //     id,
-                        //     decided_attestation_data,
-                        //     s'_node,
-                        //     s', 
-                        //     node,
-                        //     s.index_next_attestation_duty_to_be_served
-                        // ); 
-                        // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                        
-               
+                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
+                        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_att_consensus_decided(
+                            s_node,
+                            id,
+                            decided_attestation_data,
+                            s'_node,
+                            s', 
+                            node,
+                            s.index_next_attestation_duty_to_be_served
+                        ); 
+                        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                        
                    
                     case ReceivedAttestationShare(attestation_share) =>
-                        // lem_NonServeAttstationDuty_unchanged_vars(s, event, s'); 
-                        // lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
-                        // // lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_helper_easy(s', event, s_node, s'_node, node );
-                        // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
+                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s'); 
+                        lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
+                        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
                         
-
                     case ImportedNewBlock(block) => 
-                        // lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
-                        // var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-                        // lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_listen_for_new_imported_blocks(
-                        //     s_node2,
-                        //     block,
-                        //     s'_node,
-                        //     s', 
-                        //     node,
-                        //     s.index_next_attestation_duty_to_be_served
-                        // );  
-                        // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
-                    
+                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
+                        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_listen_for_new_imported_blocks(
+                            s_node2,
+                            block,
+                            s'_node,
+                            s', 
+                            node,
+                            s.index_next_attestation_duty_to_be_served
+                        );  
+                        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
                  
                     case ResendAttestationShares => 
-                        // lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
-                        // lem_f_resend_attestation_share_constants(s_node, s'_node);
-                        // // lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_helper_easy(s', event, s_node, s'_node, node );
-                        // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
+                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_f_resend_attestation_share_constants(s_node, s'_node);
+                        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
 
                     case NoEvent => 
-                        // lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
-                        // assert s_node == s'_node; 
-                        // // lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_helper_easy(s', event, s_node, s'_node, node );
-                        // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                          
+                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        assert s_node == s'_node; 
+                        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                          
                 }
-                // assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);  
         }
     }     
 
@@ -330,7 +419,8 @@ module Invs_DV_Next_4
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(s)
-    ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s');  
+    requires inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s)
+    ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s')
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -348,6 +438,34 @@ module Invs_DV_Next_4
                     if hn != node 
                     {
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
+
+                        var n_state := s.honest_nodes_states[hn];
+                        var n_state' := s'.honest_nodes_states[hn];
+                        forall slot | slot in n_state'.future_att_consensus_instances_already_decided.Keys
+                        ensures && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                                && n_state'.future_att_consensus_instances_already_decided[slot] == s'.consensus_on_attestation_data[slot].decided_value.safe_get()
+                        {
+                            assert  && s.consensus_on_attestation_data[slot].decided_value.isPresent()
+                                    && n_state.future_att_consensus_instances_already_decided[slot] == s.consensus_on_attestation_data[slot].decided_value.safe_get();
+                            
+                            assert  n_state.future_att_consensus_instances_already_decided[slot]
+                                    ==
+                                    n_state'.future_att_consensus_instances_already_decided[slot];
+
+                            lem_inv_unchanged_decision_dv(
+                                s,
+                                event,
+                                s',
+                                slot
+                            );
+
+                            assert  && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
+                                    && s'.consensus_on_attestation_data[slot].decided_value.safe_get() == s.consensus_on_attestation_data[slot].decided_value.safe_get();
+                        }
+                    }
+                    else
+                    {
+                        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_helper_honest(s, event, s');
                     }
                 }  
                 assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s');
@@ -357,13 +475,9 @@ module Invs_DV_Next_4
                     && hn in s'.honest_nodes_states.Keys   
                 ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', hn, s'.honest_nodes_states[hn]); 
                 {
-                    // if hn != node 
-                    {
-                        assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                    }
+                    assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                 }  
                 assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s');
-
         }
     }  
 
