@@ -195,9 +195,12 @@ module CommonFunctions{
 
 
     lemma {:axiom} compute_domain_properties()
-    ensures forall d1, f1, d2, f2 :: compute_domain(d1, f2) == compute_domain(d2, f2) ==>
-        && d1 == d2 
-        && f1 == f2
+    ensures forall d1, f1, d2, f2 :: 
+                compute_domain(d1, f2) == compute_domain(d2, f2) 
+                ==>
+                ( && d1 == d2 
+                  && f1 == f2
+                )
 
     function method {:extern} compute_signing_root<T>(
         data: T,
@@ -631,9 +634,10 @@ module CommonFunctions{
     function method get_attestation_duty_with_given_slot(adSet: set<AttestationDuty>, s: Slot): AttestationDuty
     requires exists duty: AttestationDuty :: duty in adSet && duty.slot == s
     requires ( forall ad1, ad2: AttestationDuty :: 
-                    && ad1 in adSet 
-                    && ad2 in adSet 
-                    && ad1.slot == ad2.slot
+                    ( && ad1 in adSet 
+                      && ad2 in adSet 
+                      && ad1.slot == ad2.slot
+                    )
                         ==> ad1 == ad2 )
     {
         var ret_att_ad: AttestationDuty :| ret_att_ad in adSet && ret_att_ad.slot == s;
@@ -647,9 +651,10 @@ module CommonFunctions{
     function method get_attestation_with_given_slot(attSet: set<Attestation>, s: Slot): Attestation
     requires exists att: Attestation :: att in attSet && att.data.slot == s
     requires forall a1, a2: Attestation :: 
-                && a1 in attSet 
-                && a2 in attSet 
-                && a1.data.slot == a2.data.slot
+                ( && a1 in attSet 
+                  && a2 in attSet 
+                  && a1.data.slot == a2.data.slot
+                )
                         ==> a1 == a2
     {
         var ret_att: Attestation :| ret_att in attSet && ret_att.data.slot == s;

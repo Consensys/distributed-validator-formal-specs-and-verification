@@ -36,10 +36,28 @@ module Core_Proofs
         || (data_1.source.epoch < data_2.source.epoch && data_2.target.epoch < data_1.target.epoch)
     }
 
+    lemma lem_is_slashable_attestation_data(
+        att_slashing_db: set<SlashingDBAttestation>, 
+        ad: AttestationData,
+        sdba: SlashingDBAttestation,
+        sdba': SlashingDBAttestation
 
-    lemma lem_no_slashable_submitted_attestations_with_different_slots_ii(dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
-                        consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
-                        h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
+    )
+    requires !is_slashable_attestation_data(att_slashing_db, ad)
+    requires sdba' in att_slashing_db
+    requires sdba.source_epoch == ad.source.epoch 
+    requires sdba.target_epoch == ad.target.epoch 
+    ensures !is_slashable_attestation_pair(sdba, sdba')
+    ensures !is_slashable_attestation_pair(sdba', sdba)
+    {
+
+    }
+
+        // TODO
+    lemma lem_no_slashable_submitted_attestations_with_different_slots_ii(
+                dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey, 
+                consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
+                h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)    
     requires inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
@@ -164,6 +182,7 @@ module Core_Proofs
                                 inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
     }
 
+        // TODO
     lemma lem_no_slashable_submitted_attestations_with_different_slots(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
@@ -178,11 +197,11 @@ module Core_Proofs
              && is_valid_attestation(a', dv.dv_pubkey)
     requires a.data.slot < a'.data.slot 
     requires inv_decided_data_has_a_honest_witness(dv)
-    requires inv_honest_dvc_joins_consensus_instances_only_rcvd_att_duties(dv)
+    requires inv_only_joins_consensus_instances_if_received_att_duties(dv)
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-    requires inv_unique_att_duty_per_slot(dv)
+    requires inv_unique_rcvd_att_duty_per_slot(dv)
     requires inv_queued_att_duty_is_rcvd_duty1(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
@@ -198,7 +217,6 @@ module Core_Proofs
         lem_no_slashable_submitted_attestations_with_different_slots_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
     }    
 
-    // TODO: Write a new proof
     lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: DVState, a: Attestation, a': Attestation)
     requires |dv.all_nodes| > 0
     requires inv_quorum_constraints(dv)
@@ -274,21 +292,6 @@ module Core_Proofs
     } 
 
 
-    lemma lem_is_slashable_attestation_data(
-        att_slashing_db: set<SlashingDBAttestation>, 
-        ad: AttestationData,
-        sdba: SlashingDBAttestation,
-        sdba': SlashingDBAttestation
-
-    )
-    requires !is_slashable_attestation_data(att_slashing_db, ad)
-    requires sdba' in att_slashing_db
-    requires sdba.source_epoch == ad.source.epoch 
-    requires sdba.target_epoch == ad.target.epoch 
-    ensures !is_slashable_attestation_pair(sdba, sdba')
-    ensures !is_slashable_attestation_pair(sdba', sdba)
-    {
-
-    }
+    
         
 }

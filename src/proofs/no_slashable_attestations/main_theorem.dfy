@@ -23,14 +23,14 @@ module No_Slashable_Attestations_Main_Theorem
     {
         && DV.Init(trace[0], {})
         && (
-            forall i: nat ::
+            forall i: Slot ::
                 DV.NextPreCond(trace[i]) ==> DV.Next(trace[i], trace[i+1])
         )
     }  
 
     lemma lem_non_slashable_attestations_rec(
         trace: iseq<DVState>,
-        i: nat
+        i: Slot
     )
     requires isValidTrace(trace)
     ensures forall j | 0 <= j <= i ::
