@@ -48,6 +48,8 @@ module Helper_Pred_Fcn
         attestation_duty: AttestationDuty
     ): DVCState
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires || !process.latest_attestation_duty.isPresent()
+             || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     {
         process.( current_attestation_duty := Some(attestation_duty),
                   latest_attestation_duty := Some(attestation_duty),
