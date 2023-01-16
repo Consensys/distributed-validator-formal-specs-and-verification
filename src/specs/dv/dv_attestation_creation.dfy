@@ -194,6 +194,7 @@ module DV
         )
     }
 
+    // IMPORTANT
     predicate is_sequence_attestation_duties_to_be_served_orderd(s: DVState)
     {
         && (forall i, j | 
@@ -202,14 +203,14 @@ module DV
                 ::
                     s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot <= s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
         )
-        && ( forall k1: nat, k2: nat :: 
-                && k1 < k2
-                && s.sequence_attestation_duties_to_be_served[k1].node 
-                    == s.sequence_attestation_duties_to_be_served[k2].node
-                ==> 
-                s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
-                    < s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
-           )
+        // && ( forall k1: Slot, k2: Slot :: 
+        //         && k1 < k2
+        //         && s.sequence_attestation_duties_to_be_served[k1].node 
+        //                 == s.sequence_attestation_duties_to_be_served[k2].node
+        //         ==> 
+        //         s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
+        //                 < s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
+        //    )
     }
 
     predicate NextPreCond(
@@ -355,14 +356,7 @@ module DV
         && validEvent(s, event)         
         && (event.HonestNodeTakingStep? ==> NextHonestNodePrecond(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event))      
     }
-
     
-
-    
-
-
-
-
     predicate NextHonestNodePrecond(
         s: DVCState,
         event: Types.Event
@@ -516,6 +510,8 @@ module DV
                 case _ => {}
             ;
         && NetworkSpec.Next(s.att_network, s'.att_network, node, nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
+        // TODO
+        // IMPORTANT: ConsensusInstanceStep should also appear in NextAdversary
         && ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
     }    
