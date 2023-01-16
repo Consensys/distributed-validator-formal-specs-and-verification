@@ -56,9 +56,6 @@ module DVC_Spec {
         s.(
             active_attestation_consensus_instances := new_active_attestation_consensus_instances,
             att_slashing_db_hist := 
-                // s.att_slashing_db_hist[
-                //     id := map[acvc.validityPredicate := {attestation_slashing_db}]
-                // ]
                 addToAttSlashingDBHist(
                     s.att_slashing_db_hist,
                     id,
@@ -75,6 +72,7 @@ module DVC_Spec {
         vp: AttestationData -> bool,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
+    ensures hist.Keys + { id } == new_hist.Keys
     {
 
         var hist_id := getOrDefault(hist, id, map[]);
@@ -118,6 +116,7 @@ module DVC_Spec {
         new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
+    ensures hist.Keys + new_active_attestation_consensus_instances.Keys == new_hist.Keys
     {
             var ret 
                 := map k: Slot | k in (new_active_attestation_consensus_instances.Keys + hist.Keys)
@@ -291,7 +290,27 @@ module DVC_Spec {
     function f_serve_attestation_duty(
         process: DVCState,
         attestation_duty: AttestationDuty
-    ): DVCStateAndOuputs
+    ): DVCStateAndOuputs    
+    // {
+    //     if  && attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    //         &&  ( || !process.latest_attestation_duty.isPresent()
+    //               || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
+    //             )
+    //     then
+    //         var process_rcvd_duty := 
+    //             process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
+    //         var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process);
+    //         f_check_for_next_duty(
+    //             process_after_stopping_active_consensus_instance,
+    //             attestation_duty
+    //         )
+    //     else
+    //         f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())
+        
+    // } 
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires || !process.latest_attestation_duty.isPresent()
+             || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     {
         var process_rcvd_duty := 
@@ -333,6 +352,8 @@ module DVC_Spec {
     ): DVCStateAndOuputs
     requires !process.current_attestation_duty.isPresent()
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires || !process.latest_attestation_duty.isPresent()
+             || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     {
         if attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
         then
@@ -343,6 +364,8 @@ module DVC_Spec {
                     );
             var new_process := 
                     process.(
+                        current_attestation_duty := Some(attestation_duty),
+                        latest_attestation_duty := Some(attestation_duty),
                         future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
                         attestation_slashing_db := new_attestation_slashing_db,
                         attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
@@ -357,6 +380,8 @@ module DVC_Spec {
 
     function f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty): DVCStateAndOuputs
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires || !process.latest_attestation_duty.isPresent()
+             || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     {
         var new_process := 
                 process.(

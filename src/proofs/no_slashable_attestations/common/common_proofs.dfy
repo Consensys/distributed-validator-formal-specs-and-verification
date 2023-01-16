@@ -113,13 +113,14 @@ module Common_Proofs
                                                  new_active_attestation_consensus_instances, 
                                                  new_attestation_slashing_db)
     ensures ( forall k: Slot | k in new_hist.Keys ::
-                && ( k in new_active_attestation_consensus_instances.Keys
-                        ==> && var vp := new_active_attestation_consensus_instances[k].validityPredicate;
-                            && var hist_k := getOrDefault(hist, k, map[]);
-                            && var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
-                            && new_hist[k][vp] == hist_k_vp                        
+                && ( (k in new_active_attestation_consensus_instances.Keys)
+                        ==> ( && var vp := new_active_attestation_consensus_instances[k].validityPredicate;
+                              && var hist_k := getOrDefault(hist, k, map[]);
+                              && var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
+                              && new_hist[k][vp] == hist_k_vp                        
+                            )
                    )
-                && ( k !in new_active_attestation_consensus_instances.Keys
+                && ( (k !in new_active_attestation_consensus_instances.Keys)
                         ==> new_hist[k] == hist[k]
                    )
             )
