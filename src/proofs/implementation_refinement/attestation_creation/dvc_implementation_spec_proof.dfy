@@ -642,7 +642,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         function f_listen_for_new_imported_blocks_part_1_for_loop_inv(
             process: DVCState,
             block: BeaconBlock,
-            i: nat
+            i: Slot
         ) : (new_att: map<Slot, AttestationData>)
         requires i <= |block.body.attestations|
         requires f_listen_for_new_imported_blocks.requires(process, block)
@@ -657,7 +657,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         predicate p_listen_for_new_imported_blocks_part_2_for_loop_inv(
             process: DVCState,
             block: BeaconBlock,
-            i: nat,
+            i: Slot,
             a2: map<Slot, AttestationData>
         ) 
         requires i <= |block.body.attestations|
@@ -669,7 +669,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         lemma lem_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(
             process: DVCState,
             block: BeaconBlock,
-            i: nat,
+            i: Slot,
             a1: map<Slot, AttestationData>,
             a2: map<Slot, AttestationData>
         ) 
