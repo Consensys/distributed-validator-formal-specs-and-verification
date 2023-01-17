@@ -81,7 +81,7 @@ module ConsensusSpec
         && s.decided_value.isPresent()
         && h_nodes <= s.honest_nodes_validity_functions.Keys  
         && var byz := s.all_nodes - s.honest_nodes_status.Keys;
-            |h_nodes| >= quorum(|s.all_nodes|) - |byz|
+        && |h_nodes| >= quorum(|s.all_nodes|) - |byz|
         && (
             forall n | n in h_nodes :: 
                 exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())  

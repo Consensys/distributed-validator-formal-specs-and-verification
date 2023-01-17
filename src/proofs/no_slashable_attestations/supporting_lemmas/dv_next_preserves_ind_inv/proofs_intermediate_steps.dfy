@@ -109,17 +109,17 @@ module Proofs_Intermediate_Steps
         }        
     }
 
-    lemma lem_inv_queued_att_duty_is_rcvd_duty1_ind_inv(
+    lemma lem_inv_joined_consensus_instances_implied_the_delivery_of_att_duties_ind_inv(
         dv: DVState
     )    
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)
-    ensures inv_queued_att_duty_is_rcvd_duty1(dv)    
+    ensures inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
         ensures ( ( && is_honest_node(dv, hn) 
                     && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
                   )
-                  ==> inv_queued_att_duty_is_rcvd_duty1_body(dv.honest_nodes_states[hn], s)
+                  ==> inv_joined_consensus_instances_implied_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
             if && is_honest_node(dv, hn) 
@@ -127,7 +127,7 @@ module Proofs_Intermediate_Steps
             {
                 var hn_state := dv.honest_nodes_states[hn];
                 assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state);
-                assert inv_queued_att_duty_is_rcvd_duty1_body(hn_state, s);
+                assert inv_joined_consensus_instances_implied_the_delivery_of_att_duties_body(hn_state, s);
             }
             else
             {}

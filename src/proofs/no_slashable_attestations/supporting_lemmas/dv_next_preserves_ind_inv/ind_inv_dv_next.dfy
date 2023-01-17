@@ -137,7 +137,7 @@ module Ind_Inv_DV_Next
     lemma lem_ind_inv_implies_intermediate_steps_helper_2(dv: DVState)
     requires ind_inv(dv)  
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-    ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
+    ensures inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)   
     ensures same_honest_nodes_in_dv_and_ci(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,
@@ -145,7 +145,7 @@ module Ind_Inv_DV_Next
                 dv.all_nodes)  
     {    
         lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_ind_inv(dv);
-        lem_inv_queued_att_duty_is_rcvd_duty1_ind_inv(dv);
+        lem_inv_joined_consensus_instances_implied_the_delivery_of_att_duties_ind_inv(dv);
         lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv);      
         lem_construct_signed_attestation_signature_assumptions_helper(dv);       
     }
@@ -177,7 +177,7 @@ module Ind_Inv_DV_Next
     ensures inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty(dv)
     ensures inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-    ensures inv_queued_att_duty_is_rcvd_duty1(dv)   
+    ensures inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)   
     ensures same_honest_nodes_in_dv_and_ci(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
                 dv.construct_signed_attestation_signature,

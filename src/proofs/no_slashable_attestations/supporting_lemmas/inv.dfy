@@ -97,8 +97,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
                 && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
             ::
-                // && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
-                // && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
                 inv_data_of_att_share_is_decided_value_body(dv, att_share)
     }  
 
@@ -971,21 +969,21 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }    
 
 
-    predicate inv_only_joins_consensus_instances_if_received_att_duties_body(dv: DVState, hn: BLSPubkey, s: Slot)
-    {
-        && is_honest_node(dv, hn)
-        && var hn_state := dv.honest_nodes_states[hn];
-        && ( s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-             ==> 
-             exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s
-           )
-    }
+    // predicate inv_only_joins_consensus_instances_if_received_att_duties_body(dv: DVState, hn: BLSPubkey, s: Slot)
+    // {
+    //     && is_honest_node(dv, hn)
+    //     && var hn_state := dv.honest_nodes_states[hn];
+    //     && ( s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    //          ==> 
+    //          exists duty: AttestationDuty :: duty in hn_state.all_rcvd_duties && duty.slot == s
+    //        )
+    // }
 
-    predicate inv_only_joins_consensus_instances_if_received_att_duties(dv: DVState)
-    {
-        forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn) ::
-            inv_only_joins_consensus_instances_if_received_att_duties_body(dv, hn, s)
-    }  
+    // predicate inv_only_joins_consensus_instances_if_received_att_duties(dv: DVState)
+    // {
+    //     forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn) ::
+    //         inv_only_joins_consensus_instances_if_received_att_duties_body(dv, hn, s)
+    // }  
 
     predicate inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
         dvc: DVCState,
@@ -1244,7 +1242,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
     
     predicate inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(
-        dv: DVState, a: Attestation, a': Attestation, m: BLSPubkey,
+        dv: DVState, 
+        a: Attestation, a': Attestation, 
+        m: BLSPubkey,
         consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
         h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     {
@@ -1278,8 +1278,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             d1 == d2
     }
 
-    predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv: DVState, hn: BLSPubkey, s: Slot, 
-                            db: set<SlashingDBAttestation>, duty: AttestationDuty, vp: AttestationData -> bool)
+    predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(
+        dv: DVState, 
+        hn: BLSPubkey, 
+        s: Slot, 
+        db: set<SlashingDBAttestation>, 
+        duty: AttestationDuty, 
+        vp: AttestationData -> bool)
     requires && is_honest_node(dv, hn)
              && var hn_state := dv.honest_nodes_states[hn];
              && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
@@ -1305,7 +1310,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     
-
+    // TODO
     predicate inv_decided_data_has_a_honest_witness_body(dv: DVState, s: Slot, hn: BLSPubkey) 
     {
         && var ci := dv.consensus_on_attestation_data[s];
@@ -1799,7 +1804,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv_consensus_instances_only_for_rcvd_duties_body(dvc)
     }
 
-    predicate inv_queued_att_duty_is_rcvd_duty1_body(hn_state: DVCState, s: Slot)
+    predicate inv_joined_consensus_instances_implied_the_delivery_of_att_duties_body(hn_state: DVCState, s: Slot)
     requires s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     {
         exists duty: AttestationDuty :: 
@@ -1808,7 +1813,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
 
-    predicate inv_queued_att_duty_is_rcvd_duty1(dv: DVState)
+    predicate inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv: DVState)
     {
         forall hn: BLSPubkey, s: Slot ::
             ( && is_honest_node(dv, hn) 
@@ -1816,7 +1821,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
               && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
             )
             ==>
-            inv_queued_att_duty_is_rcvd_duty1_body(dv.honest_nodes_states[hn], s)                
+            inv_joined_consensus_instances_implied_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)                
     }
 
     predicate inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state: DVCState)    
@@ -2130,5 +2135,30 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             &&  var dvc := dv.honest_nodes_states[hn];
             &&  inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc)
+    }
+
+    predicate inv_data_of_all_created_attestations_is_set_of_decided_values_1(dv: DVState)
+    {
+        forall a | a in dv.all_attestations_created ::
+                && var consa := dv.consensus_on_attestation_data[a.data.slot];
+                && consa.decided_value.isPresent() 
+                && a.data == consa.decided_value.safe_get() 
+    }
+
+    predicate inv_data_of_all_created_attestations_is_set_of_decided_values_2(dv: DVState)
+    {
+        forall slot | slot in dv.consensus_on_attestation_data.Keys ::
+                && var consa := dv.consensus_on_attestation_data[slot];
+                && consa.decided_value.isPresent()
+                ==>
+                exists a | a in dv.all_attestations_created ::
+                        a.data == consa.decided_value.safe_get() 
+    }
+
+    // TODO
+    predicate inv_data_of_all_created_attestations_is_set_of_decided_values(dv: DVState)
+    {
+        && inv_data_of_all_created_attestations_is_set_of_decided_values_1(dv)
+        && inv_data_of_all_created_attestations_is_set_of_decided_values_2(dv)
     }
 }

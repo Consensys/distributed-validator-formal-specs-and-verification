@@ -29,7 +29,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && invs_group_9(dv)
         && invs_group_10(dv)
         && invs_group_11(dv)
-        && invs_group_12(dv)        
+        && invs_group_12(dv)      
+        && invs_group_13(dv)  
     }
 
     predicate invs_group_1(dv: DVState)       
@@ -127,5 +128,16 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv)
         && inv_unique_rcvd_att_duty_per_slot(dv)
         && inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv)
+    }
+
+    predicate invs_group_13(dv: DVState)       
+    {   
+        // && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
+        // && inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)
+        ///             
+        && inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
+        
+        && inv_decided_data_has_a_honest_witness(dv)
+        
     }
 }
