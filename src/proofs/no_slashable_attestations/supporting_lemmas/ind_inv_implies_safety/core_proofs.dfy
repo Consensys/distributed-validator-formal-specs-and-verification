@@ -308,7 +308,7 @@ module Core_Proofs
             lem_no_slashable_submitted_attestations_with_different_slots(dv, a, a');
         }
         else {
-            // lem_no_slashable_submitted_attestations_with_different_slots(dv, a', a);
+            lem_no_slashable_submitted_attestations_with_different_slots(dv, a', a);
         }
     } 
 

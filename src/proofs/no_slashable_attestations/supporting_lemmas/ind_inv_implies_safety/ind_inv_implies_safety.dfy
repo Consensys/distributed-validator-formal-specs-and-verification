@@ -63,27 +63,6 @@ module Ind_Inv_Implies_Safety
         ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
         {
-            // assert 
-            // && |dv.all_nodes| > 0
-            // && inv_quorum_constraints(dv)
-            // && inv_unchanged_honesty(dv)
-            // && inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
-            // && inv_data_of_att_share_is_decided_value(dv)
-            // && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
-            // && inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
-            // && a in dv.all_attestations_created
-            // && is_valid_attestation(a, dv.dv_pubkey)
-            // && a' in dv.all_attestations_created
-            // && is_valid_attestation(a', dv.dv_pubkey)
-            // && inv_decided_data_has_a_honest_witness(dv)
-            // && inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
-            // && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-            // && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-            // && inv_unique_rcvd_att_duty_per_slot(dv)
-            // && inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)
-            // && inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
-            // ;
-
             lem_no_slashable_submitted_attestations(dv, a, a');
         }
     }

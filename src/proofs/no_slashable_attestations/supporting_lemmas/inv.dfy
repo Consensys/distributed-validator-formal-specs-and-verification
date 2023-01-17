@@ -1323,12 +1323,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall s: Slot ::
             && var ci := dv.consensus_on_attestation_data[s];
             && ( ci.decided_value.isPresent()
-                 <==> 
-                 ( exists h_nodes :: 
-                            && is_a_valid_decided_value_according_to_set_of_nodes(ci, h_nodes)            
+                 ==> 
+                 ( exists nodes :: 
+                            && is_a_valid_decided_value_according_to_set_of_nodes(ci, nodes)            
                             && ( forall hn: BLSPubkey :: 
                                         && is_honest_node(dv, hn)
-                                        && hn in h_nodes
+                                        && hn in nodes
                                         ==> 
                                         inv_decided_data_has_a_honest_witness_body(dv, s, hn)                                        
                                 )
