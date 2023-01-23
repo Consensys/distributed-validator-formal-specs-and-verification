@@ -247,7 +247,7 @@ module Invs_DV_Next_2
                         );
 
                 var att_shares := process.rcvd_attestation_shares[attestation_share.data.slot][k];
-                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                assert construct_signed_attestation_signature_assumptions_reverse(
                     process.construct_signed_attestation_signature,
                     process.dv_pubkey,
                     dv.all_nodes                    
@@ -255,14 +255,14 @@ module Invs_DV_Next_2
 
                 assert process.construct_signed_attestation_signature(att_shares).isPresent();
 
-                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                assert construct_signed_attestation_signature_assumptions_reverse(
                     process.construct_signed_attestation_signature,
                     process.dv_pubkey,
                     dv.all_nodes
                 );
 
                 var data: AttestationData :|
-                    construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+                    construct_signed_attestation_signature_assumptions_reverse_helper(
                         process.construct_signed_attestation_signature,
                         process.dv_pubkey,
                         dv.all_nodes,
@@ -365,7 +365,7 @@ module Invs_DV_Next_2
                         );
 
                 var att_shares := process.rcvd_attestation_shares[attestation_share.data.slot][k];
-                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                assert construct_signed_attestation_signature_assumptions_reverse(
                     process.construct_signed_attestation_signature,
                     process.dv_pubkey,
                     dv.all_nodes                    
@@ -373,14 +373,14 @@ module Invs_DV_Next_2
 
                 assert process.construct_signed_attestation_signature(att_shares).isPresent();
 
-                assert construct_signed_attestation_signature_assumptions_helper_reverse(
+                assert construct_signed_attestation_signature_assumptions_reverse(
                     process.construct_signed_attestation_signature,
                     process.dv_pubkey,
                     dv.all_nodes
                 );
 
                 var data: AttestationData :|
-                    construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+                    construct_signed_attestation_signature_assumptions_reverse_helper(
                         process.construct_signed_attestation_signature,
                         process.dv_pubkey,
                         dv.all_nodes,
@@ -587,7 +587,7 @@ module Invs_DV_Next_2
                         var constructed_sig := s.construct_signed_attestation_signature(attestation_shares);         
 
                         var data: AttestationData :|
-                            construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+                            construct_signed_attestation_signature_assumptions_reverse_helper(
                                 s.construct_signed_attestation_signature,
                                 s.dv_pubkey,
                                 s.all_nodes,
@@ -868,7 +868,7 @@ module Invs_DV_Next_2
     requires event.HonestNodeTakingStep?
     requires event.event.AttConsensusDecided?
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)        
+    requires inv_unchanged_paras_of_consensus_instances(s)        
     requires |s.all_nodes| > 0    
     ensures s'.consensus_on_attestation_data[event.event.id].decided_value.safe_get() == event.event.decided_attestation_data; 
     {
@@ -1077,7 +1077,7 @@ module Invs_DV_Next_2
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s)
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires cid in s.consensus_on_attestation_data.Keys
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
@@ -1132,7 +1132,7 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)      
     requires
             && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
@@ -1221,7 +1221,7 @@ module Invs_DV_Next_2
     requires NextEvent(s, event, s')    
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s)
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)      
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s)  
     ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s')   
@@ -1254,12 +1254,12 @@ module Invs_DV_Next_2
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s)  
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)  
     ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s') 
     {
         lem_inv_quorum_constraints_dv_next(s, event, s');
-        lem_inv_unchanged_honesty_dv_next(s, event, s');
+        lem_inv_unchanged_paras_of_consensus_instances_dv_next(s, event, s');
         lem_inv_only_dv_construct_signed_attestation_signature_dv_next(s, event, s');
         lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum(s, event, s');
         lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s, event, s');
@@ -1272,7 +1272,7 @@ module Invs_DV_Next_2
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s)
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s) 
     {
@@ -1299,7 +1299,7 @@ module Invs_DV_Next_2
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
@@ -1826,7 +1826,7 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)      
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s)  
     ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s')    
@@ -1989,7 +1989,7 @@ module Invs_DV_Next_2
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)    
@@ -2070,7 +2070,7 @@ module Invs_DV_Next_2
     // requires NextEventPreCond(s, event)
     // requires NextEvent(s, event, s')  
     // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_honesty(s)
+    // requires inv_unchanged_paras_of_consensus_instances(s)
     // requires same_honest_nodes_in_dv_and_ci(s)
     // requires inv_only_dv_construct_signed_attestation_signature(s)
     // requires inv_data_of_att_share_is_decided_value(s)
@@ -2158,7 +2158,7 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_quorum_constraints(s)
-    requires inv_unchanged_honesty(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)
     requires inv_data_of_att_share_is_decided_value(s)

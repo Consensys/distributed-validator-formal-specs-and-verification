@@ -48,7 +48,7 @@ module Ind_Inv_DV_Next
     ensures invs_group_1(dv')
     {    
         lem_inv_quorum_constraints_dv_next(dv, e, dv');
-        lem_inv_unchanged_honesty_dv_next(dv, e, dv');
+        lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv, e, dv');
         lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, e, dv');
         lem_inv_current_att_duty_is_rcvd_duty_dv_next(dv, e, dv');
         lem_inv_latest_served_duty_is_rcvd_duty_dv_next(dv, e, dv');        
@@ -411,6 +411,16 @@ module Ind_Inv_DV_Next
         lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(dv, e, dv');  
         lem_inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_dv_next(dv, e, dv');  
     }
+
+    lemma lem_ind_inv_dv_next_invs_group_13(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    // ensures invs_group_13(dv')
+    {
+        lem_inv_decided_data_has_an_honest_witness_dv_next(dv, e, dv');
+        lem_inv_all_created_attestations_are_valid_dv_next(dv, e, dv');
+    }
     
     lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
     requires DV.NextEventPreCond(dv, e)
@@ -449,12 +459,14 @@ module Ind_Inv_DV_Next
     ensures invs_group_9(dv')
     ensures invs_group_10(dv')
     ensures invs_group_11(dv')
-    ensures invs_group_12(dv')    
+    ensures invs_group_12(dv')   
+    ensures invs_group_13(dv')    
     {        
         lem_ind_inv_dv_next_invs_group_9(dv, e, dv');       
         lem_ind_inv_dv_next_invs_group_10(dv, e, dv');  
         lem_ind_inv_dv_next_invs_group_11(dv, e, dv');            
         lem_ind_inv_dv_next_invs_group_12(dv, e, dv');                              
+        lem_ind_inv_dv_next_invs_group_13(dv, e, dv');                              
     }
 
     lemma lem_ind_inv_dv_next_ind_inv_helper_a(dv: DVState, e: DV.Event, dv': DVState)       

@@ -20,7 +20,7 @@ module Proofs_Intermediate_Steps
     import opened Helper_Sets_Lemmas    
     
     lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: DVState)
-    requires inv_unchanged_honesty(dv)
+    requires inv_unchanged_paras_of_consensus_instances(dv)
     ensures same_honest_nodes_in_dv_and_ci(dv)
     { }
         

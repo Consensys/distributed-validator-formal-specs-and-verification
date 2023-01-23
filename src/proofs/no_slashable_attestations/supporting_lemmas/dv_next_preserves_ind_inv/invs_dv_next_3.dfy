@@ -448,7 +448,7 @@ module Invs_DV_Next_3
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_quorum_constraints(dv)
-    requires inv_unchanged_honesty(dv)
+    requires inv_unchanged_paras_of_consensus_instances(dv)
     requires inv_only_dv_construct_signed_attestation_signature(dv)
     requires same_honest_nodes_in_dv_and_ci(dv)    
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
@@ -459,11 +459,11 @@ module Invs_DV_Next_3
     ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {   
         lem_inv_quorum_constraints_dv_next(dv, event, dv');
-        lem_inv_unchanged_honesty_dv_next(dv, event, dv');
+        lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv, event, dv');
         lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
 
         assert && inv_quorum_constraints(dv')
-               && inv_unchanged_honesty(dv')
+               && inv_unchanged_paras_of_consensus_instances(dv')
                && inv_only_dv_construct_signed_attestation_signature(dv');
         
 

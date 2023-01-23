@@ -49,7 +49,7 @@ module Invs_DV_Next_4
     predicate lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(s: DVState) 
     {
         && inv_quorum_constraints(s)
-        && inv_unchanged_honesty(s)
+        && inv_unchanged_paras_of_consensus_instances(s)
         && inv_only_dv_construct_signed_attestation_signature(s)
         && same_honest_nodes_in_dv_and_ci(s)    
         && invNetwork(s)

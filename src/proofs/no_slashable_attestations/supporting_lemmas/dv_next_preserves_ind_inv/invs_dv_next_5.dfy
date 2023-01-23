@@ -13,6 +13,7 @@ include "invs_dv_next_1.dfy"
 include "invs_dv_next_2.dfy"
 include "invs_dv_next_3.dfy"
 include "invs_dv_next_4.dfy"
+include "invs_fnc_2.dfy"
 
 include "../inv.dfy"
 
@@ -36,6 +37,7 @@ module Invs_DV_Next_5
     import opened Common_Proofs
     import opened DVC_Spec_Axioms
     import opened Helper_Pred_Fcn
+    import opened Fnc_Invs_2
 
     lemma lem_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
         process: DVCState,
@@ -1341,5 +1343,267 @@ module Invs_DV_Next_5
             case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
 
         }
-    }     
+    }   
+    
+    lemma lem_inv_decided_data_has_an_honest_witness_add_block_to_bn_with_event(
+        dv: DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        dv': DVState
+    )    
+    requires add_block_to_bn_with_event.requires(dv, node, nodeEvent)
+    requires dv' == add_block_to_bn_with_event(dv, node, nodeEvent)
+    requires inv_decided_data_has_an_honest_witness(dv)
+    ensures  inv_decided_data_has_an_honest_witness(dv')
+    {        
+        
+    }   
+
+    lemma lem_inv_decided_data_has_an_honest_witness_ConsensusSpec_NextConsensusDecides<D(!new, 0)>(
+        s: ConsensusInstance,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
+        s': ConsensusInstance
+    )    
+    requires && ConsensusSpec.NextConsensusDecides.requires(s, honest_nodes_validity_predicates, s')
+             && ConsensusSpec.NextConsensusDecides(s, honest_nodes_validity_predicates, s')
+    requires inv_decided_data_has_an_honest_witness_body(s)
+    requires isConditionForSafetyTrue(s)
+    ensures  inv_decided_data_has_an_honest_witness_body(s')
+    {
+
+    }
+
+    lemma lem_inv_decided_data_has_an_honest_witness_ConsensusSpec_Next<D(!new, 0)>(
+        s: ConsensusInstance,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
+        s': ConsensusInstance,
+        output: Optional<OutCommand>
+    )    
+    requires && ConsensusSpec.Next.requires(s, honest_nodes_validity_predicates, s', output)
+             && ConsensusSpec.Next(s, honest_nodes_validity_predicates, s', output)
+    requires inv_decided_data_has_an_honest_witness_body(s)
+    requires isConditionForSafetyTrue(s)
+    ensures  inv_decided_data_has_an_honest_witness_body(s')
+    {
+        lem_inv_decided_data_has_an_honest_witness_ConsensusSpec_NextConsensusDecides(s, honest_nodes_validity_predicates, s');
+    }
+
+    lemma lem_inv_decided_data_has_an_honest_witness_ConsensusInstanceStep(
+        dv: DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        nodeOutputs: Outputs,
+        dv': DVState
+    )    
+    requires && DV.ConsensusInstanceStep.requires(dv, node, nodeEvent, nodeOutputs, dv')
+             && DV.ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv')
+    requires inv_decided_data_has_an_honest_witness(dv)
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(dv)
+    ensures  inv_decided_data_has_an_honest_witness(dv')
+    {        
+        forall cid | cid in dv.consensus_on_attestation_data.Keys 
+        ensures inv_decided_data_has_an_honest_witness_body(dv'.consensus_on_attestation_data[cid])
+        {
+            assert isConditionForSafetyTrue(dv.consensus_on_attestation_data[cid]);
+
+            var output := 
+                if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                    Some(Decided(node, nodeEvent.decided_attestation_data))
+                else
+                    None
+                ;
+
+            var validityPredicates := 
+                map n |
+                        && n in dv.honest_nodes_states.Keys 
+                        && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                    ::
+                        dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+                ;
+
+            assert  ConsensusSpec.Next(
+                        dv.consensus_on_attestation_data[cid],
+                        validityPredicates,
+                        dv'.consensus_on_attestation_data[cid],
+                        output
+                        );
+
+            lem_inv_decided_data_has_an_honest_witness_ConsensusSpec_Next(
+                dv.consensus_on_attestation_data[cid],
+                validityPredicates,
+                dv'.consensus_on_attestation_data[cid],
+                output
+                );
+        }
+            
+    } 
+
+    lemma lem_inv_decided_data_has_an_honest_witness_NextHonestAfterAddingBlockToBn(
+        dv: DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        nodeOutputs: Outputs,
+        dv': DVState
+    )    
+    requires && DV.NextHonestAfterAddingBlockToBn.requires(dv, node, nodeEvent, nodeOutputs, dv')
+             && DV.NextHonestAfterAddingBlockToBn(dv, node, nodeEvent, nodeOutputs, dv')
+    requires inv_decided_data_has_an_honest_witness(dv)
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(dv)
+    ensures  inv_decided_data_has_an_honest_witness(dv')
+    {        
+        assert ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv');
+        lem_inv_decided_data_has_an_honest_witness_ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv');
+    } 
+
+    lemma lem_inv_decided_data_has_an_honest_witness_NextHonestNode(
+        dv: DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        nodeOutputs: Outputs,
+        dv': DVState
+    )    
+    requires && DV.NextHonestNode.requires(dv, node, nodeEvent, nodeOutputs, dv')
+             && DV.NextHonestNode(dv, node, nodeEvent, nodeOutputs, dv')
+    requires inv_decided_data_has_an_honest_witness(dv)
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(dv)
+    ensures  inv_decided_data_has_an_honest_witness(dv')
+    {        
+        assert node in dv.honest_nodes_states.Keys;
+        var dv_w_honest_node_states_updated := add_block_to_bn_with_event(dv, node, nodeEvent);
+
+        lem_inv_decided_data_has_an_honest_witness_add_block_to_bn_with_event(            
+            dv, 
+            node, 
+            nodeEvent, 
+            dv_w_honest_node_states_updated
+            );
+
+        assert NextHonestAfterAddingBlockToBn(dv_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, dv');
+
+        lem_inv_decided_data_has_an_honest_witness_NextHonestAfterAddingBlockToBn(
+            dv_w_honest_node_states_updated, 
+            node, 
+            nodeEvent, 
+            nodeOutputs, dv');
+    }   
+
+    lemma lem_inv_decided_data_has_an_honest_witness_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_decided_data_has_an_honest_witness(dv)
+    requires inv_consensus_instances_are_isConditionForSafetyTrue(dv)
+    ensures  inv_decided_data_has_an_honest_witness(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                lem_inv_decided_data_has_an_honest_witness_NextHonestNode(
+                    dv,
+                    node, 
+                    nodeEvent, 
+                    nodeOutputs,
+                    dv'
+                );    
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert inv_decided_data_has_an_honest_witness(dv');
+        }   
+    }          
+
+    lemma lem_inv_data_of_all_created_attestations_is_set_of_decided_values_dv_next(
+        dv: DVState
+    )    
+    requires inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
+    requires inv_data_of_att_share_is_decided_value(dv)
+    requires inv_all_created_attestations_are_valid(dv)
+    ensures  inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
+    {        
+        forall a | a in dv.all_attestations_created && is_valid_attestation(a, dv.dv_pubkey)
+        ensures && var consa := dv.consensus_on_attestation_data[a.data.slot];
+                && consa.decided_value.isPresent() 
+                && a.data == consa.decided_value.safe_get() 
+        {
+            var hn: BLSPubkey, att_share: AttestationShare 
+                    :| 
+                    inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn, att_share, a);
+
+            assert a.data.slot == att_share.data.slot;
+            assert  inv_data_of_att_share_is_decided_value_body(dv, att_share);
+            assert  && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
+                    && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
+                    ;
+        }
+    }           
+
+    lemma lem_inv_all_created_attestations_are_valid_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_only_dv_construct_signed_attestation_signature(dv)
+    requires inv_all_created_attestations_are_valid(dv)
+    ensures  inv_all_created_attestations_are_valid(dv')
+    {        
+        lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
+        assert inv_only_dv_construct_signed_attestation_signature(dv');
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>     
+                        lem_inv_outputs_attestations_submited_are_valid_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
+                        {
+                            lem_inv_outputs_attestations_submited_are_valid_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');      
+                        }                 
+                        
+                    case ReceivedAttestationShare(attestation_share) =>                         
+                        lem_inv_outputs_attestations_submited_are_valid_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_outputs_attestations_submited_are_valid_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendAttestationShares =>                         
+                        
+                    case NoEvent => 
+                        
+                }
+
+                assert inv_outputs_attestations_submited_are_valid(nodeOutputs, dv.dv_pubkey);
+                assert inv_all_created_attestations_are_valid(dv');
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert NextAdversary(
+                    dv,
+                    node,
+                    new_attestation_share_sent,
+                    messagesReceivedByTheNode,
+                    dv'
+                );
+                
+                var new_aggregated_attestations_sent := dv'.all_attestations_created - dv.all_attestations_created;
+
+                forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent 
+                ensures is_valid_attestation(aggregated_attestation_sent, dv.dv_pubkey)
+                {
+                    assert is_valid_attestation(aggregated_attestation_sent, dv.dv_pubkey);
+                }
+                                
+                assert inv_all_created_attestations_are_valid(dv');
+        }  
+    }         
+
 }

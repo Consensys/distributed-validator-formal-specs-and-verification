@@ -33,11 +33,11 @@ module Invs_DV_Next_1
     ensures inv_quorum_constraints(dv')
     { }    
 
-    lemma lem_inv_unchanged_honesty_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_unchanged_honesty(dv)
-    ensures inv_unchanged_honesty(dv')
+    requires inv_unchanged_paras_of_consensus_instances(dv)
+    ensures inv_unchanged_paras_of_consensus_instances(dv')
     { }    
 
     lemma lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
@@ -351,7 +351,7 @@ module Invs_DV_Next_1
     // // requires NextEventPreCond(dv, event)
     // // requires NextEvent(dv, event, dv')    
     // // requires inv_quorum_constraints(dv)  
-    // // requires inv_unchanged_honesty(dv)
+    // // requires inv_unchanged_paras_of_consensus_instances(dv)
     // // requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
     // // 
     // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
@@ -414,7 +414,7 @@ module Invs_DV_Next_1
     // // requires NextEventPreCond(dv, event)
     // // requires NextEvent(dv, event, dv')    
     // // requires inv_quorum_constraints(dv)  
-    // // requires inv_unchanged_honesty(dv)  
+    // // requires inv_unchanged_paras_of_consensus_instances(dv)  
     // // requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
     // // 
     // // requires inv_latest_served_duty_is_rcvd_duty(dv)

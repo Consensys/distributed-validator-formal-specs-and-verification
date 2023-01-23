@@ -125,7 +125,7 @@ module ConsensusSpec
                 )
                 && s'.honest_nodes_status.Keys == s.honest_nodes_status.Keys
                 && (forall n | n in s.honest_nodes_status.Keys ::
-                    if n in honest_nodes_validity_predicates then 
+                    if n in honest_nodes_validity_predicates.Keys then 
                         s.honest_nodes_status[n] == DECIDED ==> s'.honest_nodes_status[n] == DECIDED
                     else 
                         s'.honest_nodes_status[n] == s.honest_nodes_status[n]

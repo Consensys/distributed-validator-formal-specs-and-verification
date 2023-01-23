@@ -36,10 +36,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_1(dv: DVState)       
     {
         &&  inv_quorum_constraints(dv)
-        &&  inv_unchanged_honesty(dv)
+        &&  inv_unchanged_paras_of_consensus_instances(dv)
         &&  inv_only_dv_construct_signed_attestation_signature(dv)
-        // IMPORTANT: Wrong name, should have
-        // &&  inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
         &&  inv_current_att_duty_is_rcvd_duty(dv)
         &&  inv_latest_served_duty_is_rcvd_duty(dv)
     }
@@ -137,7 +135,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         ///             
         && inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
         
-        && inv_decided_data_has_a_honest_witness(dv)
-        
+        && inv_decided_data_has_an_honest_witness(dv)
+        && inv_all_created_attestations_are_valid(dv)
     }
 }

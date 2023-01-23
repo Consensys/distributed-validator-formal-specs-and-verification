@@ -1989,4 +1989,260 @@ module Fnc_Invs_2
             assert dvc.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
         }
     }
+
+    lemma lem_inv_one_honest_dvc_is_required_to_pass_signer_threshold(
+        dv: DVState,
+        att_shares: set<AttestationShare>,
+        signing_root: Root
+    )
+    requires signer_threshold(dv.all_nodes, att_shares, signing_root)
+    requires inv_quorum_constraints(dv)
+    ensures && var signers := 
+                    set signer, att_share | 
+                        && att_share in att_shares
+                        && signer in dv.all_nodes
+                        && verify_bls_siganture(signing_root, att_share.signature, signer)
+                    ::
+                        signer;
+            && exists hn :: hn in signers && is_honest_node(dv, hn)
+    {   
+        var all_nodes := dv.all_nodes;
+        var byz := dv.adversary.nodes;
+        var signers := 
+                    set signer, att_share | 
+                        && att_share in att_shares
+                        && signer in all_nodes
+                        && verify_bls_siganture(signing_root, att_share.signature, signer)
+                    ::
+                        signer;
+
+        assert |signers| >= quorum(|all_nodes|);
+        assert signers <= all_nodes;
+        assert |byz| <= f(|all_nodes|);
+
+        lemmaThereExistsAnHonestInQuorum(all_nodes, byz, signers);
+    }  
+
+    lemma lem_f_construct_aggregated_attestation_for_new_attestation_share_construct_valid_attestations(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>, 
+        attestation: Attestation,
+        attestation_share: AttestationShare, 
+        k: (AttestationData, seq<bool>),
+        rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>
+    )
+    requires construct_signed_attestation_signature_assumptions_helper(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes
+             )
+    requires attestation_share.data.slot in rcvd_attestation_shares.Keys
+    requires k in rcvd_attestation_shares[attestation_share.data.slot]
+    requires construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()    
+    requires do_all_att_shares_have_the_same_data(rcvd_attestation_shares[attestation_share.data.slot][k], attestation.data)
+    requires && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(attestation.data.target.epoch));
+             && var attestation_signing_root := compute_attestation_signing_root(attestation.data, fork_version);      
+             && signer_threshold(all_nodes, rcvd_attestation_shares[attestation_share.data.slot][k], attestation_signing_root) 
+    requires attestation 
+             == 
+             f_construct_aggregated_attestation_for_new_attestation_share(
+                            attestation_share,
+                            k, 
+                            construct_signed_attestation_signature,
+                            rcvd_attestation_shares
+                        );
+    ensures is_valid_attestation(attestation, dv_pubkey)
+    {
+        
+    }
+
+    lemma lem_inv_outputs_attestations_submited_are_valid_f_start_next_duty(
+        process: DVCState, 
+        attestation_duty: AttestationDuty, 
+        process': DVCState)
+    requires f_start_next_duty.requires(process, attestation_duty)
+    requires process' == f_start_next_duty(process, attestation_duty).state    
+    ensures inv_outputs_attestations_submited_are_valid(
+                f_start_next_duty(process, attestation_duty).outputs,
+                process'.dv_pubkey
+                )
+    { }  
+
+    lemma lem_inv_outputs_attestations_submited_are_valid_f_check_for_next_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires process' == f_check_for_next_duty(process, attestation_duty).state
+    ensures inv_outputs_attestations_submited_are_valid(
+                f_check_for_next_duty(process, attestation_duty).outputs,
+                process'.dv_pubkey
+                )
+    { }
+
+    lemma lem_inv_outputs_attestations_submited_are_valid_f_serve_attestation_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(process, attestation_duty)
+    requires process' == f_serve_attestation_duty(process, attestation_duty).state
+    ensures inv_outputs_attestations_submited_are_valid(
+                f_serve_attestation_duty(process, attestation_duty).outputs,
+                process'.dv_pubkey
+                )
+    {
+        var process_rcvd_duty := 
+                process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
+        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
+        lem_inv_outputs_attestations_submited_are_valid_f_check_for_next_duty(
+            process_after_stopping_active_consensus_instance,
+            attestation_duty,
+            process'
+        );   
+    } 
+
+    lemma lem_inv_outputs_attestations_submited_are_valid_f_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
+    ensures inv_outputs_attestations_submited_are_valid(
+                f_att_consensus_decided(process, id, decided_attestation_data).outputs,
+                process'.dv_pubkey
+                )
+    { }  
+
+    lemma lem_inv_outputs_attestations_submited_are_valid_f_listen_for_attestation_shares(
+        process: DVCState,
+        attestation_share: AttestationShare,
+        process': DVCState
+    )
+    requires f_listen_for_attestation_shares.requires(process, attestation_share)
+    requires process' == f_listen_for_attestation_shares(process, attestation_share).state
+    requires construct_signed_attestation_signature_assumptions_helper(
+                process.construct_signed_attestation_signature,
+                process.dv_pubkey,
+                process.peers
+             )
+    ensures inv_outputs_attestations_submited_are_valid(
+                f_listen_for_attestation_shares(process, attestation_share).outputs,
+                process'.dv_pubkey
+                )
+    { 
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+
+        if  || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
+            || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
+            || (activate_att_consensus_intances == {} && !process.current_attestation_duty.isPresent() && process.latest_attestation_duty.isPresent() && process.latest_attestation_duty.safe_get().slot < attestation_share.data.slot) 
+        {
+            var k := (attestation_share.data, attestation_share.aggregation_bits);
+            var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
+            
+            var new_attestation_shares_db := 
+                    process.rcvd_attestation_shares[
+                        attestation_share.data.slot := 
+                            attestation_shares_db_at_slot[
+                                        k := 
+                                            getOrDefault(attestation_shares_db_at_slot, k, {}) + 
+                                            {attestation_share}
+                                        ]
+                            ];
+
+            var process_with_new_att_shares_db := 
+                    process.(
+                        rcvd_attestation_shares := new_attestation_shares_db
+                    );
+
+                        
+            if process_with_new_att_shares_db.construct_signed_attestation_signature(process_with_new_att_shares_db.rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent() 
+            {
+                var aggregated_attestation := 
+                    f_construct_aggregated_attestation_for_new_attestation_share(
+                        attestation_share,
+                        k, 
+                        process_with_new_att_shares_db.construct_signed_attestation_signature,
+                        process_with_new_att_shares_db.rcvd_attestation_shares
+                    );
+
+                var new_outputs := getEmptyOuputs().(
+                                            attestations_submitted := {aggregated_attestation} 
+                                        );
+
+                var process_after_submitting_attestations := 
+                    process_with_new_att_shares_db.(
+                        bn := process_with_new_att_shares_db.bn.(
+                            attestations_submitted := process_with_new_att_shares_db.bn.attestations_submitted + [aggregated_attestation]
+                        )
+                    );
+
+                assert  process.construct_signed_attestation_signature
+                        ==
+                        process_after_submitting_attestations.construct_signed_attestation_signature
+                        ;
+
+                assert  && process.dv_pubkey == process_after_submitting_attestations.dv_pubkey
+                        && process.peers == process_after_submitting_attestations.peers;
+
+                var rcvd_attestation_shares := process_with_new_att_shares_db.rcvd_attestation_shares;
+                var construct_signed_attestation_signature := process_with_new_att_shares_db.construct_signed_attestation_signature;
+                
+                assert  &&  attestation_share.data.slot in rcvd_attestation_shares.Keys
+                        &&  k in rcvd_attestation_shares[attestation_share.data.slot]
+                        &&  construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()    
+                        &&  do_all_att_shares_have_the_same_data(
+                                rcvd_attestation_shares[attestation_share.data.slot][k], 
+                                aggregated_attestation.data
+                            )
+                        &&  var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(aggregated_attestation.data.target.epoch));
+                        &&  var attestation_signing_root := compute_attestation_signing_root(aggregated_attestation.data, fork_version);      
+                        &&  signer_threshold(
+                                process_with_new_att_shares_db.peers, 
+                                rcvd_attestation_shares[attestation_share.data.slot][k], attestation_signing_root
+                            ) 
+                        &&  aggregated_attestation 
+                            == 
+                            f_construct_aggregated_attestation_for_new_attestation_share(
+                                attestation_share,
+                                k, 
+                                construct_signed_attestation_signature,
+                                rcvd_attestation_shares
+                            )
+                        ;
+            }
+            else 
+            {
+                assert inv_outputs_attestations_submited_are_valid(
+                            f_listen_for_attestation_shares(process, attestation_share).outputs,
+                            process'.dv_pubkey
+                            );
+            }
+        }            
+        else 
+        {
+            assert inv_outputs_attestations_submited_are_valid(
+                        f_listen_for_attestation_shares(process, attestation_share).outputs,
+                        process'.dv_pubkey
+                        );
+        }
+            
+    }
+
+    lemma lem_inv_outputs_attestations_submited_are_valid_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    ensures inv_outputs_attestations_submited_are_valid(
+                f_listen_for_new_imported_blocks(process, block).outputs,
+                process'.dv_pubkey
+                )
+    { }  
 }

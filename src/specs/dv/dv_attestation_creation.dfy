@@ -72,7 +72,7 @@ module DV
            
     }    
 
-    predicate construct_signed_attestation_signature_assumptions_helper_forward(
+    predicate construct_signed_attestation_signature_assumptions_forward(
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
@@ -90,7 +90,7 @@ module DV
             )
     }
 
-    predicate construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+    predicate construct_signed_attestation_signature_assumptions_reverse_helper(
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>,
@@ -110,7 +110,7 @@ module DV
         && signer_threshold(all_nodes, att_shares, signing_root) 
     }
 
-    predicate construct_signed_attestation_signature_assumptions_helper_reverse(
+    predicate construct_signed_attestation_signature_assumptions_reverse(
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
@@ -120,7 +120,7 @@ module DV
             && construct_signed_attestation_signature(att_shares).isPresent()
         ::
         exists data: AttestationData ::      
-            construct_signed_attestation_signature_assumptions_helper_reverse_helper(
+            construct_signed_attestation_signature_assumptions_reverse_helper(
                 construct_signed_attestation_signature,
                 dv_pubkey,
                 all_nodes,
@@ -136,14 +136,14 @@ module DV
     )
     {
         && (                            
-            construct_signed_attestation_signature_assumptions_helper_forward(
+            construct_signed_attestation_signature_assumptions_forward(
                 construct_signed_attestation_signature,
                 dv_pubkey,
                 all_nodes
             )
         )   
         && (
-            construct_signed_attestation_signature_assumptions_helper_reverse(
+            construct_signed_attestation_signature_assumptions_reverse(
                 construct_signed_attestation_signature,
                 dv_pubkey,
                 all_nodes
@@ -266,7 +266,7 @@ module DV
     {
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
         && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
-        verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
+        && verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
     }    
 
       // TODO: Modify isMyAttestation to include the entirety the forall premise 
@@ -511,7 +511,7 @@ module DV
             ;
         && NetworkSpec.Next(s.att_network, s'.att_network, node, nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
         // TODO
-        // IMPORTANT: ConsensusInstanceStep should also appear in NextAdversary
+        // IMPORTANT: ConsensusInstanceStep should also appear in NextAdversary?
         && ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
     }    
@@ -543,6 +543,7 @@ module DV
                             && var constructed_sig := s.construct_signed_attestation_signature(attestation_shares);
                             && constructed_sig.isPresent()
                             && constructed_sig.safe_get() == aggregated_attestation_sent.signature
+                            && do_all_att_shares_have_the_same_data(attestation_shares, aggregated_attestation_sent.data)
             )
             && s' == s.(
                 att_network := s'.att_network,
