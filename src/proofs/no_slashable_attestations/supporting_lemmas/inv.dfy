@@ -28,7 +28,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && n in s.honest_nodes_states.Keys
     }
 
-    predicate pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
+    predicate inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
         dv: DVState,
         dvc: DVCState
     )
@@ -42,26 +42,26 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             rcvd_attestation_shares[i][j] <= dv.att_network.allMessagesSent
     }
 
-    predicate pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node(
+    predicate inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node(
         dv: DVState,
         n: BLSPubkey
     )
     requires n in dv.honest_nodes_states.Keys
     {
-        pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
+        inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
             dv,
             dv.honest_nodes_states[n]
         )
     }
 
-    predicate pred_rcvd_attestation_shares_is_in_all_messages_sent(
+    predicate inv_rcvd_attestation_shares_is_in_all_messages_sent(
         dv: DVState    
     )
     {
         forall n |
             n in dv.honest_nodes_states
             ::
-            pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node(dv, n)
+            inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node(dv, n)
     }  
 
     predicate inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
@@ -2261,5 +2261,173 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             inv_slashing_db_att_in_db_for_low_slot_is_in_db_for_high_slot_body(dv.honest_nodes_states[hn])
         
+    }
+
+     predicate pred_is_owner_of_attestaion_share(
+        dvc: DVCState,
+        att_share: AttestationShare
+    )
+    {
+        && var decided_attestation_data := att_share.data;
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        && var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+        && var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, dvc.rs);
+        && att_share.signature == attestation_signature_share
+    }
+
+    predicate pred_is_owner_of_one_attestaion_share_in_set_of_shares(
+        dvc: DVCState,
+        attestation_shares: set<AttestationShare>
+    )
+    {
+        exists share | share in attestation_shares ::
+            pred_is_owner_of_attestaion_share(dvc, share)
+    }
+
+    predicate pred_attestation_is_created_based_on_sent_attestation_shares(
+        dv: DVState,
+        attestation: Attestation,
+        attestation_shares: set<AttestationShare>
+    )
+    {
+        && attestation_shares <= dv.att_network.allMessagesSent
+        && var constructed_sig := dv.construct_signed_attestation_signature(attestation_shares);
+        && constructed_sig.isPresent()
+        && constructed_sig.safe_get() == attestation.signature
+        && do_all_att_shares_have_the_same_data(attestation_shares, attestation.data)
+    }
+
+    predicate inv_exists_honest_node_that_contributed_to_creation_of_submitted_attestations_body(
+        dv: DVState,
+        a: Attestation, 
+        a': Attestation
+    )
+    {
+        exists hn: BLSPubkey, att_shares: set<AttestationShare>, att_shares': set<AttestationShare> ::
+            && is_honest_node(dv, hn)
+            && pred_attestation_is_created_based_on_sent_attestation_shares(dv, a, att_shares)
+            && pred_is_owner_of_one_attestaion_share_in_set_of_shares(dv.honest_nodes_states[hn], att_shares)
+            && pred_attestation_is_created_based_on_sent_attestation_shares(dv, a', att_shares')
+            && pred_is_owner_of_one_attestaion_share_in_set_of_shares(dv.honest_nodes_states[hn], att_shares')
+    }
+
+    predicate inv_exists_honest_node_that_contributed_to_creation_of_submitted_attestations(
+        dv: DVState)
+    {
+        forall a: Attestation, a': Attestation |
+            && a in dv.all_attestations_created
+            && a' in dv.all_attestations_created
+            ::
+            inv_exists_honest_node_that_contributed_to_creation_of_submitted_attestations_body(dv, a, a')
+    }
+    
+    predicate inv_if_honest_node_sends_att_share_it_receives_att_data_before_body(
+        dvc: DVCState,
+        att_share: AttestationShare
+    )
+    {
+        && var att_data: AttestationData := att_share.data;
+        && var slot: Slot := att_data.slot;
+        && var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := att_data.source.epoch,
+                                            target_epoch := att_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(att_data)));
+        && slashing_db_attestation in dvc.attestation_slashing_db
+        && exists att_duty: AttestationDuty, vp: AttestationData -> bool :: 
+                (   && att_duty in dvc.all_rcvd_duties
+                    && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                    && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
+                    // && consensus_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty)
+                    && vp(att_data)
+                )
+    }
+
+    predicate inv_if_honest_node_sends_att_share_it_receives_att_data_before(dv: DVState)
+    {
+        forall hn, att_share |
+            && is_honest_node(dv, hn)
+            && att_share in dv.att_network.allMessagesSent
+            && var dvc := dv.honest_nodes_states[hn];
+            && pred_is_owner_of_attestaion_share(dvc, att_share)
+            ::
+            && var dvc := dv.honest_nodes_states[hn];
+            && inv_if_honest_node_sends_att_share_it_receives_att_data_before_body(dvc, att_share)
+    }
+
+
+    predicate inv_attestation_is_created_with_shares_from_quorum(dv: DVState)
+    {
+        forall att: Attestation | att in dv.all_attestations_created ::
+            exists att_shares ::
+                            && att_shares <= dv.att_network.allMessagesSent
+                            && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
+                            && constructed_sig.isPresent()
+                            && constructed_sig.safe_get() == att.signature
+                            && do_all_att_shares_have_the_same_data(att_shares, att.data)
+                            && var signers :=
+                                    set signer, att_share | 
+                                            && att_share in att_shares
+                                            && signer in dv.all_nodes
+                                            && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+                                            && var signing_root := compute_attestation_signing_root(att_share.data, fork_version);
+                                            && verify_bls_siganture(signing_root, att_share.signature, signer)
+                                            ::
+                                            signer;
+                            && |signers| >= quorum(|dv.all_nodes|)
+    }
+
+    predicate pred_intersection_of_honest_nodes_in_two_quorum_contains_an_honest_node(
+        dv: DVState,
+        h_nodes_1: set<BLSPubkey>,
+        h_nodes_2: set<BLSPubkey>
+    )
+    {
+        && h_nodes_1 <= dv.honest_nodes_states.Keys
+        && h_nodes_2 <= dv.honest_nodes_states.Keys
+        && |h_nodes_1| >= quorum(|dv.all_nodes|) - |dv.adversary.nodes|
+        && |h_nodes_2| >= quorum(|dv.all_nodes|) - |dv.adversary.nodes|
+        ==>
+        exists hn ::
+            && hn in dv.honest_nodes_states.Keys
+            && hn in h_nodes_1
+            && hn in h_nodes_2
+    }
+
+    predicate inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
+        dv: DVState,
+        dvc: DVCState, 
+        slot: Slot, 
+        vp: AttestationData -> bool, 
+        db: set<SlashingDBAttestation>
+    )
+    {
+        forall att_share: AttestationShare | 
+            && att_share in dv.att_network.allMessagesSent
+            && is_owner_of_att_share(att_share, dvc)
+            && att_share.data.slot < slot
+            ::
+            && var att_data := att_share.data;
+            && var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := att_data.source.epoch,
+                                            target_epoch := att_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(att_data)));
+            && slashing_db_attestation in db
+    }
+
+    predicate inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv: DVState)
+    {
+        forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
+            && is_honest_node(dv, hn) 
+            && var dvc := dv.honest_nodes_states[hn];
+            && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist
+            && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot]
+            && db in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+            :: 
+            inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
+                dv,
+                dv.honest_nodes_states[hn],
+                slot,
+                vp,
+                db)
     }
 }

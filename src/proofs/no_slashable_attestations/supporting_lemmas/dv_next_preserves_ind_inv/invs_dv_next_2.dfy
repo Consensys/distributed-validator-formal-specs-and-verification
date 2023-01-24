@@ -217,7 +217,7 @@ module Invs_DV_Next_2
     )
     requires inv_quorum_constraints(dv)
     requires attestation_share in dv.att_network.allMessagesSent
-    requires pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process)
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process)
     requires ( forall a | a in process.bn.attestations_submitted :: exists hn', att_share: AttestationShare ::
                     inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a)
              )
@@ -270,7 +270,7 @@ module Invs_DV_Next_2
                         data                
                     );
 
-                assert pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process);
+                assert inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process);
                 assert att_shares <= dv.att_network.allMessagesSent;
 
                 var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
@@ -339,7 +339,7 @@ module Invs_DV_Next_2
     )
     requires inv_quorum_constraints(dv)
     requires attestation_share in dv.att_network.allMessagesSent
-    requires pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process)
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process)
     ensures forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted ::
                         exists hn', att_share: AttestationShare :: inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(dv, hn', att_share, a);
     {
@@ -432,7 +432,7 @@ module Invs_DV_Next_2
         }   
     }    
 
-    lemma lem_pred_rcvd_attestation_shares_is_in_all_messages_sent_f_listen_for_attestation_shares(
+    lemma lem_inv_rcvd_attestation_shares_is_in_all_messages_sent_f_listen_for_attestation_shares(
         process: DVCState,
         attestation_share: AttestationShare,
         s': DVCState,
@@ -440,9 +440,9 @@ module Invs_DV_Next_2
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires s' == f_listen_for_attestation_shares(process, attestation_share).state
-    requires pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process)
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, process)
     requires attestation_share in dv.att_network.allMessagesSent
-    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, s') 
+    ensures inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(dv, s') 
     { }    
 
     lemma lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(
@@ -487,7 +487,7 @@ module Invs_DV_Next_2
     requires inv_only_dv_construct_signed_attestation_signature(s)  
     requires invNetwork(s)
     requires inv_quorum_constraints(s)
-    requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)    
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent(s)    
     ensures inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s')
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -657,7 +657,7 @@ module Invs_DV_Next_2
         }
     }        
 
-    lemma lem_pred_rcvd_attestation_shares_is_in_all_messages_sent(
+    lemma lem_inv_rcvd_attestation_shares_is_in_all_messages_sent(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -665,8 +665,8 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires invNetwork(s)
-    requires pred_rcvd_attestation_shares_is_in_all_messages_sent(s)
-    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(s')
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent(s)
+    ensures inv_rcvd_attestation_shares_is_in_all_messages_sent(s')
     {
         match event 
         {
@@ -685,7 +685,7 @@ module Invs_DV_Next_2
                         assert multiset(addReceipientToMessages<AttestationShare>({attestation_share}, node)) <= s.att_network.messagesInTransit;
                         assert MessaageWithRecipient(message := attestation_share, receipient := node) in s.att_network.messagesInTransit;        
                         assert attestation_share in s.att_network.allMessagesSent;                    
-                        lem_pred_rcvd_attestation_shares_is_in_all_messages_sent_f_listen_for_attestation_shares(
+                        lem_inv_rcvd_attestation_shares_is_in_all_messages_sent_f_listen_for_attestation_shares(
                             s_node,
                             attestation_share,
                             s'_node,
@@ -695,10 +695,10 @@ module Invs_DV_Next_2
                     case ImportedNewBlock(block) => 
                         var s_node := f_add_block_to_bn(s_node, nodeEvent.block);
                         lem_f_listen_for_new_imported_blocksd_unchanged_dvc_vars(s_node, block, s'_node);
-                        assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');      
+                        assert inv_rcvd_attestation_shares_is_in_all_messages_sent(s');      
 
                     case ResendAttestationShares => 
-                        assert pred_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
+                        assert inv_rcvd_attestation_shares_is_in_all_messages_sent(s');                    
                     case NoEvent => 
 
                 }

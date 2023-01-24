@@ -155,11 +155,11 @@ module Ind_Inv_DV_Next
     ensures is_sequence_attestation_duties_to_be_served_orderd(dv)
     ensures inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     ensures inv_current_latest_attestation_duty_match(dv)
-    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    ensures inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     {    
         lem_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);
         lem_inv_current_latest_attestation_duty_match(dv);
-        lem_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
+        lem_inv_rcvd_attn_shares_are_from_sent_messages_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv);
     }
 
     lemma lem_ind_inv_implies_intermediate_steps_helper_4(dv: DVState)
@@ -186,7 +186,7 @@ module Ind_Inv_DV_Next
     ensures is_sequence_attestation_duties_to_be_served_orderd(dv)     
     ensures inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     ensures inv_current_latest_attestation_duty_match(dv)
-    ensures pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    ensures inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     ensures lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(dv)
     {   
         lem_ind_inv_implies_intermediate_steps_helper_1(dv); 
@@ -239,8 +239,8 @@ module Ind_Inv_DV_Next
         lem_inv_all_in_transit_messages_were_sent_invNetwork(dv);
         assert invNetwork(dv);
 
-        lem_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
-        assert pred_rcvd_attestation_shares_is_in_all_messages_sent(dv);
+        lem_inv_rcvd_attn_shares_are_from_sent_messages_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv);
+        assert inv_rcvd_attestation_shares_is_in_all_messages_sent(dv);
 
         assert  && DV.NextEvent(dv, e, dv')
                 && inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv)
@@ -252,7 +252,7 @@ module Ind_Inv_DV_Next
                 && inv_only_dv_construct_signed_attestation_signature(dv)  
                 && invNetwork(dv)
                 && inv_quorum_constraints(dv)
-                && pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+                && inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
                 ;
 
         

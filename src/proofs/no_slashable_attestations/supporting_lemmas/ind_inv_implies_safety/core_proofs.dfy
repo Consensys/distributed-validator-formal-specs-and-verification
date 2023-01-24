@@ -127,7 +127,138 @@ module Core_Proofs
                                 inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a') ); 
     }
 
-        // TODO
+        // Wrong: 1st try in a new version
+//     lemma lem_no_slashable_submitted_attestations_with_different_slots_ii(
+//                 dv: DVState, 
+//                 a: Attestation, 
+//                 a': Attestation
+//     )
+//     requires inv_quorum_constraints(dv)    
+//     requires inv_exists_honest_node_that_contributed_to_creation_of_submitted_attestations_body(dv, a, a')
+//     requires inv_if_honest_node_sends_att_share_it_receives_att_data_before(dv)
+//     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+//             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+//     {    
+//         var hn: BLSPubkey, att_shares: set<AttestationShare>, att_shares': set<AttestationShare> :|
+//                 && is_honest_node(dv, hn)
+//                 && pred_attestation_is_created_based_on_sent_attestation_shares(dv, a, att_shares)
+//                 && pred_is_owner_of_one_attestaion_share_in_set_of_shares(dv.honest_nodes_states[hn], att_shares)
+//                 && pred_attestation_is_created_based_on_sent_attestation_shares(dv, a', att_shares')
+//                 && pred_is_owner_of_one_attestaion_share_in_set_of_shares(dv.honest_nodes_states[hn], att_shares')
+//                 ;
+//         var dvc: DVCState := dv.honest_nodes_states[hn];
+//         var att_share: AttestationShare :| 
+//                 && att_share in att_shares 
+//                 && pred_is_owner_of_attestaion_share(dvc, att_share)
+//                 ;
+//         var att_share': AttestationShare :| 
+//                 && att_share' in att_shares' 
+//                 && pred_is_owner_of_attestaion_share(dvc, att_share')
+//                 ;
+
+//         assert inv_if_honest_node_sends_att_share_it_receives_att_data_before_body(dvc, att_share);
+//         assert inv_if_honest_node_sends_att_share_it_receives_att_data_before_body(dvc, att_share');
+
+//         var att_data: AttestationData := att_share.data;
+//         var slot: Slot := att_data.slot;
+//         var att_duty: AttestationDuty, vp: AttestationData -> bool :|
+//                 && att_duty in dvc.all_rcvd_duties
+//                 && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+//                 && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
+//                 // && consensus_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty)
+//                 && vp(att_data)
+//                 ;
+
+//         assert consensus_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty);
+
+//         var att_data': AttestationData := att_share'.data;
+//         var slot': Slot := att_data'.slot;
+//         var att_duty': AttestationDuty, vp': AttestationData -> bool :|
+//                 && att_duty' in dvc.all_rcvd_duties
+//                 && slot' in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+//                 && vp' in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot'].Keys
+//                 // && consensus_is_valid_attestation_data(dvc.attestation_slashing_db, att_data', att_duty')
+//                 && vp'(att_data')
+//                 ;
+
+//         // assert  && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+//         //         && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+//         //         ;
+//     }
+
+        // Wrong: proof in the old version
+//     lemma lem_no_slashable_submitted_attestations_with_different_slots_ii(
+//                 dv: DVState, 
+//                 a: Attestation, 
+//                 a': Attestation, 
+//                 m: BLSPubkey, 
+//                 consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
+//                 h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
+//     requires |dv.all_nodes| > 0
+//     requires inv_quorum_constraints(dv)    
+//     requires inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a')
+//     requires && consa.decided_value.isPresent()
+//              && consa'.decided_value.isPresent()
+//              && a.data == consa.decided_value.safe_get()
+//              && a'.data == consa'.decided_value.safe_get()
+//     requires a.data.slot < a'.data.slot
+//     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
+//     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+//     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
+//     requires inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
+//     requires inv_slashing_db_att_in_db_for_low_slot_is_in_db_for_high_slot(dv)
+// //     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
+// //             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
+//     {    
+//         assert  && is_a_valid_decided_value_according_to_set_of_nodes(consa, h_nodes_a)
+//                 && m in h_nodes_a
+//                 ;
+//         assert  && is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes_a')
+//                 && m in h_nodes_a'       
+//                 ;
+        
+//         var m_state := dv.honest_nodes_states[m];
+//         var slot_a := a.data.slot;
+//         var slot_a' := a'.data.slot;
+
+//         assert consa == dv.consensus_on_attestation_data[slot_a];
+//         assert consa' == dv.consensus_on_attestation_data[slot_a'];
+
+//         var dva := consa.decided_value.safe_get();
+//         var dva' := consa'.decided_value.safe_get();
+//         var sdba := construct_SlashingDBAttestation_from_att_data(dva);
+//         var sdba' := construct_SlashingDBAttestation_from_att_data(dva');
+        
+//         assert consa.honest_nodes_validity_functions[m] != {};
+//         var vpa: AttestationData -> bool :| && vpa in consa.honest_nodes_validity_functions[m]
+//                                             && vpa(dva);
+        
+//         assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(dv, m, m_state, slot_a, vpa);
+//         assert vpa in m_state.attestation_consensus_engine_state.att_slashing_db_hist[slot_a];
+//         var duty: AttestationDuty, dba :| inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, m, slot_a, dba, duty, vpa);
+//         assert sdba in dba;
+
+//         assert consa'.honest_nodes_validity_functions[m] != {};
+//         var vpa': AttestationData -> bool :| && vpa' in consa'.honest_nodes_validity_functions[m]
+//                                              && vpa'(dva');
+//         assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(dv, m, m_state, slot_a', vpa');
+//         assert vpa' in m_state.attestation_consensus_engine_state.att_slashing_db_hist[slot_a'];
+//         var duty': AttestationDuty, dba' :| inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, m, slot_a', dba', duty', vpa');
+        
+//         assert inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, m, slot_a', dba', duty', vpa');
+//         assert vpa' == (ad': AttestationData) => consensus_is_valid_attestation_data(dba', ad', duty');
+//         assert !is_slashable_attestation_data(dba', dva');
+
+    
+//         // Error
+//         // lem_is_slashable_attestation_data(dba', dva', sdba, sdba');     
+
+//         // assert !is_slashable_attestation_data_eth_spec(dva, dva');
+//         // assert !is_slashable_attestation_data_eth_spec(dva', dva);                 
+//     }
+
+
+        // 2nd try in a new version
     lemma lem_no_slashable_submitted_attestations_with_different_slots_ii(
                 dv: DVState, 
                 a: Attestation, 
@@ -147,7 +278,13 @@ module Core_Proofs
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
     requires inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-    requires inv_slashing_db_att_in_db_for_low_slot_is_in_db_for_high_slot(dv)
+
+    requires inv_attestation_is_created_with_shares_from_quorum(dv)
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    // requires pred_intersection_of_honest_nodes_in_two_quorum_contains_an_honest_node
+
+
 //     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
 //             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {    
@@ -218,25 +355,28 @@ module Core_Proofs
     requires inv_unique_rcvd_att_duty_per_slot(dv)
     requires inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)
     requires inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
+
+    requires inv_exists_honest_node_that_contributed_to_creation_of_submitted_attestations_body(dv, a, a')
+    requires inv_if_honest_node_sends_att_share_it_receives_att_data_before(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {
-        lem_no_slashable_submitted_attestations_with_different_slots_i(dv, a, a');
+        // lem_no_slashable_submitted_attestations_with_different_slots_i(dv, a, a');
         
-        var consa := dv.consensus_on_attestation_data[a.data.slot];
-        var consa' := dv.consensus_on_attestation_data[a'.data.slot];                      
-        var m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :| 
-                inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        // var consa := dv.consensus_on_attestation_data[a.data.slot];
+        // var consa' := dv.consensus_on_attestation_data[a'.data.slot];                      
+        // var m: BLSPubkey, h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey> :| 
+        //         inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
 
-        assert  inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
-        assert  && consa.decided_value.isPresent()
-                && consa'.decided_value.isPresent()
-                ;
-        assert  && a.data == consa.decided_value.safe_get()
-                && a'.data == consa'.decided_value.safe_get()
-                ;
+        // assert  inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        // assert  && consa.decided_value.isPresent()
+        //         && consa'.decided_value.isPresent()
+        //         ;
+        // assert  && a.data == consa.decided_value.safe_get()
+        //         && a'.data == consa'.decided_value.safe_get()
+        //         ;
 
-        lem_no_slashable_submitted_attestations_with_different_slots_ii(dv, a, a', m, consa, consa', h_nodes_a, h_nodes_a');
+        // lem_no_slashable_submitted_attestations_with_different_slots_ii(dv, a, a');
     }    
 
     lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: DVState, a: Attestation, a': Attestation)
@@ -300,6 +440,9 @@ module Core_Proofs
     requires inv_unique_rcvd_att_duty_per_slot(dv)
     requires inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)
     requires inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
+    
+    requires inv_exists_honest_node_that_contributed_to_creation_of_submitted_attestations_body(dv, a, a')
+    requires inv_if_honest_node_sends_att_share_it_receives_att_data_before(dv)        
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)   
     {

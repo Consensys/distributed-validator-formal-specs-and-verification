@@ -196,11 +196,11 @@ module Proofs_Intermediate_Steps
     ensures  inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     {}
 
-    lemma lem_inv_rcvd_attn_shares_are_from_sent_messages_pred_rcvd_attestation_shares_is_in_all_messages_sent(
+    lemma lem_inv_rcvd_attn_shares_are_from_sent_messages_inv_rcvd_attestation_shares_is_in_all_messages_sent(
         dv: DVState
     )    
     requires inv_rcvd_attn_shares_are_from_sent_messages(dv)    
-    ensures  pred_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    ensures  inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     {}
 
     lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
