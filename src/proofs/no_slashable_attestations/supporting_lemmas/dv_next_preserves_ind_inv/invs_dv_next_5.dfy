@@ -178,9 +178,9 @@ module Invs_DV_Next_5
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
-    ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s', hn, s'.honest_nodes_states[hn], cid)
+    ensures inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid)
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -223,7 +223,7 @@ module Invs_DV_Next_5
                 {
                     if hn in  s.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     {
-                        assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid);
+                        assert inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
 
                         assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     }
@@ -259,7 +259,7 @@ module Invs_DV_Next_5
                 if
                     && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                 {
-                    assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid);
+                    assert inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
                     assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                     assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;                    
@@ -278,20 +278,20 @@ module Invs_DV_Next_5
     requires inv_quorum_constraints(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)   
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(s)   
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
-    ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s')   
+    ensures inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey, slot: Slot |
             hn in s'.honest_nodes_states
-        ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s', hn, s'.honest_nodes_states[hn], slot)    
+        ensures inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot)    
         {
             lem_inv_33_helper(s, event, slot, hn, s');
         }
     }  
 
-    lemma lem_inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_implies_46_a(dv: DVState)
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)
+    lemma lem_inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_implies_46_a(dv: DVState)
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(dv)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(dv)
     {
         forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn)
@@ -303,7 +303,7 @@ module Invs_DV_Next_5
         {
             assert hn in dv.honest_nodes_states.Keys;
             var hn_state := dv.honest_nodes_states[hn];
-            assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(dv, hn, hn_state, s);
+            assert inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(dv, hn, hn_state, s);
             assert
                 && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
                     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
@@ -321,13 +321,13 @@ module Invs_DV_Next_5
     requires inv_quorum_constraints(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)   
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)   
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(s)   
     requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s)   
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist(s')   
     {
         lem_inv_33(s, event, s');
-        lem_inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_implies_46_a(s');
+        lem_inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_implies_46_a(s');
     }     
 
     lemma lem_add_set_of_validity_predicates<D(!new, 0)>(
@@ -535,7 +535,7 @@ module Invs_DV_Next_5
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
@@ -646,7 +646,7 @@ module Invs_DV_Next_5
                     && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]                          
                     && cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
                 {
-                    assert inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper_body(s, hn, s.honest_nodes_states[hn], cid);
+                    assert inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
                     assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                     assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
@@ -666,7 +666,7 @@ module Invs_DV_Next_5
     requires inv_quorum_constraints(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(s)  
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(s)  
     requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s) 
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(s)

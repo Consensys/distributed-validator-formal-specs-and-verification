@@ -109,17 +109,17 @@ module Proofs_Intermediate_Steps
         }        
     }
 
-    lemma lem_inv_joined_consensus_instances_implied_the_delivery_of_att_duties_ind_inv(
+    lemma lem_inv_active_consensus_instances_implied_the_delivery_of_att_duties_ind_inv(
         dv: DVState
     )    
     requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)
-    ensures inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)    
+    ensures inv_active_consensus_instances_implied_the_delivery_of_att_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
         ensures ( ( && is_honest_node(dv, hn) 
                     && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
                   )
-                  ==> inv_joined_consensus_instances_implied_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)
+                  ==> inv_active_consensus_instances_implied_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
             if && is_honest_node(dv, hn) 
@@ -127,7 +127,7 @@ module Proofs_Intermediate_Steps
             {
                 var hn_state := dv.honest_nodes_states[hn];
                 assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state);
-                assert inv_joined_consensus_instances_implied_the_delivery_of_att_duties_body(hn_state, s);
+                assert inv_active_consensus_instances_implied_the_delivery_of_att_duties_body(hn_state, s);
             }
             else
             {}
@@ -138,7 +138,7 @@ module Proofs_Intermediate_Steps
     lemma lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_ind_inv(
         dv: DVState
     )    
-    requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)
+    requires inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate(dv)
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
@@ -152,7 +152,7 @@ module Proofs_Intermediate_Steps
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
-            assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(hn_state);
+            assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(hn_state);
             assert s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
             assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s];
 
@@ -210,8 +210,8 @@ module Proofs_Intermediate_Steps
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 
-    lemma lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
-    requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
+    requires inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
     ensures inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
     {}  
     

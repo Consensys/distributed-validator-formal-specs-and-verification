@@ -82,7 +82,7 @@ module Invs_DV_Next_3
         }   
     }
 
-    lemma lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_dv_next(
+    lemma lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -90,8 +90,8 @@ module Invs_DV_Next_3
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv_consensus_instances_only_for_rcvd_duties(dv)
-    requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
-    ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv')
+    requires inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate(dv)  
+    ensures inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate(dv')
     {        
         match event 
         {
@@ -104,24 +104,24 @@ module Invs_DV_Next_3
                     case ServeAttstationDuty(attestation_duty) =>   
                         
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
-                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc);                                           
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc);                                           
+                        lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
+                        lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
+                        lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc_mod);
-                        lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body(dvc');
+                        lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc_mod);
+                        lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 
@@ -134,7 +134,7 @@ module Invs_DV_Next_3
         }   
     }
 
-    lemma lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_dv_next(
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
@@ -142,8 +142,8 @@ module Invs_DV_Next_3
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)
-    requires inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)  
-    ensures inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv')
+    requires inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)  
+    ensures inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv')
     {        
         match event 
         {
@@ -156,24 +156,24 @@ module Invs_DV_Next_3
                     case ServeAttstationDuty(attestation_duty) =>   
                         
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
-                        assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc);                                           
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
+                        assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc);                                           
+                        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                        assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
+                        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                        assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
                         
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
+                        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc_mod);
-                        lem_inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
+                        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc_mod);
+                        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 

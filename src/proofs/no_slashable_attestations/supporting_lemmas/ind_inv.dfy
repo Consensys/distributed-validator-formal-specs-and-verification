@@ -68,8 +68,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_5(dv: DVState)       
     {                
         &&  inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)  
-        &&  inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred(dv)  
-        &&  inv_validity_pred_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)          
+        &&  inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate(dv)  
+        &&  inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)          
     }
 
     predicate invs_group_6(dv: DVState)       
@@ -83,7 +83,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_attn_shares_are_from_sent_messages(dv)
-        &&  inv_sent_validity_predicate_only_for_slots_stored_in_att_slashing_db_hist_helper(dv)
+        &&  inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(dv)
     }
     
     predicate invs_group_8(dv: DVState)       
@@ -131,7 +131,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_13(dv: DVState)       
     {   
         // && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-        // && inv_joined_consensus_instances_implied_the_delivery_of_att_duties(dv)
+        // && inv_active_consensus_instances_implied_the_delivery_of_att_duties(dv)
         ///             
         && inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
         

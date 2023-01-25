@@ -103,7 +103,7 @@ module Common_Proofs
 
     }  
 
-    lemma lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateAttSlashingDBHist(
+    lemma lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_updateAttSlashingDBHist(
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
         new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
@@ -126,16 +126,16 @@ module Common_Proofs
             )
     { }
 
-    lemma lem_inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_updateConsensusInstanceValidityCheck(
+    lemma lem_inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         r: ConsensusEngineState
     )
     requires r == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)        
-    requires inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(s)
+    requires inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(s)
     requires ( forall k: Slot | k in s.active_attestation_consensus_instances.Keys ::
                     s.active_attestation_consensus_instances[k].attestation_duty.slot == k )
-    ensures inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r)
+    ensures inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(r)
     {
         lem_updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db, r);
         assert r.att_slashing_db_hist.Keys
@@ -174,7 +174,7 @@ module Common_Proofs
         assert new_att_slashing_db_hist.Keys 
                     == s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys
                 ;
-        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(s);
+        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(s);
 
         forall k: Slot, vp: AttestationData -> bool | ( && k in new_att_slashing_db_hist.Keys
                                                         && vp in new_att_slashing_db_hist[k]
@@ -231,9 +231,9 @@ module Common_Proofs
         var t := s.(active_attestation_consensus_instances := new_active_attestation_consensus_instances,
                     att_slashing_db_hist := new_att_slashing_db_hist
                    );
-        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(t);
+        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(t);
         assert r.att_slashing_db_hist.Keys == t.att_slashing_db_hist.Keys;
-        assert inv_exists_db_in_att_slashing_db_hist_for_every_validity_pred_body_ces(r);
+        assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(r);
     }
 
     lemma lem_inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_updateConsensusInstanceValidityCheck(
