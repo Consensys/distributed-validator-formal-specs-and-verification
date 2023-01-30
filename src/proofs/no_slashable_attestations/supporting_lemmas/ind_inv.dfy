@@ -130,12 +130,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_13(dv: DVState)       
     {   
-        // && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
-        // && inv_active_consensus_instances_implied_the_delivery_of_att_duties(dv)
-        ///             
-        && inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
-        
         && inv_decided_data_has_an_honest_witness(dv)
         && inv_all_created_attestations_are_valid(dv)
+        && inv_attestation_is_created_with_shares_from_quorum(dv)
     }
 }

@@ -44,15 +44,19 @@ module DVC_Spec {
     requires id !in s.active_attestation_consensus_instances.Keys
     requires id == attestation_duty.slot
     {
-        var acvc := AttestationConsensusValidityCheckState(
-                    attestation_duty := attestation_duty,
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
-                );
+        var acvc := 
+            AttestationConsensusValidityCheckState(
+                attestation_duty := attestation_duty,
+                validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+            );
         
         assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
-        var new_active_attestation_consensus_instances := s.active_attestation_consensus_instances[
+        
+        var new_active_attestation_consensus_instances := 
+            s.active_attestation_consensus_instances[
                 id := acvc
             ];
+
         s.(
             active_attestation_consensus_instances := new_active_attestation_consensus_instances,
             att_slashing_db_hist := 
@@ -70,13 +74,26 @@ module DVC_Spec {
         hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
         id: Slot,
         vp: AttestationData -> bool,
-        new_attestation_slashing_db: set<SlashingDBAttestation>
+        attestation_slashing_db: set<SlashingDBAttestation>
     ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
     ensures hist.Keys + { id } == new_hist.Keys
+    ensures ( forall slot0, vp0 ::
+                    && var hist_slot0 := getOrDefault(hist, slot0, map[]);
+                    && var hist_slot_vp0 := getOrDefault(hist_slot0, vp0, {});
+                    && var new_hist_slot0 := getOrDefault(new_hist, slot0, map[]);
+                    && var new_hist_slot_vp0 := getOrDefault(new_hist_slot0, vp0, {});
+                    && (( slot0 != id || vp0 != vp )
+                        ==> 
+                        hist_slot_vp0 == new_hist_slot_vp0
+                        )
+                    && ((slot0 == id && vp0 == vp )
+                        ==> 
+                        hist_slot_vp0 + {attestation_slashing_db} == new_hist_slot_vp0
+                        )
+            )
     {
-
         var hist_id := getOrDefault(hist, id, map[]);
-        var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {new_attestation_slashing_db};
+        var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {attestation_slashing_db};
         hist[
             id := hist_id[
                 vp := new_hist_id_vp

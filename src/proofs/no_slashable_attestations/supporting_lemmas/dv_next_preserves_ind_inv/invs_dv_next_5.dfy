@@ -1606,4 +1606,90 @@ module Invs_DV_Next_5
         }  
     }         
 
+    lemma lem_inv_attestation_is_created_with_shares_from_quorum_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_only_dv_construct_signed_attestation_signature(dv)
+    requires invNetwork(dv)
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    requires inv_attestation_is_created_with_shares_from_quorum(dv)
+    ensures  inv_attestation_is_created_with_shares_from_quorum(dv')
+    {        
+        lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
+        assert inv_only_dv_construct_signed_attestation_signature(dv');
+
+        lem_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv, event, dv');
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>     
+                        lem_inv_outputs_attestations_submited_is_created_with_shares_from_quorum_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
+                        {
+                            lem_inv_outputs_attestations_submited_is_created_with_shares_from_quorum_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');      
+                        }                 
+                        
+                    case ReceivedAttestationShare(attestation_share) =>                         
+                        lem_inv_outputs_attestations_submited_is_created_with_shares_from_quorum_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_outputs_attestations_submited_is_created_with_shares_from_quorum_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendAttestationShares =>                         
+                        
+                    case NoEvent => 
+                        
+                }
+
+                assert inv_outputs_attestations_submited_is_created_with_shares_from_quorum(nodeOutputs, dvc');
+                assert dv'.all_attestations_created == dv.all_attestations_created + nodeOutputs.attestations_submitted;
+
+                forall att: Attestation | att in dv'.all_attestations_created 
+                ensures inv_attestation_is_created_with_shares_from_quorum_body(dv', att)
+                {
+                    if att in dv.all_attestations_created 
+                    {
+                        assert inv_attestation_is_created_with_shares_from_quorum_body(dv', att);
+                    }
+                    else
+                    {
+                        assert att in nodeOutputs.attestations_submitted;
+                        assert inv_attestation_is_created_with_shares_from_quorum_body(dv', att);
+                    }
+                }
+                assert inv_attestation_is_created_with_shares_from_quorum(dv');
+
+            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+                assert NextAdversary(
+                    dv,
+                    node,
+                    new_attestation_share_sent,
+                    messagesReceivedByTheNode,
+                    dv'
+                );
+                
+                var new_aggregated_attestations_sent := dv'.all_attestations_created - dv.all_attestations_created;
+
+                forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent 
+                ensures inv_attestation_is_created_with_shares_from_quorum_body(dv', aggregated_attestation_sent)
+                {
+                    assert inv_attestation_is_created_with_shares_from_quorum_body(dv', aggregated_attestation_sent);
+                }
+                                
+                assert inv_attestation_is_created_with_shares_from_quorum(dv');
+        }  
+    }  
+
 }

@@ -185,9 +185,9 @@ module Invs_DV_Next_2
         r: Root,
         signature: BLSSignature
     ): BLSPubkey
-    requires exists pubkey :: verify_bls_siganture(r, signature, pubkey)
+    requires exists pubkey :: verify_bls_signature(r, signature, pubkey)
     {
-        var pubkey :| verify_bls_siganture(r, signature, pubkey);
+        var pubkey :| verify_bls_signature(r, signature, pubkey);
         pubkey
     }
 
@@ -199,7 +199,7 @@ module Invs_DV_Next_2
             ::
                 s1 == s2
     {
-        lem_verify_bls_siganture();
+        lem_verify_bls_signature();
     }
 
     lemma lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_f_listen_for_attestation_shares(
@@ -281,7 +281,7 @@ module Invs_DV_Next_2
                 set signer, att_share | 
                     && att_share in att_shares
                     && signer in dv.all_nodes
-                    && verify_bls_siganture(signing_root, att_share.signature, signer)
+                    && verify_bls_signature(signing_root, att_share.signature, signer)
                 ::
                     signer;
 
@@ -290,19 +290,19 @@ module Invs_DV_Next_2
                 lemmaThereExistsAnHonestInQuorum(dv.all_nodes, dv.all_nodes - dv.honest_nodes_states.Keys, signers);
 
                 var h_s :| h_s in dv.honest_nodes_states.Keys && h_s in signers;
-                var h_s_att :| h_s_att in att_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);               
+                var h_s_att :| h_s_att in att_shares && verify_bls_signature(signing_root, h_s_att.signature, h_s);               
 
                 assert 
                 && h_s in dv.honest_nodes_states.Keys
                 && h_s_att in dv.att_network.allMessagesSent
                 && h_s_att.data == data
-                && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+                && verify_bls_signature(signing_root, h_s_att.signature, h_s);
 
                 assert 
                 && h_s in dv.honest_nodes_states.Keys
                 && h_s_att in dv.att_network.allMessagesSent
                 && h_s_att.data == data
-                && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+                && verify_bls_signature(signing_root, h_s_att.signature, h_s);
 
                 assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
                     dv,
@@ -396,7 +396,7 @@ module Invs_DV_Next_2
                 set signer, att_share | 
                     && att_share in att_shares
                     && signer in dv.all_nodes
-                    && verify_bls_siganture(signing_root, att_share.signature, signer)
+                    && verify_bls_signature(signing_root, att_share.signature, signer)
                 ::
                     signer;
 
@@ -405,17 +405,17 @@ module Invs_DV_Next_2
                 lemmaThereExistsAnHonestInQuorum(dv.all_nodes, dv.all_nodes - dv.honest_nodes_states.Keys, signers);
 
                 var h_s :| h_s in dv.honest_nodes_states.Keys && h_s in signers;
-                var h_s_att :| h_s_att in att_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+                var h_s_att :| h_s_att in att_shares && verify_bls_signature(signing_root, h_s_att.signature, h_s);
         
                 assert  && h_s in dv.honest_nodes_states.Keys
                         && h_s_att in dv.att_network.allMessagesSent
                         && h_s_att.data == data
-                        && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+                        && verify_bls_signature(signing_root, h_s_att.signature, h_s);
 
                 assert  && h_s in dv.honest_nodes_states.Keys
                         && h_s_att in dv.att_network.allMessagesSent
                         && h_s_att.data == data
-                        && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+                        && verify_bls_signature(signing_root, h_s_att.signature, h_s);
 
                 assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_body(
                                 dv,
@@ -603,7 +603,7 @@ module Invs_DV_Next_2
                         set signer, att_share | 
                             && att_share in attestation_shares
                             && signer in s.all_nodes
-                            && verify_bls_siganture(signing_root, att_share.signature, signer)
+                            && verify_bls_signature(signing_root, att_share.signature, signer)
                         ::
                             signer;            
 
@@ -612,29 +612,29 @@ module Invs_DV_Next_2
                         lemmaThereExistsAnHonestInQuorum(s.all_nodes, s.all_nodes - s.honest_nodes_states.Keys, signers);  
 
                         var h_s :| h_s in s.honest_nodes_states.Keys && h_s in signers;
-                        var h_s_att :| h_s_att in attestation_shares && verify_bls_siganture(signing_root, h_s_att.signature, h_s);     
+                        var h_s_att :| h_s_att in attestation_shares && verify_bls_signature(signing_root, h_s_att.signature, h_s);     
 
                         assert 
                         && h_s in s.honest_nodes_states.Keys
                         && h_s_att in s.att_network.allMessagesSent
                         && h_s_att.data == data
-                        && verify_bls_siganture(signing_root, h_s_att.signature, h_s);
+                        && verify_bls_signature(signing_root, h_s_att.signature, h_s);
 
                         assert 
                         && h_s in s.honest_nodes_states.Keys
                         && h_s_att in s.att_network.allMessagesSent
                         && h_s_att.data == data
-                        && verify_bls_siganture(signing_root, h_s_att.signature, h_s);    
+                        && verify_bls_signature(signing_root, h_s_att.signature, h_s);    
 
                         compute_signing_root_properties<AttestationData>();
-                        lem_verify_bls_siganture();
+                        lem_verify_bls_signature();
 
                         var a_fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
                         var a_attestation_signing_root := compute_attestation_signing_root(a.data, a_fork_version);       
 
-                        assert verify_bls_siganture(signing_root, a.signature, s'.dv_pubkey);
+                        assert verify_bls_signature(signing_root, a.signature, s'.dv_pubkey);
 
-                        assert verify_bls_siganture(a_attestation_signing_root, a.signature, s'.dv_pubkey);             
+                        assert verify_bls_signature(a_attestation_signing_root, a.signature, s'.dv_pubkey);             
 
                         // assert 
 
@@ -777,7 +777,7 @@ module Invs_DV_Next_2
                 && att_share in s'.att_network.allMessagesSent
                 && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));                
                 && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                && verify_bls_signature(attestation_signing_root, att_share.signature, hn)
         ensures inv_data_of_att_share_is_decided_value_body(s', att_share);
         {
             assert att_share in s.att_network.allMessagesSent;
@@ -1229,7 +1229,7 @@ module Invs_DV_Next_2
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                forall hn, cid: nat, vp |
+                forall hn, cid: Slot, vp |
                     && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
                 ensures exists attestation_duty, attestation_slashing_db :: inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_body(cid, attestation_duty, attestation_slashing_db, vp)
@@ -1342,7 +1342,7 @@ module Invs_DV_Next_2
                                     && att_share in s'.att_network.allMessagesSent
                                     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
                                     && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                                    && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                                    && verify_bls_signature(attestation_signing_root, att_share.signature, hn)
                             ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
                             ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;     
                             {
@@ -1377,7 +1377,7 @@ module Invs_DV_Next_2
                                     && att_share in s'.att_network.allMessagesSent
                                     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
                                     && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                                    && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                                    && verify_bls_signature(attestation_signing_root, att_share.signature, hn)
                             ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
                             ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;     
                             {
@@ -1415,7 +1415,7 @@ module Invs_DV_Next_2
                 && att_share in s'.att_network.allMessagesSent
                 && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
                 && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-                && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)
+                && verify_bls_signature(attestation_signing_root, att_share.signature, hn)
         ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent();
         ensures s'.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data;                          
         {
@@ -1429,7 +1429,7 @@ module Invs_DV_Next_2
             }
             else
             {
-                forall signer | verify_bls_siganture(attestation_signing_root, att_share.signature, signer)
+                forall signer | verify_bls_signature(attestation_signing_root, att_share.signature, signer)
                 ensures signer in s.adversary.nodes;
                 ensures signer !in  s.honest_nodes_states.Keys; 
                 {
@@ -1541,7 +1541,7 @@ module Invs_DV_Next_2
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
-        slot: nat,
+        slot: Slot,
         vp: AttestationData -> bool 
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
@@ -1561,7 +1561,7 @@ module Invs_DV_Next_2
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
-        slot: nat,
+        slot: Slot,
         vp: AttestationData -> bool 
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
@@ -1581,7 +1581,7 @@ module Invs_DV_Next_2
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
-        slot: nat,
+        slot: Slot,
         vp: AttestationData -> bool 
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
@@ -1600,7 +1600,7 @@ module Invs_DV_Next_2
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
         s': ConsensusEngineState,
-        slot: nat    
+        slot: Slot    
     )    
     requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
     requires slot in s.att_slashing_db_hist.Keys

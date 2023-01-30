@@ -72,7 +72,7 @@ module Helper_Pred_Fcn
         && att_share in s.att_network.allMessagesSent
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
         && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
-        && verify_bls_siganture(attestation_signing_root, att_share.signature, hn)   
+        && verify_bls_signature(attestation_signing_root, att_share.signature, hn)   
     }
     
     predicate is_decided_data_for_current_slot(

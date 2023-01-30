@@ -65,7 +65,7 @@ module DV
                     set signer, att_share | 
                         && att_share in att_shares
                         && signer in all_nodes
-                        && verify_bls_siganture(signing_root, att_share.signature, signer)
+                        && verify_bls_signature(signing_root, att_share.signature, signer)
                     ::
                         signer;
         && |signers| >= quorum(|all_nodes|)
@@ -83,7 +83,7 @@ module DV
             && signer_threshold(all_nodes, att_shares, signing_root) 
         ::
             && construct_signed_attestation_signature(att_shares).isPresent()
-            && verify_bls_siganture(
+            && verify_bls_signature(
                 signing_root,
                 construct_signed_attestation_signature(att_shares).safe_get(),
                 dv_pubkey
@@ -101,7 +101,7 @@ module DV
     {
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
         && var signing_root := compute_attestation_signing_root(data, fork_version);
-        && verify_bls_siganture(
+        && verify_bls_signature(
             signing_root,
             construct_signed_attestation_signature(att_shares).safe_get(),
             dv_pubkey
@@ -266,7 +266,7 @@ module DV
     {
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
         && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
-        && verify_bls_siganture(attestation_signing_root, a.signature, pubkey)  
+        && verify_bls_signature(attestation_signing_root, a.signature, pubkey)  
     }    
 
       // TODO: Modify isMyAttestation to include the entirety the forall premise 
@@ -532,7 +532,7 @@ module DV
                 forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
                     var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(new_attestation_share_sent.message.data.target.epoch));
                     var attestation_signing_root := compute_attestation_signing_root(new_attestation_share_sent.message.data, fork_version);
-                    verify_bls_siganture(attestation_signing_root, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
+                    verify_bls_signature(attestation_signing_root, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
             )
             && NetworkSpec.Next(s.att_network, s'.att_network, node, new_attestation_shares_sent, messagesReceivedByTheNode)
             && s.all_attestations_created <= s'.all_attestations_created

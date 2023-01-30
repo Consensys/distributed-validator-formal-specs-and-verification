@@ -59,7 +59,7 @@ module Types
         validator_index: ValidatorIndex,
         committee_index: CommitteeIndex,
         committee_length: nat,
-        committees_at_slot: nat,
+        committees_at_slot: Slot,
         validator_committee_index: ValidatorIndex,
         slot: Slot        
     )
@@ -225,31 +225,31 @@ module CommonFunctions{
         forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
     }
 
-    predicate {:extern} verify_bls_siganture(
+    predicate {:extern} verify_bls_signature(
         data: Root,
         signature: BLSSignature,
         pubkey: BLSPubkey
     )   
 
-    lemma {:axiom} lem_verify_bls_siganture()
+    lemma {:axiom} lem_verify_bls_signature()
     ensures 
         forall d: Root, s, pk1, pk2 |
-            && verify_bls_siganture(d, s, pk1)
-            && verify_bls_siganture(d, s, pk2)
+            && verify_bls_signature(d, s, pk1)
+            && verify_bls_signature(d, s, pk2)
             ::
             pk1 == pk2
 
     ensures 
         forall d: Root, s1, s2, pk |
-            && verify_bls_siganture(d, s1, pk)
-            && verify_bls_siganture(d, s2, pk)
+            && verify_bls_signature(d, s1, pk)
+            && verify_bls_signature(d, s2, pk)
             ::
             s1 == s2            
 
     ensures 
         forall d1: Root, d2: Root, s, pk |
-            && verify_bls_siganture(d1, s, pk)
-            && verify_bls_siganture(d2, s, pk)
+            && verify_bls_signature(d1, s, pk)
+            && verify_bls_signature(d2, s, pk)
             ::
             d1 == d2               
         

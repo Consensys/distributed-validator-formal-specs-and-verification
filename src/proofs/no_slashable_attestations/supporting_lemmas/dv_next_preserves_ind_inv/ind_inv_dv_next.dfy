@@ -165,10 +165,12 @@ module Ind_Inv_DV_Next
     lemma lem_ind_inv_implies_intermediate_steps_helper_4(dv: DVState)
     requires ind_inv(dv)  
     ensures lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(dv)    
+    ensures inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
     {   
         lem_ind_inv_implies_intermediate_steps_helper_1(dv);
         lem_ind_inv_implies_intermediate_steps_helper_2(dv);
-        lem_ind_inv_implies_intermediate_steps_helper_3(dv);        
+        lem_ind_inv_implies_intermediate_steps_helper_3(dv);   
+        lem_inv_data_of_all_created_attestations_is_set_of_decided_values_dv_next(dv);     
     }
 
     lemma lem_ind_inv_implies_intermediate_steps(dv: DVState)
@@ -420,6 +422,7 @@ module Ind_Inv_DV_Next
     {
         lem_inv_decided_data_has_an_honest_witness_dv_next(dv, e, dv');
         lem_inv_all_created_attestations_are_valid_dv_next(dv, e, dv');
+        lem_inv_attestation_is_created_with_shares_from_quorum_dv_next(dv, e, dv');
     }
     
     lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
@@ -494,6 +497,7 @@ module Ind_Inv_DV_Next
     ensures invs_group_10(dv')    
     ensures invs_group_11(dv')    
     ensures invs_group_12(dv')    
+    ensures invs_group_13(dv')    
     {
         lem_ind_inv_dv_next_ind_inv_helper_3(dv, e, dv');     
     }
@@ -528,7 +532,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper(dv, e, dv');                                  
     }
 
-    lemma lem_ind_inv_dv_ind(dv: DVState, dv': DVState)       
+    lemma lem_ind_inv_dv_ind_inv_NextPreCond(dv: DVState, dv': DVState)       
     requires DV.NextPreCond(dv)
     requires DV.Next(dv, dv')  
     requires ind_inv(dv)    

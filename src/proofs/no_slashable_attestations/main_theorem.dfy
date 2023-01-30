@@ -44,7 +44,7 @@ module No_Slashable_Attestations_Main_Theorem
         else 
         {
             lem_non_slashable_attestations_rec(trace, i-1);
-            lem_ind_inv_dv_ind(trace[i-1], trace[i]);
+            lem_ind_inv_dv_ind_inv_NextPreCond(trace[i-1], trace[i]);
         }
     }
 
