@@ -79,6 +79,7 @@ module Core_Proofs
     requires inv_unchanged_paras_of_consensus_instances(dv)
     requires inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate(dv)
     requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(dv)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     {        
@@ -100,13 +101,14 @@ module Core_Proofs
                 && constructed_sig.safe_get() == a.signature
                 && do_all_att_shares_have_the_same_data(att_shares, a.data)
                 && signers <= dv.all_nodes
-                && inv_attestation_is_created_with_shares_from_quorum_body_signers(att_shares, signers)
+                && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, signers)
                 && |signers| >= quorum(|dv.all_nodes|)
+                && signers <= dv.all_nodes
                 ;
         assert  && signers <= dv.all_nodes
-                && inv_attestation_is_created_with_shares_from_quorum_body_signers(att_shares, signers)
+                && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, signers)
                 && |signers| >= quorum(|dv.all_nodes|)           
-            ;
+                ;
 
         var h_nodes': set<BLSPubkey> :| is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes');
         assert dv.adversary.nodes == consa'.all_nodes - consa'.honest_nodes_status.Keys;
@@ -146,8 +148,9 @@ module Core_Proofs
         assert  is_honest_node(dv, m);
         assert  inv_attestation_is_created_with_shares_from_quorum_body_signers_helper(
                     att_shares,
-                    m
+                    dv.honest_nodes_states[m]
                 );
+        assert dv.honest_nodes_states[m].rs.pubkey == m;
         assert  exists att_share: AttestationShare ::
                     && att_share in att_shares
                     && pred_verify_owner_of_attestation_share_with_bls_signature(m, att_share)
@@ -264,6 +267,7 @@ module Core_Proofs
     requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist(dv)
     requires inv_attestation_is_created_with_shares_from_quorum(dv)
     requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)   
     {
