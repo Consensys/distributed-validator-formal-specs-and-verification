@@ -176,9 +176,7 @@ module Spec_Spec_NonInstr_Refinement
         DVC_Spec_NonInstr.f_att_consensus_decided(dvcni, id, decided_attestation_data)
     );       
     {
-        if pred_att_duty_was_already_decided(
-                    dvci,
-                    id) 
+        if  is_decided_data_for_current_slot(dvci, decided_attestation_data, id)
         {
             var local_current_attestation_duty := dvci.current_attestation_duty.safe_get();
 

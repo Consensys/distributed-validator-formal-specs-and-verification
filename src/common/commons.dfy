@@ -282,7 +282,7 @@ module CommonFunctions{
         )
     }
 
-    function addRecepientsToMessage<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    function addRecepientsToMessage<M>(m: M, receipients: set<BLSPubkey>): (S: set<MessaageWithRecipient<M>>)
     {
         set r | r in receipients :: MessaageWithRecipient(message := m, receipient := r)
     }

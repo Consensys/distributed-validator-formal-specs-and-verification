@@ -88,7 +88,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     } 
@@ -132,7 +132,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }  
@@ -180,7 +180,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }  
@@ -228,7 +228,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }  
@@ -276,7 +276,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }  
@@ -338,7 +338,7 @@ module Invs_DV_Next_1
                         
     // //             }
 
-    // //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    // //         case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
     // //     }   
     // // }  
@@ -400,7 +400,7 @@ module Invs_DV_Next_1
     // //                 }
     // //             }
                 
-    // //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    // //         case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
     // //             assert inv_strictly_increasing_queue_of_att_duties(dv');
                 
     // //     }   
@@ -472,7 +472,7 @@ module Invs_DV_Next_1
     // //                 }
     // //             }                
                 
-    // //         case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+    // //         case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
     // //             forall n | n in dv'.honest_nodes_states.Keys 
     // //             ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dv'.honest_nodes_states[n]);
     // //             {
@@ -587,7 +587,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         } 
     }
@@ -636,7 +636,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }        
     }   
@@ -684,7 +684,7 @@ module Invs_DV_Next_1
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     } 
@@ -748,7 +748,7 @@ module Invs_DV_Next_1
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     } 
@@ -800,7 +800,7 @@ module Invs_DV_Next_1
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     } 
@@ -852,7 +852,7 @@ module Invs_DV_Next_1
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) =>
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }  

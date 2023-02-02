@@ -443,7 +443,7 @@ module DVC_Spec {
         process: DVCState,
         id: Slot,
         decided_attestation_data: AttestationData
-    ): AttestationShare
+    ): (att_share: AttestationShare)
     requires process.current_attestation_duty.isPresent()
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
@@ -465,9 +465,10 @@ module DVC_Spec {
         decided_attestation_data: AttestationData,
         attestation_with_signature_share: AttestationShare,
         new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): DVCState
+    ): (process': DVCState)
     requires process.current_attestation_duty.isPresent()
     requires id == process.current_attestation_duty.safe_get().slot
+    ensures process'.attestation_slashing_db == new_attestation_slashing_db
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
 

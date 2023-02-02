@@ -133,5 +133,6 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && inv_decided_data_has_an_honest_witness(dv)
         && inv_all_created_attestations_are_valid(dv)
         && inv_attestation_is_created_with_shares_from_quorum(dv)
+        && inv_unchanged_dvc_rs_pubkey(dv)
     }
 }

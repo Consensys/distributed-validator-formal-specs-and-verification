@@ -69,6 +69,7 @@ module DV
                     ::
                         signer;
         && |signers| >= quorum(|all_nodes|)
+        && signers <= all_nodes
            
     }    
 
@@ -390,8 +391,8 @@ module DV
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
                     && NextHonestNode(s, node, nodeEvent, nodeOutputs, s')
-                case AdeversaryTakingStep(node, new_attestation_share_sent, messagesReceivedByTheNode) => 
-                    NextAdversary(s, node, new_attestation_share_sent, messagesReceivedByTheNode, s')
+                case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+                    NextAdversary(s, node, new_attestation_shares_sent, messagesReceivedByTheNode, s')
         )
 
     }

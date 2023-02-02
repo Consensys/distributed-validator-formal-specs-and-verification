@@ -37,7 +37,7 @@ module DVC_Spec_Axioms
     ): BLSSignature
     requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
 
-    lemma {:axiom} rs_attestation_sign_and_verification_propeties<T>()
+    lemma {:axiom} rs_attestation_sign_and_verification_propeties()
     ensures forall attestation_data, fork_version, signing_root, rs |
                     rs_sign_attestation.requires(attestation_data, fork_version, signing_root, rs) ::
                     verify_bls_signature(

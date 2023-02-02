@@ -636,7 +636,7 @@ module Fnc_Invs_2
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
-    requires pred_att_duty_was_already_decided(process, id)
+    requires is_decided_data_for_current_slot(process, decided_attestation_data, id)
     ensures && var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
             && inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(process.attestation_consensus_engine_state, 
                             attestation_slashing_db)
@@ -680,7 +680,7 @@ module Fnc_Invs_2
     requires inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process)
     ensures inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(process')
     {
-        if pred_att_duty_was_already_decided(process, id)
+        if  is_decided_data_for_current_slot(process, decided_attestation_data, id)
         {
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
            
@@ -1147,7 +1147,7 @@ module Fnc_Invs_2
     requires decided_attestation_data.slot == id  
     ensures (process'.attestation_shares_to_broadcast.Values - process.attestation_shares_to_broadcast.Values) <= getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
     {   
-        if  pred_att_duty_was_already_decided(process, id)
+        if  is_decided_data_for_current_slot(process, decided_attestation_data, id)
         {
             var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
@@ -2246,6 +2246,325 @@ module Fnc_Invs_2
                 )
     { }  
 
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_start_next_duty(
+        process: DVCState, 
+        attestation_duty: AttestationDuty, 
+        process': DVCState)
+    requires f_start_next_duty.requires(process, attestation_duty)
+    requires process' == f_start_next_duty(process, attestation_duty).state    
+    requires attestation_duty in process.all_rcvd_duties
+    ensures && var outputs := f_start_next_duty(process, attestation_duty).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    { }  
+
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_resend_attestation_share(
+        process: DVCState,
+        process': DVCState
+    )
+    requires f_resend_attestation_share.requires(process)
+    requires process' == f_resend_attestation_share(process).state    
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process)
+    ensures && var outputs := f_resend_attestation_share(process).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    {
+        var new_outputs := getEmptyOuputs().(
+                                    att_shares_sent :=
+                                        multicast_multiple(process.attestation_shares_to_broadcast.Values, process.peers)
+                                );
+
+    }  
+
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_check_for_next_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires process' == f_check_for_next_duty(process, attestation_duty).state
+    requires attestation_duty in process.all_rcvd_duties
+    ensures && var outputs := f_check_for_next_duty(process, attestation_duty).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    { }
+
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_serve_attestation_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(process, attestation_duty)
+    requires process' == f_serve_attestation_duty(process, attestation_duty).state
+    ensures && var outputs := f_serve_attestation_duty(process, attestation_duty).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    {
+        var process_rcvd_duty := 
+                process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
+        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
+        
+        lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_check_for_next_duty(
+            process_after_stopping_active_consensus_instance,
+            attestation_duty,
+            process'
+        );   
+    } 
+
+    lemma lem_f_calc_att_with_sign_share_from_decided_att_data_verify_bls_signature(
+        process: DVCState,
+        slot: Slot,
+        att_data: AttestationData,
+        att_share: AttestationShare
+    )
+    requires f_calc_att_with_sign_share_from_decided_att_data.requires(process, slot, att_data)
+    requires att_share == f_calc_att_with_sign_share_from_decided_att_data(process, slot, att_data)
+    ensures && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_data.target.epoch));
+            && var attestation_signing_root := compute_attestation_signing_root(att_data, fork_version);
+            && verify_bls_signature(
+                    attestation_signing_root, 
+                    att_share.signature, 
+                    process.rs.pubkey
+                )
+    {
+        
+
+        var local_current_attestation_duty := process.current_attestation_duty.safe_get();
+        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_data.target.epoch));
+        var attestation_signing_root := compute_attestation_signing_root(att_data, fork_version);
+        var attestation_signature_share := rs_sign_attestation(att_data, fork_version, attestation_signing_root, process.rs);
+        var attestation_with_signature_share := AttestationShare(
+                    aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                    data := att_data, 
+                    signature := attestation_signature_share
+                ); 
+        
+        rs_attestation_sign_and_verification_propeties();        
+        assert verify_bls_signature(
+                        attestation_signing_root,
+                        rs_sign_attestation(att_data, fork_version, attestation_signing_root, process.rs),
+                        process.rs.pubkey
+                    );
+
+    }
+    
+
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
+    ensures && var outputs := f_att_consensus_decided(process, id, decided_attestation_data).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    { 
+        if  is_decided_data_for_current_slot(process, decided_attestation_data, id)
+        {
+            var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := decided_attestation_data.source.epoch,
+                                            target_epoch := decided_attestation_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(decided_attestation_data)));
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            assert  slashing_db_attestation in new_attestation_slashing_db;
+
+            var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(
+                                                        process,
+                                                        id,
+                                                        decided_attestation_data
+                                                    );     
+            assert attestation_with_signature_share.data == decided_attestation_data;  
+
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            lem_f_calc_att_with_sign_share_from_decided_att_data_verify_bls_signature(
+                process,
+                id,
+                decided_attestation_data,
+                attestation_with_signature_share
+            );
+            assert verify_bls_signature(
+                        attestation_signing_root, 
+                        attestation_with_signature_share.signature, 
+                        process.rs.pubkey);
+            assert verify_bls_signature(
+                        attestation_signing_root, 
+                        attestation_with_signature_share.signature, 
+                        process'.rs.pubkey);
+
+            assert  process'
+                    ==
+                    f_update_att_slashing_db_and_consensus_engine_after_att_consensus_decided(
+                            process,
+                            id,
+                            decided_attestation_data,
+                            attestation_with_signature_share,
+                            new_attestation_slashing_db
+                        );           
+
+            assert  f_att_consensus_decided(process, id, decided_attestation_data).outputs
+                    ==
+                    getEmptyOuputs().(
+                        att_shares_sent := multicast(attestation_with_signature_share, process.peers)
+                    );
+
+            var outputs := f_att_consensus_decided(process, id, decided_attestation_data).outputs;
+
+            forall att_share: AttestationShare | att_share in getMessagesFromMessagesWithRecipient(outputs.att_shares_sent) 
+            {
+                assert inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_body(process', att_share);
+            }
+        }     
+        else 
+        {
+            var outputs := f_att_consensus_decided(process, id, decided_attestation_data).outputs;
+            assert inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process');
+        }
+
+    }  
+    
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_listen_for_attestation_shares(
+        process: DVCState,
+        attestation_share: AttestationShare,
+        process': DVCState
+    )
+    requires f_listen_for_attestation_shares.requires(process, attestation_share)
+    requires process' == f_listen_for_attestation_shares(process, attestation_share).state
+    ensures && var outputs := f_listen_for_attestation_shares(process, attestation_share).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    { }
+
+    lemma lem_inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    ensures && var outputs := f_listen_for_new_imported_blocks(process, block).outputs;
+            && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(outputs, process')
+    { }  
+
+    lemma lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body_f_check_for_next_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, attestation_duty)
+    requires process' == f_check_for_next_duty(process, attestation_duty).state
+    requires attestation_duty in process.all_rcvd_duties
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process)
+    ensures inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process')
+    { }
+
+    lemma lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body_f_serve_attestation_duty(
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(process, attestation_duty)
+    requires process' == f_serve_attestation_duty(process, attestation_duty).state
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process)
+    ensures inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process')
+    {
+        var process_rcvd_duty := 
+                process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
+        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
+        
+        lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body_f_check_for_next_duty(
+            process_after_stopping_active_consensus_instance,
+            attestation_duty,
+            process'
+        );   
+    }  
+
+    lemma lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body_f_att_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state 
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process)
+    ensures inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process')
+    { 
+        if  is_decided_data_for_current_slot(process, decided_attestation_data, id)
+        {
+            var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := decided_attestation_data.source.epoch,
+                                            target_epoch := decided_attestation_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(decided_attestation_data)));
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+            assert  slashing_db_attestation in new_attestation_slashing_db;
+
+            var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(
+                                                        process,
+                                                        id,
+                                                        decided_attestation_data
+                                                    );     
+            assert attestation_with_signature_share.data == decided_attestation_data;  
+
+            var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+            var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
+            lem_f_calc_att_with_sign_share_from_decided_att_data_verify_bls_signature(
+                process,
+                id,
+                decided_attestation_data,
+                attestation_with_signature_share
+            );
+            assert verify_bls_signature(
+                        attestation_signing_root, 
+                        attestation_with_signature_share.signature, 
+                        process.rs.pubkey);
+            assert verify_bls_signature(
+                        attestation_signing_root, 
+                        attestation_with_signature_share.signature, 
+                        process'.rs.pubkey);
+
+            assert  process'
+                    ==
+                    f_update_att_slashing_db_and_consensus_engine_after_att_consensus_decided(
+                            process,
+                            id,
+                            decided_attestation_data,
+                            attestation_with_signature_share,
+                            new_attestation_slashing_db
+                        );           
+
+            assert  f_att_consensus_decided(process, id, decided_attestation_data).outputs
+                    ==
+                    getEmptyOuputs().(
+                        att_shares_sent := multicast(attestation_with_signature_share, process.peers)
+                    );            
+        }     
+        else 
+        {
+            var outputs := f_att_consensus_decided(process, id, decided_attestation_data).outputs;
+            assert inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process');
+        }
+
+    } 
+
+    lemma lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body_f_listen_for_attestation_shares(
+        process: DVCState,
+        attestation_share: AttestationShare,
+        process': DVCState
+    )
+    requires f_listen_for_attestation_shares.requires(process, attestation_share)
+    requires process' == f_listen_for_attestation_shares(process, attestation_share).state
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process)
+    ensures inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process')
+    { }
+
+    lemma lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process)
+    ensures inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_body(process')
+    { }  
+
     lemma lem_inv_outputs_attestations_submited_is_created_with_shares_from_quorum_f_start_next_duty(
         process: DVCState, 
         attestation_duty: AttestationDuty, 
@@ -2438,7 +2757,6 @@ module Fnc_Invs_2
 
     lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_terminate_current_attestation_duty(
         allMessagesSent: set<AttestationShare>,
-        hn: BLSPubkey,
         process: DVCState, 
         process': DVCState
     )
@@ -2446,118 +2764,79 @@ module Fnc_Invs_2
     requires process' == f_terminate_current_attestation_duty(process)
     requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process
              )
     ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process'
             )
     { }    
 
-    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_serve_attestation_duty(
-        allMessagesSent: set<AttestationShare>,
-        hn: BLSPubkey,
-        process: DVCState,
-        attestation_duty: AttestationDuty,
-        process': DVCState
-    )  
-    requires f_serve_attestation_duty.requires(process, attestation_duty)
-    requires process' == f_serve_attestation_duty(process, attestation_duty).state
-     requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
-                allMessagesSent,
-                hn,
-                process
-             )
-    ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
-                allMessagesSent,
-                hn,
-                process'
-            )
-    {
-        var process_rcvd_duty := 
-                process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
-        assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
-                    allMessagesSent,
-                    hn,
-                    process_rcvd_duty
-                );
-        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
-        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_terminate_current_attestation_duty(
-            allMessagesSent,
-            hn,
-            process_rcvd_duty,
-            process_after_stopping_active_consensus_instance
-        );
-        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_check_for_next_duty(
-            allMessagesSent,
-            hn,
-            process_after_stopping_active_consensus_instance,
-            attestation_duty,
-            process'
-        );   
-    } 
-
-    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_startConsensusInstance_helper(
-        s: ConsensusEngineState,
-        id: Slot,
-        attestation_duty: AttestationDuty,
-        attestation_slashing_db: set<SlashingDBAttestation>,
-        r: ConsensusEngineState
-    )
-    requires id !in s.active_attestation_consensus_instances.Keys
-    requires id == attestation_duty.slot
-    requires r == startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)    
-    ensures &&  var acvc := 
-                AttestationConsensusValidityCheckState(
-                    attestation_duty := attestation_duty,
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
-                );
-            &&  var vp := acvc.validityPredicate;
-            &&  ( forall slot0, vp0 ::
-                    && var hist_slot0 := getOrDefault(s.att_slashing_db_hist, slot0, map[]);
-                    && var hist_slot_vp0 := getOrDefault(hist_slot0, vp0, {});
-                    && var new_hist_slot0 := getOrDefault(r.att_slashing_db_hist, slot0, map[]);
-                    && var new_hist_slot_vp0 := getOrDefault(new_hist_slot0, vp0, {});
-                    && (( slot0 != id || vp0 != vp )
-                        ==> 
-                        hist_slot_vp0 == new_hist_slot_vp0
-                        )
-                    && ((slot0 == id && vp0 == vp )
-                        ==> 
-                        hist_slot_vp0 + {attestation_slashing_db} == new_hist_slot_vp0
-                        )
-                )
-    { 
+    // // lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_startConsensusInstance_helper(
+    // //     s: ConsensusEngineState,
+    // //     id: Slot,
+    // //     attestation_duty: AttestationDuty,
+    // //     attestation_slashing_db: set<SlashingDBAttestation>,
+    // //     s': ConsensusEngineState,
+    // //     allMessagesSent: set<AttestationShare>
+    // // )
+    // // requires id !in s.active_attestation_consensus_instances.Keys
+    // // requires id == attestation_duty.slot
+    // // requires s' == startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)    
+    // // ensures &&  var acvc := 
+    // //             AttestationConsensusValidityCheckState(
+    // //                 attestation_duty := attestation_duty,
+    // //                 validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+    // //             );
+    // //         &&  var vp := acvc.validityPredicate;
+    // //         &&  var hist_id := getOrDefault(s.att_slashing_db_hist, id, map[]);
+    // //         &&  s'.att_slashing_db_hist[id][vp] == getOrDefault(hist_id, vp, {}) + {attestation_slashing_db}
+    // // { 
         
-    }  
+    // // } 
 
     lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_start_next_duty(
         allMessagesSent: set<AttestationShare>,
-        hn: BLSPubkey,
         process: DVCState, 
         attestation_duty: AttestationDuty, 
         process': DVCState
     )
     requires f_start_next_duty.requires(process, attestation_duty)
-    requires process' == f_start_next_duty(process, attestation_duty).state    
+    requires process' == f_start_next_duty(process, attestation_duty).state   
+    requires (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process, att_share)             
+            )
     requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process
              )
-    // ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
-    //             allMessagesSent,
-    //             hn,
-    //             process'
-    //         )
+    ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process'
+            )
     { 
+        var rs_pubkey: BLSPubkey := process.rs.pubkey;
+        assert rs_pubkey == process'.rs.pubkey;
+
         var duty_slot := attestation_duty.slot;
         var attestation_slashing_db := process.attestation_slashing_db;
-        var att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>> := process.attestation_consensus_engine_state.att_slashing_db_hist;
         var attestation_slashing_db' := process'.attestation_slashing_db;
-        var att_slashing_db_hist': map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>> := process'.attestation_consensus_engine_state.att_slashing_db_hist;
+        assert attestation_slashing_db == attestation_slashing_db';
+        assert  (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process', att_share)             
+                );
+
+        var att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>> 
+            := process.attestation_consensus_engine_state.att_slashing_db_hist;        
+        var att_slashing_db_hist': map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>> 
+            := process'.attestation_consensus_engine_state.att_slashing_db_hist;
 
         var acvc := 
             AttestationConsensusValidityCheckState(
@@ -2568,40 +2847,27 @@ module Fnc_Invs_2
         var new_active_attestation_consensus_instances := 
             process.attestation_consensus_engine_state.active_attestation_consensus_instances[
                 duty_slot := acvc
-            ];       
-        
-        assert  ( forall slot: Slot, vp: AttestationData -> bool ::
-                    && var hist_slot := getOrDefault(att_slashing_db_hist, slot, map[]);
-                    && var hist_slot_vp := getOrDefault(hist_slot, vp, {});
-                    && var new_hist_slot := getOrDefault(att_slashing_db_hist', slot, map[]);
-                    && var new_hist_slot_vp := getOrDefault(new_hist_slot, vp, {});
-                    && (( slot != duty_slot || vp != new_vp )
-                        ==> 
-                        hist_slot_vp == new_hist_slot_vp
-                        )
-                    && ((slot == duty_slot && vp == new_vp )
-                        ==> 
-                        hist_slot_vp + {attestation_slashing_db} == new_hist_slot_vp
-                        )
-                );
+            ];              
+
+        assert process.rs.pubkey == process'.rs.pubkey;
 
         forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
             && slot in att_slashing_db_hist'
             && vp in att_slashing_db_hist'[slot]
             && db in att_slashing_db_hist'[slot][vp]
-        // ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(            
-        //             allMessagesSent,
-        //             hn,
-        //             slot,
-        //             vp,
-        //             db
-        //         )
+        ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(            
+                        allMessagesSent,
+                        process'.rs.pubkey,
+                        slot,
+                        vp,
+                        db
+                    );   
         {
             if slot != duty_slot || vp != new_vp
             {
                 assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(            
                     allMessagesSent,
-                    hn,
+                    process.rs.pubkey,
                     slot,
                     vp,
                     db
@@ -2617,64 +2883,636 @@ module Fnc_Invs_2
                 assert hist_slot_vp + {attestation_slashing_db} == new_hist_slot_vp;
 
                 if db in hist_slot_vp
-                {
-                    assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(            
+                {                    
+                    assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(            
                                 allMessagesSent,
-                                hn,
+                                process'.rs.pubkey,
                                 slot,
                                 vp,
                                 db
-                            );    
+                            );   
                 }
                 else
                 {
-
+                    assert db == attestation_slashing_db;
+                    forall att_share: AttestationShare |
+                                && att_share in allMessagesSent 
+                                && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    {
+                        var att_data := att_share.data;
+                        var slashing_db_attestation 
+                            := 
+                            SlashingDBAttestation(
+                                source_epoch := att_data.source.epoch,
+                                target_epoch := att_data.target.epoch,
+                                signing_root := Some(hash_tree_root(att_data))
+                            );
+                        assert inv_data_of_att_shares_is_known_body(process', att_share);
+                        assert slashing_db_attestation in process'.attestation_slashing_db;     
+                        assert slashing_db_attestation in db;                    
+                    }
                 }
             }
         }
     }  
 
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_updateAttSlashingDBHist(
+        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
+        new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
+        allMessagesSent: set<AttestationShare>,
+        rs_pubkey: BLSPubkey
+    )    
+    requires new_hist == updateAttSlashingDBHist(hist, new_active_attestation_consensus_instances, new_attestation_slashing_db)
+    requires (  forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
+                        && slot in hist
+                        && vp in hist[slot]
+                        && db in hist[slot][vp]
+                        :: 
+                        inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                            allMessagesSent,
+                            rs_pubkey,
+                            slot,
+                            vp,
+                            db
+                        )
+    )
+    requires (  forall att_share: AttestationShare | 
+                        && att_share in allMessagesSent 
+                        && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                        ::
+                        && var att_data := att_share.data;
+                        && var slashing_db_attestation := construct_SlashingDBAttestation_from_att_data(att_data);
+                        && slashing_db_attestation in new_attestation_slashing_db           
+    )
+    ensures ( forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation>, att_share: AttestationShare | 
+                    && slot in new_hist.Keys
+                    && vp in new_hist[slot]
+                    && db in new_hist[slot][vp]
+                    && att_share in allMessagesSent
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    && att_share.data.slot < slot             
+                    ::
+                    inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                        allMessagesSent,
+                        rs_pubkey,
+                        slot,
+                        vp,
+                        db
+                    )
+    )
+    {
+        assert hist.Keys + new_active_attestation_consensus_instances.Keys == new_hist.Keys;
+
+        forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation>, att_share: AttestationShare | 
+                    && slot in new_hist.Keys
+                    && vp in new_hist[slot]
+                    && db in new_hist[slot][vp]
+                    && att_share in allMessagesSent
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    && att_share.data.slot < slot             
+        ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                        allMessagesSent,
+                        rs_pubkey,
+                        slot,
+                        vp,
+                        db
+                    )
+        {
+            if slot in new_active_attestation_consensus_instances.Keys
+            {
+                if slot in hist.Keys && vp in hist[slot].Keys && db in hist[slot][vp]
+                {                    
+                    assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                        allMessagesSent,
+                        rs_pubkey,
+                        slot,
+                        vp,
+                        db
+                    );                
+                }
+                else
+                {
+                    assert db == new_attestation_slashing_db;
+                    assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                        allMessagesSent,
+                        rs_pubkey,
+                        slot,
+                        vp,
+                        db
+                    );      
+                }
+            }
+            else
+            {
+                assert hist[slot] == new_hist[slot];
+                assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                            allMessagesSent,
+                            rs_pubkey,
+                            slot,
+                            vp,
+                            db
+                        );
+            }
+        }
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_updateConsensusInstanceValidityCheck(
+        s: ConsensusEngineState,
+        new_attestation_slashing_db: set<SlashingDBAttestation>,
+        s': ConsensusEngineState,
+        allMessagesSent: set<AttestationShare>
+    )
+    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    {
+        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    s.active_attestation_consensus_instances,
+                    new_attestation_slashing_db
+                );
+
+        forall slot: Slot | slot in new_active_attestation_consensus_instances.Keys
+        ensures && var validityPredicate := new_active_attestation_consensus_instances[slot].validityPredicate;
+                && var attestation_duty := new_active_attestation_consensus_instances[slot].attestation_duty;
+                && ( forall att_data: AttestationData 
+                        ::
+                        validityPredicate(att_data)
+                        <==> 
+                        consensus_is_valid_attestation_data(new_attestation_slashing_db, att_data, attestation_duty)
+                )
+        {
+            var validityPredicate := new_active_attestation_consensus_instances[slot].validityPredicate;
+            var attestation_duty := new_active_attestation_consensus_instances[slot].attestation_duty;
+            assert  ( forall att_data: AttestationData 
+                        ::
+                        validityPredicate(att_data)
+                        <==> 
+                        consensus_is_valid_attestation_data(new_attestation_slashing_db, att_data, attestation_duty)
+                    )
+            ;
+        }
+
+        assert  s' 
+                ==
+                s.(
+                    active_attestation_consensus_instances := new_active_attestation_consensus_instances,
+                    att_slashing_db_hist := updateAttSlashingDBHist(
+                        s.att_slashing_db_hist,
+                        new_active_attestation_consensus_instances,
+                        new_attestation_slashing_db
+                    )
+                );
+    }
+
     lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_check_for_next_duty(
         allMessagesSent: set<AttestationShare>,
-        hn: BLSPubkey,
         process: DVCState,
         attestation_duty: AttestationDuty,
         process': DVCState
     )
     requires f_check_for_next_duty.requires(process, attestation_duty)
     requires process' == f_check_for_next_duty(process, attestation_duty).state
+    requires (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process, att_share)             
+            )
     requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process
              )
     ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process'
             )
-    { }  
+    { 
+        if attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
+        {
+            
+            var new_attestation_slashing_db := 
+                f_update_attestation_slashing_db(
+                    process.attestation_slashing_db, 
+                    process.future_att_consensus_instances_already_decided[attestation_duty.slot]
+                );
+            assert process.attestation_slashing_db <= new_attestation_slashing_db;
 
+            var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    process.attestation_consensus_engine_state.active_attestation_consensus_instances,
+                    new_attestation_slashing_db
+                );
 
+            var new_process := 
+                process.(
+                    current_attestation_duty := Some(attestation_duty),
+                    latest_attestation_duty := Some(attestation_duty),
+                    future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
+                    attestation_slashing_db := new_attestation_slashing_db,
+                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        process.attestation_consensus_engine_state,
+                        new_attestation_slashing_db
+                    )                        
+                );
+
+            lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_updateAttSlashingDBHist(
+                process.attestation_consensus_engine_state.att_slashing_db_hist,                 
+                new_active_attestation_consensus_instances,
+                new_attestation_slashing_db,
+                process'.attestation_consensus_engine_state.att_slashing_db_hist,
+                allMessagesSent,
+                process.rs.pubkey
+            );
+        
+        }
+        else
+        {
+            lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_start_next_duty(
+                allMessagesSent,
+                process, 
+                attestation_duty, 
+                process'
+            );
+        }
+    }  
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_serve_attestation_duty(
+        allMessagesSent: set<AttestationShare>,
+        process: DVCState,
+        attestation_duty: AttestationDuty,
+        process': DVCState
+    )  
+    requires f_serve_attestation_duty.requires(process, attestation_duty)
+    requires process' == f_serve_attestation_duty(process, attestation_duty).state
+    requires (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process, att_share)             
+            )
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process
+             )
+    ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process'
+            )
+    {
+        var process_rcvd_duty := 
+                process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
+        assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                    allMessagesSent,
+                    process_rcvd_duty
+                );
+        assert  (  forall att_share: AttestationShare |
+                                && att_share in allMessagesSent 
+                                && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                                && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                                ::
+                                && inv_data_of_att_shares_is_known_body(process_rcvd_duty, att_share)             
+                );
+
+        var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
+
+        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_terminate_current_attestation_duty(
+            allMessagesSent,
+            process_rcvd_duty,
+            process_after_stopping_active_consensus_instance
+        );
+        assert  (  forall att_share: AttestationShare |
+                                && att_share in allMessagesSent 
+                                && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                                && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                                ::
+                                && inv_data_of_att_shares_is_known_body(process_after_stopping_active_consensus_instance, att_share)             
+                );
+
+        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_check_for_next_duty(
+            allMessagesSent,
+            process_after_stopping_active_consensus_instance,
+            attestation_duty,
+            process'
+        );   
+    } 
+
+     
     lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_listen_for_new_imported_blocks(
         allMessagesSent: set<AttestationShare>,
-        hn: BLSPubkey,
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process, att_share)             
+            )
     requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process
              )
     ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
                 allMessagesSent,
-                hn,
                 process'
             )
-    { }  
+    { 
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
+        var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
+
+        var future_att_consensus_instances_already_decided := 
+                f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
+
+        var process_after_stopping_consensus_instance :=
+                process.(
+                    future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
+                    attestation_consensus_engine_state := stopConsensusInstances(
+                                    process.attestation_consensus_engine_state,
+                                    att_consensus_instances_already_decided.Keys
+                    ),
+                    attestation_shares_to_broadcast := process.attestation_shares_to_broadcast - att_consensus_instances_already_decided.Keys,
+                    rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys                    
+                );         
+
+        assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process_after_stopping_consensus_instance
+            );          
+        assert (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process_after_stopping_consensus_instance, att_share)             
+            );
+
+        if process_after_stopping_consensus_instance.current_attestation_duty.isPresent() && process_after_stopping_consensus_instance.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided 
+        {
+            var decided_attestation_data := att_consensus_instances_already_decided[process_after_stopping_consensus_instance.current_attestation_duty.safe_get().slot];
+            var new_attestation_slashing_db := f_update_attestation_slashing_db(process_after_stopping_consensus_instance.attestation_slashing_db, decided_attestation_data);
+            var process_after_updating_validity_check := process_after_stopping_consensus_instance.(
+                current_attestation_duty := None,
+                attestation_slashing_db := new_attestation_slashing_db,
+                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    process_after_stopping_consensus_instance.attestation_consensus_engine_state,
+                    new_attestation_slashing_db
+                )
+            );
+
+            assert process_after_updating_validity_check == process';
+            assert process_after_stopping_consensus_instance.attestation_slashing_db <= new_attestation_slashing_db;
+
+            var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    process_after_stopping_consensus_instance.attestation_consensus_engine_state.active_attestation_consensus_instances,
+                    new_attestation_slashing_db
+                );
+
+            assert  process'.attestation_consensus_engine_state.att_slashing_db_hist 
+                    == 
+                    updateAttSlashingDBHist(
+                        process_after_stopping_consensus_instance.attestation_consensus_engine_state.att_slashing_db_hist, 
+                        new_active_attestation_consensus_instances, 
+                        new_attestation_slashing_db
+                    );
+
+            lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_updateAttSlashingDBHist(
+                process_after_stopping_consensus_instance.attestation_consensus_engine_state.att_slashing_db_hist,                 
+                new_active_attestation_consensus_instances,
+                new_attestation_slashing_db,
+                process'.attestation_consensus_engine_state.att_slashing_db_hist,
+                allMessagesSent,
+                process.rs.pubkey
+            );
+        }
+        else
+        {
+            assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process'
+            );
+        }
+    }  
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_att_consensus_decided_new_att_shares_sent(
+        allMessagesSent: set<AttestationShare>,
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
+    requires (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process, att_share)             
+            )
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process
+             )
+    requires && process.current_attestation_duty.isPresent()
+             && id == process.current_attestation_duty.safe_get().slot
+             && id == decided_attestation_data.slot
+    requires inv_available_current_att_duty_is_latest_served_att_duty_body(process)
+    requires ( forall slot  |
+                        slot in process'.attestation_consensus_engine_state.att_slashing_db_hist
+                        ::
+                        slot <= process'.latest_attestation_duty.safe_get().slot
+             )
+    ensures && var outputs := f_att_consensus_decided(process, id, decided_attestation_data).outputs;
+            && var allMessagesSent' := allMessagesSent + getMessagesFromMessagesWithRecipient(outputs.att_shares_sent);
+            && inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                    allMessagesSent',
+                    process'
+                )
+    ensures && var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(
+                                                    process,
+                                                    id,
+                                                    decided_attestation_data
+                                                );       
+            && pred_verify_owner_of_attestation_share_with_bls_signature(process'.rs.pubkey, attestation_with_signature_share)
+            && ( forall slot: Slot | slot in process'.attestation_consensus_engine_state.att_slashing_db_hist ::
+                    attestation_with_signature_share.data.slot >= slot
+            )
+    {
+        var new_attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
+
+        var attestation_with_signature_share := f_calc_att_with_sign_share_from_decided_att_data(
+                                                    process,
+                                                    id,
+                                                    decided_attestation_data
+                                                );       
+        lem_f_calc_att_with_sign_share_from_decided_att_data_verify_bls_signature(
+            process,
+            id,
+            decided_attestation_data,
+            attestation_with_signature_share
+        );
+        assert pred_verify_owner_of_attestation_share_with_bls_signature(process.rs.pubkey, attestation_with_signature_share);
+        assert process'.rs.pubkey == process.rs.pubkey;
+        assert pred_verify_owner_of_attestation_share_with_bls_signature(process'.rs.pubkey, attestation_with_signature_share);
+
+        assert process.attestation_slashing_db <= new_attestation_slashing_db;                                                    
+
+        assert  process'
+                ==
+                f_update_att_slashing_db_and_consensus_engine_after_att_consensus_decided(
+                        process,
+                        id,
+                        decided_attestation_data,
+                        attestation_with_signature_share,
+                        new_attestation_slashing_db
+                    );   
+
+        
+        assert process.latest_attestation_duty.isPresent();
+        assert && process'.latest_attestation_duty.isPresent()
+               && process'.latest_attestation_duty.safe_get()
+                  ==
+                  process.latest_attestation_duty.safe_get()  ;
+
+        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                process.attestation_consensus_engine_state.active_attestation_consensus_instances,
+                new_attestation_slashing_db
+            );        
+
+        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_updateAttSlashingDBHist(
+            process.attestation_consensus_engine_state.att_slashing_db_hist,                 
+            new_active_attestation_consensus_instances,
+            new_attestation_slashing_db,
+            process'.attestation_consensus_engine_state.att_slashing_db_hist,
+            allMessagesSent,
+            process.rs.pubkey
+        );
+
+        assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(
+                    allMessagesSent,
+                    process'
+                );
+        assert process.rs.pubkey == process'.rs.pubkey;
+
+        var allMessagesSent' := allMessagesSent + {attestation_with_signature_share};
+
+        forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
+                    && slot in process'.attestation_consensus_engine_state.att_slashing_db_hist
+                    && vp in process'.attestation_consensus_engine_state.att_slashing_db_hist[slot]
+                    && db in process'.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+        ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body_dvc(
+                    allMessagesSent',
+                    process'.rs.pubkey,
+                    slot,
+                    vp,
+                    db
+                )
+        {
+            var hist := process.attestation_consensus_engine_state.att_slashing_db_hist;
+            var hist' := process'.attestation_consensus_engine_state.att_slashing_db_hist;            
+            var hist_slot := getOrDefault(hist, slot, map[]);
+            var hist_slot' := getOrDefault(hist', slot, map[]);
+            var hist_slot_vp := getOrDefault(hist_slot, vp, {});
+            var hist_slot_vp' := getOrDefault(hist_slot', vp, {});
+
+            assert || hist_slot_vp' == hist_slot_vp 
+                   || hist_slot_vp' == hist_slot_vp + {new_attestation_slashing_db};
+
+            forall att_share: AttestationShare | 
+                && att_share in allMessagesSent'
+                && pred_verify_owner_of_attestation_share_with_bls_signature(process'.rs.pubkey, att_share)
+                && att_share.data.slot < slot
+            ensures && var att_data := att_share.data;
+                    && var slashing_db_attestation := SlashingDBAttestation(
+                                                    source_epoch := att_data.source.epoch,
+                                                    target_epoch := att_data.target.epoch,
+                                                    signing_root := Some(hash_tree_root(att_data)));
+                    && slashing_db_attestation in db
+            {
+                var att_data := att_share.data;
+                var slashing_db_attestation := SlashingDBAttestation(
+                                                    source_epoch := att_data.source.epoch,
+                                                    target_epoch := att_data.target.epoch,
+                                                    signing_root := Some(hash_tree_root(att_data)));
+                
+                if att_share in allMessagesSent
+                {
+                    assert slashing_db_attestation in db;
+                }
+                else
+                {
+                    
+                    assert att_share == attestation_with_signature_share;
+                    assert att_share.data.slot >= slot;
+                }
+                assert slashing_db_attestation in db;
+            }
+        }
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_att_consensus_decided(
+        allMessagesSent: set<AttestationShare>,
+        process: DVCState,
+        id: Slot,
+        decided_attestation_data: AttestationData, 
+        process': DVCState
+    )
+    requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
+    requires process' == f_att_consensus_decided(process, id, decided_attestation_data).state         
+    requires (  forall att_share: AttestationShare |
+                    && att_share in allMessagesSent 
+                    && var rs_pubkey: BLSPubkey := process.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(rs_pubkey, att_share)
+                    ::
+                    && inv_data_of_att_shares_is_known_body(process, att_share)             
+            )
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process
+             )
+    ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process'
+             )          
+    { 
+        if  && process.current_attestation_duty.isPresent()
+            && id == process.current_attestation_duty.safe_get().slot
+            && id == decided_attestation_data.slot
+        {
+            
+        }
+        else 
+        {
+            assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process'
+            );
+        }
+            
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_resend_attestation_share(
+        allMessagesSent: set<AttestationShare>,
+        process: DVCState,
+        process': DVCState
+    )
+    requires f_resend_attestation_share.requires(process)
+    requires process' == f_resend_attestation_share(process).state       
+    requires process.attestation_shares_to_broadcast.Values <= allMessagesSent 
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process
+             )
+    ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc(                
+                allMessagesSent,
+                process'
+            )
+    { }
+    
 }
