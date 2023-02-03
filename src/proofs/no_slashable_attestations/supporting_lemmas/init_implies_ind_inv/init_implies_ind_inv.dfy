@@ -15,6 +15,7 @@ module Ind_Inv_DV_Init
     import opened DVC_Spec
     import opened DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
+    import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
     lemma lem_ind_inv_dv_init(dv: DVState)       
     requires DV.Init(dv, {})    
@@ -25,7 +26,10 @@ module Ind_Inv_DV_Init
                 ==>                 
                 && invs_group_1(dv)
                 && invs_group_2(dv)
-                && invs_group_3(dv)                
+        ;
+        assert  DV.Init(dv, {})  
+                ==>                 
+                && invs_group_3(dv)                         
                 && invs_group_4(dv)
                 && invs_group_5(dv)   
                 && invs_group_6(dv)                     
@@ -39,6 +43,8 @@ module Ind_Inv_DV_Init
                 && invs_group_10(dv)
                 && invs_group_11(dv)
                 && invs_group_12(dv)
+                && invs_group_13(dv)
+                && invs_group_14(dv)
         ;
     }  
 }

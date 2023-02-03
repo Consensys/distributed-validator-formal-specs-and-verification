@@ -202,7 +202,7 @@ module DV
                     && 0 <= i < j
                     && s.sequence_attestation_duties_to_be_served[i].node == s.sequence_attestation_duties_to_be_served[j].node 
                 ::
-                    s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot <= s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
+                    s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot < s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
         )
         // && ( forall k1: Slot, k2: Slot :: 
         //         && k1 < k2
