@@ -31,6 +31,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && invs_group_11(dv)
         && invs_group_12(dv)      
         && invs_group_13(dv)  
+        && invs_group_14(dv)  
     }
 
     predicate invs_group_1(dv: DVState)       
@@ -134,5 +135,14 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         && inv_all_created_attestations_are_valid(dv)
         && inv_attestation_is_created_with_shares_from_quorum(dv)
         && inv_unchanged_dvc_rs_pubkey(dv)
+    }
+
+    predicate invs_group_14(dv: DVState)       
+    {   
+        && inv_sequence_attestation_duties_to_be_served_orderd(dv)
+        && inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db(dv)
+        && inv_data_of_att_shares_is_known(dv)
+        && inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)
+        && inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
     }
 }

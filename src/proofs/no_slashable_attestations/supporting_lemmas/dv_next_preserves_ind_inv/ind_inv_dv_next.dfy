@@ -152,7 +152,7 @@ module Ind_Inv_DV_Next
 
     lemma lem_ind_inv_implies_intermediate_steps_helper_3(dv: DVState)
     requires ind_inv(dv)  
-    ensures is_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures inv_sequence_attestation_duties_to_be_served_orderd(dv)
     ensures inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     ensures inv_current_latest_attestation_duty_match(dv)
     ensures inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
@@ -185,7 +185,7 @@ module Ind_Inv_DV_Next
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
                 dv.all_nodes)  
-    ensures is_sequence_attestation_duties_to_be_served_orderd(dv)     
+    ensures inv_sequence_attestation_duties_to_be_served_orderd(dv)     
     ensures inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
     ensures inv_current_latest_attestation_duty_match(dv)
     ensures inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
@@ -418,11 +418,27 @@ module Ind_Inv_DV_Next
     requires DV.NextEventPreCond(dv, e)
     requires DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    // ensures invs_group_13(dv')
+    ensures invs_group_13(dv')
     {
         lem_inv_decided_data_has_an_honest_witness_dv_next(dv, e, dv');
         lem_inv_all_created_attestations_are_valid_dv_next(dv, e, dv');
         lem_inv_attestation_is_created_with_shares_from_quorum_dv_next(dv, e, dv');
+        lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, e, dv');
+    }
+
+    lemma lem_ind_inv_dv_next_invs_group_14(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_group_14(dv')
+    {   
+        
+        lem_inv_sequence_attestation_duties_to_be_served_orderd_dv_next(dv, e, dv');
+        lem_inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db_dv_next(dv, e, dv');
+        lem_inv_data_of_att_shares_is_known_dv_next(dv, e, dv');
+        lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv, e, dv');
+        lem_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);   
+        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next(dv, e, dv');
     }
     
     lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
@@ -462,14 +478,23 @@ module Ind_Inv_DV_Next
     ensures invs_group_9(dv')
     ensures invs_group_10(dv')
     ensures invs_group_11(dv')
-    ensures invs_group_12(dv')   
-    ensures invs_group_13(dv')    
     {        
         lem_ind_inv_dv_next_invs_group_9(dv, e, dv');       
         lem_ind_inv_dv_next_invs_group_10(dv, e, dv');  
-        lem_ind_inv_dv_next_invs_group_11(dv, e, dv');            
+        lem_ind_inv_dv_next_invs_group_11(dv, e, dv');                                     
+    }
+
+    lemma lem_ind_inv_dv_next_ind_inv_helper_4(dv: DVState, e: DV.Event, dv': DVState)       
+    requires DV.NextEventPreCond(dv, e)
+    requires DV.NextEvent(dv, e, dv')  
+    requires ind_inv(dv)
+    ensures invs_group_12(dv')   
+    ensures invs_group_13(dv')    
+    ensures invs_group_14(dv')
+    {        
         lem_ind_inv_dv_next_invs_group_12(dv, e, dv');                              
-        lem_ind_inv_dv_next_invs_group_13(dv, e, dv');                              
+        lem_ind_inv_dv_next_invs_group_13(dv, e, dv');     
+        lem_ind_inv_dv_next_invs_group_14(dv, e, dv');                              
     }
 
     lemma lem_ind_inv_dv_next_ind_inv_helper_a(dv: DVState, e: DV.Event, dv': DVState)       
@@ -498,8 +523,10 @@ module Ind_Inv_DV_Next
     ensures invs_group_11(dv')    
     ensures invs_group_12(dv')    
     ensures invs_group_13(dv')    
+    ensures invs_group_14(dv')
     {
-        lem_ind_inv_dv_next_ind_inv_helper_3(dv, e, dv');     
+        lem_ind_inv_dv_next_ind_inv_helper_3(dv, e, dv');   
+        lem_ind_inv_dv_next_ind_inv_helper_4(dv, e, dv');    
     }
 
     lemma lem_ind_inv_dv_next_ind_inv_helper(dv: DVState, e: DV.Event, dv': DVState)       
@@ -518,6 +545,8 @@ module Ind_Inv_DV_Next
     ensures invs_group_10(dv')    
     ensures invs_group_11(dv')    
     ensures invs_group_12(dv')    
+    ensures invs_group_13(dv')    
+    ensures invs_group_14(dv')    
     {   
         lem_ind_inv_dv_next_ind_inv_helper_a(dv, e, dv');
         lem_ind_inv_dv_next_ind_inv_helper_b(dv, e, dv');                

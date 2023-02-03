@@ -1951,15 +1951,15 @@ module Invs_DV_Next_2
         }
     }  
 
-    lemma lem_inv_sequence_attestation_duties_to_be_served_orderd(
+    lemma lem_inv_sequence_attestation_duties_to_be_served_orderd_dv_next(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires is_sequence_attestation_duties_to_be_served_orderd(s)
-    ensures is_sequence_attestation_duties_to_be_served_orderd(s')
+    requires inv_sequence_attestation_duties_to_be_served_orderd(s)
+    ensures inv_sequence_attestation_duties_to_be_served_orderd(s')
     {
         match event 
         {

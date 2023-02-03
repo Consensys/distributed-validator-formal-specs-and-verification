@@ -1585,7 +1585,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_is_sequence_attestation_duties_to_be_serves_orders(dv: DVState)
     {
-        is_sequence_attestation_duties_to_be_served_orderd(dv)
+        inv_sequence_attestation_duties_to_be_served_orderd(dv)
     }
 
     predicate inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc: DVCState, next_duty: AttestationDuty)

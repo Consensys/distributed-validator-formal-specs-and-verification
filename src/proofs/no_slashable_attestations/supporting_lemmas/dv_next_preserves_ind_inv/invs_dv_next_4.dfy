@@ -56,7 +56,7 @@ module Invs_DV_Next_4
         && inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s) //
         && inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s) //
         && inv_data_of_att_share_is_decided_value(s) //  
-        && is_sequence_attestation_duties_to_be_served_orderd(s) //
+        && inv_sequence_attestation_duties_to_be_served_orderd(s) //
         && inv_current_latest_attestation_duty_match(s)
         && construct_signed_attestation_signature_assumptions_helper(
             s.construct_signed_attestation_signature,

@@ -1074,7 +1074,7 @@ module Invs_DV_Next_5
     requires index_next_attestation_duty_to_be_served > 0    
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv);
     ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     {
         
@@ -1107,7 +1107,7 @@ module Invs_DV_Next_5
     requires index_next_attestation_duty_to_be_served > 0    
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv);
     ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     {
         lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty_f_start_next_duty_helper(
@@ -1132,7 +1132,7 @@ module Invs_DV_Next_5
     requires index_next_attestation_duty_to_be_served > 0    
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, process)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist_body_body(process)   
-    requires is_sequence_attestation_duties_to_be_served_orderd(dv);
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv);
     ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(dv, n, s')
     {
         
@@ -1214,8 +1214,8 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')      
-    requires is_sequence_attestation_duties_to_be_served_orderd(s);
-    ensures is_sequence_attestation_duties_to_be_served_orderd(s')
+    requires inv_sequence_attestation_duties_to_be_served_orderd(s);
+    ensures inv_sequence_attestation_duties_to_be_served_orderd(s')
     {
         
     }    
@@ -1228,7 +1228,7 @@ module Invs_DV_Next_5
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)   
     requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
-    requires is_sequence_attestation_duties_to_be_served_orderd(s)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(s)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(s)
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -1252,7 +1252,7 @@ module Invs_DV_Next_5
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)   
     requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
-    requires is_sequence_attestation_duties_to_be_served_orderd(s);    
+    requires inv_sequence_attestation_duties_to_be_served_orderd(s);    
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
@@ -1341,7 +1341,7 @@ module Invs_DV_Next_5
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)        
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)       
     requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
-    requires is_sequence_attestation_duties_to_be_served_orderd(s);
+    requires inv_sequence_attestation_duties_to_be_served_orderd(s);
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s');  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -2012,7 +2012,7 @@ module Invs_DV_Next_5
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
     requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
-    requires is_sequence_attestation_duties_to_be_served_orderd(dv)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
         
