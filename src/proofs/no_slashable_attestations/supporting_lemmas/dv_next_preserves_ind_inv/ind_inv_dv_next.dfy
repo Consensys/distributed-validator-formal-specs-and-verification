@@ -170,7 +170,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_implies_intermediate_steps_helper_1(dv);
         lem_ind_inv_implies_intermediate_steps_helper_2(dv);
         lem_ind_inv_implies_intermediate_steps_helper_3(dv);   
-        lem_inv_data_of_all_created_attestations_is_set_of_decided_values_dv_next(dv);     
+        lem_inv_data_of_all_created_attestations_is_set_of_decided_values_dv_next(dv);
     }
 
     lemma lem_ind_inv_implies_intermediate_steps(dv: DVState)
@@ -190,11 +190,14 @@ module Ind_Inv_DV_Next
     ensures inv_current_latest_attestation_duty_match(dv)
     ensures inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
     ensures lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_new_precond(dv)
+    ensures inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
     {   
         lem_ind_inv_implies_intermediate_steps_helper_1(dv); 
         lem_ind_inv_implies_intermediate_steps_helper_2(dv);
         lem_ind_inv_implies_intermediate_steps_helper_3(dv);
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
+        lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_ind_inv(dv);
+        lem_inv_data_of_all_created_attestations_is_set_of_decided_values_dv_next(dv);
     }
    
     lemma lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: DVState, e: DV.Event, dv': DVState)  
@@ -438,7 +441,7 @@ module Ind_Inv_DV_Next
         lem_inv_data_of_att_shares_is_known_dv_next(dv, e, dv');
         lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv, e, dv');
         lem_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv);   
-        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next(dv, e, dv');
+        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next(dv, e, dv');        
     }
     
     lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.Event, dv': DVState)       
