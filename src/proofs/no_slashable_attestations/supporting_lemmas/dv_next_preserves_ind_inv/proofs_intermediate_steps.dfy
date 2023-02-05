@@ -94,7 +94,11 @@ module Proofs_Intermediate_Steps
             forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties
             ensures rcvd_duty.slot <= next_duty.slot
             {
-                assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(dv, hn, rcvd_duty);
+                assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(
+                            rcvd_duty, 
+                            hn, 
+                            dv.sequence_attestation_duties_to_be_served,
+                            dv.index_next_attestation_duty_to_be_served);
                 
                 var k: nat :| && 0 <= k < dv.index_next_attestation_duty_to_be_served
                               && dv.sequence_attestation_duties_to_be_served[k].node == hn
