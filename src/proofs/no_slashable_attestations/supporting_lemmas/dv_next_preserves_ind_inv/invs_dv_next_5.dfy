@@ -519,9 +519,9 @@ module Invs_DV_Next_5
     ensures vp in s'.attestation_consensus_engine_state.att_slashing_db_hist[cid]
     {
         lem_att_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
-    }          
+    }     
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper(
+    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_HonestNodeTakingStep(
         s: DVState,
         event: DV.Event,
         cid: Slot,
@@ -531,6 +531,7 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
+    requires event.HonestNodeTakingStep?
     requires inv_quorum_constraints(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
@@ -573,12 +574,9 @@ module Invs_DV_Next_5
                 var hn_state := s.honest_nodes_states[hn];
                 var hn'_state := s'.honest_nodes_states[hn];
 
-                if 
-                    && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
-                    && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]                          
-                    && cid in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-          
-                   
+                if && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
+                   && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]                          
+                   && cid in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                 {
                     if hn in  s.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     {
@@ -635,8 +633,33 @@ module Invs_DV_Next_5
                     assert vp in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];                 
 
                 }  
+        }
+    }     
 
-                         
+    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdeversaryTakingStep(
+        s: DVState,
+        event: DV.Event,
+        cid: Slot,
+        vp: AttestationData -> bool,
+        hn: BLSPubkey,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
+    requires event.AdeversaryTakingStep?
+    requires inv_quorum_constraints(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
+    requires inv_only_dv_construct_signed_attestation_signature(s)    
+    requires hn in s.honest_nodes_states.Keys
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
+    requires inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
+    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
             case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
                 assert s'.consensus_on_attestation_data == s.consensus_on_attestation_data;
                 assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
@@ -653,6 +676,52 @@ module Invs_DV_Next_5
                     assert vp in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist[cid];                 
                 } 
 
+        }
+    }  
+
+    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper(
+        s: DVState,
+        event: DV.Event,
+        cid: Slot,
+        vp: AttestationData -> bool,
+        hn: BLSPubkey,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')  
+    requires inv_quorum_constraints(s)
+    requires same_honest_nodes_in_dv_and_ci(s)
+    requires inv_only_dv_construct_signed_attestation_signature(s)    
+    requires hn in s.honest_nodes_states.Keys
+    requires inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
+    requires inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
+    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    {
+        assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
+        match event 
+        {
+            
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_HonestNodeTakingStep(
+                    s,
+                    event,
+                    cid,
+                    vp,
+                    hn,
+                    s'
+                );
+                
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+                lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdeversaryTakingStep(
+                    s,
+                    event,
+                    cid,
+                    vp,
+                    hn,
+                    s'
+                );
         }
     }  
 
@@ -928,18 +997,18 @@ module Invs_DV_Next_5
     ensures s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served
     {
 
-    }
+    }    
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s)
-    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires event.HonestNodeTakingStep?
+    requires event.HonestNodeTakingStep?    
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', event.node, s'.honest_nodes_states[event.node], s'.index_next_attestation_duty_to_be_served); 
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
@@ -1056,8 +1125,6 @@ module Invs_DV_Next_5
                     lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest_helper4(s, event, s', s.honest_nodes_states[hn], hn);
                 }  
                 assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s');            
-
-
         }
     }  
 
@@ -1723,7 +1790,130 @@ module Invs_DV_Next_5
         }
     }
 
-    // 2 minutes
+    lemma lem_inv_data_of_att_shares_is_known_dv_next_AdeversaryTakingStep(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.AdeversaryTakingStep?
+    requires inv_quorum_constraints(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db(dv)
+    ensures  inv_data_of_att_shares_is_known(dv')
+    {        
+        match event 
+        {
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                lem_inv_quorum_constraints_dv_next(dv, event, dv');
+                assert inv_quorum_constraints(dv');
+                var dishonest_nodes := dv'.adversary.nodes;
+                var honest_nodes := dv'.honest_nodes_states.Keys;
+                lemmaEmptyIntersectionImpliesDisjointness(dishonest_nodes, honest_nodes);
+                assert dishonest_nodes !! honest_nodes;
+
+                var new_att_shares := dv'.att_network.allMessagesSent - dv.att_network.allMessagesSent;
+                forall new_att_share: AttestationShare, signer: BLSPubkey | 
+                            (   && new_att_share in new_att_shares
+                                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(new_att_share.data.target.epoch));
+                                && var attestation_signing_root := compute_attestation_signing_root(new_att_share.data, fork_version);
+                                && verify_bls_signature(attestation_signing_root, new_att_share.signature, signer)
+                            )
+                ensures !is_honest_node(dv, signer)
+                {
+                    assert signer in dishonest_nodes;
+                    assert !is_honest_node(dv, signer);
+                }
+                assert inv_data_of_att_shares_is_known(dv');
+        }  
+    } 
+
+    lemma lem_inv_data_of_att_shares_is_known_dv_next_HonestNodeTakingStep(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        nodeOutputs: Outputs
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires && var dvc' := dv'.honest_nodes_states[node];
+             && inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(nodeOutputs, dvc');
+    requires inv_quorum_constraints(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db(dv)
+    ensures  inv_data_of_att_shares_is_known(dv')
+    {        
+        var dvc := dv.honest_nodes_states[node];
+        var dvc' := dv'.honest_nodes_states[node];
+        assert inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(nodeOutputs, dvc');
+
+        assert  dv.att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent)
+                ==
+                dv'.att_network.allMessagesSent
+                ;
+        forall hn: BLSPubkey, att_share: AttestationShare | 
+                    && is_honest_node(dv, hn)
+                    && att_share in dv'.att_network.allMessagesSent 
+                    && var hn_node': DVCState := dv'.honest_nodes_states[hn];
+                    && var hn_rs_pubkey: BLSPubkey := hn_node'.rs.pubkey;
+                    && pred_verify_owner_of_attestation_share_with_bls_signature(hn_rs_pubkey, att_share)
+        ensures && var hn_node': DVCState := dv'.honest_nodes_states[hn];
+                && inv_data_of_att_shares_is_known_body(hn_node', att_share)            
+        {
+            var hn_node: DVCState := dv.honest_nodes_states[hn];
+            var hn_node': DVCState := dv'.honest_nodes_states[hn];
+            var hn_rs_pubkey: BLSPubkey := hn_node'.rs.pubkey;
+
+            lem_pred_unchanged_rs_dv_next(dv, event, dv');         
+            assert hn_node.rs.pubkey == hn_node'.rs.pubkey;                    
+            
+
+            if att_share in dv.att_network.allMessagesSent 
+            {
+                assert inv_data_of_att_shares_is_known_body(hn_node, att_share);
+                assert inv_data_of_att_shares_is_known_body(hn_node', att_share);
+            }
+            else
+            {                        
+                assert att_share in getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);
+                rs_attestation_sign_and_verification_propeties();
+                assert inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_body(
+                            dvc', 
+                            att_share
+                        );
+                assert inv_data_of_att_shares_is_known_body(dvc', att_share);
+                assert pred_verify_owner_of_attestation_share_with_bls_signature(dvc'.rs.pubkey, att_share);
+                assert pred_verify_owner_of_attestation_share_with_bls_signature(hn_rs_pubkey, att_share);
+                lem_unique_owner_of_att_share(hn_rs_pubkey, dvc'.rs.pubkey, att_share);
+                assert hn_rs_pubkey == dvc'.rs.pubkey;
+
+                calc 
+                {
+                    hn;
+                    ==      
+                    { lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv'); }
+                    hn_rs_pubkey;
+                    ==
+                    dvc'.rs.pubkey;
+                    ==
+                    { lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv'); }
+                    node;
+                }
+
+                assert hn_node' == dvc';
+                assert inv_data_of_att_shares_is_known_body(hn_node', att_share);
+            }
+        }
+        assert inv_data_of_att_shares_is_known(dv');
+    }
+
     lemma lem_inv_data_of_att_shares_is_known_dv_next(
         dv: DVState,
         event: DV.Event,
@@ -1774,86 +1964,21 @@ module Invs_DV_Next_5
                 
                 assert inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db(nodeOutputs, dvc');
 
-                assert  dv.att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent)
-                        ==
-                        dv'.att_network.allMessagesSent
-                        ;
-                forall hn: BLSPubkey, att_share: AttestationShare | 
-                            && is_honest_node(dv, hn)
-                            && att_share in dv'.att_network.allMessagesSent 
-                            && var hn_node': DVCState := dv'.honest_nodes_states[hn];
-                            && var hn_rs_pubkey: BLSPubkey := hn_node'.rs.pubkey;
-                            && pred_verify_owner_of_attestation_share_with_bls_signature(hn_rs_pubkey, att_share)
-                ensures && var hn_node': DVCState := dv'.honest_nodes_states[hn];
-                        && inv_data_of_att_shares_is_known_body(hn_node', att_share)            
-                {
-                    var hn_node: DVCState := dv.honest_nodes_states[hn];
-                    var hn_node': DVCState := dv'.honest_nodes_states[hn];
-                    var hn_rs_pubkey: BLSPubkey := hn_node'.rs.pubkey;
-
-                    lem_pred_unchanged_rs_dv_next(dv, event, dv');         
-                    assert hn_node.rs.pubkey == hn_node'.rs.pubkey;                    
-                    
-
-                    if att_share in dv.att_network.allMessagesSent 
-                    {
-                        assert inv_data_of_att_shares_is_known_body(hn_node, att_share);
-                        assert inv_data_of_att_shares_is_known_body(hn_node', att_share);
-                    }
-                    else
-                    {                        
-                        assert att_share in getMessagesFromMessagesWithRecipient(nodeOutputs.att_shares_sent);
-                        rs_attestation_sign_and_verification_propeties();
-                        assert inv_outputs_attestation_shares_sent_is_tracked_in_attestation_slashing_db_body(
-                                    dvc', 
-                                    att_share
-                                );
-                        assert inv_data_of_att_shares_is_known_body(dvc', att_share);
-                        assert pred_verify_owner_of_attestation_share_with_bls_signature(dvc'.rs.pubkey, att_share);
-                        assert pred_verify_owner_of_attestation_share_with_bls_signature(hn_rs_pubkey, att_share);
-                        lem_unique_owner_of_att_share(hn_rs_pubkey, dvc'.rs.pubkey, att_share);
-                        assert hn_rs_pubkey == dvc'.rs.pubkey;
-
-                        calc 
-                        {
-                            hn;
-                            ==      
-                            { lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv'); }
-                            hn_rs_pubkey;
-                            ==
-                            dvc'.rs.pubkey;
-                            ==
-                            { lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv'); }
-                            node;
-                        }
-
-                        assert hn_node' == dvc';
-                        assert inv_data_of_att_shares_is_known_body(hn_node', att_share);
-                    }
-                }
-                assert inv_data_of_att_shares_is_known(dv');
+                lem_inv_data_of_att_shares_is_known_dv_next_HonestNodeTakingStep(
+                    dv,
+                    event,
+                    dv',
+                    node, 
+                    nodeEvent, 
+                    nodeOutputs
+                );
 
             case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                lem_inv_quorum_constraints_dv_next(dv, event, dv');
-                assert inv_quorum_constraints(dv');
-                var dishonest_nodes := dv'.adversary.nodes;
-                var honest_nodes := dv'.honest_nodes_states.Keys;
-                lemmaEmptyIntersectionImpliesDisjointness(dishonest_nodes, honest_nodes);
-                assert dishonest_nodes !! honest_nodes;
-
-                var new_att_shares := dv'.att_network.allMessagesSent - dv.att_network.allMessagesSent;
-                forall new_att_share: AttestationShare, signer: BLSPubkey | 
-                            (   && new_att_share in new_att_shares
-                                && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(new_att_share.data.target.epoch));
-                                && var attestation_signing_root := compute_attestation_signing_root(new_att_share.data, fork_version);
-                                && verify_bls_signature(attestation_signing_root, new_att_share.signature, signer)
-                            )
-                ensures !is_honest_node(dv, signer)
-                {
-                    assert signer in dishonest_nodes;
-                    assert !is_honest_node(dv, signer);
-                }
-                assert inv_data_of_att_shares_is_known(dv');
+                lem_inv_data_of_att_shares_is_known_dv_next_AdeversaryTakingStep(
+                    dv,
+                    event,
+                    dv'
+                );
         }  
     }  
 
@@ -1919,7 +2044,6 @@ module Invs_DV_Next_5
              && pred_verify_owner_of_attestation_share_with_bls_signature(pubkey, new_att_share_sent.message)
     ensures !is_honest_node(dv', pubkey)
     {
-        
         var message := new_att_share_sent.message;
         var att_data := message.data;
 
@@ -1966,7 +2090,6 @@ module Invs_DV_Next_5
                 == 
                 dv.att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(new_attestation_shares_sent);
 
-
         assert  || old_att_share in dv.att_network.allMessagesSent
                 || old_att_share in getMessagesFromMessagesWithRecipient(new_attestation_shares_sent)
                 ;
@@ -1995,13 +2118,115 @@ module Invs_DV_Next_5
         assert old_att_share in dv.att_network.allMessagesSent;
     }
 
-    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next(
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AdeversaryTakingStep(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
+    requires event.AdeversaryTakingStep?
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)
+    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
+    {        
+        
+        match event 
+        {
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
+        
+                forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
+                            && is_honest_node(dv, hn) 
+                            && var dvc' := dv.honest_nodes_states[hn];
+                            && slot in dvc'.attestation_consensus_engine_state.att_slashing_db_hist
+                            && vp in dvc'.attestation_consensus_engine_state.att_slashing_db_hist[slot]
+                            && db in dvc'.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+                ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
+                            dv',
+                            hn,
+                            slot,
+                            vp,
+                            db)
+                {
+                    var dvc := dv.honest_nodes_states[hn];
+                    var dvc' := dv'.honest_nodes_states[hn];
+                    assert dvc == dvc';
+                    assert db in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp];
+
+                    assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
+                            dv,
+                            hn,
+                            slot, 
+                            vp, 
+                            db
+                        );
+                    
+                    assert hn == dvc.rs.pubkey;
+
+                    forall att_share: AttestationShare | 
+                            && att_share in dv'.att_network.allMessagesSent
+                            && is_honest_node(dv', hn)
+                            && pred_verify_owner_of_attestation_share_with_bls_signature(hn, att_share)
+                            && att_share.data.slot < slot
+                    ensures &&  var att_data := att_share.data;
+                            && var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := att_data.source.epoch,
+                                            target_epoch := att_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(att_data)));
+                            && slashing_db_attestation in db
+                    {
+                        lem_AdeversaryTakingStep_att_share_from_honest_node_were_sent_before(
+                            dv,        
+                            event,
+                            node,
+                            new_attestation_shares_sent,
+                            messagesReceivedByTheNode,
+                            dv',
+                            hn,
+                            att_share
+                        );
+                        assert att_share in dv.att_network.allMessagesSent;
+
+                        var att_data := att_share.data;
+                        var slashing_db_attestation := SlashingDBAttestation(
+                                            source_epoch := att_data.source.epoch,
+                                            target_epoch := att_data.target.epoch,
+                                            signing_root := Some(hash_tree_root(att_data)));
+
+                        assert  && att_share in dv.att_network.allMessagesSent
+                                && is_honest_node(dv, hn)
+                                && pred_verify_owner_of_attestation_share_with_bls_signature(hn, att_share)
+                                && att_share.data.slot < slot
+                                ;
+                        assert slashing_db_attestation in db;                        
+                    }
+                    
+                }
+
+                assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
+            
+        }  
+    }    
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AttConsensusDecided(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event.event.AttConsensusDecided?
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_quorum_constraints(dv)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
@@ -2023,21 +2248,10 @@ module Invs_DV_Next_5
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>  
-                        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_serve_attestation_duty(
-                            dv.att_network.allMessagesSent,
-                            dvc,
-                            attestation_duty,
-                            dvc'
-                        );
-                        assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
-                        
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            if  && dvc.current_attestation_duty.isPresent()
-                                && id == dvc.current_attestation_duty.safe_get().slot
-                                && id == decided_attestation_data.slot
+                            if  is_decided_data_for_current_slot(dvc, decided_attestation_data, id)
                             {
                                 var allMessagesSent := dv.att_network.allMessagesSent;
                                 
@@ -2174,10 +2388,83 @@ module Invs_DV_Next_5
                             }
 
                         }                 
+                        assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');        
+                }                                                
+        }  
+    }   
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_ServeAttstationDuty(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event.event.ServeAttstationDuty?
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)
+    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
+    {        
+        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>  
+                        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_serve_attestation_duty(
+                            dv.att_network.allMessagesSent,
+                            dvc,
+                            attestation_duty,
+                            dvc'
+                        );
                         assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
-                        
-                    case ReceivedAttestationShare(attestation_share) =>                         
-   
+                }
+        }
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_ImportedNewBlock(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event.event.ImportedNewBlock?
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)
+    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
+    {        
+        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
                     case ImportedNewBlock(block) => 
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
                         lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_listen_for_new_imported_blocks(
@@ -2187,7 +2474,40 @@ module Invs_DV_Next_5
                             dvc'
                         );
                         assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
-                                                
+                }
+        }
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_ResendAttestationShares(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event.event.ResendAttestationShares?
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)
+    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
+    {        
+        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
                     case ResendAttestationShares =>           
                         lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dvc_f_resend_attestation_share(
                             dv.att_network.allMessagesSent,
@@ -2200,87 +2520,235 @@ module Invs_DV_Next_5
                                     dvc'
                                 );
                         assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
+                }
+        }
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_quorum_constraints(dv)
+    requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
+    requires inv_data_of_att_shares_is_known(dv)
+    requires inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv)
+    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)
+    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
+    requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
+    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_sequence_attestation_duties_to_be_served_orderd(dv)
+    ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
+    {        
+        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeAttstationDuty(attestation_duty) =>  
+                        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_ServeAttstationDuty(
+                            dv,
+                            event,
+                            dv'
+                        );
+                        
+                    case AttConsensusDecided(id, decided_attestation_data) => 
+                        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AttConsensusDecided(
+                            dv,
+                            event,
+                            dv'
+                        );
+                        
+                    case ReceivedAttestationShare(attestation_share) =>                         
+                        assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
+
+                    case ImportedNewBlock(block) => 
+                        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_ImportedNewBlock(
+                            dv,
+                            event,
+                            dv'
+                        );
+                                                
+                    case ResendAttestationShares =>           
+                        lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_ResendAttestationShares(
+                            dv,
+                            event,
+                            dv'
+                        );
                         
                     case NoEvent =>                         
                         assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
                 }
 
             case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
-        
-                forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
-                            && is_honest_node(dv, hn) 
-                            && var dvc' := dv.honest_nodes_states[hn];
-                            && slot in dvc'.attestation_consensus_engine_state.att_slashing_db_hist
-                            && vp in dvc'.attestation_consensus_engine_state.att_slashing_db_hist[slot]
-                            && db in dvc'.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
-                ensures inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
-                            dv',
-                            hn,
-                            slot,
-                            vp,
-                            db)
-                {
-                    var dvc := dv.honest_nodes_states[hn];
-                    var dvc' := dv'.honest_nodes_states[hn];
-                    assert dvc == dvc';
-                    assert db in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp];
-
-                    assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
+                lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AdeversaryTakingStep(
                             dv,
-                            hn,
-                            slot, 
-                            vp, 
-                            db
-                        );
-                    
-                    assert hn == dvc.rs.pubkey;
-
-                    forall att_share: AttestationShare | 
-                            && att_share in dv'.att_network.allMessagesSent
-                            && is_honest_node(dv', hn)
-                            && pred_verify_owner_of_attestation_share_with_bls_signature(hn, att_share)
-                            && att_share.data.slot < slot
-                    ensures &&  var att_data := att_share.data;
-                            && var slashing_db_attestation := SlashingDBAttestation(
-                                            source_epoch := att_data.source.epoch,
-                                            target_epoch := att_data.target.epoch,
-                                            signing_root := Some(hash_tree_root(att_data)));
-                            && slashing_db_attestation in db
-                    {
-                        lem_AdeversaryTakingStep_att_share_from_honest_node_were_sent_before(
-                            dv,        
                             event,
-                            node,
-                            new_attestation_shares_sent,
-                            messagesReceivedByTheNode,
-                            dv',
-                            hn,
-                            att_share
+                            dv'
                         );
-                        assert att_share in dv.att_network.allMessagesSent;
-
-                        var att_data := att_share.data;
-                        var slashing_db_attestation := SlashingDBAttestation(
-                                            source_epoch := att_data.source.epoch,
-                                            target_epoch := att_data.target.epoch,
-                                            signing_root := Some(hash_tree_root(att_data)));
-
-                        assert  && att_share in dv.att_network.allMessagesSent
-                                && is_honest_node(dv, hn)
-                                && pred_verify_owner_of_attestation_share_with_bls_signature(hn, att_share)
-                                && att_share.data.slot < slot
-                                ;
-                        assert slashing_db_attestation in db;                        
-                    }
-                    
-                }
-
-                assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
-            
         }  
     }    
 
+    lemma lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_AdeversaryTakingStep(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.AdeversaryTakingStep?
+    requires inv_only_dv_construct_signed_attestation_signature(dv)
+    requires invNetwork(dv)
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    requires inv_attestation_is_created_with_shares_from_quorum(dv)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_attestation_is_created_with_shares_from_quorum(dv)
+    ensures  inv_attestation_is_created_with_shares_from_quorum(dv')
+    {        
+        lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');
+        assert inv_only_dv_construct_signed_attestation_signature(dv');
+
+        lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
+        assert ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+                        && hn == dv.honest_nodes_states[hn].rs.pubkey
+                        && hn == dv'.honest_nodes_states[hn].rs.pubkey
+        );
+
+        lem_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv, event, dv');
+
+        match event 
+        {
+            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                assert NextAdversary(
+                    dv,
+                    node,
+                    new_attestation_shares_sent,
+                    messagesReceivedByTheNode,
+                    dv'
+                );
+                
+                var new_aggregated_attestations_sent := dv'.all_attestations_created - dv.all_attestations_created;
+
+                forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent 
+                ensures inv_attestation_is_created_with_shares_from_quorum_body(dv', aggregated_attestation_sent)
+                {
+                    assert inv_attestation_is_created_with_shares_from_quorum_body(dv', aggregated_attestation_sent);
+                }
+                                
+                assert inv_attestation_is_created_with_shares_from_quorum(dv');
+        }  
+    } 
+
+    lemma lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_HonestNodeTakingStep(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        nodeOutputs: Outputs
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires && var dvc' := dv'.honest_nodes_states[node];
+             && inv_outputs_attestations_submited_is_created_with_shares_from_quorum(
+                    nodeOutputs,
+                    dvc'
+                )
+             
+    requires inv_only_dv_construct_signed_attestation_signature(dv)
+    requires inv_only_dv_construct_signed_attestation_signature(dv')
+    requires ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+                        && hn == dv.honest_nodes_states[hn].rs.pubkey
+                        && hn == dv'.honest_nodes_states[hn].rs.pubkey
+            );
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent(dv')    
+    requires invNetwork(dv)
+    requires inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    requires inv_attestation_is_created_with_shares_from_quorum(dv)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_attestation_is_created_with_shares_from_quorum(dv)
+    ensures  inv_attestation_is_created_with_shares_from_quorum(dv')
+    {        
+        var dvc := dv.honest_nodes_states[node];
+        var dvc' := dv'.honest_nodes_states[node];
+
+        assert inv_outputs_attestations_submited_is_created_with_shares_from_quorum(nodeOutputs, dvc');
+        assert dv'.all_attestations_created == dv.all_attestations_created + nodeOutputs.attestations_submitted;
+
+        forall att: Attestation | att in dv'.all_attestations_created 
+        ensures inv_attestation_is_created_with_shares_from_quorum_body(dv', att)
+        {
+            if att in dv.all_attestations_created 
+            {
+                assert inv_attestation_is_created_with_shares_from_quorum_body(dv, att);
+                var att_shares, dvc_signer_pubkeys :|
+                        && att_shares <= dv.att_network.allMessagesSent
+                        && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
+                        && constructed_sig.isPresent()
+                        && constructed_sig.safe_get() == att.signature
+                        && do_all_att_shares_have_the_same_data(att_shares, att.data)
+                        && dvc_signer_pubkeys <= dv.all_nodes
+                        && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, dvc_signer_pubkeys)
+                        && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
+                        && dvc_signer_pubkeys <= dv.all_nodes
+                        ;
+                var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
+
+                assert dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent;
+                assert att_shares <= dv'.att_network.allMessagesSent;
+
+                lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');                        
+                assert constructed_sig == dv'.construct_signed_attestation_signature(att_shares);
+                assert dvc_signer_pubkeys <= dv'.all_nodes;
+                assert inv_attestation_is_created_with_shares_from_quorum_body_signers(dv', att_shares, dvc_signer_pubkeys);
+                assert inv_attestation_is_created_with_shares_from_quorum_body(dv', att);
+            }
+            else
+            {
+                assert att in nodeOutputs.attestations_submitted;
+                assert inv_outputs_attestations_submited_is_created_with_shares_from_quorum_body(dvc', att);
+                var att_shares, rs_signer_pubkeys, k :|        
+                            && k in dvc'.rcvd_attestation_shares[att.data.slot].Keys
+                            && att_shares <= dvc'.rcvd_attestation_shares[att.data.slot][k]
+                            && var constructed_sig := dvc'.construct_signed_attestation_signature(att_shares);
+                            && constructed_sig.isPresent()
+                            && constructed_sig.safe_get() == att.signature
+                            && do_all_att_shares_have_the_same_data(att_shares, att.data)
+                            && inv_attestation_is_created_with_shares_from_quorum_rs_signers(att_shares, rs_signer_pubkeys)
+                            && |rs_signer_pubkeys| >= quorum(|dvc'.peers|)
+                            && rs_signer_pubkeys <= dvc'.peers
+                            ;
+                var constructed_sig := dvc'.construct_signed_attestation_signature(att_shares);
+
+                assert  dvc'.peers == dv'.all_nodes;
+                assert  quorum(|dvc'.peers|) == quorum(|dv'.all_nodes|);
+                assert  && |rs_signer_pubkeys| >= quorum(|dvc'.peers|)
+                        && rs_signer_pubkeys <= dv'.all_nodes;
+
+                
+
+                lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');                        
+                assert constructed_sig == dv'.construct_signed_attestation_signature(att_shares);
+                assert inv_attestation_is_created_with_shares_from_quorum_body_signers(dv', att_shares, rs_signer_pubkeys);
+
+                lem_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv, event, dv');  
+                assert dvc'.rcvd_attestation_shares[att.data.slot][k] <= dv'.att_network.allMessagesSent;   
+                assert att_shares <= dv'.att_network.allMessagesSent;   
+
+                assert inv_attestation_is_created_with_shares_from_quorum_body(dv', att);
+            }
+        }
+        assert inv_attestation_is_created_with_shares_from_quorum(dv');            
+    }  
 
     lemma lem_inv_attestation_is_created_with_shares_from_quorum_dv_next(
         dv: DVState,
@@ -2307,7 +2775,6 @@ module Invs_DV_Next_5
         );
 
         lem_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv, event, dv');
-
 
         match event 
         {
@@ -2338,92 +2805,21 @@ module Invs_DV_Next_5
                         
                 }
 
-                assert inv_outputs_attestations_submited_is_created_with_shares_from_quorum(nodeOutputs, dvc');
-                assert dv'.all_attestations_created == dv.all_attestations_created + nodeOutputs.attestations_submitted;
-
-                forall att: Attestation | att in dv'.all_attestations_created 
-                ensures inv_attestation_is_created_with_shares_from_quorum_body(dv', att)
-                {
-                    if att in dv.all_attestations_created 
-                    {
-                        assert inv_attestation_is_created_with_shares_from_quorum_body(dv, att);
-                        var att_shares, dvc_signer_pubkeys :|
-                                && att_shares <= dv.att_network.allMessagesSent
-                                && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
-                                && constructed_sig.isPresent()
-                                && constructed_sig.safe_get() == att.signature
-                                && do_all_att_shares_have_the_same_data(att_shares, att.data)
-                                && dvc_signer_pubkeys <= dv.all_nodes
-                                && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, dvc_signer_pubkeys)
-                                && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
-                                && dvc_signer_pubkeys <= dv.all_nodes
-                                ;
-                        var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
-
-                        assert dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent;
-                        assert att_shares <= dv'.att_network.allMessagesSent;
-
-                        lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');                        
-                        assert constructed_sig == dv'.construct_signed_attestation_signature(att_shares);
-                        assert dvc_signer_pubkeys <= dv'.all_nodes;
-                        assert inv_attestation_is_created_with_shares_from_quorum_body_signers(dv', att_shares, dvc_signer_pubkeys);
-                        assert inv_attestation_is_created_with_shares_from_quorum_body(dv', att);
-                    }
-                    else
-                    {
-                        assert att in nodeOutputs.attestations_submitted;
-                        assert inv_outputs_attestations_submited_is_created_with_shares_from_quorum_body(dvc', att);
-                        var att_shares, rs_signer_pubkeys, k :|        
-                                    && k in dvc'.rcvd_attestation_shares[att.data.slot].Keys
-                                    && att_shares <= dvc'.rcvd_attestation_shares[att.data.slot][k]
-                                    && var constructed_sig := dvc'.construct_signed_attestation_signature(att_shares);
-                                    && constructed_sig.isPresent()
-                                    && constructed_sig.safe_get() == att.signature
-                                    && do_all_att_shares_have_the_same_data(att_shares, att.data)
-                                    && inv_attestation_is_created_with_shares_from_quorum_rs_signers(att_shares, rs_signer_pubkeys)
-                                    && |rs_signer_pubkeys| >= quorum(|dvc'.peers|)
-                                    && rs_signer_pubkeys <= dvc'.peers
-                                    ;
-                        var constructed_sig := dvc'.construct_signed_attestation_signature(att_shares);
-
-                        assert  dvc'.peers == dv'.all_nodes;
-                        assert  quorum(|dvc'.peers|) == quorum(|dv'.all_nodes|);
-                        assert  && |rs_signer_pubkeys| >= quorum(|dvc'.peers|)
-                                && rs_signer_pubkeys <= dv'.all_nodes;
-
-                        
-
-                        lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv, event, dv');                        
-                        assert constructed_sig == dv'.construct_signed_attestation_signature(att_shares);
-                        assert inv_attestation_is_created_with_shares_from_quorum_body_signers(dv', att_shares, rs_signer_pubkeys);
-
-                        lem_inv_rcvd_attestation_shares_is_in_all_messages_sent(dv, event, dv');  
-                        assert dvc'.rcvd_attestation_shares[att.data.slot][k] <= dv'.att_network.allMessagesSent;   
-                        assert att_shares <= dv'.att_network.allMessagesSent;   
-
-                        assert inv_attestation_is_created_with_shares_from_quorum_body(dv', att);
-                    }
-                }
-                assert inv_attestation_is_created_with_shares_from_quorum(dv');
+                lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_HonestNodeTakingStep(
+                    dv,
+                    event,
+                    dv',
+                    node, 
+                    nodeEvent, 
+                    nodeOutputs
+                );
 
             case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                assert NextAdversary(
+                lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_AdeversaryTakingStep(
                     dv,
-                    node,
-                    new_attestation_shares_sent,
-                    messagesReceivedByTheNode,
+                    event,
                     dv'
                 );
-                
-                var new_aggregated_attestations_sent := dv'.all_attestations_created - dv.all_attestations_created;
-
-                forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent 
-                ensures inv_attestation_is_created_with_shares_from_quorum_body(dv', aggregated_attestation_sent)
-                {
-                    assert inv_attestation_is_created_with_shares_from_quorum_body(dv', aggregated_attestation_sent);
-                }
-                                
-                assert inv_attestation_is_created_with_shares_from_quorum(dv');
         }  
     }  
 

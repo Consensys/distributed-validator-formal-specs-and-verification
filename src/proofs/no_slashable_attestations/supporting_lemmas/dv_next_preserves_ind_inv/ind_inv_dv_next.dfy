@@ -261,7 +261,7 @@ module Ind_Inv_DV_Next
                 ;
 
         
-        lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv, e, dv');
+        lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next(dv, e, dv');
         assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(dv');
     }
 
@@ -280,7 +280,7 @@ module Ind_Inv_DV_Next
     requires ind_inv(dv)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv')
     {
-        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(dv, e, dv');
+        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv_next(dv, e, dv');
     }
 
     lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv: DVState, e: DV.Event, dv': DVState)       
@@ -367,7 +367,7 @@ module Ind_Inv_DV_Next
         lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_dv_next(dv, e, dv');
         lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv, e, dv');
         lem_ind_inv_implies_intermediate_steps(dv);
-        lem_inv_data_of_att_share_is_decided_value(dv, e, dv');
+        lem_inv_data_of_att_share_is_decided_value_dv_next(dv, e, dv');
     }
     
     lemma lem_ind_inv_dv_next_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(dv: DVState, e: DV.Event, dv': DVState)       

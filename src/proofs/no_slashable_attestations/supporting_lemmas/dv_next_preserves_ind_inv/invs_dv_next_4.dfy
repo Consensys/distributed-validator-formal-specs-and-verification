@@ -326,8 +326,8 @@ module Invs_DV_Next_4
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
                 
-                lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s, event, s');
-                lem_inv_data_of_att_share_is_decided_value(s, event, s');
+                lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next(s, event, s');
+                lem_inv_data_of_att_share_is_decided_value_dv_next(s, event, s');
 
                 forall slot | slot in s_node.future_att_consensus_instances_already_decided 
                 ensures && s'.consensus_on_attestation_data[slot].decided_value.isPresent()
@@ -596,8 +596,8 @@ module Invs_DV_Next_4
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
                 lem_inv_slot_in_future_decided_data_is_correct_transpose(s, event, s', s_node, node);
-                lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s, event, s');
-                lem_inv_data_of_att_share_is_decided_value(s, event, s');
+                lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next(s, event, s');
+                lem_inv_data_of_att_share_is_decided_value_dv_next(s, event, s');
 
                 assert inv_slot_in_future_decided_data_is_correct_body(s', node, s_node);
                 assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
