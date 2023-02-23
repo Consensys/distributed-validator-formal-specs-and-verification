@@ -76,6 +76,9 @@ Then, we write formal proofs to verify the correctness of our specifications and
 2. We prove that the initialization implies the inductive invariant.
 3. We prove that every system transition preserves the inductive invariant.
 
+## Presentations
+[![Devcon IV](http://img.youtube.com/vi/xdEo5Tc6TiY/0.jpg)](https://www.youtube.com/watch?v=xdEo5Tc6TiY)
+
 ## Funding
 ​
 This project is being carried out by ConsenSys R&D and is supported by a joint grant from the Ethereum Foundation, Obol and SSV Networks.
