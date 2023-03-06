@@ -8,14 +8,7 @@ module DVC_Spec_Axioms
     datatype BNState = BNState(
         state_roots_of_imported_blocks: set<Root>,
         attestations_submitted: seq<Attestation>    
-    )
-
-    // function getInitialBN(): BNState
-    // {
-    //     BNState(
-    //         state_roots_of_imported_blocks := {}
-    //     )
-    // }    
+    )  
 
     datatype RSState = RSState(
         pubkey: BLSPubkey

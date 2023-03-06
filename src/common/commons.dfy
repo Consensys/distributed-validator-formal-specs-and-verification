@@ -259,15 +259,6 @@ module CommonFunctions{
     lemma {:axiom} hash_tree_root_properties<T>()
     ensures forall d1: T, d2: T :: hash_tree_root(d1) == hash_tree_root(d2) ==> d1 == d2
     
-    /*
-    lemma {:axiom} exists_att_data_for_every_slashingDBattestaion()
-    ensures forall r: SlashingDBAttestation :: 
-                exists data: AttestationData :: 
-                    r.signing_root == Some(hash_tree_root(data))
-*/
-
-    lemma {:axiom} exists_att_data_for_given_slashing_db_attestation(r: SlashingDBAttestation)
-    ensures exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))
 
     function getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
     {
@@ -537,40 +528,6 @@ module CommonFunctions{
 
         att_data.slot
     }
-
-/*  // TODO: Prove post-condition
-    method get_slashing_db_attestations_before_slot_s(
-        db: set<SlashingDBAttestation>,
-        s: Slot
-    ) returns (S: set<SlashingDBAttestation>)
-    requires ( forall r: SlashingDBAttestation | r in db :: 
-                    ( exists att_data: AttestationData ::  r.signing_root == Some(hash_tree_root(att_data))
-                    )
-             )
-    ensures ( forall a | a in S :: get_slot_from_slashing_db_attestation(a) < s)
-    {           
-        if db == {} 
-        {
-            S := {};
-            assert ( forall a | a in S :: get_slot_from_slashing_db_attestation(a) < s);
-        }
-        else 
-        {                
-            var a: SlashingDBAttestation :| a in db;
-            var T := get_slashing_db_attestations_before_slot_s(db - {a}, s);
-            assert ( forall a | a in T :: get_slot_from_slashing_db_attestation(a) < s);
-            if get_slot_from_slashing_db_attestation(a) < s 
-            {                
-                S := { a } + T;
-                assert ( forall a | a in S :: get_slot_from_slashing_db_attestation(a) < s);
-            }
-            else 
-            {
-                S := T;
-                assert ( forall a | a in S :: get_slot_from_slashing_db_attestation(a) < s);
-            }                    
-        }
-*/
 
     ghost method get_slashing_db_attestations_before_slot_s(
         db: set<SlashingDBAttestation>,
