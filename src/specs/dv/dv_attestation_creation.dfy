@@ -16,7 +16,7 @@ module DV
     
 
     datatype Adversary = Adversary(
-        nodes: set<BLSPubkey>  
+        nodes: set<BLSPubkey>   
     )
 
     datatype AttestationDutyAndNode = AttestationDutyAndNode(
