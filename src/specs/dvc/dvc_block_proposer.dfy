@@ -1,57 +1,15 @@
-include "../../common/block_proposal/block_common_functions.dfy"
-include "../../common/block_proposal/block_signing_functions.dfy"
-include "../../common/block_proposal/block_types.dfy"
-include "../../dvc_implementation/block_proposal/block_externs.dfy"
+include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/block_proposer/block_signing_functions.dfy"
+include "../../common/block_proposer/block_types.dfy"
+include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
-module BlockDVCNodeSpec {
-    import opened BlockTypes 
-    import opened BlockCommonFunctions
-    import opened BlockSigningFunctions    
-    import opened Block_DVC_Externs
 
-    function {:axiom} bn_get_fork_version(slot: Slot): Version
-
-    function {:axiom} bn_get_validator_index(bnState: BNState, state_id: Root, validator_id: BLSPubkey): (vi: Optional<ValidatorIndex>)
-    requires state_id in bnState.state_roots_of_imported_blocks
-
-    function {:axiom} bn_get_epoch_committees(bnState: BNState, state_id: Root, index: CommitteeIndex): (sv: seq<ValidatorIndex>) 
-    requires state_id in bnState.state_roots_of_imported_blocks   
-
-    // Don't need to use fork_version
-    function {:axiom} rs_sign_randao_reveal(        
-        slot: Slot, 
-        fork_version: Version,
-        signing_root: Root,
-        rs: RSState
-    ): BLSSignature
-    requires signing_root == compute_randao_reveal_signing_root(slot)
-
-    // Don't need to use fork_version
-    function {:axiom} rs_sign_block(        
-        block: BeaconBlock,
-        fork_version: Version,
-        signing_root: Root,
-        rs: RSState
-    ): BLSSignature
-    requires signing_root == compute_block_signing_root(block)
-
-    datatype BNState = BNState(
-        state_roots_of_imported_blocks: set<Root>   
-    )
-
-    /*
-    function getInitialBN(): BNState
-    {
-        BNState(
-            state_roots_of_imported_blocks := {}
-        )
-    } 
-    */   
-
-    datatype RSState = RSState(
-        pubkey: BLSPubkey
-    )
+module Block_DVC_Spec_NonInstr {
+    import opened Block_Types 
+    import opened Block_Common_Functions
+    import opened Block_Signing_Functions    
+    import opened Block_DVC_Spec_Axioms
 
     function getInitialRS(
         pubkey: BLSPubkey
@@ -62,20 +20,14 @@ module BlockDVCNodeSpec {
         )
     }  
 
-    datatype BlockConsensusValidityCheckState = BlockConsensusValidityCheckState(
-        proposer_duty: ProposerDuty,
-        complete_signed_randao_reveal: BLSSignature,
-        validityPredicate: BeaconBlock -> bool
-    )
-
     datatype BlockConsensusEngineState = BlockConsensusEngineState(
-        block_consensus_active_instances: map<Slot, BlockConsensusValidityCheckState>
+        active_block_consensus_instances: map<Slot, BlockConsensusValidityCheckState>
     )
 
     function getInitialBlockConensusEngineState(): BlockConsensusEngineState
     {
         BlockConsensusEngineState(
-            block_consensus_active_instances := map[]
+            active_block_consensus_instances := map[]
         )
     }
 
@@ -86,24 +38,27 @@ module BlockDVCNodeSpec {
         block_slashing_db: set<SlashingDBBlock>,
         complete_signed_randao_reveal: BLSSignature
     ): BlockConsensusEngineState
-    requires slot !in s.block_consensus_active_instances.Keys    
+    requires slot !in s.active_block_consensus_instances.Keys    
+    requires slot == proposer_duty.slot
     {
-       var bcvc := BlockConsensusValidityCheckState(
+        var bcvc := 
+            BlockConsensusValidityCheckState(
                     proposer_duty := proposer_duty,
                     complete_signed_randao_reveal := complete_signed_randao_reveal,
-                    validityPredicate := (block: BeaconBlock) => consensus_is_valid_block(
+                    validityPredicate := (block: BeaconBlock) => consensus_is_valid_beacon_block(
                                                                     block_slashing_db, 
                                                                     block, 
                                                                     proposer_duty,
                                                                     complete_signed_randao_reveal)
-                );
-        assert (bcvc.validityPredicate == ((block: BeaconBlock) => consensus_is_valid_block(
+            );
+        
+        assert (bcvc.validityPredicate == ((block: BeaconBlock) => consensus_is_valid_beacon_block(
                                                                     block_slashing_db, 
                                                                     block, 
                                                                     bcvc.proposer_duty,
                                                                     bcvc.complete_signed_randao_reveal)));                
         s.(
-            block_consensus_active_instances := s.block_consensus_active_instances[
+            active_block_consensus_instances := s.active_block_consensus_instances[
                 slot := bcvc
             ]
         )
@@ -115,7 +70,7 @@ module BlockDVCNodeSpec {
     ): BlockConsensusEngineState
     {
         s.(
-            block_consensus_active_instances := s.block_consensus_active_instances - ids
+            active_block_consensus_instances := s.active_block_consensus_instances - ids
         )
     }   
 
@@ -128,7 +83,7 @@ module BlockDVCNodeSpec {
             map it | it in m.Items
                 ::
                 it.0 := it.1.(
-                    validityPredicate := (block: BeaconBlock) => consensus_is_valid_block(
+                    validityPredicate := (block: BeaconBlock) => consensus_is_valid_beacon_block(
                                                                     new_block_slashing_db, 
                                                                     block, 
                                                                     it.1.proposer_duty,
@@ -143,9 +98,9 @@ module BlockDVCNodeSpec {
     ): (r: BlockConsensusEngineState)
     {
         s.(
-            block_consensus_active_instances := 
+            active_block_consensus_instances := 
                 updateBlockConsensusInstanceValidityCheckHelper(
-                    s.block_consensus_active_instances,
+                    s.active_block_consensus_instances,
                     new_block_slashing_db
                 )
         )
@@ -154,8 +109,7 @@ module BlockDVCNodeSpec {
     datatype DVCState = DVCState(
         current_proposer_duty: Optional<ProposerDuty>,
         last_served_proposer_duty: Optional<ProposerDuty>,
-        // proposer_duty_queue: seq<ProposerDuty>,
-        block_slashing_db: BlockSlashingDB,
+        block_slashing_db: set<SlashingDBBlock>,
         block_share_db: BlockSignatureShareDB,        
         rcvd_randao_shares: map<Slot, set<RandaoShare>>,
         rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
@@ -193,11 +147,11 @@ module BlockDVCNodeSpec {
         addRecepientsToMessage(m, receipients)
     }
 
-    function multicast_msgs<M>(msgs: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    function multicast_multiple<M>(ms: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
     {
-        var setWithRecipient := set m | m in msgs :: wrapMessageWithRecipients(m, receipients);
+        var setWithRecipient := set m | m in ms :: addRecepientsToMessage(m, receipients);
         setUnion(setWithRecipient)
-    }    
+    }     
 
     datatype DVCStateAndOuputs = DVCStateAndOuputs(
         state: DVCState,
@@ -210,7 +164,7 @@ module BlockDVCNodeSpec {
         peers: set<BLSPubkey>,                    
         construct_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,        
-        initial_block_slashing_db: BlockSlashingDB,
+        initial_block_slashing_db: set<SlashingDBBlock>,
         rs_pubkey: BLSPubkey
     )
     {
@@ -247,10 +201,10 @@ module BlockDVCNodeSpec {
             outputs := outputs
         );
 
-        newNodeStateAndOutputs == f_Next(s, event)
+        newNodeStateAndOutputs == f_process_event(s, event)
     }
 
-    function f_Next(
+    function f_process_event(
         s: DVCState,
         event: Event        
     ): DVCStateAndOuputs
@@ -258,8 +212,8 @@ module BlockDVCNodeSpec {
         match event         
             case ServeProposerDuty(proposer_duty) => 
                 f_serve_proposer_duty(s, proposer_duty)
-            case BlockConsensusDecided(block) => 
-                f_block_consensus_decided(s, block)
+            case BlockConsensusDecided(id, block) => 
+                f_block_consensus_decided(s, id, block)
             case ReceiveRandaoShare(randao_share) => 
                 f_listen_for_randao_share(s, randao_share)
             case ReceiveBlockShare(block_share) => 
@@ -397,10 +351,10 @@ module BlockDVCNodeSpec {
                                                     :: randao_share.signature;                
             var constructed_randao_reveal := process.construct_signed_randao_reveal(all_rcvd_randao_sig);
             if && constructed_randao_reveal.isPresent()  
-               && proposer_duty.slot !in process.block_consensus_engine_state.block_consensus_active_instances.Keys 
+               && proposer_duty.slot !in process.block_consensus_engine_state.active_block_consensus_instances.Keys 
             then                      
                 var validityPredicate := ((block: BeaconBlock)  => 
-                                            consensus_is_valid_block(
+                                            consensus_is_valid_beacon_block(
                                                 process.block_slashing_db, 
                                                 block, 
                                                 process.current_proposer_duty.safe_get(),
@@ -442,11 +396,13 @@ module BlockDVCNodeSpec {
 
     function f_block_consensus_decided(
         process: DVCState,
+        id: Slot,
         block: BeaconBlock
     ): DVCStateAndOuputs 
-    // requires process.current_proposer_duty.isPresent()
     {
         if && process.current_proposer_duty.isPresent()
+           && process.current_proposer_duty.safe_get().slot == block.slot
+           && id == block.slot
         then 
             var process_with_updated_slashing_db := f_update_block_slashing_db(process, block);
             var block_signing_root := compute_block_signing_root(block);
@@ -520,7 +476,7 @@ module BlockDVCNodeSpec {
     ): DVCStateAndOuputs         
     {
         var slot := randao_share.slot;
-        var block_consensus_active_instances := process.block_consensus_engine_state.block_consensus_active_instances.Keys;
+        var active_block_consensus_instances := process.block_consensus_engine_state.active_block_consensus_instances.Keys;
 
         if is_slot_for_current_or_future_instances(process, slot) then
             var process_with_dlv_randao_share := 
@@ -549,13 +505,12 @@ module BlockDVCNodeSpec {
         // inconsistency should be fixed up by either accepting here only shares with slot higher than the
         // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
         // up only slot lower thant the slot of the current/latest duty.
-        var block_consensus_active_instances := 
-            process.block_consensus_engine_state.block_consensus_active_instances.Keys;
+        var active_block_consensus_instances := 
+            process.block_consensus_engine_state.active_block_consensus_instances.Keys;
 
-        || (block_consensus_active_instances == {} && !process.last_served_proposer_duty.isPresent())
-        || (block_consensus_active_instances != {} && get_min(block_consensus_active_instances) <= received_slot)
-        || (block_consensus_active_instances == {} && process.current_proposer_duty.isPresent() && process.current_proposer_duty.safe_get().slot <= received_slot)                
-        || (block_consensus_active_instances == {} && !process.current_proposer_duty.isPresent() && process.last_served_proposer_duty.isPresent() && process.last_served_proposer_duty.safe_get().slot < received_slot)            
+        || (active_block_consensus_instances == {} && !process.last_served_proposer_duty.isPresent())
+        || (active_block_consensus_instances != {} && get_min(active_block_consensus_instances) <= received_slot)
+        || (active_block_consensus_instances == {} && !process.current_proposer_duty.isPresent() && process.last_served_proposer_duty.isPresent() && process.last_served_proposer_duty.safe_get().slot < received_slot)            
     }
 
     function f_listen_for_new_imported_block(
@@ -635,7 +590,7 @@ module BlockDVCNodeSpec {
             outputs := getEmptyOuputs().(
                 block_shares_sent :=
                     if process.block_shares_to_broadcast.Keys != {} then
-                        multicast_msgs(process.block_shares_to_broadcast.Values, process.peers)                        
+                        multicast_multiple(process.block_shares_to_broadcast.Values, process.peers)                        
                     else
                         {}
                     )
@@ -651,7 +606,7 @@ module BlockDVCNodeSpec {
             outputs := getEmptyOuputs().(
                 randao_shares_sent :=
                     if process.randao_shares_to_broadcast.Keys != {} then
-                        multicast_msgs(process.randao_shares_to_broadcast.Values, process.peers)                        
+                        multicast_multiple(process.randao_shares_to_broadcast.Values, process.peers)                        
                     else
                         {}
                     )

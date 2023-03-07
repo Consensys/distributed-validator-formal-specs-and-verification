@@ -1,4 +1,4 @@
-module BlockTypes 
+module Block_Types 
 {
     type ValidatorIndex = nat
     type Epoch = nat 
@@ -189,7 +189,7 @@ module BlockTypes
 
     datatype Event = 
         | ServeProposerDuty(proposer_duty: ProposerDuty)
-        | BlockConsensusDecided(block: BeaconBlock)
+        | BlockConsensusDecided(id: Slot, block: BeaconBlock)
         | ReceiveRandaoShare(randao_share: RandaoShare)
         | ReceiveBlockShare(block_share: SignedBeaconBlock)
         | ImportNewBlock(signed_block: SignedBeaconBlock)
@@ -200,6 +200,15 @@ module BlockTypes
         // | ImportedNewBlock(block: SignedBeaconBlock)        
         | ResendRandaoShare
         | ResendBlockShare
-        | NoEvent       
+        | NoEvent      
+
+    datatype BlockConsensusValidityCheckState = BlockConsensusValidityCheckState(
+        proposer_duty: ProposerDuty,
+        complete_signed_randao_reveal: BLSSignature,
+        validityPredicate: BeaconBlock -> bool
+    )
+
+
+ 
 }
 

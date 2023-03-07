@@ -5,7 +5,6 @@ include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"
 module DVC_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
-    import opened DVC_Externs
     import opened DVC_Spec_Axioms
 
     datatype ConsensusEngineState = ConsensusEngineState(

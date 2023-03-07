@@ -1,10 +1,10 @@
 include "../../../common/commons.dfy"
-include "../common/block_proposal_instrumented.dfy"
+include "../common/block_proposer_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_block_proposal.dfy"
 include "../../common/helper_sets_lemmas.dfy"
-include "../common/dvc_spec_axioms_for_blocks.dfy"
+include "../common/block_dvc_spec_axioms.dfy"
 
 
 

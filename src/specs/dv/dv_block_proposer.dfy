@@ -1,18 +1,18 @@
-include "../../common/block_proposal/block_common_functions.dfy"
-include "../../common/block_proposal/block_signing_functions.dfy"
-include "../../common/block_proposal/block_types.dfy"
-include "../dvc/dvc_block_proposal.dfy"
-include "../consensus/consensus_block.dfy"
-include "../network/network_block.dfy"
+include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/block_proposer/block_signing_functions.dfy"
+include "../../common/block_proposer/block_types.dfy"
+include "../dvc/dvc_block_proposer.dfy"
+include "../consensus/block_consensus.dfy"
+include "../network/block_network.dfy"
 
 abstract module DV 
 {
-    import opened BlockTypes
-    import opened BlockCommonFunctions
-    import opened BlockSigningFunctions
-    import opened BlockNetworkSpec
-    import opened BlockConsensusSpec
-    import opened BlockDVCNodeSpec
+    import opened Block_Types
+    import opened Block_Common_Functions
+    import opened Block_Signing_Functions
+    import opened Block_Network_Spec
+    import opened Block_Consensus_Spec
+    import opened Block_DVC_Spec_NonInstr
     
 
     datatype Adversary = Adversary(
@@ -25,8 +25,8 @@ abstract module DV
         adversary: Adversary,
         dv_pubkey: BLSPubkey,
         block_consensus_instances: imaptotal<Slot, BlockConsensusInstance<BeaconBlock>>,
-        randao_share_network: BlockNetworkSpec.Network<RandaoShare>,
-        block_share_network: BlockNetworkSpec.Network<SignedBeaconBlock>,
+        randao_share_network: Block_Network_Spec.Network<RandaoShare>,
+        block_share_network: Block_Network_Spec.Network<SignedBeaconBlock>,
         block_created: set<BeaconBlock>,
         construct_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
@@ -41,8 +41,8 @@ abstract module DV
             )
         | HonestNodeTakingStep(
                 node: BLSPubkey, 
-                event: BlockTypes.Event, 
-                nodeOutputs: BlockDVCNodeSpec.Outputs
+                event: Block_Types.Event, 
+                nodeOutputs: Block_DVC_Spec_NonInstr.Outputs
             )
 
     predicate complete_randao_reveal_from_dv_pubkey(
@@ -206,7 +206,7 @@ abstract module DV
         && complete_signed_block_from_block_shares(s)
         && s.all_submitted_signed_blocks == {}
         && ( forall pubkey | pubkey in s.honest_nodes_states.Keys ::
-                BlockDVCNodeSpec.Init(
+                Block_DVC_Spec_NonInstr.Init(
                     s.honest_nodes_states[pubkey], 
                     s.dv_pubkey, 
                     s.all_nodes, 
@@ -215,9 +215,9 @@ abstract module DV
                     initial_block_slashing_db, 
                     pubkey
                 ))    
-        &&  BlockNetworkSpec.Init(s.block_share_network, s.all_nodes)
+        &&  Block_Network_Spec.Init(s.block_share_network, s.all_nodes)
         &&  ( forall bci | bci in  s.block_consensus_instances.Values ::
-                BlockConsensusSpec.Init(bci, s.all_nodes, s.honest_nodes_states.Keys))                
+                Block_Consensus_Spec.Init(bci, s.all_nodes, s.honest_nodes_states.Keys))                
     }
 
     predicate Next(
@@ -260,8 +260,8 @@ abstract module DV
     predicate NextHonestNode(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: BlockTypes.Event,
-        nodeOutputs: BlockDVCNodeSpec.Outputs,
+        nodeEvent: Block_Types.Event,
+        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
         s': DVState        
     ) 
     {
@@ -283,41 +283,41 @@ abstract module DV
     predicate reliable_networks(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: BlockTypes.Event,
-        nodeOutputs: BlockDVCNodeSpec.Outputs,
+        nodeEvent: Block_Types.Event,
+        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
         s': DVState
     )
     {
         match nodeEvent
             case ReceiveRandaoShare(randao_share) =>
-                    ( && BlockNetworkSpec.Next(s.randao_share_network, 
+                    ( && Block_Network_Spec.Next(s.randao_share_network, 
                                                s'.randao_share_network, 
                                                node, 
                                                nodeOutputs.randao_shares_sent, 
                                                {randao_share})
-                      && BlockNetworkSpec.Next(s.block_share_network, 
+                      && Block_Network_Spec.Next(s.block_share_network, 
                                                s'.block_share_network, 
                                                node, 
                                                nodeOutputs.block_shares_sent, 
                                                {}))
             case ReceiveBlockShare(block_share) =>
-                    ( && BlockNetworkSpec.Next(s.randao_share_network, 
+                    ( && Block_Network_Spec.Next(s.randao_share_network, 
                                                s'.randao_share_network, 
                                                node, 
                                                nodeOutputs.randao_shares_sent, 
                                                {})
-                      && BlockNetworkSpec.Next(s.block_share_network, 
+                      && Block_Network_Spec.Next(s.block_share_network, 
                                                s'.block_share_network, 
                                                node, 
                                                nodeOutputs.block_shares_sent, 
                                                {block_share}))
             case _ =>
-                    ( && BlockNetworkSpec.Next(s.randao_share_network, 
+                    ( && Block_Network_Spec.Next(s.randao_share_network, 
                                                s'.randao_share_network, 
                                                node, 
                                                nodeOutputs.randao_shares_sent, 
                                                {})
-                      && BlockNetworkSpec.Next(s.block_share_network, 
+                      && Block_Network_Spec.Next(s.block_share_network, 
                                                s'.block_share_network, 
                                                node, 
                                                nodeOutputs.block_shares_sent, 
@@ -327,8 +327,8 @@ abstract module DV
     predicate is_valid_decided_consensus_instance(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: BlockTypes.Event,
-        nodeOutputs: BlockDVCNodeSpec.Outputs,
+        nodeEvent: Block_Types.Event,
+        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
         s': DVState
     )
     {
@@ -345,7 +345,7 @@ abstract module DV
                                         ::
                                             s.honest_nodes_states[nid].block_consensus_engine_state.block_consensus_active_instances[slot].validityPredicate
                     ;
-                && BlockConsensusSpec.Next(
+                && Block_Consensus_Spec.Next(
                         s.block_consensus_instances[slot],
                         validityPredicates,
                         s'.block_consensus_instances[slot],
@@ -356,8 +356,8 @@ abstract module DV
     predicate NextHonestAfterAddingBlockToBn(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: BlockTypes.Event,
-        nodeOutputs: BlockDVCNodeSpec.Outputs,
+        nodeEvent: Block_Types.Event,
+        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
         s': DVState
     )
     {
@@ -368,7 +368,7 @@ abstract module DV
         && s'.construct_signed_block == s.construct_signed_block
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
-        && BlockDVCNodeSpec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)        
+        && Block_DVC_Spec_NonInstr.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)        
         && s'.honest_nodes_states == s.honest_nodes_states[node := new_node_state]    
         && s'.all_submitted_signed_blocks == s.all_submitted_signed_blocks + nodeOutputs.submitted_signed_blocks    
         && reliable_networks(s, node, nodeEvent, nodeOutputs, s')
@@ -396,13 +396,13 @@ abstract module DV
         && ( forall msg :: msg in new_wrapped_block_shares_sent 
                 ==> verify_bls_signature(msg.message.message, msg.message.signature, node)                     
            )
-        && BlockNetworkSpec.Next(
+        && Block_Network_Spec.Next(
                 s.randao_share_network, 
                 s'.randao_share_network, 
                 node, 
                 new_wrapped_randao_shares_sent, 
                 {})
-        && BlockNetworkSpec.Next(
+        && Block_Network_Spec.Next(
                 s.block_share_network, 
                 s'.block_share_network, 
                 node, 

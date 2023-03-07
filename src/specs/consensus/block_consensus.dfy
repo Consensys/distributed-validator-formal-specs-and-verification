@@ -1,9 +1,9 @@
-include "../../common/block_proposal/block_types.dfy"
+include "../../common/block_proposer/block_types.dfy"
 
 // Note: Only safety properties are expressed at the moment.
-module BlockConsensusSpec
+module Block_Consensus_Spec
 {
-    import opened BlockTypes 
+    import opened Block_Types 
 
     datatype InCommand<!D> = 
     | Start(node: BLSPubkey)

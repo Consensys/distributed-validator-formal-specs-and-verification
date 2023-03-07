@@ -1,7 +1,7 @@
 include "./block_types.dfy"
 
-module BlockCommonFunctions{
-    import opened BlockTypes
+module Block_Common_Functions{
+    import opened Block_Types
 
     function method getOrDefault<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
     {
@@ -104,9 +104,9 @@ module BlockCommonFunctions{
 
     
 
-    // consensus_is_valid_block is for line 174
+    // consensus_is_valid_beacon_block is for line 174
     /*
-    method consensus_is_valid_block(
+    method consensus_is_valid_beacon_block(
         block_slashing_db: set<SlashingDBBlock>,
         block: BeaconBlock,
         proposer_duty: ProposerDuty,
@@ -121,14 +121,13 @@ module BlockCommonFunctions{
              !slashable;                 
     }
     */
-    predicate method consensus_is_valid_block(
+    predicate method consensus_is_valid_beacon_block(
         block_slashing_db: set<SlashingDBBlock>,
         block: BeaconBlock,
         proposer_duty: ProposerDuty,
         complete_signed_randao_reveal: BLSSignature)
     
     {
-        // TODO: Add correct block.proposer_index check        
         && block.slot == proposer_duty.slot 
         && block.body.randao_reveal == complete_signed_randao_reveal
         && !is_slashable_block(block_slashing_db, block, proposer_duty.pubkey)

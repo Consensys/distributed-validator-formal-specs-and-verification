@@ -1,12 +1,12 @@
-include "../../common/block_proposal/block_types.dfy"
-include "../../common/block_proposal/block_common_functions.dfy"
-include "../../common/block_proposal/block_signing_functions.dfy"
+include "../../common/block_proposer/block_types.dfy"
+include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/block_proposer/block_signing_functions.dfy"
 
 module Block_DVC_Externs
 {
-    import opened BlockTypes
-    import opened BlockCommonFunctions
-    import opened BlockSigningFunctions
+    import opened Block_Types
+    import opened Block_Common_Functions
+    import opened Block_Signing_Functions
 
     trait 
     // See https://github.com/dafny-lang/dafny/issues/1588 for why {:termination false} is needed
@@ -26,7 +26,6 @@ module Block_DVC_Externs
             id: Slot,
             validityPredicate: ConsensusValidityCheck<T>
         )
-        requires id !in consensus_instances_started.Keys
         ensures consensus_instances_started == old(consensus_instances_started)[id := validityPredicate]
 
         method stop_multiple(

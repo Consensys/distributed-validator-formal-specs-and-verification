@@ -1,9 +1,9 @@
 include "./block_types.dfy"
 include "./block_common_functions.dfy"
 
-module BlockSigningFunctions{
-    import opened BlockTypes
-    import opened BlockCommonFunctions
+module Block_Signing_Functions{
+    import opened Block_Types
+    import opened Block_Common_Functions
     
     function method {:extern} compute_signing_root<T>(
         data: T,

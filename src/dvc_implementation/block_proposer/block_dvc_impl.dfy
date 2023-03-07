@@ -1,13 +1,13 @@
-include "../../common/block_proposal/block_types.dfy"
-include "../../common/block_proposal/block_common_functions.dfy"
-include "../../common/block_proposal/block_signing_functions.dfy"
-include "./block_externs.dfy"
+include "../../common/block_proposer/block_types.dfy"
+include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/block_proposer/block_signing_functions.dfy"
+include "./block_dvc_externs.dfy"
 
 abstract module Block_DVC_Impl
 {
-    import opened BlockTypes
-    import opened BlockCommonFunctions
-    import opened BlockSigningFunctions
+    import opened Block_Types
+    import opened Block_Common_Functions
+    import opened Block_Signing_Functions
     import opened Block_DVC_Externs
 
     export PublicInterface
@@ -16,9 +16,9 @@ abstract module Block_DVC_Impl
                  Block_DVC.getRepr,
                  Block_DVC.ValidRepr,
                  Block_DVC.ValidConstructorRepr                                   
-        provides BlockTypes, 
-                 BlockCommonFunctions,
-                 BlockSigningFunctions,
+        provides Block_Types, 
+                 Block_Common_Functions,
+                 Block_Signing_Functions,
                  Block_DVC_Externs
 
     class Block_DVC {        
@@ -29,14 +29,9 @@ abstract module Block_DVC_Impl
         var dv_pubkey: BLSPubkey;       // its own BLS pubkey
         var peers: set<BLSPubkey>;      // set of BLS pubkeys of all DVCs
 
-        
-        // var all_proposer_duties: set<ProposerDuty>;
-        var proposer_duty_queue: seq<ProposerDuty>;         // unprocessing duties
         var future_decided_slots: map<Slot, BeaconBlock>    // known blocks for future slots
-
         var block_shares_to_broadcast: map<Slot, SignedBeaconBlock> 
         var randao_shares_to_broadcast: map<Slot, RandaoShare>
-
         var complete_block_signature: (set<SignedBeaconBlock>) -> Optional<BLSSignature>;
         // must satisfy properties of M-of-N threshold signatures 
         
@@ -68,7 +63,6 @@ abstract module Block_DVC_Impl
         requires consensus_on_block.consensus_instances_started == map[]
         requires ValidConstructorRepr(consensus_on_block, network, bn, rs, initial_slashing_db)        
         {            
-            this.proposer_duty_queue := [];
             this.future_decided_slots := map[];
 
             this.block_shares_to_broadcast := map[];
@@ -129,18 +123,23 @@ abstract module Block_DVC_Impl
         method serve_proposer_duty(
             proposer_duty: ProposerDuty
         ) 
-        requires forall pd | pd in proposer_duty_queue + [proposer_duty] :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
         modifies getRepr()
         {
-            proposer_duty_queue := proposer_duty_queue + [proposer_duty];
+            terminate_current_proposer_duty();
             broadcast_randao_share(proposer_duty);
-            { check_for_next_queued_duty(); }                     
+            { check_for_next_queued_duty(proposer_duty); }          
+        }
+
+        method terminate_current_proposer_duty() 
+        requires ValidRepr()
+        modifies getRepr()
+        {
+            current_proposer_duty := None;
         }
 
         // broadcast_randao_share is for lines 166 - 171.
         method broadcast_randao_share(serving_duty: ProposerDuty)
-        // requires serving_duty.slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
         modifies getRepr()
         {            
@@ -154,45 +153,30 @@ abstract module Block_DVC_Impl
             network.send_randao_share(randao_share, peers);            
         }
 
-        // Check the duty queue and find the next unprocessed duty.
-        // Notice that it is possible that a queue head has not processed by a DVC
-        // but a DVC has already received a block agreement for the queue head
-        // from a quorum.
-        // If a block of a queue head is unknown and there is no undecided consensus instance,
-        // a queue head is processed. 
-        method check_for_next_queued_duty()
-        requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started
+        method check_for_next_queued_duty(serving_duty: ProposerDuty)
         requires ValidRepr()
         modifies getRepr()
-        decreases proposer_duty_queue
         {            
-            if proposer_duty_queue != []
+            
+            var slot := serving_duty.slot;
+            if slot in future_decided_slots
             {
-                var slot := proposer_duty_queue[0].slot;
-                if slot in future_decided_slots
-                {
-                    var queue_head := proposer_duty_queue[0];
-                    proposer_duty_queue := proposer_duty_queue[1..];
-                    update_block_slashing_db(future_decided_slots[queue_head.slot], dv_pubkey);
-                    future_decided_slots := future_decided_slots - {slot};
-                    check_for_next_queued_duty();
-                }
-                else if !current_proposer_duty.isPresent() 
-                {                    
-                    var queue_head := proposer_duty_queue[0];
-                    proposer_duty_queue := proposer_duty_queue[1..];
-                    current_proposer_duty := Some(queue_head);
-                    last_served_proposer_duty := Some(queue_head);
-                    start_consensus_if_can_construct_randao_share();  
-                }                                
-            }     
+                update_block_slashing_db(future_decided_slots[slot], dv_pubkey);
+                future_decided_slots := future_decided_slots - {slot};
+            }
+            else 
+            {                    
+                current_proposer_duty := Some(serving_duty);
+                last_served_proposer_duty := Some(serving_duty);
+                start_consensus_if_can_construct_randao_share();  
+            }                                
+            
         }
 
         // TODO: think of a better name
         // start_consensus_if_can_construct_randao_share is for lines 172 - 173.
         // validityCheck is to ensure the desired properties of a consensus instance.
         method start_consensus_if_can_construct_randao_share()
-        requires current_proposer_duty.isPresent() ==> current_proposer_duty.safe_get().slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
         modifies getRepr()        
         {
@@ -265,12 +249,15 @@ abstract module Block_DVC_Impl
         }        
 
         // block_consensus_decided is for lines 173 - 182.
-        method block_consensus_decided(block: BeaconBlock)
-        requires current_proposer_duty.isPresent()
-        requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
+        method block_consensus_decided(            
+            block: BeaconBlock
+        )
         requires ValidRepr()
         modifies getRepr()              
         {              
+            if  && current_proposer_duty.isPresent()
+                && current_proposer_duty.safe_get().slot == block.slot
+            {
             update_block_slashing_db(block, current_proposer_duty.safe_get().pubkey);
             var block_signing_root := compute_block_signing_root(block);
             var fork_version := bn.get_fork_version(block.slot);
@@ -280,7 +267,7 @@ abstract module Block_DVC_Impl
             network.send_block_share(block_share, peers); 
 
             current_proposer_duty := None;
-            { check_for_next_queued_duty(); }       
+            }
         }
 
         // listen_for_block_shares is for lines 217 - 230.
@@ -318,7 +305,6 @@ abstract module Block_DVC_Impl
         method listen_for_new_imported_blocks(
             signed_block: SignedBeaconBlock
         ) 
-        requires forall pd | pd in proposer_duty_queue :: pd.slot !in consensus_on_block.consensus_instances_started        
         requires ValidRepr()
         modifies getRepr()
         {
@@ -357,7 +343,6 @@ abstract module Block_DVC_Impl
             {
                 update_block_slashing_db(block_consensus_already_decided[current_proposer_duty.safe_get().slot], dv_pubkey);
                 current_proposer_duty := None;
-                { check_for_next_queued_duty(); }
             }      
         }
 
@@ -457,7 +442,7 @@ abstract module Block_DVC_Impl
             var attestations := slashing_db.get_proposals(dv_pubkey);
             Repr := Repr + slashing_db.Repr;
 
-            valid := consensus_is_valid_block(attestations, data, proposer_duty, randao_reveal);             
+            valid := consensus_is_valid_beacon_block(attestations, data, proposer_duty, randao_reveal);             
         }        
     }    
 }
