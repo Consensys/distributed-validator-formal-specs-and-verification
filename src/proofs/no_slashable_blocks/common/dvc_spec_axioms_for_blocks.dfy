@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
 
-module DVC_Spec_Axioms
+module DVC_Spec_Axioms_For_Blocks
 {
     import opened Types 
     import opened CommonFunctions

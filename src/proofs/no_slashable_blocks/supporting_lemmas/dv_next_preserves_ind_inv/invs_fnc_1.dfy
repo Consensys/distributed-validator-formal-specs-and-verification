@@ -1,12 +1,12 @@
 include "../../../../common/commons.dfy"
-include "../../common/attestation_creation_instrumented.dfy"
+include "../../common/block_proposal_instrumented.dfy"
 include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/dvc_spec_axioms.dfy"
+include "../../common/dvc_spec_axioms_for_blocks.dfy"
 
 include "../../../common/helper_pred_fcn.dfy"
 
@@ -19,7 +19,7 @@ module Fnc_Invs_1
     import opened NetworkSpec
     import opened DVC_Spec
     import opened DV
-    import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
+    import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened DVC_Spec_Axioms

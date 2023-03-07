@@ -1,25 +1,17 @@
 include "../../../common/commons.dfy"
-include "../../../dvc_implementation/attestation_creation.dfy"
-include "../../../specs/dvc/dvc_attestation_creation.dfy"
-include "dvc_spec_axioms.dfy"
+include "../../../dvc_implementation/block_proposal/block_dvc_impl.dfy"
+include "../../../dvc_implementation/block_proposal/block_dvc_externs.dfy"
+include "../../../specs/dvc/dvc_block_proposal.dfy"
+include "dvc_spec_axioms_for_blocks.dfy"
 
 
 module DVC_Spec {
     import opened Types 
     import opened CommonFunctions
-    import opened DVC_Externs
+    import opened Block_DVC_Externs
+    import opened Block_DVC_Impl
     import DVC_Spec_NonInstr
-    import opened DVC_Spec_Axioms
-    
-
-
-    // function getInitialBN(): BNState
-    // {
-    //     BNState(
-    //         state_roots_of_imported_blocks := {}
-    //     )
-    // }    
-
+    import opened DVC_Spec_Axioms_For_Blocks
 
 
     datatype ConsensusEngineState = ConsensusEngineState(
