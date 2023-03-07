@@ -296,11 +296,11 @@ module DVC_Spec_NonInstr {
         // In other words, a process has not know a decision for the current attestation duty.
         if process.current_attestation_duty.isPresent()
         then 
-            var process_after_stopping_active_consensus_instance :=
+            var process_after_terminating_current_duty :=
                     process.(
                         current_attestation_duty := None
                     );                    
-            process_after_stopping_active_consensus_instance
+            process_after_terminating_current_duty
         // Either a process did not receive any attestation duty before
         // or it knew a decision for the last attestation duty.
         else 

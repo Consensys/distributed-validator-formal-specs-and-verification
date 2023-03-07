@@ -295,11 +295,11 @@ module BlockDVCNodeSpec {
         // In other words, a process has not know a decision for the current proposer duty.
         if process.current_proposer_duty.isPresent()
         then 
-            var process_after_stopping_current_duty :=
+            var process_after_terminating_current_duty :=
                     process.(
                         current_proposer_duty := None
                     );                    
-            process_after_stopping_current_duty
+            process_after_terminating_current_duty
         // Either a process did not receive any proposer duty before
         // or it knew a decision for the last proposer duty.
         else 
