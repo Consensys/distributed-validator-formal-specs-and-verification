@@ -5,11 +5,11 @@ include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
 
-module Block_DVC_Spec_NonInstr {
+module DVC_Block_Proposer_Spec_NonInstr {
     import opened Block_Types 
     import opened Block_Common_Functions
     import opened Block_Signing_Functions    
-    import opened Block_DVC_Spec_Axioms
+    import opened DVC_Block_Proposer_Spec_Axioms
 
     function getInitialRS(
         pubkey: BLSPubkey

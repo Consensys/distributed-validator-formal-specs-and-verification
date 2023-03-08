@@ -2,7 +2,7 @@ include "../../../common/block_proposer/block_types.dfy"
 include "../../../common/block_proposer/block_common_functions.dfy"
 include "../../../common/block_proposer/block_signing_functions.dfy"
 
-module Block_DVC_Spec_Axioms
+module DVC_Block_Proposer_Spec_Axioms
 {
     import opened Block_Types 
     import opened Block_Common_Functions

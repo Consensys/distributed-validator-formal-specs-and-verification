@@ -201,7 +201,7 @@ abstract module Block_DVC_Impl
 
         // Check whether messages related to slot should be processed.
         predicate method is_slot_for_current_or_future_instances(
-            block_consensus_active_instances: set<Slot>,
+            active_block_consensus_instances: set<Slot>,
             received_slot: Slot
         )
         reads this
@@ -213,10 +213,10 @@ abstract module Block_DVC_Impl
             // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
             // up only slot lower thant the slot of the current/latest duty.
 
-            || (block_consensus_active_instances == {} && !last_served_proposer_duty.isPresent())
-            || (block_consensus_active_instances != {} && get_min(block_consensus_active_instances) <= received_slot)
-            || (block_consensus_active_instances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
-            || (block_consensus_active_instances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
+            || (active_block_consensus_instances == {} && !last_served_proposer_duty.isPresent())
+            || (active_block_consensus_instances != {} && get_min(active_block_consensus_instances) <= received_slot)
+            || (active_block_consensus_instances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
+            || (active_block_consensus_instances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
         }
 
         // listen_for_randao_shares is an underlying method for line 172.
@@ -228,9 +228,9 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
             var slot := randao_share.slot;
-            var block_consensus_active_instances := consensus_on_block.get_active_instances();
+            var active_block_consensus_instances := consensus_on_block.get_active_instances();
 
-            if is_slot_for_current_or_future_instances(block_consensus_active_instances, slot)
+            if is_slot_for_current_or_future_instances(active_block_consensus_instances, slot)
             {
                 rcvd_randao_shares := rcvd_randao_shares[slot := getOrDefault(rcvd_randao_shares, slot, {}) + {randao_share} ]; 
                 start_consensus_if_can_construct_randao_share();      
@@ -276,10 +276,10 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
 
-            var block_consensus_active_instances := consensus_on_block.get_active_instances();
+            var active_block_consensus_instances := consensus_on_block.get_active_instances();
             var slot := block_share.message.slot;
 
-            if is_slot_for_current_or_future_instances(block_consensus_active_instances, slot)
+            if is_slot_for_current_or_future_instances(active_block_consensus_instances, slot)
             {
                 var data := block_share.message;
                 var rcvd_block_shares_db_at_slot := getOrDefault(rcvd_block_shares, slot, map[]);

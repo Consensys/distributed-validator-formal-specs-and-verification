@@ -5,12 +5,12 @@ include "../../../specs/dvc/dvc_block_proposer.dfy"
 include "block_dvc_spec_axioms.dfy"
 
 
-module DVC_Spec {
+module DVC_Block_Proposer_Spec_Instr {
     import opened Block_Types 
     import opened Block_Common_Functions
     import opened Block_Signing_Functions
-    import Block_DVC_Spec_NonInstr
-    import opened Block_DVC_Spec_Axioms
+    import DVC_Block_Proposer_Spec_NonInstr
+    import opened DVC_Block_Proposer_Spec_Axioms
 
 
     datatype BlockConsensusEngineState = BlockConsensusEngineState(
@@ -158,12 +158,17 @@ module DVC_Spec {
         new_block_slashing_db: set<SlashingDBBlock>
     ): (r: BlockConsensusEngineState)
     {
-        s.(
-            active_block_consensus_instances := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_block_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
                     s.active_block_consensus_instances,
                     new_block_slashing_db
-                )
+                );
+        s.(
+            active_block_consensus_instances := new_active_block_consensus_instances,
+            block_slashing_db_hist := updateBlockSlashingDBHist(
+                s.block_slashing_db_hist,
+                new_active_block_consensus_instances,
+                new_block_slashing_db
+            )
         )
     }
 
@@ -190,11 +195,11 @@ module DVC_Spec {
         ghost all_rcvd_duties: set<ProposerDuty>
     )
 
-    type Outputs = Block_DVC_Spec_NonInstr.Outputs
+    type Outputs = DVC_Block_Proposer_Spec_NonInstr.Outputs
 
     function getEmptyOuputs(): Outputs
     {
-        Block_DVC_Spec_NonInstr.Outputs(
+        DVC_Block_Proposer_Spec_NonInstr.Outputs(
             {},
             {},
             {}
@@ -239,7 +244,7 @@ module DVC_Spec {
             current_proposer_duty := None,
             last_served_proposer_duty := None,
             bn := s.bn,
-            rs := Block_DVC_Spec_NonInstr.getInitialRS(rs_pubkey),
+            rs := DVC_Block_Proposer_Spec_NonInstr.getInitialRS(rs_pubkey),
             dv_pubkey := dv_pubkey,
             peers := peers,                        
             construct_signed_block := construct_signed_block,
@@ -348,7 +353,11 @@ module DVC_Spec {
         proposer_duty: ProposerDuty
     ): DVCStateAndOuputs 
     {   
-        var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process);
+        var process_after_receiving_duty := 
+            process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
+
+        var process_after_stopping_active_consensus_instance := 
+            f_terminate_current_proposer_duty(process_after_receiving_duty);
 
         f_broadcast_randao_share(
             process_after_stopping_active_consensus_instance,

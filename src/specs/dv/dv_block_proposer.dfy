@@ -5,14 +5,14 @@ include "../dvc/dvc_block_proposer.dfy"
 include "../consensus/block_consensus.dfy"
 include "../network/block_network.dfy"
 
-abstract module DV 
+module DV_Block_Proposer_Spec 
 {
     import opened Block_Types
     import opened Block_Common_Functions
     import opened Block_Signing_Functions
     import opened Block_Network_Spec
     import opened Block_Consensus_Spec
-    import opened Block_DVC_Spec_NonInstr
+    import opened DVC_Block_Proposer_Spec_NonInstr
     
 
     datatype Adversary = Adversary(
@@ -42,7 +42,7 @@ abstract module DV
         | HonestNodeTakingStep(
                 node: BLSPubkey, 
                 event: Block_Types.Event, 
-                nodeOutputs: Block_DVC_Spec_NonInstr.Outputs
+                nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs
             )
 
     predicate complete_randao_reveal_from_dv_pubkey(
@@ -206,7 +206,7 @@ abstract module DV
         && complete_signed_block_from_block_shares(s)
         && s.all_submitted_signed_blocks == {}
         && ( forall pubkey | pubkey in s.honest_nodes_states.Keys ::
-                Block_DVC_Spec_NonInstr.Init(
+                DVC_Block_Proposer_Spec_NonInstr.Init(
                     s.honest_nodes_states[pubkey], 
                     s.dv_pubkey, 
                     s.all_nodes, 
@@ -261,7 +261,7 @@ abstract module DV
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Block_Types.Event,
-        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
+        nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs,
         s': DVState        
     ) 
     {
@@ -284,7 +284,7 @@ abstract module DV
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Block_Types.Event,
-        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
+        nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs,
         s': DVState
     )
     {
@@ -328,7 +328,7 @@ abstract module DV
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Block_Types.Event,
-        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
+        nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs,
         s': DVState
     )
     {
@@ -341,9 +341,9 @@ abstract module DV
                     ;
                 && var validityPredicates := 
                         map nid | && nid in s.honest_nodes_states.Keys 
-                                  && slot in s.honest_nodes_states[nid].block_consensus_engine_state.block_consensus_active_instances.Keys
+                                  && slot in s.honest_nodes_states[nid].block_consensus_engine_state.active_block_consensus_instances.Keys
                                         ::
-                                            s.honest_nodes_states[nid].block_consensus_engine_state.block_consensus_active_instances[slot].validityPredicate
+                                            s.honest_nodes_states[nid].block_consensus_engine_state.active_block_consensus_instances[slot].validityPredicate
                     ;
                 && Block_Consensus_Spec.Next(
                         s.block_consensus_instances[slot],
@@ -357,7 +357,7 @@ abstract module DV
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Block_Types.Event,
-        nodeOutputs: Block_DVC_Spec_NonInstr.Outputs,
+        nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs,
         s': DVState
     )
     {
@@ -368,7 +368,7 @@ abstract module DV
         && s'.construct_signed_block == s.construct_signed_block
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
-        && Block_DVC_Spec_NonInstr.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)        
+        && DVC_Block_Proposer_Spec_NonInstr.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)        
         && s'.honest_nodes_states == s.honest_nodes_states[node := new_node_state]    
         && s'.all_submitted_signed_blocks == s.all_submitted_signed_blocks + nodeOutputs.submitted_signed_blocks    
         && reliable_networks(s, node, nodeEvent, nodeOutputs, s')
