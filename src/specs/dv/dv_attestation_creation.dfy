@@ -34,12 +34,7 @@ module DV
         all_attestations_created: set<Attestation>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,
-        index_next_attestation_duty_to_be_served: nat,
-
-        ghost globally_signed_attestations: set<Attestation>,
-        ghost globally_slashing_db_attestations: set<SlashingDBAttestation>,
-        ghost all_att_shares: set<AttestationShare>,
-        ghost highest_slot_with_dv_signed_att: Optional<Slot>
+        index_next_attestation_duty_to_be_served: nat
     )
 
     datatype Event = 
