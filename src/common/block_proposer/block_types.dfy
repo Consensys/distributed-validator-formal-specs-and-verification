@@ -63,8 +63,16 @@ module Block_Types
          
     type AttestationSignatureShareDB = map<(AttestationData, seq<bool>), set<AttestationShare>>   
 
+    datatype RandaoShare = RandaoShare(
+        proposer_duty: ProposerDuty,
+        slot: Slot,
+        signing_root: Root,
+        signature_share: BLSSignature
+    )
+
     datatype BeaconBlockBody = BeaconBlockBody(
         attestations: seq<Attestation>,        
+        state_root: Root,
         randao_reveal: BLSSignature
         // ... Other fields irrelevant to this spec
     )
@@ -114,10 +122,12 @@ module Block_Types
     }   
 
     type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
+    type iseq<T> = imaptotal<nat, T>
 
     datatype ConsensusCommand = 
         | StartConsensusOnBlock(id: Slot)
-        | StopConsensusOnBlock(id: Slot)          
+        | StopConsensusOnBlock(id: Slot)    
+              
 
     datatype Optional<T(0)> = Some(v: T) | None
     {
@@ -178,27 +188,22 @@ module Block_Types
         | DOMAIN_RANDAO
         | DOMAIN_BEACON_PROPOSER
      
-    // Add a field Slot into datatype RandaoShare
-    datatype RandaoShare = RandaoShare(
-        proposer_duty: ProposerDuty,
-        epoch: Epoch,
-        slot: Slot,
-        root: Root,
-        signature: BLSSignature
-    )
+    // // Add a field Slot into datatype BLSSignature
+    // datatype BLSSignature = BLSSignature(
+    //     proposer_duty: ProposerDuty,
+    //     epoch: Epoch,
+    //     slot: Slot,
+    //     root: Root,
+    //     signature: BLSSignature
+    // )
 
     datatype Event = 
         | ServeProposerDuty(proposer_duty: ProposerDuty)
         | BlockConsensusDecided(id: Slot, block: BeaconBlock)
         | ReceiveRandaoShare(randao_share: RandaoShare)
-        | ReceiveBlockShare(block_share: SignedBeaconBlock)
-        | ImportNewBlock(signed_block: SignedBeaconBlock)
-        // Error: shared destructors must have the same type, 
-        // but 'block' has type 'BeaconBlock' in constructor 'DecideBlockConsensus' 
-        // and type 'SignedBeaconBlock' in constructor 'ImportedNewBlock'
-        // | DecideBlockConsensus(block: BeaconBlock)
-        // | ImportedNewBlock(block: SignedBeaconBlock)        
-        | ResendRandaoShare
+        | ReceiveSignedBeaconBlock(block_share: SignedBeaconBlock)
+        | ImportedNewBlock(block: BeaconBlock)       
+        | ResendRandaoRevealSignatureShare
         | ResendBlockShare
         | NoEvent      
 
