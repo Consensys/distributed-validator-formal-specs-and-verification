@@ -21,11 +21,16 @@ module Block_Common_Functions{
         slot / SLOTS_PER_EPOCH
     }   
 
-    function method {:extern} compute_domain(
+    function method {:extern} compute_domain_with_epoch(
         domain_type: DomainTypes,
         epoch: Epoch
     ): (domain: Domain)
 
+    // TODO: What about the genesis_validator_root parameter?
+    function method {:extern} compute_domain_with_fork_version(
+        domain_type: DomainTypes,
+        fork_version: Version
+    ): (domain: Domain)
     
     predicate uniqueSeq<T>(s: seq<T>)
     {

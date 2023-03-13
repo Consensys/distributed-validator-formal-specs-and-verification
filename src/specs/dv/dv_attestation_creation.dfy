@@ -42,12 +42,12 @@ module DV
         messagesReceivedByTheNode: set<AttestationShare>)
     | HonestNodeTakingStep(node: BLSPubkey, event: Types.Event, nodeOutputs: DVC_Spec.Outputs)
 
-    predicate do_all_att_shares_have_the_same_data(
+    predicate all_att_shares_have_the_same_data(
         att_shares: set<AttestationShare>,
         data: AttestationData 
     )
     {
-    && (forall att_share | att_share in att_shares ::att_share.data == data)            
+        forall att_share | att_share in att_shares ::att_share.data == data
     }
 
     predicate signer_threshold(
@@ -75,7 +75,7 @@ module DV
     )    
     {
         forall data: AttestationData, signing_root: Root, att_shares |
-            && do_all_att_shares_have_the_same_data(att_shares, data)
+            && all_att_shares_have_the_same_data(att_shares, data)
             && signer_threshold(all_nodes, att_shares, signing_root) 
         ::
             && construct_signed_attestation_signature(att_shares).isPresent()
@@ -102,7 +102,7 @@ module DV
             construct_signed_attestation_signature(att_shares).safe_get(),
             dv_pubkey
         )                   
-        && do_all_att_shares_have_the_same_data(att_shares, data)
+        && all_att_shares_have_the_same_data(att_shares, data)
         && signer_threshold(all_nodes, att_shares, signing_root) 
     }
 
@@ -168,7 +168,6 @@ module DV
         && s.honest_nodes_states.Keys != {}
         && |s.adversary.nodes| <= f(|s.all_nodes|)
         && construct_signed_attestation_signature_assumptions(s)
-
         && s.all_attestations_created == {}
         && (
             forall n | n in s.honest_nodes_states.Keys ::
@@ -182,7 +181,7 @@ module DV
         && (forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
         )        
-        && inv_sequence_attestation_duties_to_be_served_orderd(s)
+        && inv_sequence_attestation_duties_to_be_served_ordered(s)
         && s.index_next_attestation_duty_to_be_served == 0   
         // //
         && ( forall n | n in s.honest_nodes_states.Keys ::
@@ -191,22 +190,14 @@ module DV
     }
 
     // IMPORTANT
-    predicate inv_sequence_attestation_duties_to_be_served_orderd(s: DVState)
+    predicate inv_sequence_attestation_duties_to_be_served_ordered(s: DVState)
     {
         && (forall i, j | 
                     && 0 <= i < j
                     && s.sequence_attestation_duties_to_be_served[i].node == s.sequence_attestation_duties_to_be_served[j].node 
                 ::
                     s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot < s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
-        )
-        // && ( forall k1: Slot, k2: Slot :: 
-        //         && k1 < k2
-        //         && s.sequence_attestation_duties_to_be_served[k1].node 
-        //                 == s.sequence_attestation_duties_to_be_served[k2].node
-        //         ==> 
-        //         s.sequence_attestation_duties_to_be_served[k1].attestation_duty.slot 
-        //                 < s.sequence_attestation_duties_to_be_served[k2].attestation_duty.slot  
-        //    )
+        )       
     }
 
     predicate NextPreCond(
@@ -317,7 +308,7 @@ module DV
     requires node in s.honest_nodes_states.Keys
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
     {
-            && (nodeEvent.ServeAttstationDuty? ==>
+            && (nodeEvent.ServeAttestationDuty? ==>
                     var attestation_duty_to_be_served := s.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
                     && node == attestation_duty_to_be_served.node 
                     && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
@@ -359,7 +350,7 @@ module DV
     )
     {
             match event 
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 true
@@ -488,7 +479,7 @@ module DV
         && var new_node_state := s'.honest_nodes_states[node];
         && s'.all_attestations_created == s.all_attestations_created + nodeOutputs.attestations_submitted
         && (
-            if nodeEvent.ServeAttstationDuty? then
+            if nodeEvent.ServeAttestationDuty? then
                 var attestation_duty_to_be_served := s.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
                 && node == attestation_duty_to_be_served.node 
                 && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
@@ -539,7 +530,7 @@ module DV
                             && var constructed_sig := s.construct_signed_attestation_signature(attestation_shares);
                             && constructed_sig.isPresent()
                             && constructed_sig.safe_get() == aggregated_attestation_sent.signature
-                            && do_all_att_shares_have_the_same_data(attestation_shares, aggregated_attestation_sent.data)
+                            && all_att_shares_have_the_same_data(attestation_shares, aggregated_attestation_sent.data)
             )
             && s' == s.(
                 att_network := s'.att_network,

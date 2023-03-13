@@ -229,7 +229,7 @@ module DVC_Spec_NonInstr {
     ): DVCStateAndOuputs
     requires
             match event 
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
@@ -243,7 +243,7 @@ module DVC_Spec_NonInstr {
                 true
     {
         match event 
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 f_serve_attestation_duty(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 f_att_consensus_decided(s, id,  decided_attestation_data)
@@ -328,7 +328,7 @@ module DVC_Spec_NonInstr {
             // Updates the attestation slashing database and validity checking predicates.
             var new_process := 
                     process.(
-                        current_attestation_duty := Some(attestation_duty),
+                        current_attestation_duty := None,
                         latest_attestation_duty := Some(attestation_duty),
                         future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
                         attestation_slashing_db := new_attestation_slashing_db,

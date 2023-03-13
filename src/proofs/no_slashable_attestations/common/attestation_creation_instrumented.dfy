@@ -262,7 +262,7 @@ module DVC_Spec {
     ): DVCStateAndOuputs
     requires
             match event 
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
@@ -276,7 +276,7 @@ module DVC_Spec {
                 true
     {
         match event 
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 f_serve_attestation_duty(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
                 f_att_consensus_decided(s, id,  decided_attestation_data)

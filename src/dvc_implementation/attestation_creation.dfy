@@ -75,7 +75,7 @@ abstract module DVC_Implementation
         modifies getRepr()
         {
             match event {
-                case ServeAttstationDuty(attestation_duty) => 
+                case ServeAttestationDuty(attestation_duty) => 
                     :- serve_attestation_duty(attestation_duty);
                 case AttConsensusDecided(id, decided_attestation_data) => 
                     :- att_consensus_decided(id,  decided_attestation_data);
