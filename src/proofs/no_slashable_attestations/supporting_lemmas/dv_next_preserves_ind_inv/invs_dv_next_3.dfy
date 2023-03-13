@@ -50,7 +50,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(dvc);                                           
                         lem_inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
@@ -101,7 +101,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc);                                           
@@ -153,7 +153,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);   
                         assert inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc);                                           
@@ -203,7 +203,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         lem_inv_monotonic_att_slashing_db_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_monotonic_att_slashing_db_body(dvc, dvc');
                         
@@ -252,7 +252,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
                         assert inv_every_db_in_att_slashing_db_hist_is_subset_of_att_slashing_db_body(dvc);                                           
@@ -302,7 +302,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         lem_inv_monotonic_att_slashing_db_hist_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_monotonic_att_slashing_db_hist_body(dvc, dvc');
                         
@@ -350,7 +350,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         lem_inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc');
                         
@@ -477,7 +477,7 @@ module Invs_DV_Next_3
 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(att_duty) =>     
+                    case ServeAttestationDuty(att_duty) =>     
                         lem_inv_attestation_shares_to_broadcast_are_sent_messages_f_serve_attestation_duty(dvc, att_duty, dvc');                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -539,7 +539,7 @@ module Invs_DV_Next_3
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(att_duty) =>     
+                    case ServeAttestationDuty(att_duty) =>     
                         lem_inv_rcvd_attn_shares_are_from_sent_messages_f_serve_attestation_duty(dvc, att_duty, dvc');                        
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -689,7 +689,7 @@ module Invs_DV_Next_3
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>                           
+                    case ServeAttestationDuty(attestation_duty) =>                           
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         
@@ -727,7 +727,7 @@ module Invs_DV_Next_3
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>    
+                    case ServeAttestationDuty(attestation_duty) =>    
                         assert  dv'.index_next_attestation_duty_to_be_served 
                                 ==
                                 dv.index_next_attestation_duty_to_be_served + 1;
@@ -816,7 +816,7 @@ module Invs_DV_Next_3
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>    
+                    case ServeAttestationDuty(attestation_duty) =>    
                         lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body_f_serve_attestation_duty(
                             dvc,
                             attestation_duty,
@@ -868,7 +868,7 @@ module Invs_DV_Next_3
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>    
+                    case ServeAttestationDuty(attestation_duty) =>    
                         lem_inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body_f_serve_attestation_duty(
                             dvc,
                             attestation_duty,
@@ -922,7 +922,7 @@ module Invs_DV_Next_3
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>    
+                    case ServeAttestationDuty(attestation_duty) =>    
                         if !dvc.latest_attestation_duty.isPresent()                            
                         {
                             lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(dv, event, dv');

@@ -139,7 +139,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_14(dv: DVState)       
     {   
-        && inv_sequence_attestation_duties_to_be_served_orderd(dv)
+        && inv_sequence_attestation_duties_to_be_served_ordered(dv)
         && inv_att_shares_to_broadcast_is_tracked_in_attestation_slashing_db(dv)
         && inv_data_of_att_shares_is_known(dv)
         && inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(dv)

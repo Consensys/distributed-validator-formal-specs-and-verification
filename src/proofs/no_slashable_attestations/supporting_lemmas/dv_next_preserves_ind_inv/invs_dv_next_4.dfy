@@ -56,7 +56,7 @@ module Invs_DV_Next_4
         && inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s) //
         && inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s) //
         && inv_data_of_att_share_is_decided_value(s) //  
-        && inv_sequence_attestation_duties_to_be_served_orderd(s) //
+        && inv_sequence_attestation_duties_to_be_served_ordered(s) //
         && inv_current_latest_attestation_duty_match(s)
         && construct_signed_attestation_signature_assumptions_helper(
             s.construct_signed_attestation_signature,
@@ -71,7 +71,7 @@ module Invs_DV_Next_4
         && inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s)         
     }
 
-    lemma lem_NonServeAttstationDuty_unchanged_vars(
+    lemma lem_NonServeAttestationDuty_unchanged_vars(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -79,7 +79,7 @@ module Invs_DV_Next_4
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')      
     requires event.HonestNodeTakingStep?
-    requires !event.event.ServeAttstationDuty?
+    requires !event.event.ServeAttestationDuty?
     ensures s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;
     ensures s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served  
     {
@@ -267,7 +267,7 @@ module Invs_DV_Next_4
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>                           
+                    case ServeAttestationDuty(attestation_duty) =>                           
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         
@@ -353,9 +353,9 @@ module Invs_DV_Next_4
 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
+                    case ServeAttestationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty(s, event, s');
+                        lem_ServeAttestationDuty(s, event, s');
                         lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -367,7 +367,7 @@ module Invs_DV_Next_4
                         assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
                         lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_att_consensus_decided(
                             s_node,
@@ -381,12 +381,12 @@ module Invs_DV_Next_4
                         assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                        
                    
                     case ReceivedAttestationShare(attestation_share) =>
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s'); 
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s'); 
                         lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
                         
                     case ImportedNewBlock(block) => 
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
                         lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_f_listen_for_new_imported_blocks(
                             s_node2,
@@ -399,12 +399,12 @@ module Invs_DV_Next_4
                         assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
                  
                     case ResendAttestationShares => 
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         lem_f_resend_attestation_share_constants(s_node, s'_node);
                         assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
 
                     case NoEvent => 
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         assert s_node == s'_node; 
                         assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                          
                 }
@@ -605,9 +605,9 @@ module Invs_DV_Next_4
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
+                    case ServeAttestationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
-                        lem_ServeAttstationDuty(s, event, s');
+                        lem_ServeAttestationDuty(s, event, s');
                         lem_inv_slot_in_future_decided_data_is_correct_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
@@ -618,7 +618,7 @@ module Invs_DV_Next_4
                         assert inv_slot_in_future_decided_data_is_correct_body(s', node, s'_node);                     
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
                                     
                         lem_inv_slot_in_future_decided_data_is_correct_f_att_consensus_decided(
@@ -634,14 +634,14 @@ module Invs_DV_Next_4
                
                    
                     case ReceivedAttestationShare(attestation_share) =>
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s'); 
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s'); 
                         lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
                         // lem_inv_slot_in_future_decided_data_is_correct_helper_easy(s', event, s_node, s'_node, node );
                         assert inv_slot_in_future_decided_data_is_correct_body(s', node, s'_node);  
                         
 
                     case ImportedNewBlock(block) => 
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
                         lem_inv_slot_in_future_decided_data_is_correct_f_listen_for_new_imported_blocks(
                             s_node2,
@@ -655,12 +655,12 @@ module Invs_DV_Next_4
                     
                  
                     case ResendAttestationShares => 
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         lem_f_resend_attestation_share_constants(s_node, s'_node);
                         assert inv_slot_in_future_decided_data_is_correct_body(s', node, s'_node);  
 
                     case NoEvent => 
-                        lem_NonServeAttstationDuty_unchanged_vars(s, event, s');
+                        lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         assert s_node == s'_node; 
                         assert inv_slot_in_future_decided_data_is_correct_body(s', node, s'_node);                          
                 }

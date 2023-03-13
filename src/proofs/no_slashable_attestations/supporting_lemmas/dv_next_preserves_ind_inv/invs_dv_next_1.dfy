@@ -66,7 +66,7 @@ module Invs_DV_Next_1
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>     
+                    case ServeAttestationDuty(attestation_duty) =>     
                         lem_inv_current_att_duty_is_rcvd_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -110,7 +110,7 @@ module Invs_DV_Next_1
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>     
+                    case ServeAttestationDuty(attestation_duty) =>     
                         lem_inv_latest_served_duty_is_rcvd_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -155,7 +155,7 @@ module Invs_DV_Next_1
                 assert inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc);
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>                             
+                    case ServeAttestationDuty(attestation_duty) =>                             
                         lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -203,7 +203,7 @@ module Invs_DV_Next_1
                 assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc);
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>                             
+                    case ServeAttestationDuty(attestation_duty) =>                             
                         lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -251,7 +251,7 @@ module Invs_DV_Next_1
                 assert inv_available_current_att_duty_is_latest_served_att_duty_body(dvc);
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>                             
+                    case ServeAttestationDuty(attestation_duty) =>                             
                         lem_inv_available_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -316,7 +316,7 @@ module Invs_DV_Next_1
     // //             assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc);
     // //             match nodeEvent
     // //             {
-    // //                 case ServeAttstationDuty(attestation_duty) =>                             
+    // //                 case ServeAttestationDuty(attestation_duty) =>                             
     // //                     lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
     // //                 case AttConsensusDecided(id, decided_attestation_data) => 
@@ -368,7 +368,7 @@ module Invs_DV_Next_1
                 
     // //             match nodeEvent
     // //             {
-    // //                 case ServeAttstationDuty(attestation_duty) =>                                                                     
+    // //                 case ServeAttestationDuty(attestation_duty) =>                                                                     
     // //                     lem_inv_strictly_increasing_queue_of_att_duties_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
                         
     // //                 case AttConsensusDecided(id, decided_attestation_data) => 
@@ -431,7 +431,7 @@ module Invs_DV_Next_1
                 
     // //             match nodeEvent
     // //             {
-    // //                 case ServeAttstationDuty(attestation_duty) =>                                                                     
+    // //                 case ServeAttestationDuty(attestation_duty) =>                                                                     
                         
     // //                     assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty); 
     // //                     assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, attestation_duty);                                             
@@ -505,7 +505,7 @@ module Invs_DV_Next_1
     { }
 
     // TODO
-    // IMPORTANT: update by using patterns in lem_ServeAttstationDuty2_helper
+    // IMPORTANT: update by using patterns in lem_ServeAttestationDuty2_helper
     lemma lem_inv_every_att_duty_before_dvn_att_index_was_delivered_f_serve_attestation_duty(
         dv: DVState,
         event: DV.Event,
@@ -526,7 +526,7 @@ module Invs_DV_Next_1
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(att_duty) =>     
+                    case ServeAttestationDuty(att_duty) =>     
                         var index := dv.index_next_attestation_duty_to_be_served;
                         var new_duty := dv.sequence_attestation_duties_to_be_served[index].attestation_duty;                                
                         lem_updated_all_rcvd_duties_f_serve_attestation_duty(dvc, new_duty, dvc');   
@@ -612,7 +612,7 @@ module Invs_DV_Next_1
                 var dvc' := dv'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(att_duty) =>     
+                    case ServeAttestationDuty(att_duty) =>     
                         lem_inv_every_att_duty_before_dvn_att_index_was_delivered_f_serve_attestation_duty(
                                 dv,
                                 event,
@@ -659,7 +659,7 @@ module Invs_DV_Next_1
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>                                                                     
+                    case ServeAttestationDuty(attestation_duty) =>                                                                     
                         lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -711,7 +711,7 @@ module Invs_DV_Next_1
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
                         assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty);
                         assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc);
@@ -771,7 +771,7 @@ module Invs_DV_Next_1
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);                                           
                         lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc');
@@ -823,7 +823,7 @@ module Invs_DV_Next_1
                 
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) =>   
+                    case ServeAttestationDuty(attestation_duty) =>   
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);                                           
                         lem_inv_consensus_instances_only_for_rcvd_duties_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');

@@ -1228,16 +1228,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             )
     }              
 
-    predicate safety(dv: DVState)
-    {
-        forall a: Attestation ::
-            a in dv.globally_signed_attestations 
-                ==> 
-                (
-                    && var S := dv.globally_signed_attestations - { a };
-                    && !is_slashable_attestation_data_in_set_of_attestations(S, a.data)
-                )
-    }
 
     predicate inv_queued_att_duty_is_dvn_seq_of_att_duty1<D(!new, 0)>(ci: ConsensusInstance<D>)
     {
@@ -1585,7 +1575,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_is_sequence_attestation_duties_to_be_serves_orders(dv: DVState)
     {
-        inv_sequence_attestation_duties_to_be_served_orderd(dv)
+        inv_sequence_attestation_duties_to_be_served_ordered(dv)
     }
 
     predicate inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc: DVCState, next_duty: AttestationDuty)
@@ -2309,7 +2299,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && var constructed_sig := dv.construct_signed_attestation_signature(attestation_shares);
         && constructed_sig.isPresent()
         && constructed_sig.safe_get() == attestation.signature
-        && do_all_att_shares_have_the_same_data(attestation_shares, attestation.data)
+        && all_att_shares_have_the_same_data(attestation_shares, attestation.data)
     }
 
     predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_attestations_body(
@@ -2499,7 +2489,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
         && constructed_sig.isPresent()
         && constructed_sig.safe_get() == att.signature
-        && do_all_att_shares_have_the_same_data(att_shares, att.data)
+        && all_att_shares_have_the_same_data(att_shares, att.data)
         && signers <= dv.all_nodes
         && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, signers)
         && |signers| >= quorum(|dv.all_nodes|)
@@ -2516,7 +2506,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
                 && constructed_sig.isPresent()
                 && constructed_sig.safe_get() == att.signature
-                && do_all_att_shares_have_the_same_data(att_shares, att.data)
+                && all_att_shares_have_the_same_data(att_shares, att.data)
                 && dvc_signer_pubkeys <= dv.all_nodes
                 && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, dvc_signer_pubkeys)
                 && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
@@ -2562,7 +2552,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 && var constructed_sig := dvc.construct_signed_attestation_signature(att_shares);
                 && constructed_sig.isPresent()
                 && constructed_sig.safe_get() == att.signature
-                && do_all_att_shares_have_the_same_data(att_shares, att.data)
+                && all_att_shares_have_the_same_data(att_shares, att.data)
                 && inv_attestation_is_created_with_shares_from_quorum_rs_signers(att_shares, rs_signer_pubkeys)
                 && |rs_signer_pubkeys| >= quorum(|dvc.peers|)
                 && rs_signer_pubkeys <= dvc.peers

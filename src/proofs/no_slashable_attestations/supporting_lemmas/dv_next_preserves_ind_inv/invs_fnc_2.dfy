@@ -2040,7 +2040,7 @@ module Fnc_Invs_2
     requires attestation_share.data.slot in rcvd_attestation_shares.Keys
     requires k in rcvd_attestation_shares[attestation_share.data.slot]
     requires construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()    
-    requires do_all_att_shares_have_the_same_data(rcvd_attestation_shares[attestation_share.data.slot][k], attestation.data)
+    requires all_att_shares_have_the_same_data(rcvd_attestation_shares[attestation_share.data.slot][k], attestation.data)
     requires && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(attestation.data.target.epoch));
              && var attestation_signing_root := compute_attestation_signing_root(attestation.data, fork_version);      
              && signer_threshold(all_nodes, rcvd_attestation_shares[attestation_share.data.slot][k], attestation_signing_root) 
@@ -2195,7 +2195,7 @@ module Fnc_Invs_2
                 assert  &&  attestation_share.data.slot in rcvd_attestation_shares.Keys
                         &&  k in rcvd_attestation_shares[attestation_share.data.slot]
                         &&  construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()    
-                        &&  do_all_att_shares_have_the_same_data(
+                        &&  all_att_shares_have_the_same_data(
                                 rcvd_attestation_shares[attestation_share.data.slot][k], 
                                 aggregated_attestation.data
                             )
@@ -2703,7 +2703,7 @@ module Fnc_Invs_2
                 assert  &&  attestation_share.data.slot in rcvd_attestation_shares.Keys
                         &&  k in rcvd_attestation_shares[attestation_share.data.slot]
                         &&  construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).isPresent()    
-                        &&  do_all_att_shares_have_the_same_data(
+                        &&  all_att_shares_have_the_same_data(
                                 rcvd_attestation_shares[attestation_share.data.slot][k], 
                                 aggregated_attestation.data
                             )

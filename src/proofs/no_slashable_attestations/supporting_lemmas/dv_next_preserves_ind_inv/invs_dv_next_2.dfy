@@ -43,7 +43,7 @@ module Invs_DV_Next_2
         && node == an.node    
     }    
 
-    lemma lem_ServeAttstationDuty2_helper(
+    lemma lem_ServeAttestationDuty2_helper(
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Types.Event,
@@ -52,7 +52,7 @@ module Invs_DV_Next_2
     )
     requires NextHonestAfterAddingBlockToBn.requires(s, node, nodeEvent, nodeOutputs, s' );
     requires NextHonestAfterAddingBlockToBn(s, node, nodeEvent, nodeOutputs, s' );  
-    requires nodeEvent.ServeAttstationDuty?
+    requires nodeEvent.ServeAttestationDuty?
     ensures s'.index_next_attestation_duty_to_be_served > 0
     ensures && pred_the_latest_attestation_duty_was_sent_from_dv(s', s'.index_next_attestation_duty_to_be_served, nodeEvent.attestation_duty, node )
             && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
@@ -65,7 +65,7 @@ module Invs_DV_Next_2
 
         match nodeEvent
         {
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 assert s.sequence_attestation_duties_to_be_served == s'.sequence_attestation_duties_to_be_served;
                 assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
 
@@ -76,8 +76,8 @@ module Invs_DV_Next_2
         }
     }     
 
-    // // TODO: Rename to lem_ServeAttstationDuty
-    lemma lem_ServeAttstationDuty(
+    // // TODO: Rename to lem_ServeAttestationDuty
+    lemma lem_ServeAttestationDuty(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -85,7 +85,7 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')    
     requires event.HonestNodeTakingStep?
-    requires event.event.ServeAttstationDuty?
+    requires event.event.ServeAttestationDuty?
     ensures s'.index_next_attestation_duty_to_be_served > 0
     ensures && pred_the_latest_attestation_duty_was_sent_from_dv(s', s'.index_next_attestation_duty_to_be_served, event.event.attestation_duty, event.node )
             && s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
@@ -98,7 +98,7 @@ module Invs_DV_Next_2
                 var s'_node := s'.honest_nodes_states[node];
                 assert  NextHonestAfterAddingBlockToBn.requires(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
                 assert  NextHonestAfterAddingBlockToBn(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
-                lem_ServeAttstationDuty2_helper(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+                lem_ServeAttestationDuty2_helper(add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
         }        
     }    
 
@@ -653,7 +653,7 @@ module Invs_DV_Next_2
                 var s'_node := s'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
+                    case ServeAttestationDuty(attestation_duty) => 
                         lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');  
 
@@ -714,7 +714,7 @@ module Invs_DV_Next_2
                 var s'_node := s'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
+                    case ServeAttestationDuty(attestation_duty) => 
                         lem_f_serve_attestation_duty_constants(s_node, attestation_duty, s'_node);
 
                     case AttConsensusDecided(id, decided_attestation_data) => 
@@ -1936,7 +1936,7 @@ module Invs_DV_Next_2
         }
     }      
 
-    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv_next_ServeAttstationDuty(
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv_next_ServeAttestationDuty(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -1944,7 +1944,7 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
-    requires event.event.ServeAttstationDuty?  
+    requires event.event.ServeAttestationDuty?  
     requires inv_quorum_constraints(s)
     requires inv_unchanged_paras_of_consensus_instances(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)      
@@ -1958,7 +1958,7 @@ module Invs_DV_Next_2
                 var s'_node := s'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
+                    case ServeAttestationDuty(attestation_duty) => 
                         forall n | n in s'.honest_nodes_states
                         ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2(s'.honest_nodes_states[n]); 
                         {
@@ -2104,8 +2104,8 @@ module Invs_DV_Next_2
                 var s'_node := s'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
-                        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv_next_ServeAttstationDuty(
+                    case ServeAttestationDuty(attestation_duty) => 
+                        lem_inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv_next_ServeAttestationDuty(
                             s,
                             event,
                             s'
@@ -2197,15 +2197,15 @@ module Invs_DV_Next_2
         }
     }  
 
-    lemma lem_inv_sequence_attestation_duties_to_be_served_orderd_dv_next(
+    lemma lem_inv_sequence_attestation_duties_to_be_served_ordered_dv_next(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_sequence_attestation_duties_to_be_served_orderd(s)
-    ensures inv_sequence_attestation_duties_to_be_served_orderd(s')
+    requires inv_sequence_attestation_duties_to_be_served_ordered(s)
+    ensures inv_sequence_attestation_duties_to_be_served_ordered(s')
     {
         match event 
         {
@@ -2341,7 +2341,7 @@ module Invs_DV_Next_2
     //             {
     //                 match nodeEvent
     //                 {
-    //                     // case ServeAttstationDuty(attestation_duty) => 
+    //                     // case ServeAttestationDuty(attestation_duty) => 
     //                     //     var messagesToBeSent := f_serve_attestation_duty(s_node, attestation_duty).outputs.att_shares_sent;
     //                     //     assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent + 
     //                     //         getMessagesFromMessagesWithRecipient(messagesToBeSent);
@@ -2396,7 +2396,7 @@ module Invs_DV_Next_2
     //     }        
     // }
 
-    lemma lem_inv_data_of_att_share_is_decided_value_dv_next_ServeAttstationDuty(
+    lemma lem_inv_data_of_att_share_is_decided_value_dv_next_ServeAttestationDuty(
         s: DVState,
         event: DV.Event,
         s': DVState
@@ -2404,7 +2404,7 @@ module Invs_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
-    requires event.event.ServeAttstationDuty?
+    requires event.event.ServeAttestationDuty?
     requires inv_quorum_constraints(s)
     requires inv_unchanged_paras_of_consensus_instances(s)
     requires same_honest_nodes_in_dv_and_ci(s)
@@ -2425,7 +2425,7 @@ module Invs_DV_Next_2
                 var s'_node := s'.honest_nodes_states[node];
                 match nodeEvent
                 {
-                    case ServeAttstationDuty(attestation_duty) => 
+                    case ServeAttestationDuty(attestation_duty) => 
                         var messagesToBeSent := f_serve_attestation_duty(s_node, attestation_duty).outputs.att_shares_sent;
                         assert s'.att_network.allMessagesSent == 
                                     s.att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(messagesToBeSent);
@@ -2602,8 +2602,8 @@ module Invs_DV_Next_2
                 {
                     match nodeEvent
                     {
-                        case ServeAttstationDuty(attestation_duty) => 
-                            lem_inv_data_of_att_share_is_decided_value_dv_next_ServeAttstationDuty(
+                        case ServeAttestationDuty(attestation_duty) => 
+                            lem_inv_data_of_att_share_is_decided_value_dv_next_ServeAttestationDuty(
                                 s,
                                 event,
                                 s'
