@@ -98,7 +98,7 @@ module Types
     }   
 
     datatype Event = 
-    | ServeAttstationDuty(attestation_duty: AttestationDuty)
+    | ServeAttestationDuty(attestation_duty: AttestationDuty)
     | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
     | ReceivedAttestationShare(attestation_share: AttestationShare)
     | ImportedNewBlock(block: BeaconBlock)
