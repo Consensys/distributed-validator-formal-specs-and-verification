@@ -340,7 +340,7 @@ module Spec_Spec_NonInstr_Refinement
     ); 
     {
         match event 
-            case ServeAttstationDuty(attestation_duty) => 
+            case ServeAttestationDuty(attestation_duty) => 
                 refine_f_serve_attestation_duty(dvci, dvcni, attestation_duty);
             case AttConsensusDecided(id, decided_attestation_data) => 
                 refine_f_att_consensus_decided(dvci, dvcni, id,  decided_attestation_data);

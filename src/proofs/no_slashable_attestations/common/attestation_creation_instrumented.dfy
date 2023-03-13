@@ -359,7 +359,7 @@ module DVC_Spec {
                     );
             var new_process := 
                     process.(
-                        current_attestation_duty := Some(attestation_duty),
+                        current_attestation_duty := None,
                         latest_attestation_duty := Some(attestation_duty),
                         future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
                         attestation_slashing_db := new_attestation_slashing_db,
