@@ -4,6 +4,8 @@ include "../../common/block_proposer/block_types.dfy"
 include "../dvc/dvc_block_proposer.dfy"
 include "../consensus/block_consensus.dfy"
 include "../network/block_network.dfy"
+include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
+
 
 module DV_Block_Proposer_Spec 
 {
@@ -13,10 +15,16 @@ module DV_Block_Proposer_Spec
     import opened Block_Network_Spec
     import opened Block_Consensus_Spec
     import opened DVC_Block_Proposer_Spec_NonInstr
+    import opened DVC_Block_Proposer_Spec_Axioms
     
 
     datatype Adversary = Adversary(
         nodes: set<BLSPubkey>
+    )
+
+    datatype ProposerDutyAndNode = ProposerDutyAndNode(
+        proposer_duty: ProposerDuty,
+        node: BLSPubkey
     )
 
     datatype DVState = DVState(
@@ -24,19 +32,22 @@ module DV_Block_Proposer_Spec
         honest_nodes_states: map<BLSPubkey, DVCState>,
         adversary: Adversary,
         dv_pubkey: BLSPubkey,
-        block_consensus_instances: imaptotal<Slot, BlockConsensusInstance<BeaconBlock>>,
+        consensus_instances_on_beacon_block: imaptotal<Slot, BlockConsensusInstance<BeaconBlock>>,
         randao_share_network: Block_Network_Spec.Network<RandaoShare>,
         block_share_network: Block_Network_Spec.Network<SignedBeaconBlock>,
-        block_created: set<BeaconBlock>,
-        construct_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
-        construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
-        all_submitted_signed_blocks: set<SignedBeaconBlock>
+        all_block_created: set<SignedBeaconBlock>,
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        
+        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
+        index_next_proposer_duty_to_be_served: nat
+        
     )
     
     datatype Event = 
         | AdversaryTakingStep(
                 node: BLSPubkey, 
-                new_randao_shares_sent: set<MessaageWithRecipient<RandaoShare>>,
+                new_sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,
                 new_block_shares_sent: set<MessaageWithRecipient<SignedBeaconBlock>>
             )
         | HonestNodeTakingStep(
@@ -45,149 +56,262 @@ module DV_Block_Proposer_Spec
                 nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs
             )
 
-    predicate complete_randao_reveal_from_dv_pubkey(
+    predicate is_randao_share_with_valid_root(
+        share: RandaoShare
+    )
+    {
+        && share.signing_root == compute_randao_reveal_signing_root(share.slot)
+    }
+
+    predicate randao_shares_for_the_same_proposer_duty(
+        randao_shares: set<RandaoShare>,
+        duty: ProposerDuty
+    )
+    {
+        forall share | share in randao_shares ::
+                && share.proposer_duty == duty
+                && share.slot == duty.slot
+                && is_randao_share_with_valid_root(share)
+    }
+
+    predicate randao_share_signer_threshold(
+        all_nodes: set<BLSPubkey>,
+        randao_shares: set<RandaoShare>,
+        signing_root: Root
+    )
+    {
+        && var signers := 
+                    set signer, share | 
+                        && share in randao_shares
+                        && signer in all_nodes
+                        && verify_bls_signature(signing_root, share.signature_share, signer)
+                    ::
+                        signer;
+        && |signers| >= quorum(|all_nodes|)
+        && signers <= all_nodes
+           
+    }    
+
+    predicate construct_complete_signed_randao_reveal_assumptions_forward(
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall  proposer_duty: ProposerDuty, 
+                signing_root: Root, 
+                randao_shares: set<RandaoShare> 
+            |
+            && randao_shares_for_the_same_proposer_duty(randao_shares, proposer_duty)
+            && randao_share_signer_threshold(all_nodes, randao_shares, signing_root) 
+            ::
+            && var  randao_reveal_signature_shares :=
+                    set randao_share | randao_share in randao_shares :: randao_share.signature_share
+                    ;
+            && construct_complete_signed_randao_reveal(randao_reveal_signature_shares).isPresent()
+            && verify_bls_signature(
+                    signing_root,
+                    construct_complete_signed_randao_reveal(randao_reveal_signature_shares).safe_get(),
+                    dv_pubkey
+                )
+    }
+
+    predicate construct_complete_signed_randao_reveal_assumptions_reverse_helper(
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>,
+        randao_shares: set<RandaoShare>,
+        proposer_duty: ProposerDuty
+    )       
+    requires && var randao_reveal_signature_shares :=
+                    set randao_share | randao_share in randao_shares :: randao_share.signature_share
+                ;
+             && construct_complete_signed_randao_reveal(randao_reveal_signature_shares).isPresent()
+    {
+        && randao_shares_for_the_same_proposer_duty(randao_shares, proposer_duty)
+        && var signing_root := compute_randao_reveal_signing_root(proposer_duty.slot);
+        && randao_share_signer_threshold(all_nodes, randao_shares, signing_root)         
+        && var  randao_reveal_signature_shares :=
+                    set randao_share | randao_share in randao_shares :: randao_share.signature_share
+                    ;
+        && verify_bls_signature(
+                signing_root,
+                construct_complete_signed_randao_reveal(randao_reveal_signature_shares).safe_get(),
+                dv_pubkey
+            )                   
+    }
+
+    predicate construct_complete_signed_randao_reveal_assumptions_reverse(
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall randao_shares: set<RandaoShare> |
+            && var  randao_reveal_signature_shares :=
+                    set randao_share | randao_share in randao_shares :: randao_share.signature_share
+                    ;
+            && construct_complete_signed_randao_reveal(randao_reveal_signature_shares).isPresent()
+            ::
+            exists proposer_duty: ProposerDuty
+                ::      
+                construct_complete_signed_randao_reveal_assumptions_reverse_helper(
+                    construct_complete_signed_randao_reveal,
+                    dv_pubkey,
+                    all_nodes,
+                    randao_shares,
+                    proposer_duty                
+                )
+    }    
+
+    predicate construct_complete_signed_randao_reveal_assumptions_helper(
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )
+    {
+        &&  construct_complete_signed_randao_reveal_assumptions_forward(
+                construct_complete_signed_randao_reveal,
+                dv_pubkey,
+                all_nodes
+            )        
+        &&  construct_complete_signed_randao_reveal_assumptions_reverse(
+                construct_complete_signed_randao_reveal,
+                dv_pubkey,
+                all_nodes
+            
+            )
+    }
+
+    predicate construct_complete_signed_randao_reveal_assumptions(
         s: DVState
     )
     {
-        forall randao_shares: set<RandaoShare> ::
-            ( 
-                var all_randao_sig := set share | share in randao_shares :: share.signature;
-                var constructed_sig := s.construct_randao_reveal(all_randao_sig);                    
-                constructed_sig.isPresent() ==>  
-                    forall verifiable_randao_shares: set<RandaoShare>, slot: Slot, fork_version: Version |
-                        && verifiable_randao_shares <= randao_shares
-                        && |verifiable_randao_shares| >= quorum(|s.all_nodes|)
-                        && (forall randao_share | randao_share in verifiable_randao_shares :: randao_share.slot ==  slot) 
-                                :: && var signing_root := compute_randao_reveal_signing_root(slot);
-                                   && verify_bls_signature(signing_root, constructed_sig.safe_get(), s.dv_pubkey)
-            )
-    }   
-
-    predicate only_one_randao_per_slot(
-        s: DVState
-    )            
-    {
-        forall shares1: set<RandaoShare>, shares2: set<RandaoShare> ::
-            ( 
-                && |shares1| >= quorum(|s.all_nodes|)
-                && |shares2| >= quorum(|s.all_nodes|)
-                && (exists duty: ProposerDuty, epoch: Epoch, slot: Slot, root: Root ::
-                    && ( forall randao_share | randao_share in shares1 ::
-                            && randao_share.proposer_duty == duty
-                            && randao_share.epoch == epoch
-                            && randao_share.slot == slot
-                            && randao_share.root == compute_randao_reveal_signing_root(slot))
-                    && ( forall randao_share | randao_share in shares2 ::
-                            && randao_share.proposer_duty == duty
-                            && randao_share.epoch == epoch
-                            && randao_share.slot == slot
-                            && randao_share.root == compute_randao_reveal_signing_root(slot)))
-            )
-            ==> ( && var all_randao_sig1 := 
-                            set randao_share | randao_share in shares1 :: randao_share.signature;
-                  && var all_randao_sig2 := 
-                            set randao_share | randao_share in shares2 :: randao_share.signature;
-                  && s.construct_randao_reveal(all_randao_sig1).isPresent()
-                  && s.construct_randao_reveal(all_randao_sig2).isPresent()
-                  && ( s.construct_randao_reveal(all_randao_sig1).safe_get() ==
-                       s.construct_randao_reveal(all_randao_sig2).safe_get() )
-                )                                                  
+        construct_complete_signed_randao_reveal_assumptions_helper(
+            s.construct_complete_signed_randao_reveal,
+            s.dv_pubkey,
+            s.all_nodes
+        ) 
     }
 
-    predicate complete_randao_reveal_from_shares(
+    predicate signed_beacon_blocks_for_the_same_beacon_block(
+        signed_beacon_blocks: set<SignedBeaconBlock>,
+        beacon_block: BeaconBlock
+    )
+    {
+        forall share | share in signed_beacon_blocks ::
+                && share.message == beacon_block
+    }
+
+    predicate signed_beacon_blocksigner_threshold(
+        all_nodes: set<BLSPubkey>,
+        signed_beacon_blocks: set<SignedBeaconBlock>,
+        signing_root: Root
+    )
+    {
+        && var signers := 
+                    set signer, share | 
+                        && share in signed_beacon_blocks
+                        && signer in all_nodes
+                        && verify_bls_signature(signing_root, share.signature, signer)
+                    ::
+                        signer;
+        && |signers| >= quorum(|all_nodes|)
+        && signers <= all_nodes
+           
+    }    
+
+    predicate construct_complete_signed_block_assumptions_forward(
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall  beacon_block: BeaconBlock, 
+                signing_root: Root, 
+                signed_beacon_blocks: set<SignedBeaconBlock> 
+            |
+            && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, beacon_block)
+            && signed_beacon_blocksigner_threshold(all_nodes, signed_beacon_blocks, signing_root) 
+            ::
+            && construct_complete_signed_block(signed_beacon_blocks).isPresent()
+            && var complete_signed_beacon_block := construct_complete_signed_block(signed_beacon_blocks).safe_get();
+            && verify_bls_signature(
+                    signing_root,
+                    complete_signed_beacon_block.signature,
+                    dv_pubkey
+                )
+    }
+
+    predicate construct_complete_signed_block_assumptions_reverse_helper(
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>,
+        signed_beacon_blocks: set<SignedBeaconBlock>,
+        beacon_block: BeaconBlock
+    )       
+    requires construct_complete_signed_block(signed_beacon_blocks).isPresent()
+    {
+        && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, beacon_block)
+        && var signing_root := compute_block_signing_root(beacon_block);
+        && signed_beacon_blocksigner_threshold(all_nodes, signed_beacon_blocks, signing_root)         
+        && var complete_signed_beacon_block := construct_complete_signed_block(signed_beacon_blocks).safe_get();
+        && verify_bls_signature(
+                    signing_root,
+                    complete_signed_beacon_block.signature,
+                    dv_pubkey
+                )        
+    }
+
+    predicate construct_complete_signed_block_assumptions_reverse(
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall signed_beacon_blocks: set<SignedBeaconBlock> |
+            && construct_complete_signed_block(signed_beacon_blocks).isPresent()
+            ::
+            exists beacon_block: BeaconBlock
+                ::      
+                construct_complete_signed_block_assumptions_reverse_helper(
+                    construct_complete_signed_block,
+                    dv_pubkey,
+                    all_nodes,
+                    signed_beacon_blocks,
+                    beacon_block                
+                )
+    }    
+
+    predicate construct_complete_signed_block_assumptions_helper(
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )
+    {
+        &&  construct_complete_signed_block_assumptions_forward(
+                construct_complete_signed_block,
+                dv_pubkey,
+                all_nodes
+            )        
+        &&  construct_complete_signed_block_assumptions_reverse(
+                construct_complete_signed_block,
+                dv_pubkey,
+                all_nodes
+            
+            )
+    }
+
+    predicate construct_complete_signed_block_assumptions(
         s: DVState
     )
     {
-        forall randao_shares: set<RandaoShare> ::
-                    (( exists verifiable_randao_shares: set<RandaoShare>, 
-                              duty: ProposerDuty, 
-                              epoch: Epoch, 
-                              slot: Slot, 
-                              root: Root ::
-                                && verifiable_randao_shares <= randao_shares                                
-                                && |verifiable_randao_shares| >= quorum(|s.all_nodes|)
-                                && (forall randao_share | randao_share in verifiable_randao_shares ::
-                                            && randao_share.proposer_duty == duty
-                                            && randao_share.epoch == epoch
-                                            && randao_share.slot == slot
-                                            && randao_share.root == compute_randao_reveal_signing_root(slot)
-                                            && exists signer :: 
-                                                    && signer in s.all_nodes
-                                                    &&  verify_bls_signature(
-                                                            slot, 
-                                                            randao_share.signature, 
-                                                            signer)
-                        )
-                     )
-                     <==> (
-                            && var all_randao_sig := 
-                                set randao_share | randao_share in randao_shares :: randao_share.signature; 
-                            && s.construct_randao_reveal(all_randao_sig).isPresent())        
-                          )
+        construct_complete_signed_block_assumptions_helper(
+            s.construct_complete_signed_block,
+            s.dv_pubkey,
+            s.all_nodes
+        ) 
     }
-
-    predicate complete_signed_block_from_dv_pubkey(
-        s: DVState
-    )
-    {
-        forall block_shares: set<SignedBeaconBlock> ::
-            ( 
-                var all_block_share_sig := set share | share in block_shares :: share.signature;
-                var constructed_sig := s.construct_randao_reveal(all_block_share_sig);                    
-                constructed_sig.isPresent() ==>  
-                    forall verifiable_block_shares: set<SignedBeaconBlock>, msg: BeaconBlock |
-                        && verifiable_block_shares <= block_shares
-                        && |verifiable_block_shares| >= quorum(|s.all_nodes|)
-                        && (forall block_share | block_share in verifiable_block_shares :: block_share.message == msg) 
-                                :: && var signing_root := compute_block_signing_root(msg);
-                                   && verify_bls_signature(msg, constructed_sig.safe_get(), s.dv_pubkey)
-            )
-    }
-
-    
-    predicate only_one_complete_signed_block_per_block(
-        s: DVState
-    )            
-    {
-        forall shares1: set<SignedBeaconBlock>, shares2: set<SignedBeaconBlock> ::
-            ( 
-                && |shares1| >= quorum(|s.all_nodes|)
-                && |shares2| >= quorum(|s.all_nodes|)
-                && ( exists msg: BeaconBlock ::
-                        && ( forall block_share | block_share in shares1 :: block_share.message == msg )
-                        && ( forall block_share | block_share in shares2 :: block_share.message == msg )   
-                   )
-            )
-            ==> ( 
-                  && s.construct_signed_block(shares1).isPresent()    
-                  && s.construct_signed_block(shares2).isPresent()
-                  && s.construct_signed_block(shares1).safe_get() ==
-                     s.construct_signed_block(shares2).safe_get()
-                )                                                  
-    }
-
-    predicate complete_signed_block_from_block_shares(
-        s: DVState
-    )
-    {
-        forall block_shares: set<SignedBeaconBlock> ::
-                    (( exists verifiable_block_shares: set<SignedBeaconBlock>, 
-                              msg: BeaconBlock ::
-                                && verifiable_block_shares <= block_shares                                
-                                && |verifiable_block_shares| >= quorum(|s.all_nodes|)
-                                && (forall block_share | block_share in verifiable_block_shares ::
-                                            && block_share.message == msg                                            
-                                            && exists signer :: 
-                                                    && signer in s.all_nodes
-                                                    &&  verify_bls_signature(
-                                                            msg, 
-                                                            block_share.signature, 
-                                                            signer)
-                        )
-                     )
-                     <==> s.construct_signed_block(block_shares).isPresent())    
-    }
-
 
     predicate Init(
         s: DVState,
@@ -198,34 +322,213 @@ module DV_Block_Proposer_Spec
         && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
         && s.honest_nodes_states.Keys != {}
         && |s.adversary.nodes| <= f(|s.all_nodes|)
-        // && only_one_randao_per_slot(s)
-        && complete_randao_reveal_from_dv_pubkey(s)
-        && complete_randao_reveal_from_shares(s)
-        // && only_one_complete_signed_block_per_block(s)
-        && complete_signed_block_from_dv_pubkey(s)
-        && complete_signed_block_from_block_shares(s)
-        && s.all_submitted_signed_blocks == {}
+        && construct_complete_signed_randao_reveal_assumptions(s)
+        && construct_complete_signed_block_assumptions(s)
+        && s.all_block_created == {}
         && ( forall pubkey | pubkey in s.honest_nodes_states.Keys ::
                 DVC_Block_Proposer_Spec_NonInstr.Init(
                     s.honest_nodes_states[pubkey], 
                     s.dv_pubkey, 
                     s.all_nodes, 
-                    s.construct_randao_reveal, 
-                    s.construct_signed_block, 
+                    s.construct_complete_signed_randao_reveal, 
+                    s.construct_complete_signed_block, 
                     initial_block_slashing_db, 
                     pubkey
-                ))    
+            ))    
         &&  Block_Network_Spec.Init(s.block_share_network, s.all_nodes)
-        &&  ( forall bci | bci in  s.block_consensus_instances.Values ::
-                Block_Consensus_Spec.Init(bci, s.all_nodes, s.honest_nodes_states.Keys))                
+        &&  Block_Network_Spec.Init(s.randao_share_network, s.all_nodes)
+        &&  ( forall bci | bci in  s.consensus_instances_on_beacon_block.Values ::
+                Block_Consensus_Spec.Init(
+                    bci, 
+                    s.all_nodes, 
+                    s.honest_nodes_states.Keys
+            ))
+        && assumption_on_sequence_of_proposer_duties(s)
+        && s.index_next_proposer_duty_to_be_served == 0   
+        // //
+        && ( forall n | n in s.honest_nodes_states.Keys ::
+                |s.honest_nodes_states[n].bn.blocks_submitted| == 0    
+        )
+    }
+
+    // IMPORTANT
+    predicate assumption_on_sequence_of_proposer_duties(s: DVState)
+    {
+        proposer_duties_are_ordered(s)
+    }
+
+    predicate proposer_duties_are_ordered(s: DVState)
+    {
+        && (forall i, j | 
+                    && 0 <= i < j
+                    && s.sequence_proposer_duties_to_be_served[i].node == s.sequence_proposer_duties_to_be_served[j].node 
+                ::
+                    s.sequence_proposer_duties_to_be_served[i].proposer_duty.slot < s.sequence_proposer_duties_to_be_served[j].proposer_duty.slot
+        )        
+    }
+
+    predicate is_valid_attestation(
+        a: Attestation,
+        pubkey: BLSPubkey
+    )
+    {
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
+        && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
+        && verify_bls_signature(attestation_signing_root, a.signature, pubkey)  
+    }    
+
+    predicate pred_axiom_is_my_attestation_2(
+        dv: DVState,
+        new_p: DVCState,
+        block: BeaconBlock
+    )
+    requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
+    {
+        var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
+        forall a | 
+            && a in block.body.attestations 
+            && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(
+            a,
+            new_p.bn,
+            block,
+            valIndex
+            )
+        ::
+        exists a' ::
+            is_valid_attestation(a', dv.dv_pubkey)    
+    }  
+
+    predicate blockIsValidAfterAdd(
+        dv: DVState,
+        process: DVCState,
+        block: BeaconBlock
+    )
+    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+    {
+        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+        && (forall a1, a2 | 
+                && a1 in block.body.attestations
+                && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                && a2 in block.body.attestations
+                && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+            ::
+                a1.data.slot == a2.data.slot ==> a1 == a2  
+        )      
+        && pred_axiom_is_my_attestation_2(dv, process, block)
+    } 
+
+    predicate validNodeEvent(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Block_Types.Event
+    )
+    requires node in s.honest_nodes_states.Keys
+    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
+    {
+            && (nodeEvent.ServeProposerDuty? ==>
+                    var proposer_duty_to_be_served := s.sequence_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];
+                    && node == proposer_duty_to_be_served.node 
+                    && nodeEvent.proposer_duty == proposer_duty_to_be_served.proposer_duty
+            )
+            && (nodeEvent.ImportedNewBlock? ==>
+                    blockIsValidAfterAdd(s, s.honest_nodes_states[node], nodeEvent.block)
+            )
+    }
+
+    function f_add_block_to_bn(
+        s: DVCState,
+        block: BeaconBlock
+    ): DVCState
+    { 
+        s.(
+            bn := s.bn.(
+                state_roots_of_imported_blocks := s.bn.state_roots_of_imported_blocks + {block.body.state_root}
+            )
+        )
+    }
+
+    function add_block_to_bn_with_event(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Block_Types.Event
+    ): DVState
+    requires node in s.honest_nodes_states
+    {
+        if nodeEvent.ImportedNewBlock? then 
+            s.(
+                honest_nodes_states := s.honest_nodes_states[node := f_add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+            )
+        else 
+            s 
+                  
+    }    
+
+    predicate validEvent(
+        s: DVState,
+        event: Event
+    )
+    {
+        event.HonestNodeTakingStep? ==>
+            (
+            var nodeEvent := event.event;
+            && event.node in s.honest_nodes_states.Keys
+            && validNodeEvent(
+                add_block_to_bn_with_event(s, event.node, event.event),
+                event.node,
+                event.event
+            )
+        )  
+    }  
+
+    predicate NextHonestNodePrecond(
+        s: DVCState,
+        event: Block_Types.Event
+    )
+    {
+            match event 
+            case ServeProposerDuty(proposer_duty) => 
+                && f_serve_proposer_duty.requires(s, proposer_duty)
+            case BlockConsensusDecided(id, decided_attestation_data) => 
+                true
+            case ReceiveRandaoShare(randao_share) => 
+                true
+            case ReceiveSignedBeaconBlock(randao_share) => 
+                true
+            case ImportedNewBlock(block) => 
+                true
+            case ResendRandaoRevealSignatureShare => 
+                true
+            case ResendBlockShare => 
+                true
+            case NoEvent => 
+                true                 
+    }
+
+    predicate NextEventPreCond(
+        s: DVState,
+        event: Event
+    )
+    {
+        && validEvent(s, event)         
+        && (event.HonestNodeTakingStep? ==> NextHonestNodePrecond(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event))      
+    }
+
+    predicate NextPreCond(
+        s: DVState
+    )
+    {
+        forall e |  validEvent(s, e) :: NextEventPreCond(s, e)
     }
 
     predicate Next(
         s: DVState,
         s': DVState 
     )
+    requires NextPreCond(s)
     {
-        exists e :: NextEvent(s, e, s')
+        exists e :: 
+            && validEvent(s, e)
+            && NextEvent(s, e, s')
     }
 
     predicate NextEvent(
@@ -233,9 +536,10 @@ module DV_Block_Proposer_Spec
         event: Event,
         s': DVState
     )
+    requires validEvent(s, event)
+    requires NextEventPreCond(s, event)  
     {
-        && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
-        && s'.adversary == s.adversary        
+        && unchanged_fixed_paras(s, s')
         && (
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
@@ -257,6 +561,26 @@ module DV_Block_Proposer_Spec
         )
     }
 
+    predicate unchanged_fixed_paras(dv: DVState, dv': DVState)
+    {
+        && dv.all_nodes == dv'.all_nodes
+        && dv.adversary == dv'.adversary
+        && dv.honest_nodes_states.Keys == dv'.honest_nodes_states.Keys        
+        && dv.dv_pubkey == dv'.dv_pubkey
+        && dv.construct_complete_signed_block
+                == dv'.construct_complete_signed_block
+        && dv.construct_complete_signed_randao_reveal
+                == dv'.construct_complete_signed_randao_reveal
+        && dv.sequence_proposer_duties_to_be_served
+                == dv'.sequence_proposer_duties_to_be_served
+        && ( forall n | n in dv'.honest_nodes_states.Keys :: 
+                var nodes' := dv'.honest_nodes_states[n];
+                && nodes'.construct_complete_signed_block == dv'.construct_complete_signed_block
+                && nodes'.dv_pubkey == dv.dv_pubkey       
+                && nodes'.peers == dv.all_nodes
+           )
+    }
+
     predicate NextHonestNode(
         s: DVState,
         node: BLSPubkey,
@@ -264,20 +588,15 @@ module DV_Block_Proposer_Spec
         nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs,
         s': DVState        
     ) 
+    requires unchanged_fixed_paras(s, s')
+    requires 
+            && node in s.honest_nodes_states.Keys     
+            && validNodeEvent( add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
+            && NextHonestNodePrecond(add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
     {
         && node in s.honest_nodes_states.Keys
-        && var s_w_honest_node_states_updated :=
-            if nodeEvent.ImportNewBlock? then 
-                s.(
-                    honest_nodes_states := 
-                        s.honest_nodes_states[node := add_signed_block_to_bn(s.honest_nodes_states[node], 
-                                                                             nodeEvent.signed_block)]
-                )
-            else 
-                s 
-            ;
+        && var s_w_honest_node_states_updated := add_block_to_bn_with_event(s, node, nodeEvent);
         && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
-                
     }
 
     predicate reliable_networks(
@@ -293,18 +612,18 @@ module DV_Block_Proposer_Spec
                     ( && Block_Network_Spec.Next(s.randao_share_network, 
                                                s'.randao_share_network, 
                                                node, 
-                                               nodeOutputs.randao_shares_sent, 
+                                               nodeOutputs.sent_randao_shares, 
                                                {randao_share})
                       && Block_Network_Spec.Next(s.block_share_network, 
                                                s'.block_share_network, 
                                                node, 
                                                nodeOutputs.block_shares_sent, 
                                                {}))
-            case ReceiveBlockShare(block_share) =>
+            case ReceiveSignedBeaconBlock(block_share) =>
                     ( && Block_Network_Spec.Next(s.randao_share_network, 
                                                s'.randao_share_network, 
                                                node, 
-                                               nodeOutputs.randao_shares_sent, 
+                                               nodeOutputs.sent_randao_shares, 
                                                {})
                       && Block_Network_Spec.Next(s.block_share_network, 
                                                s'.block_share_network, 
@@ -315,7 +634,7 @@ module DV_Block_Proposer_Spec
                     ( && Block_Network_Spec.Next(s.randao_share_network, 
                                                s'.randao_share_network, 
                                                node, 
-                                               nodeOutputs.randao_shares_sent, 
+                                               nodeOutputs.sent_randao_shares, 
                                                {})
                       && Block_Network_Spec.Next(s.block_share_network, 
                                                s'.block_share_network, 
@@ -332,7 +651,7 @@ module DV_Block_Proposer_Spec
         s': DVState
     )
     {
-        forall slot | slot in s.block_consensus_instances.Keys ::
+        forall slot | slot in s.consensus_instances_on_beacon_block.Keys ::
                 && var output := 
                         if nodeEvent.BlockConsensusDecided? && nodeEvent.block.slot == slot then 
                             Some(Decided(node, nodeEvent.block))
@@ -341,14 +660,14 @@ module DV_Block_Proposer_Spec
                     ;
                 && var validityPredicates := 
                         map nid | && nid in s.honest_nodes_states.Keys 
-                                  && slot in s.honest_nodes_states[nid].block_consensus_engine_state.active_block_consensus_instances.Keys
+                                  && slot in s.honest_nodes_states[nid].block_consensus_engine_state.active_consensus_instances_on_beacon_block.Keys
                                         ::
-                                            s.honest_nodes_states[nid].block_consensus_engine_state.active_block_consensus_instances[slot].validityPredicate
+                                            s.honest_nodes_states[nid].block_consensus_engine_state.active_consensus_instances_on_beacon_block[slot].validityPredicate
                     ;
                 && Block_Consensus_Spec.Next(
-                        s.block_consensus_instances[slot],
+                        s.consensus_instances_on_beacon_block[slot],
                         validityPredicates,
-                        s'.block_consensus_instances[slot],
+                        s'.consensus_instances_on_beacon_block[slot],
                         output
                     )  
     }
@@ -360,17 +679,22 @@ module DV_Block_Proposer_Spec
         nodeOutputs: DVC_Block_Proposer_Spec_NonInstr.Outputs,
         s': DVState
     )
+    requires unchanged_fixed_paras(s, s')
+    requires node in s.honest_nodes_states.Keys 
+    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
+    requires    && validNodeEvent(s, node, nodeEvent)
+                && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
+    
     {
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
         && s'.adversary == s.adversary
         && s'.dv_pubkey == s.dv_pubkey      
-        && s'.construct_randao_reveal == s.construct_randao_reveal
-        && s'.construct_signed_block == s.construct_signed_block
+        && s'.construct_complete_signed_randao_reveal == s.construct_complete_signed_randao_reveal
+        && s'.construct_complete_signed_block == s.construct_complete_signed_block
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
         && DVC_Block_Proposer_Spec_NonInstr.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)        
         && s'.honest_nodes_states == s.honest_nodes_states[node := new_node_state]    
-        && s'.all_submitted_signed_blocks == s.all_submitted_signed_blocks + nodeOutputs.submitted_signed_blocks    
         && reliable_networks(s, node, nodeEvent, nodeOutputs, s')
         && is_valid_decided_consensus_instance(s, node, nodeEvent, nodeOutputs, s')            
     }
@@ -378,7 +702,7 @@ module DV_Block_Proposer_Spec
     predicate NextAdversary(
         s: DVState,
         node: BLSPubkey,
-        new_wrapped_randao_shares_sent: set<MessaageWithRecipient<RandaoShare>>,
+        new_wrapped_sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,
         new_wrapped_block_shares_sent: set<MessaageWithRecipient<SignedBeaconBlock>>,
         s': DVState
     )
@@ -386,12 +710,12 @@ module DV_Block_Proposer_Spec
         && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
         && s'.adversary == s.adversary
         && s'.dv_pubkey == s.dv_pubkey      
-        && s'.construct_randao_reveal == s.construct_randao_reveal
-        && s'.construct_signed_block == s.construct_signed_block
+        && s'.construct_complete_signed_randao_reveal == s.construct_complete_signed_randao_reveal
+        && s'.construct_complete_signed_block == s.construct_complete_signed_block
         && node in (s.all_nodes - s.honest_nodes_states.Keys)
         && node in s.adversary.nodes
-        && ( forall msg :: msg in new_wrapped_randao_shares_sent 
-                ==> verify_bls_signature(msg.message.slot, msg.message.signature, node)                     
+        && ( forall msg :: msg in new_wrapped_sent_randao_shares 
+                ==> verify_bls_signature(msg.message.slot, msg.message.signature_share, node)                     
            )
         && ( forall msg :: msg in new_wrapped_block_shares_sent 
                 ==> verify_bls_signature(msg.message.message, msg.message.signature, node)                     
@@ -400,7 +724,7 @@ module DV_Block_Proposer_Spec
                 s.randao_share_network, 
                 s'.randao_share_network, 
                 node, 
-                new_wrapped_randao_shares_sent, 
+                new_wrapped_sent_randao_shares, 
                 {})
         && Block_Network_Spec.Next(
                 s.block_share_network, 
@@ -408,12 +732,10 @@ module DV_Block_Proposer_Spec
                 node, 
                 new_wrapped_block_shares_sent, 
                 {})
-        && s.all_submitted_signed_blocks <= s'.all_submitted_signed_blocks
         && s' == s.(honest_nodes_states := s'.honest_nodes_states,
                     randao_share_network := s'.randao_share_network,
                     block_share_network := s'.block_share_network,
-                    block_consensus_instances := s'.block_consensus_instances,
-                    all_submitted_signed_blocks := s'.all_submitted_signed_blocks
+                    consensus_instances_on_beacon_block := s'.consensus_instances_on_beacon_block
                    )        
     }
 }
