@@ -99,7 +99,7 @@ module Core_Proofs
                 && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
                 && constructed_sig.isPresent()
                 && constructed_sig.safe_get() == a.signature
-                && do_all_att_shares_have_the_same_data(att_shares, a.data)
+                && all_att_shares_have_the_same_data(att_shares, a.data)
                 && signers <= dv.all_nodes
                 && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, signers)
                 && |signers| >= quorum(|dv.all_nodes|)

@@ -1,10 +1,10 @@
 include "../../../common/block_proposer/block_types.dfy"
 include "../../../common/block_proposer/block_common_functions.dfy"
 include "../../../common/block_proposer/block_signing_functions.dfy"
-include "../common/dvc_block_proposer_instrumented.dfy"
 include "../../../specs/consensus/block_consensus.dfy"
 include "../../../specs/network/block_network.dfy"
 include "../../../specs/dv/dv_block_proposer.dfy"
+include "../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "../common/block_dvc_spec_axioms.dfy"
 
@@ -25,6 +25,68 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     predicate is_honest_node(s: DVState, n: BLSPubkey)
     {
         && n in s.honest_nodes_states.Keys
+    }
+
+    predicate inv_quorum_constraints(dv: DVState)
+    {        
+        && var all_nodes := dv.all_nodes;
+        && var honest_nodes := dv.honest_nodes_states.Keys;
+        && var dishonest_nodes := dv.adversary.nodes;
+        && 0 < |all_nodes|
+        && quorum(|all_nodes|) <= |honest_nodes|
+        && |dishonest_nodes| <= f(|all_nodes|) 
+        && all_nodes == honest_nodes + dishonest_nodes
+        && honest_nodes * dishonest_nodes == {}
+    }
+
+    predicate inv_unchanged_paras_of_consensus_instances(dv: DVState)
+    {
+        forall ci | ci in dv.consensus_instances_on_beacon_block.Values
+            :: && ci.all_nodes == dv.all_nodes
+               && ci.honest_nodes_status.Keys == dv.honest_nodes_states.Keys  
+               && ci.honest_nodes_status.Keys <= ci.all_nodes
+               && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
+               && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
+    }
+
+    predicate inv_current_proposer_duty_is_rcvd_duty_body(dvc: DVCState)
+    {
+        dvc.current_proposer_duty.isPresent()
+        ==> 
+        dvc.current_proposer_duty.safe_get() in dvc.all_rcvd_duties
+    }
+
+    predicate inv_current_proposer_duty_is_rcvd_duty(dv: DVState)
+    {
+        forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
+            && var dvc := dv.honest_nodes_states[hn];
+            && inv_current_proposer_duty_is_rcvd_duty_body(dvc)
+    }
+
+    predicate inv_only_dv_construct_complete_signed_block(dv: DVState)
+    {
+        && construct_complete_signed_block_assumptions(dv)                
+        && forall n | n in dv.honest_nodes_states.Keys :: 
+                && var nodes := dv.honest_nodes_states[n];
+                && nodes.construct_complete_signed_block == dv.construct_complete_signed_block
+                && nodes.dv_pubkey == dv.dv_pubkey       
+                && nodes.peers == dv.all_nodes
+    }
+
+    predicate inv_only_dv_construct_complete_signed_randao_reveal(dv: DVState)
+    {
+        && construct_complete_signed_randao_reveal_assumptions(dv)                
+        && forall n | n in dv.honest_nodes_states.Keys :: 
+                && var nodes := dv.honest_nodes_states[n];
+                && nodes.construct_complete_signed_randao_reveal == dv.construct_complete_signed_randao_reveal
+                && nodes.dv_pubkey == dv.dv_pubkey       
+                && nodes.peers == dv.all_nodes
+    }
+
+    predicate inv_only_dv_construct_complete_functions(dv: DVState)
+    {
+        && inv_only_dv_construct_complete_signed_randao_reveal(dv)
+        && inv_only_dv_construct_complete_signed_block(dv)                
     }
 
     // predicate inv_rcvd_attestation_shares_is_in_all_messages_sent_single_node_state(
@@ -101,31 +163,31 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_data_of_att_share_is_decided_value_body(dv: DVState, att_share: AttestationShare)
     // {
-    //     && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.isPresent()
-    //     && dv.consensus_on_attestation_data[att_share.data.slot].decided_value.safe_get() == att_share.data
+    //     && dv.consensus_instances_on_beacon_block.Event[att_share.data.slot].decided_value.isPresent()
+    //     && dv.consensus_instances_on_beacon_block.Event[att_share.data.slot].decided_value.safe_get() == att_share.data
     // }  
 
     // predicate inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState)
     // {
     //     forall cid |
-    //         && cid in dv.consensus_on_attestation_data.Keys
-    //         && dv.consensus_on_attestation_data[cid].decided_value.isPresent()
+    //         && cid in dv.consensus_instances_on_beacon_block.Event.Keys
+    //         && dv.consensus_instances_on_beacon_block.Event[cid].decided_value.isPresent()
     //         ::
-    //         is_a_valid_decided_value(dv.consensus_on_attestation_data[cid])
+    //         is_a_valid_decided_value(dv.consensus_instances_on_beacon_block.Event[cid])
     // }  
 
 
     // predicate inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState)
     // {
     //     forall cid |
-    //         && cid in dv.consensus_on_attestation_data.Keys
-    //         && dv.consensus_on_attestation_data[cid].decided_value.isPresent()
+    //         && cid in dv.consensus_instances_on_beacon_block.Event.Keys
+    //         && dv.consensus_instances_on_beacon_block.Event[cid].decided_value.isPresent()
     //         ::
-    //         dv.consensus_on_attestation_data[cid].decided_value.safe_get().slot == cid
+    //         dv.consensus_instances_on_beacon_block.Event[cid].decided_value.safe_get().slot == cid
     // }     
 
     
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc(
     //     dv: DVState,
     //     n: BLSPubkey,
     //     cid: Slot
@@ -136,48 +198,48 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     var dvc := dv.honest_nodes_states[n];
     //     var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
 
-    //     inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
+    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
     //         cid, 
     //         acvc.attestation_duty, 
     //         acvc.validityPredicate
     //     ) 
     // }
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2_body(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body(
     //     dvc: DVCState,
     //     cid: Slot
     // )
     // requires cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances
     // {
     //     var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
-    //     inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
+    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
     //         cid, 
     //         acvc.attestation_duty, 
     //         acvc.validityPredicate
     //     ) 
     // }     
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
     //     cid: Slot,
     //     attestation_duty: AttestationDuty,
     //     vp: AttestationData -> bool
     // )
     // {
     //     exists attestation_slashing_db ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_body(cid, attestation_duty, attestation_slashing_db, vp)        
+    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_body(cid, attestation_duty, attestation_slashing_db, vp)        
     // }         
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2(
     //     dvc: DVCState
     // )
     // {
     //     forall cid | 
     //         && cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances
     //         ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc_2_body(dvc, cid)        
+    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body(dvc, cid)        
     // }    
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dv(
     //     dv: DVState
     // )
     // {
@@ -185,11 +247,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && n in dv.honest_nodes_states 
     //         && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances
     //         ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dvc_single_dvc(dv, n, cid)
+    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc(dv, n, cid)
     // }
 
    
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_body(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_body(
     //     s: Slot,
     //     attestation_duty: AttestationDuty,
     //     attestation_slashing_db: set<SlashingDBAttestation>,
@@ -200,45 +262,45 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && (vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty))
     // }
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv: DVState)
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db(dv: DVState)
     // {
     //     forall hn, s: Slot, vp |
-    //         && hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
-    //         && vp in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
+    //         && hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
+    //         && vp in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions[hn]
     //         ::
     //         exists attestation_duty, attestation_slashing_db ::
-    //             inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_body(s, attestation_duty, attestation_slashing_db, vp)
+    //             inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_body(s, attestation_duty, attestation_slashing_db, vp)
     // }
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_dbi(dv: DVState)    
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_dbi(dv: DVState)    
     // {
     //     forall hn, s1: Slot, s2: Slot, vp, db2 |
     //         && hn in dv.honest_nodes_states.Keys
     //         && var hn_state := dv.honest_nodes_states[hn];
     //         && s2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
     //         && s1 < s2
-    //         && hn in dv.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
-    //         && hn in dv.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
-    //         && vp in dv.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]        
+    //         && hn in dv.consensus_instances_on_beacon_block.Event[s1].honest_nodes_validity_functions.Keys
+    //         && hn in dv.consensus_instances_on_beacon_block.Event[s2].honest_nodes_validity_functions.Keys
+    //         && vp in dv.consensus_instances_on_beacon_block.Event[s2].honest_nodes_validity_functions[hn]        
     //         && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
     //         && db2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]          
-    //         && dv.consensus_on_attestation_data[s1].decided_value.isPresent()
+    //         && dv.consensus_instances_on_beacon_block.Event[s1].decided_value.isPresent()
     //         ::                
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && dv.consensus_on_attestation_data[s1].decided_value.isPresent()
-    //         && var decided_att_data := dv.consensus_on_attestation_data[s1].decided_value.safe_get();
+    //         && dv.consensus_instances_on_beacon_block.Event[s1].decided_value.isPresent()
+    //         && var decided_att_data := dv.consensus_instances_on_beacon_block.Event[s1].decided_value.safe_get();
     //         && var sdba := construct_SlashingDBAttestation_from_att_data(decided_att_data);
     //         && sdba in db2
     // }    
 
        
 
-    // predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: DVState)    
+    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_att_slashing_db_hist(dv: DVState)    
     // {
     //     forall hn |
     //         && hn in dv.honest_nodes_states.Keys          
     //         ::
-    //         inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(
+    //         inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_att_slashing_db_hist_body(
     //             dv, 
     //             hn,
     //             dv.honest_nodes_states[hn],
@@ -246,7 +308,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         )                    
     // }       
 
-    // predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(
+    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_att_slashing_db_hist_body(
     //     dv: DVState, 
     //     n: BLSPubkey,
     //     n_state: DVCState,
@@ -263,12 +325,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && an.node == n
     // }   
 
-    // predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv: DVState)    
+    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_att_slashing_db_hist_a(dv: DVState)    
     // {
     //     forall hn |
     //         && hn in dv.honest_nodes_states.Keys          
     //         ::
-    //         inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(
+    //         inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_proposer_duty(
     //             dv, 
     //             hn,
     //             dv.honest_nodes_states[hn]
@@ -285,7 +347,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         0
     // }                
 
-    // predicate inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(
+    // predicate inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_proposer_duty(
     //     dv: DVState, 
     //     n: BLSPubkey,
     //     n_state: DVCState
@@ -378,7 +440,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // ): nat 
     // {
     //     if n_state.latest_attestation_duty.isPresent() then
-    //         if n_state.current_attestation_duty.isPresent() then 
+    //         if n_state.current_proposer_duty.isPresent() then 
     //             n_state.latest_attestation_duty.safe_get().slot
     //         else
     //             n_state.latest_attestation_duty.safe_get().slot + 1
@@ -407,8 +469,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall slot |
     //         && slot in n_state.future_att_consensus_instances_already_decided.Keys
     //         ::
-    //         && dv.consensus_on_attestation_data[slot].decided_value.isPresent()
-    //         && n_state.future_att_consensus_instances_already_decided[slot] == dv.consensus_on_attestation_data[slot].decided_value.safe_get()
+    //         && dv.consensus_instances_on_beacon_block.Event[slot].decided_value.isPresent()
+    //         && n_state.future_att_consensus_instances_already_decided[slot] == dv.consensus_instances_on_beacon_block.Event[slot].decided_value.safe_get()
     // }  
 
     // predicate inv_slot_in_future_decided_data_is_correct(dv: DVState)    
@@ -491,11 +553,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // )
     // {
     //     (
-    //         && n_state.current_attestation_duty.isPresent()
+    //         && n_state.current_proposer_duty.isPresent()
             
     //     ) ==>
     //     && n_state.latest_attestation_duty.isPresent()
-    //     && n_state.current_attestation_duty.safe_get() == n_state.latest_attestation_duty.safe_get()
+    //     && n_state.current_proposer_duty.safe_get() == n_state.latest_attestation_duty.safe_get()
     // }
 
     // predicate inv_g_a(dv: DVState)
@@ -526,7 +588,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && an.attestation_duty.slot < n_state.latest_attestation_duty.safe_get().slot
     //         ::
     //             var slot := an.attestation_duty.slot;
-    //             && dv.consensus_on_attestation_data[slot].decided_value.isPresent()
+    //             && dv.consensus_instances_on_beacon_block.Event[slot].decided_value.isPresent()
     // }         
 
     // predicate inv_slot_in_future_decided_data_is_correctody_body(
@@ -538,28 +600,28 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall slot |
     //         && slot in n_state.future_att_consensus_instances_already_decided
     //         ::
-    //         dv.consensus_on_attestation_data[slot].decided_value.isPresent()
+    //         dv.consensus_instances_on_beacon_block.Event[slot].decided_value.isPresent()
     // }    
 
-    // predicate inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(
+    // predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body(
     //     dvc: DVCState,
     //     hn: BLSPubkey,
     //     sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
     //     index_next_attestation_duty_to_be_served: nat
     // )
     // {
-    //    forall att_duty |
-    //         att_duty in dvc.all_rcvd_duties
+    //    forall proposer_duty |
+    //         proposer_duty in dvc.all_rcvd_duties
     //         ::
-    //         inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(                
-    //             att_duty, 
+    //         inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body_body(                
+    //             proposer_duty, 
     //             hn, 
     //             sequence_attestation_duties_to_be_served,
     //             index_next_attestation_duty_to_be_served)
     // }
 
-    // predicate inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(        
-    //     att_duty: AttestationDuty,
+    // predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body_body(        
+    //     proposer_duty: AttestationDuty,
     //     hn: BLSPubkey, 
     //     sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,    
     //     index_next_attestation_duty_to_be_served: nat
@@ -570,16 +632,16 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && i < index_next_attestation_duty_to_be_served 
     //             && var duty_and_node := sequence_attestation_duties_to_be_served[i];
     //             && duty_and_node.node == hn
-    //             && duty_and_node.attestation_duty == att_duty
+    //             && duty_and_node.attestation_duty == proposer_duty
     // }
 
-    // predicate inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv: DVState)
+    // predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | 
     //         is_honest_node(dv, hn) 
     //         ::
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body(                    
+    //         && inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body(                    
     //                 hn_state, 
     //                 hn, 
     //                 dv.sequence_attestation_duties_to_be_served,
@@ -603,7 +665,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // {
     //     forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn) ::
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+    //         && ( hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
     //              ==> 
     //              s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
     // }
@@ -619,9 +681,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // {
     //     (
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+    //         && hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
     //         && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    //         && vp in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
+    //         && vp in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions[hn]
     //     )
     //         ==>
     //     (
@@ -655,7 +717,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             )
     // }
 
-    // predicate inv_queued_att_duty_is_dvn_seq_of_att_duty1<D(!new, 0)>(ci: ConsensusInstance<D>)
+    // predicate inv_queued_proposer_duty_is_dvn_seq_of_proposer_duty1<D(!new, 0)>(ci: ConsensusInstance<D>)
     // {
     //     ci.decided_value.isPresent()
     //     <==> 
@@ -681,8 +743,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     // {
     //     && is_honest_node(dv, m)                
-    //     && consa == dv.consensus_on_attestation_data[a.data.slot]
-    //     && consa' == dv.consensus_on_attestation_data[a'.data.slot]
+    //     && consa == dv.consensus_instances_on_beacon_block.Event[a.data.slot]
+    //     && consa' == dv.consensus_instances_on_beacon_block.Event[a'.data.slot]
     //     && m in consa.honest_nodes_validity_functions.Keys
     //     && m in h_nodes_a
     //     && m in consa'.honest_nodes_validity_functions.Keys                
@@ -692,15 +754,15 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes_a') 
     // }
 
-    // predicate inv_unique_rcvd_att_duty_per_slot(dv: DVState)
+    // predicate inv_unique_rcvd_proposer_duty_per_slot(dv: DVState)
     // {
     //     forall hn: BLSPubkey | 
     //         is_honest_node(dv, hn) 
     //         ::
-    //         inv_unique_rcvd_att_duty_per_slot_body(dv.honest_nodes_states[hn])
+    //         inv_unique_rcvd_proposer_duty_per_slot_body(dv.honest_nodes_states[hn])
     // }
 
-    // predicate inv_unique_rcvd_att_duty_per_slot_body(dvc: DVCState)
+    // predicate inv_unique_rcvd_proposer_duty_per_slot_body(dvc: DVCState)
     // {
     //     forall d1: AttestationDuty, d2: AttestationDuty | 
     //         && d1 in dvc.all_rcvd_duties
@@ -710,7 +772,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         d1 == d2
     // }
 
-    // predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(
+    // predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_body(
     //     dv: DVState, 
     //     hn: BLSPubkey, 
     //     s: Slot, 
@@ -728,7 +790,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
     // }
 
-    // predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv: DVState)
+    // predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
     //         && is_honest_node(dv, hn)
@@ -738,7 +800,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         ::
     //         exists duty, db ::
     //             && var hn_state := dv.honest_nodes_states[hn];
-    //             && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, hn, s, db, duty, vp)
+    //             && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_body(dv, hn, s, db, duty, vp)
     // }
     
     // predicate inv_decided_data_has_an_honest_witness_body<D(!new, 0)>(ci: ConsensusInstance) 
@@ -751,7 +813,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_decided_data_has_an_honest_witness(dv: DVState)
     // {
     //     forall s: Slot ::
-    //         && var ci := dv.consensus_on_attestation_data[s];
+    //         && var ci := dv.consensus_instances_on_beacon_block.Event[s];
     //         && inv_decided_data_has_an_honest_witness_body(ci)            
     // }
 
@@ -759,57 +821,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate same_honest_nodes_in_dv_and_ci(dv: DVState)
     // {
     //     forall s: Slot ::
-    //         && var ci := dv.consensus_on_attestation_data[s];            
+    //         && var ci := dv.consensus_instances_on_beacon_block.Event[s];            
     //         && dv.all_nodes == ci.all_nodes
     //         && dv.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
     // }
     
 
-    // predicate inv_quorum_constraints(dv: DVState)
-    // {        
-    //     && var all_nodes := dv.all_nodes;
-    //     && var honest_nodes := dv.honest_nodes_states.Keys;
-    //     && var dishonest_nodes := dv.adversary.nodes;
-    //     && 0 < |all_nodes|
-    //     && quorum(|all_nodes|) <= |honest_nodes|
-    //     && |dishonest_nodes| <= f(|all_nodes|) 
-    //     && all_nodes == honest_nodes + dishonest_nodes
-    //     && honest_nodes * dishonest_nodes == {}
-    // }
 
-    // predicate inv_unchanged_paras_of_consensus_instances(dv: DVState)
-    // {
-    //     forall ci | ci in dv.consensus_on_attestation_data.Values
-    //         :: && ci.all_nodes == dv.all_nodes
-    //            && ci.honest_nodes_status.Keys == dv.honest_nodes_states.Keys  
-    //            && ci.honest_nodes_status.Keys <= ci.all_nodes
-    //            && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
-    //            && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
-    // }
 
-    // predicate inv_only_dv_construct_signed_attestation_signature(dv: DVState)
-    // {
-    //     && construct_signed_attestation_signature_assumptions(dv)                
-    //     && forall n | n in dv.honest_nodes_states.Keys :: 
-    //             && var nodes := dv.honest_nodes_states[n];
-    //             && nodes.construct_signed_attestation_signature == dv.construct_signed_attestation_signature
-    //             && nodes.dv_pubkey == dv.dv_pubkey       
-    //             && nodes.peers == dv.all_nodes
-    // }
 
-    // predicate inv_current_att_duty_is_rcvd_duty_body(dvc: DVCState)
-    // {
-    //     dvc.current_attestation_duty.isPresent()
-    //     ==> 
-    //     dvc.current_attestation_duty.safe_get() in dvc.all_rcvd_duties
-    // }
 
-    // predicate inv_current_att_duty_is_rcvd_duty(dv: DVState)
-    // {
-    //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
-    //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_current_att_duty_is_rcvd_duty_body(dvc)
-    // }
+
 
     // predicate inv_latest_served_duty_is_rcvd_duty_body(dvc: DVCState)
     // {
@@ -825,65 +847,65 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && inv_latest_served_duty_is_rcvd_duty_body(dvc)
     // }
 
-    // predicate inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc: DVCState)
+    // predicate inv_none_latest_served_duty_implies_none_current_proposer_duty_body(dvc: DVCState)
     // {
     //     !dvc.latest_attestation_duty.isPresent()
     //     ==> 
-    //     !dvc.current_attestation_duty.isPresent()
+    //     !dvc.current_proposer_duty.isPresent()
     // }
 
-    // predicate inv_none_latest_served_duty_implies_none_current_att_duty(dv: DVState)
+    // predicate inv_none_latest_served_duty_implies_none_current_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc)
+    //         && inv_none_latest_served_duty_implies_none_current_proposer_duty_body(dvc)
     // }
   
-    // predicate inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc: DVCState)
+    // predicate inv_current_proposer_duty_is_either_none_or_latest_served_duty_body(dvc: DVCState)
     // {
     //     !dvc.latest_attestation_duty.isPresent()
     //     ==> 
-    //     ( || !dvc.current_attestation_duty.isPresent()
+    //     ( || !dvc.current_proposer_duty.isPresent()
     //       || ( && dvc.latest_attestation_duty.isPresent()
-    //            && dvc.current_attestation_duty.isPresent()
-    //            && dvc.current_attestation_duty.safe_get()
+    //            && dvc.current_proposer_duty.isPresent()
+    //            && dvc.current_proposer_duty.safe_get()
     //                 == dvc.latest_attestation_duty.safe_get()
     //          )
     //     )
     // }
 
-    // predicate inv_current_att_duty_is_either_none_or_latest_served_duty(dv: DVState)
+    // predicate inv_current_proposer_duty_is_either_none_or_latest_served_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc)
+    //         && inv_current_proposer_duty_is_either_none_or_latest_served_duty_body(dvc)
     // }
 
-    // predicate inv_available_current_att_duty_is_latest_served_att_duty_body(dvc: DVCState)
+    // predicate inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(dvc: DVCState)
     // {
-    //     dvc.current_attestation_duty.isPresent()
+    //     dvc.current_proposer_duty.isPresent()
     //     ==> 
     //     ( && dvc.latest_attestation_duty.isPresent()
-    //       && dvc.current_attestation_duty.safe_get()
+    //       && dvc.current_proposer_duty.safe_get()
     //                             == dvc.latest_attestation_duty.safe_get()                   
     //     )
     // }
 
-    // predicate inv_available_current_att_duty_is_latest_served_att_duty(dv: DVState)
+    // predicate inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_available_current_att_duty_is_latest_served_att_duty_body(dvc)
+    //         && inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(dvc)
     // }
 
-    // predicate inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty_body(dvc: DVCState, next_duty: AttestationDuty)
+    // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_current_proposer_duty_body(dvc: DVCState, next_duty: AttestationDuty)
     // {
-    //     dvc.current_attestation_duty.isPresent()
+    //     dvc.current_proposer_duty.isPresent()
     //     ==> 
-    //     dvc.current_attestation_duty.safe_get().slot <= next_duty.slot        
+    //     dvc.current_proposer_duty.safe_get().slot <= next_duty.slot        
     // }
 
-    // predicate inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty(dv: DVState)
+    // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_current_proposer_duty(dv: DVState)
     // {
     //     && var dv_duty_queue := dv.sequence_attestation_duties_to_be_served;
     //     && var dv_index := dv.index_next_attestation_duty_to_be_served;
@@ -894,17 +916,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         ::            
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && var next_duty := next_duty_and_node.attestation_duty;
-    //         && inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty_body(dvc, next_duty)
+    //         && inv_proposer_duty_in_next_delivery_is_not_lower_than_current_proposer_duty_body(dvc, next_duty)
     // }
 
-    // predicate inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty_body(dvc: DVCState, next_duty: AttestationDuty)
+    // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty_body(dvc: DVCState, next_duty: AttestationDuty)
     // {
     //     dvc.latest_attestation_duty.isPresent()
     //     ==> 
     //     dvc.latest_attestation_duty.safe_get().slot <= next_duty.slot        
     // }
 
-    // predicate inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty(dv: DVState)
+    // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty(dv: DVState)
     // {
     //     && var dv_duty_queue := dv.sequence_attestation_duties_to_be_served;
     //     && var dv_index := dv.index_next_attestation_duty_to_be_served;
@@ -915,21 +937,21 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         ::            
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && var next_duty := next_duty_and_node.attestation_duty;
-    //         && inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty_body(dvc, next_duty)
+    //         && inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty_body(dvc, next_duty)
     // }
 
     // predicate inv_is_sequence_attestation_duties_to_be_serves_orders(dv: DVState)
     // {
-    //     inv_sequence_attestation_duties_to_be_served_orderd(dv)
+    //     inv_sequence_attestation_duties_to_be_served_ordered(dv)
     // }
 
-    // predicate inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc: DVCState, next_duty: AttestationDuty)
+    // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc: DVCState, next_duty: AttestationDuty)
     // {
     //    forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties ::
     //         rcvd_duty.slot <= next_duty.slot        
     // }
 
-    // predicate inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv: DVState)
+    // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv: DVState)
     // {
     //     && var dv_duty_queue := dv.sequence_attestation_duties_to_be_served;
     //     && var dv_index := dv.index_next_attestation_duty_to_be_served;
@@ -940,7 +962,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         ::            
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && var next_duty := next_duty_and_node.attestation_duty;
-    //         && inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, next_duty)
+    //         && inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, next_duty)
     // }
 
     // predicate invNetwork(
@@ -996,12 +1018,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             == dv'.sequence_attestation_duties_to_be_served
     // }
 
-    // predicate inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc: DVCState, duty: AttestationDuty)
+    // predicate inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc: DVCState, duty: AttestationDuty)
     // {
     //     duty in dvc.all_rcvd_duties
     // }
 
-    // predicate inv_every_att_duty_before_dvn_att_index_was_delivered(dv: DVState)
+    // predicate inv_every_proposer_duty_before_dvn_att_index_was_delivered(dv: DVState)
     // {
     //     forall k: nat ::
     //         && 0 <= k < dv.index_next_attestation_duty_to_be_served
@@ -1011,24 +1033,24 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && var duty := duty_and_node.attestation_duty;
     //         && var hn := duty_and_node.node;
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_every_att_duty_before_dvn_att_index_was_delivered_body(dvc, duty)
+    //         && inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc, duty)
     // }    
 
-    // predicate inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc: DVCState)
+    // predicate inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc: DVCState)
     // {
     //     !dvc.latest_attestation_duty.isPresent()
     //     ==> 
     //     dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {}
     // }
 
-    // predicate inv_no_active_consensus_instance_before_receiving_an_att_duty(dv: DVState)
+    // predicate inv_no_active_consensus_instance_before_receiving_an_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc)
+    //         && inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc)
     // }
     
-    // predicate inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc: DVCState)
+    // predicate inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc: DVCState)
     // {
     //     dvc.latest_attestation_duty.isPresent()
     //     ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
@@ -1037,14 +1059,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         )
     // }
 
-    // predicate inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv: DVState)
+    // predicate inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc)
+    //         && inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc)
     // }
 
-    // predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc: DVCState)
+    // predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc: DVCState)
     // {
     //     forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys ::
     //         exists rcvd_duty: AttestationDuty :: 
@@ -1052,11 +1074,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && rcvd_duty.slot == k
     // }
 
-    // predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv: DVState)
+    // predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc)
+    //         && inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc)
     // }
 
     // predicate inv_consensus_instances_only_for_rcvd_duties_body(dvc: DVCState)
@@ -1317,7 +1339,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     s: Slot
     // )
     // {
-    //     hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
+    //     hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
     //     ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     // }
 
@@ -1329,20 +1351,20 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         inv_slots_for_sent_validity_predicate_are_stored_in_att_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
     // } 
 
-    // predicate inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc: DVCState)
+    // predicate inv_no_active_consensus_instance_before_receiving_proposer_duty_body(dvc: DVCState)
     // {
     //     !dvc.latest_attestation_duty.isPresent()
     //     ==> dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {}
     // }
 
-    // predicate inv_no_active_consensus_instance_before_receiving_att_duty(dv: DVState)
+    // predicate inv_no_active_consensus_instance_before_receiving_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_no_active_consensus_instance_before_receiving_att_duty_body(dvc)
+    //         && inv_no_active_consensus_instance_before_receiving_proposer_duty_body(dvc)
     // }
 
-    // predicate inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc: DVCState)
+    // predicate inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_proposer_duty_body(dvc: DVCState)
     // {
     //     dvc.latest_attestation_duty.isPresent()
     //     ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
@@ -1351,20 +1373,20 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         )
     // }
 
-    // predicate inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty(dv: DVState)
+    // predicate inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_att_duty_body(dvc)
+    //         && inv_slot_of_active_consensus_instance_is_lower_than_slot_of_latest_served_proposer_duty_body(dvc)
     // }
 
     // predicate inv_consensus_instances_are_isConditionForSafetyTrue(dv: DVState)
     // {
-    //     forall slot: Slot | slot in dv.consensus_on_attestation_data.Keys  ::
-    //                 isConditionForSafetyTrue(dv.consensus_on_attestation_data[slot])                    
+    //     forall slot: Slot | slot in dv.consensus_instances_on_beacon_block.Event.Keys  ::
+    //                 isConditionForSafetyTrue(dv.consensus_instances_on_beacon_block.Event[slot])                    
     // }
 
-    // predicate pred_last_att_duty_is_delivering_to_given_honest_node(
+    // predicate pred_last_proposer_duty_is_delivering_to_given_honest_node(
     //     attestation_duty: AttestationDuty,
     //     dv: DVState,
     //     n: BLSPubkey,
@@ -1378,39 +1400,39 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && an.node == n
     // }
 
-    // predicate inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dvc: DVCState)
+    // predicate inv_none_latest_proposer_duty_and_empty_set_of_rcvd_att_duties_body(dvc: DVCState)
     // {
     //     !dvc.latest_attestation_duty.isPresent()
     //     <==> 
     //     dvc.all_rcvd_duties == {}
     // }
 
-    // predicate inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv: DVState)
+    // predicate inv_none_latest_proposer_duty_and_empty_set_of_rcvd_att_duties(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
-    //         inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_body(dv.honest_nodes_states[hn])
+    //         inv_none_latest_proposer_duty_and_empty_set_of_rcvd_att_duties_body(dv.honest_nodes_states[hn])
     // }
 
-    // predicate inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc: DVCState)
+    // predicate inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc: DVCState)
     // {
     //     dvc.latest_attestation_duty.isPresent()
     //     ==>
-    //     ( forall att_duty | att_duty in dvc.all_rcvd_duties ::
-    //         att_duty.slot <= dvc.latest_attestation_duty.safe_get().slot
+    //     ( forall proposer_duty | proposer_duty in dvc.all_rcvd_duties ::
+    //         proposer_duty.slot <= dvc.latest_attestation_duty.safe_get().slot
     //     )
     // }
 
-    // predicate inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv: DVState)
+    // predicate inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty(dv: DVState)
     // {
     //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
     //         &&  var dvc := dv.honest_nodes_states[hn];
-    //         &&  inv_no_rcvd_att_duty_is_higher_than_latest_att_duty_body(dvc)
+    //         &&  inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc)
     // }
 
     // predicate inv_data_of_all_created_attestations_is_set_of_decided_values(dv: DVState)
     // {
     //     forall a | a in dv.all_attestations_created ::
-    //             && var consa := dv.consensus_on_attestation_data[a.data.slot];
+    //             && var consa := dv.consensus_instances_on_beacon_block.Event[a.data.slot];
     //             && consa.decided_value.isPresent() 
     //             && a.data == consa.decided_value.safe_get() 
     // }
@@ -1543,7 +1565,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && var constructed_sig := dv.construct_signed_attestation_signature(attestation_shares);
     //     && constructed_sig.isPresent()
     //     && constructed_sig.safe_get() == attestation.signature
-    //     && do_all_att_shares_have_the_same_data(attestation_shares, attestation.data)
+    //     && all_att_shares_have_the_same_data(attestation_shares, attestation.data)
     // }
 
     // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_attestations_body(
@@ -1583,8 +1605,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //                                         target_epoch := att_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(att_data)));
     //     && slashing_db_attestation in dvc.attestation_slashing_db
-    //     && exists att_duty: AttestationDuty, vp: AttestationData -> bool :: 
-    //             (   && att_duty in dvc.all_rcvd_duties
+    //     && exists proposer_duty: AttestationDuty, vp: AttestationData -> bool :: 
+    //             (   && proposer_duty in dvc.all_rcvd_duties
     //                 && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     //                 && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
     //                 && vp(att_data)
@@ -1615,8 +1637,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //                                         target_epoch := att_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(att_data)));
     //     && slashing_db_attestation in dvc.attestation_slashing_db
-    //     && exists att_duty: AttestationDuty, vp: AttestationData -> bool :: 
-    //             (   && att_duty in dvc.all_rcvd_duties
+    //     && exists proposer_duty: AttestationDuty, vp: AttestationData -> bool :: 
+    //             (   && proposer_duty in dvc.all_rcvd_duties
     //                 && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     //                 && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
     //                 && vp(att_data)
@@ -1731,7 +1753,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
     //     && constructed_sig.isPresent()
     //     && constructed_sig.safe_get() == att.signature
-    //     && do_all_att_shares_have_the_same_data(att_shares, att.data)
+    //     && all_att_shares_have_the_same_data(att_shares, att.data)
     //     && signers <= dv.all_nodes
     //     && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, signers)
     //     && |signers| >= quorum(|dv.all_nodes|)
@@ -1747,7 +1769,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
     //             && constructed_sig.isPresent()
     //             && constructed_sig.safe_get() == att.signature
-    //             && do_all_att_shares_have_the_same_data(att_shares, att.data)
+    //             && all_att_shares_have_the_same_data(att_shares, att.data)
     //             && dvc_signer_pubkeys <= dv.all_nodes
     //             && inv_attestation_is_created_with_shares_from_quorum_body_signers(dv, att_shares, dvc_signer_pubkeys)
     //             && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
@@ -1793,7 +1815,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && var constructed_sig := dvc.construct_signed_attestation_signature(att_shares);
     //             && constructed_sig.isPresent()
     //             && constructed_sig.safe_get() == att.signature
-    //             && do_all_att_shares_have_the_same_data(att_shares, att.data)
+    //             && all_att_shares_have_the_same_data(att_shares, att.data)
     //             && inv_attestation_is_created_with_shares_from_quorum_rs_signers(att_shares, rs_signer_pubkeys)
     //             && |rs_signer_pubkeys| >= quorum(|dvc.peers|)
     //             && rs_signer_pubkeys <= dvc.peers
