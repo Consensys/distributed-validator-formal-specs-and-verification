@@ -11,6 +11,28 @@ module Block_Common_Functions{
             default
     }      
 
+    function f(n:nat): nat
+    {
+        if n > 0 then
+            (n-1)/3
+        else
+            0
+    }
+
+    function quorum(n:nat):nat
+    {
+        if n > 0 then
+            (2*n - 1)/3 + 1 
+        else 
+            0
+    }
+
+    function seq_last<T>(s: seq<T>): T 
+    requires |s| > 0 
+    {
+        s[|s|-1]
+    }
+
     function method compute_start_slot_at_epoch(epoch: Epoch): Slot
     {
         epoch * SLOTS_PER_EPOCH

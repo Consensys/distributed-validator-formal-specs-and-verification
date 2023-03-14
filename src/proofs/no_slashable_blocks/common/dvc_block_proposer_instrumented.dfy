@@ -315,7 +315,7 @@ module DVC_Block_Proposer_Spec_Instr {
     ): Outputs
     {
         getEmptyOuputs().(
-            block_shares_sent := outputs1.block_shares_sent + outputs2.block_shares_sent,
+            sent_block_shares := outputs1.sent_block_shares + outputs2.sent_block_shares,
             sent_randao_shares := outputs1.sent_randao_shares + outputs2.sent_randao_shares,
             submitted_signed_blocks := outputs1.submitted_signed_blocks + outputs2.submitted_signed_blocks
         )
@@ -385,7 +385,7 @@ module DVC_Block_Proposer_Spec_Instr {
                 proposer_duty := proposer_duty,
                 slot := slot,
                 signing_root := randao_reveal_signing_root,
-                signature_share := randao_reveal_signature_share
+                signature := randao_reveal_signature_share
             );
         var broadcasted_output := 
             getEmptyOuputs().(
@@ -458,13 +458,13 @@ module DVC_Block_Proposer_Spec_Instr {
 
         if is_slot_for_current_or_future_instances(process, slot) 
         then
-            var process_with_dlv_randao_share := 
+            var process_with_new_randao_share := 
                     process.(
                         rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
                                                                                         {randao_share} ]
                     );     
             f_start_consensus_if_can_construct_randao_share(
-                process_with_dlv_randao_share
+                process_with_new_randao_share
             )
         else
             f_wrap_DVCState_with_Outputs(
@@ -484,7 +484,7 @@ module DVC_Block_Proposer_Spec_Instr {
             var all_rcvd_randao_sig := 
                     set randao_share | randao_share in process.rcvd_randao_shares[
                                                 process.current_proposer_duty.safe_get().slot]
-                                                    :: randao_share.signature_share;                
+                                                    :: randao_share.signature;                
             var constructed_randao_reveal := process.construct_complete_signed_randao_reveal(all_rcvd_randao_sig);
             if && constructed_randao_reveal.isPresent()  
                && proposer_duty.slot !in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
@@ -548,7 +548,7 @@ module DVC_Block_Proposer_Spec_Instr {
                     signed_beacon_blocks_to_broadcast := process.signed_beacon_blocks_to_broadcast[slot := block_share]
                 );
             var multicastOutputs := getEmptyOuputs().(
-                                        block_shares_sent := multicast(block_share, process.peers)
+                                        sent_block_shares := multicast(block_share, process.peers)
                                     );
 
             f_wrap_DVCState_with_Outputs(
@@ -586,10 +586,10 @@ module DVC_Block_Proposer_Spec_Instr {
         block_share: SignedBeaconBlock
     ): DVCStateAndOuputs
     {
-        var slot := block_share.message.slot;
+        var slot := block_share.block.slot;
 
         if is_slot_for_current_or_future_instances(process, slot) then
-            var data := block_share.message;
+            var data := block_share.block;
             var rcvd_signed_beacon_blocks_db_at_slot := getOrDefault(process.rcvd_signed_beacon_blocks, slot, map[]);
             var process_with_new_block_share :=
                 process.(
@@ -715,7 +715,7 @@ module DVC_Block_Proposer_Spec_Instr {
         DVCStateAndOuputs(
             state := process,
             outputs := getEmptyOuputs().(
-                block_shares_sent :=
+                sent_block_shares :=
                     if process.signed_beacon_blocks_to_broadcast.Keys != {} then
                         multicast_multiple(process.signed_beacon_blocks_to_broadcast.Values, process.peers)                        
                     else

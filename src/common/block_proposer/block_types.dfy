@@ -67,7 +67,7 @@ module Block_Types
         proposer_duty: ProposerDuty,
         slot: Slot,
         signing_root: Root,
-        signature_share: BLSSignature
+        signature: BLSSignature
     )
 
     datatype BeaconBlockBody = BeaconBlockBody(
@@ -93,7 +93,7 @@ module Block_Types
     )
 
     datatype SignedBeaconBlock = SignedBeaconBlock(
-        message: BeaconBlock,
+        block: BeaconBlock,
         signature: BLSSignature
     )
  

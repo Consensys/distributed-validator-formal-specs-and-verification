@@ -1,9 +1,11 @@
 include "../../common/block_proposer/block_types.dfy"
+include "../../common/block_proposer/block_common_functions.dfy"
 
 // Note: Only safety properties are expressed at the moment.
 module Block_Consensus_Spec
 {
     import opened Block_Types 
+    import opened Block_Common_Functions 
 
     datatype InCommand<!D> = 
     | Start(node: BLSPubkey)
@@ -18,25 +20,16 @@ module Block_Consensus_Spec
         all_nodes: set<BLSPubkey>,
         decided_value: Optional<D>,
         honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
-        ghost honest_nodes_validity_functions: set<D -> bool>
+        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>
     )    
-
-
-    function f(n:nat): nat
-    requires n > 0 
-    {
-        (n-1)/3
-    }
-
-    function quorum(n:nat):nat
-    // returns ceil(2n/3)
 
 
     predicate isConditionForSafetyTrue<D(!new, 0)>(
         s: BlockConsensusInstance
     )
     {
-        quorum(|s.all_nodes|) <= |s.honest_nodes_status|
+        var byz := s.all_nodes - s.honest_nodes_status.Keys;
+        |byz| <= f(|s.all_nodes|)
     }
 
     predicate Init<D(!new, 0)>(
@@ -47,7 +40,8 @@ module Block_Consensus_Spec
         && s.all_nodes == all_nodes
         && !s.decided_value.isPresent()
         && s.honest_nodes_status.Keys == honest_nodes
-        && forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED
+        && s.honest_nodes_validity_functions == map[]
+        && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)
     }
 
     predicate Next<D(!new, 0)>(
@@ -57,31 +51,62 @@ module Block_Consensus_Spec
         output: Optional<OutCommand>
     )
     {
-        exists s'': BlockConsensusInstance ::
-            // First we let the node take an input/output step
-            && NextNodeStep(s'', honest_nodes_validity_predicates, s', output)
-            // Then we let the consensus protocol and the various nodes possibly decide on a value
-            && NextConsensusDecides(s, honest_nodes_validity_predicates, s'')
+        && NextConsensusDecides(s, honest_nodes_validity_predicates, s')
+        && NextNodeStep(s', honest_nodes_validity_predicates, output)
     }
 
     predicate NextNodeStep<D(!new, 0)>(
         s: BlockConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
-        s': BlockConsensusInstance,
         output: Optional<OutCommand>
     )
     {
-        && output.isPresent()
-        && var n := output.safe_get().node;
-        && n in s.honest_nodes_status.Keys 
-        && n in honest_nodes_validity_predicates.Keys
-        && s.honest_nodes_status[n] in {DECIDED}
-        &&  if isConditionForSafetyTrue(s) then
-                && s.decided_value.isPresent()
-                && output.safe_get().value == s.decided_value.safe_get()
-                && s' == s
-            else
-                s' == s     
+        ( && isConditionForSafetyTrue(s)
+          && output.isPresent() )
+        ==> 
+        (
+            && var n := output.safe_get().node;
+            && n in s.honest_nodes_status.Keys 
+            && n in honest_nodes_validity_predicates.Keys
+            && s.honest_nodes_status[n] in {DECIDED}
+            && s.decided_value.isPresent()
+            && output.safe_get().value == s.decided_value.safe_get()
+        )
+    }
+
+    predicate is_a_valid_decided_value_according_to_set_of_nodes<D(!new, 0)>(
+        s: BlockConsensusInstance,
+        h_nodes: set<BLSPubkey>
+    )
+    {
+        && s.decided_value.isPresent()
+        && h_nodes <= s.honest_nodes_validity_functions.Keys  
+        && var byz := s.all_nodes - s.honest_nodes_status.Keys;
+        && |h_nodes| >= quorum(|s.all_nodes|) - |byz|
+        && (
+            forall n | n in h_nodes :: 
+                exists vp: D -> bool | vp in s.honest_nodes_validity_functions[n] :: vp(s.decided_value.safe_get())  
+        )          
+    }
+
+    predicate is_a_valid_decided_value<D(!new, 0)>(
+        s: BlockConsensusInstance
+    )
+    {
+       exists h_nodes :: is_a_valid_decided_value_according_to_set_of_nodes(s, h_nodes)            
+    }
+
+    function add_set_of_validity_predicates<D(!new, 0)>(
+        existing_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>,
+        honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>
+    ): (new_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>)
+    {
+        map k | k in existing_honest_nodes_validity_predicates.Keys + honest_nodes_validity_predicates.Keys
+            ::
+            if k in honest_nodes_validity_predicates.Keys then
+                getOrDefault(existing_honest_nodes_validity_predicates, k, {}) + {honest_nodes_validity_predicates[k]}
+            else 
+                existing_honest_nodes_validity_predicates[k]
     }
 
     predicate NextConsensusDecides<D(!new, 0)>(
@@ -90,26 +115,27 @@ module Block_Consensus_Spec
         s': BlockConsensusInstance
     )
     {
-        && s'.honest_nodes_validity_functions == s.honest_nodes_validity_functions + honest_nodes_validity_predicates.Values
+        && honest_nodes_validity_predicates.Keys <= s.honest_nodes_status.Keys
+        && s'.honest_nodes_validity_functions == add_set_of_validity_predicates(s.honest_nodes_validity_functions, honest_nodes_validity_predicates)
         && (
             || (
                 && (isConditionForSafetyTrue(s) ==>
                                                     && s'.decided_value.isPresent()
                                                     && (s.decided_value.isPresent() ==> s'.decided_value == s.decided_value)
-                                                    && (exists vp | vp in s'.honest_nodes_validity_functions :: vp(s'.decided_value.safe_get()))
+                                                    && is_a_valid_decided_value(s')
                 )
                 && s'.honest_nodes_status.Keys == s.honest_nodes_status.Keys
-                && forall n | n in s.honest_nodes_status.Keys ::
-                    if n in honest_nodes_validity_predicates then 
+                && (forall n | n in s.honest_nodes_status.Keys ::
+                    if n in honest_nodes_validity_predicates.Keys then 
                         s.honest_nodes_status[n] == DECIDED ==> s'.honest_nodes_status[n] == DECIDED
                     else 
                         s'.honest_nodes_status[n] == s.honest_nodes_status[n]
+                )
                 && s'.all_nodes == s.all_nodes
             ) 
             || (
                 s' == s
             )
         )
-     
     }    
 }

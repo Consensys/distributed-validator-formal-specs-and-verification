@@ -10,7 +10,7 @@ module DVC_Block_Proposer_Spec_Axioms
 
     datatype BNState = BNState(
         state_roots_of_imported_blocks: set<Root>,
-        attestations_submitted: seq<Attestation>    
+        blocks_submitted: seq<SignedBeaconBlock>    
     )  
 
     datatype RSState = RSState(
@@ -59,11 +59,11 @@ module DVC_Block_Proposer_Spec_Axioms
 
     // Don't need to use fork_version
     function {:axiom} rs_sign_randao_reveal(        
-        slot: Slot, 
+        epoch: Epoch,
         fork_version: Version,
         signing_root: Root,
         rs: RSState
     ): BLSSignature
-    requires signing_root == compute_randao_reveal_signing_root(slot)
+    requires signing_root == compute_randao_reveal_signing_root(epoch * SLOTS_PER_EPOCH)
 
 }
