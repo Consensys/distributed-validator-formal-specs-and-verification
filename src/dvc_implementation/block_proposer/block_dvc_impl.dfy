@@ -42,7 +42,7 @@ abstract module Block_DVC_Impl
         var rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>;
 
         var construct_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>;
-        var construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>;
+        var construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>;
         // must satisfy properties of M-of-N threshold signatures 
         
         var current_proposer_duty: Optional<ProposerDuty>;
@@ -56,7 +56,7 @@ abstract module Block_DVC_Impl
             dv_pubkey: BLSPubkey,
             peers: set<BLSPubkey>,            
             complete_block_signature: (set<SignedBeaconBlock>) -> Optional<BLSSignature>,
-            construct_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+            construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
             construct_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
             initial_slashing_db: SlashingDB
         )
@@ -83,7 +83,7 @@ abstract module Block_DVC_Impl
             this.peers := peers;
             
             this.complete_block_signature := complete_block_signature;
-            this.construct_signed_block := construct_signed_block;
+            this.construct_complete_signed_block := construct_complete_signed_block;
             this.construct_signed_randao_reveal := construct_signed_randao_reveal;
         }
 
@@ -101,11 +101,11 @@ abstract module Block_DVC_Impl
                     block_consensus_decided(block);
                 case ReceiveRandaoShare(randao_share) => 
                     listen_for_randao_shares(randao_share);
-                case ReceiveBlockShare(block_share) => 
+                case ReceiveSignedBeaconBlock(block_share) => 
                     listen_for_block_shares(block_share);                    
                 case ImportNewBlock(block) => 
                     listen_for_new_imported_blocks(block);
-                case ResendRandaoShare => 
+                case ResendRandaoRevealSignatureShare => 
                     resend_randao_share();                    
                 case ResendBlockShare => 
                     resend_block_share();
@@ -139,26 +139,26 @@ abstract module Block_DVC_Impl
         }
 
         // broadcast_randao_share is for lines 166 - 171.
-        method broadcast_randao_share(serving_duty: ProposerDuty)
+        method broadcast_randao_share(proposer_duty: ProposerDuty)
         requires ValidRepr()
         modifies getRepr()
         {            
-            var slot := serving_duty.slot;
+            var slot := proposer_duty.slot;
             var epoch := compute_epoch_at_slot(slot);            
             var fork_version := bn.get_fork_version(slot);    
             var root := compute_randao_reveal_signing_root(slot);
             var randao_signature := rs.sign_randao_reveal(epoch, fork_version, root);                                                           
-            var randao_share := RandaoShare(serving_duty, epoch, slot, root, randao_signature);
-            randao_shares_to_broadcast := randao_shares_to_broadcast[serving_duty.slot := randao_share];
+            var randao_share := BLSSignature(proposer_duty, epoch, slot, root, randao_signature);
+            randao_shares_to_broadcast := randao_shares_to_broadcast[proposer_duty.slot := randao_share];
             network.send_randao_share(randao_share, peers);            
         }
 
-        method check_for_next_queued_duty(serving_duty: ProposerDuty)
+        method check_for_next_queued_duty(proposer_duty: ProposerDuty)
         requires ValidRepr()
         modifies getRepr()
         {            
             
-            var slot := serving_duty.slot;
+            var slot := proposer_duty.slot;
             if slot in future_decided_slots
             {
                 update_block_slashing_db(future_decided_slots[slot], dv_pubkey);
@@ -166,8 +166,8 @@ abstract module Block_DVC_Impl
             }
             else 
             {                    
-                current_proposer_duty := Some(serving_duty);
-                last_served_proposer_duty := Some(serving_duty);
+                current_proposer_duty := Some(proposer_duty);
+                last_served_proposer_duty := Some(proposer_duty);
                 start_consensus_if_can_construct_randao_share();  
             }                                
             
@@ -201,7 +201,7 @@ abstract module Block_DVC_Impl
 
         // Check whether messages related to slot should be processed.
         predicate method is_slot_for_current_or_future_instances(
-            active_block_consensus_instances: set<Slot>,
+            active_consensus_instances_on_beacon_blocks: set<Slot>,
             received_slot: Slot
         )
         reads this
@@ -213,24 +213,24 @@ abstract module Block_DVC_Impl
             // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
             // up only slot lower thant the slot of the current/latest duty.
 
-            || (active_block_consensus_instances == {} && !last_served_proposer_duty.isPresent())
-            || (active_block_consensus_instances != {} && get_min(active_block_consensus_instances) <= received_slot)
-            || (active_block_consensus_instances == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
-            || (active_block_consensus_instances == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
+            || (active_consensus_instances_on_beacon_blocks == {} && !last_served_proposer_duty.isPresent())
+            || (active_consensus_instances_on_beacon_blocks != {} && get_min(active_consensus_instances_on_beacon_blocks) <= received_slot)
+            || (active_consensus_instances_on_beacon_blocks == {} && current_proposer_duty.isPresent() && current_proposer_duty.safe_get().slot <= received_slot)                
+            || (active_consensus_instances_on_beacon_blocks == {} && !current_proposer_duty.isPresent() && last_served_proposer_duty.isPresent() && last_served_proposer_duty.safe_get().slot < received_slot)            
         }
 
         // listen_for_randao_shares is an underlying method for line 172.
         method listen_for_randao_shares(
-            randao_share: RandaoShare
+            randao_share: BLSSignature
         )         
         // requires current_proposer_duty.isPresent() ==> current_proposer_duty.safe_get().slot !in consensus_on_block.consensus_instances_started
         requires ValidRepr()
         modifies getRepr()
         {
             var slot := randao_share.slot;
-            var active_block_consensus_instances := consensus_on_block.get_active_instances();
+            var active_consensus_instances_on_beacon_blocks := consensus_on_block.get_active_instances();
 
-            if is_slot_for_current_or_future_instances(active_block_consensus_instances, slot)
+            if is_slot_for_current_or_future_instances(active_consensus_instances_on_beacon_blocks, slot)
             {
                 rcvd_randao_shares := rcvd_randao_shares[slot := getOrDefault(rcvd_randao_shares, slot, {}) + {randao_share} ]; 
                 start_consensus_if_can_construct_randao_share();      
@@ -276,10 +276,10 @@ abstract module Block_DVC_Impl
         modifies getRepr()
         {
 
-            var active_block_consensus_instances := consensus_on_block.get_active_instances();
+            var active_consensus_instances_on_beacon_blocks := consensus_on_block.get_active_instances();
             var slot := block_share.message.slot;
 
-            if is_slot_for_current_or_future_instances(active_block_consensus_instances, slot)
+            if is_slot_for_current_or_future_instances(active_consensus_instances_on_beacon_blocks, slot)
             {
                 var data := block_share.message;
                 var rcvd_block_shares_db_at_slot := getOrDefault(rcvd_block_shares, slot, map[]);
@@ -293,9 +293,9 @@ abstract module Block_DVC_Impl
                                         ]
                             ];
                             
-                if construct_signed_block(rcvd_block_shares[slot][data]).isPresent()
+                if construct_complete_signed_block(rcvd_block_shares[slot][data]).isPresent()
                 {
-                    var complete_signed_block := construct_signed_block(rcvd_block_shares[slot][data]).safe_get();  
+                    var complete_signed_block := construct_complete_signed_block(rcvd_block_shares[slot][data]).safe_get();  
                     bn.submit_signed_block(complete_signed_block);  
                 }
             } 
