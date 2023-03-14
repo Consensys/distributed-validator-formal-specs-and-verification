@@ -28,30 +28,30 @@ module Common_Proofs_For_Block_Proposer
     )
     requires r == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)        
     ensures r.block_slashing_db_hist.Keys
-                == s.block_slashing_db_hist.Keys + s.active_block_consensus_instances.Keys
+                == s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys
     {
-        var new_active_block_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
-                    s.active_block_consensus_instances,
+        var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+                    s.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
 
         lem_updateBlockConsensusInstanceValidityCheckHelper(
-                s.active_block_consensus_instances,
+                s.active_consensus_instances_on_beacon_blocks,
                 new_block_slashing_db,
-                new_active_block_consensus_instances);
+                new_active_consensus_instances_on_beacon_blocks);
 
-        assert new_active_block_consensus_instances.Keys == s.active_block_consensus_instances.Keys;
+        assert new_active_consensus_instances_on_beacon_blocks.Keys == s.active_consensus_instances_on_beacon_blocks.Keys;
 
         var new_block_slashing_db_hist := updateBlockSlashingDBHist(
                                             s.block_slashing_db_hist,
-                                            new_active_block_consensus_instances,
+                                            new_active_consensus_instances_on_beacon_blocks,
                                             new_block_slashing_db
                                         );
 
         assert new_block_slashing_db_hist.Keys 
-                    == s.block_slashing_db_hist.Keys + new_active_block_consensus_instances.Keys;
+                    == s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys;
 
-        var t := s.(active_block_consensus_instances := new_active_block_consensus_instances,
+        var t := s.(active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks,
                     block_slashing_db_hist := new_block_slashing_db_hist
                    );
 
@@ -65,9 +65,9 @@ module Common_Proofs_For_Block_Proposer
             ==
             new_block_slashing_db_hist.Keys;
             == 
-            s.block_slashing_db_hist.Keys + new_active_block_consensus_instances.Keys;
+            s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys;
             ==
-            s.block_slashing_db_hist.Keys + s.active_block_consensus_instances.Keys;
+            s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys;
         }
     }
 
@@ -112,22 +112,22 @@ module Common_Proofs_For_Block_Proposer
 
     lemma lem_inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_updateBlockSlashingDBHist(
         hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>,
-        new_active_block_consensus_instances : map<Slot, BlockConsensusValidityCheckState>,
+        new_active_consensus_instances_on_beacon_blocks : map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>,
         new_hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>
     )    
     requires new_hist == updateBlockSlashingDBHist(hist, 
-                                                 new_active_block_consensus_instances, 
+                                                 new_active_consensus_instances_on_beacon_blocks, 
                                                  new_block_slashing_db)
     ensures ( forall k: Slot | k in new_hist.Keys ::
-                && ( (k in new_active_block_consensus_instances.Keys)
-                        ==> ( && var vp := new_active_block_consensus_instances[k].validityPredicate;
+                && ( (k in new_active_consensus_instances_on_beacon_blocks.Keys)
+                        ==> ( && var vp := new_active_consensus_instances_on_beacon_blocks[k].validityPredicate;
                               && var hist_k := getOrDefault(hist, k, map[]);
                               && var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_block_slashing_db};
                               && new_hist[k][vp] == hist_k_vp                        
                             )
                    )
-                && ( (k !in new_active_block_consensus_instances.Keys)
+                && ( (k !in new_active_consensus_instances_on_beacon_blocks.Keys)
                         ==> new_hist[k] == hist[k]
                    )
             )
@@ -140,21 +140,21 @@ module Common_Proofs_For_Block_Proposer
     // )
     // requires r == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)        
     // requires inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(s)
-    // requires ( forall k: Slot | k in s.active_block_consensus_instances.Keys ::
-    //                 s.active_block_consensus_instances[k].proposer_duty.slot == k )
+    // requires ( forall k: Slot | k in s.active_consensus_instances_on_beacon_blocks.Keys ::
+    //                 s.active_consensus_instances_on_beacon_blocks[k].proposer_duty.slot == k )
     // ensures inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(r)
     // {
     //     lem_updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db, r);
     //     assert r.block_slashing_db_hist.Keys
-    //             == s.block_slashing_db_hist.Keys + s.active_block_consensus_instances.Keys;
+    //             == s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys;
 
-    //     var new_active_block_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
-    //                 s.active_block_consensus_instances,
+    //     var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+    //                 s.active_consensus_instances_on_beacon_blocks,
     //                 new_block_slashing_db
     //             );
 
-    //     assert forall k: Slot | k in new_active_block_consensus_instances.Keys ::
-    //                 && var ci := new_active_block_consensus_instances[k];
+    //     assert forall k: Slot | k in new_active_consensus_instances_on_beacon_blocks.Keys ::
+    //                 && var ci := new_active_consensus_instances_on_beacon_blocks[k];
     //                 && ci.validityPredicate
     //                     == ((bb: BeaconBlock) => consensus_is_valid_beacon_block(
     //                                                     new_block_slashing_db, 
@@ -168,18 +168,18 @@ module Common_Proofs_For_Block_Proposer
 
     //     var new_block_slashing_db_hist := updateBlockSlashingDBHist(
     //                                         s.block_slashing_db_hist,
-    //                                         new_active_block_consensus_instances,
+    //                                         new_active_consensus_instances_on_beacon_blocks,
     //                                         new_block_slashing_db
     //                                     );
-    //     assert forall k: Slot | k in new_active_block_consensus_instances.Keys ::
-    //                 && var ci := new_active_block_consensus_instances[k];
+    //     assert forall k: Slot | k in new_active_consensus_instances_on_beacon_blocks.Keys ::
+    //                 && var ci := new_active_consensus_instances_on_beacon_blocks[k];
     //                 && var vp := ci.validityPredicate;
     //                 && var duty := ci.proposer_duty;
     //                 && duty.slot == k
     //                 && new_block_slashing_db in new_block_slashing_db_hist[k][vp]
     //             ;
     //     assert new_block_slashing_db_hist.Keys 
-    //                 == s.block_slashing_db_hist.Keys + new_active_block_consensus_instances.Keys
+    //                 == s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys
     //             ;
     //     assert inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(s);
 
@@ -192,9 +192,9 @@ module Common_Proofs_For_Block_Proposer
     //                         && vp == (bb: BeaconBlock) => consensus_is_valid_beacon_block(db, ad, duty)
     //                     )
     //     {
-    //         if k in new_active_block_consensus_instances.Keys
+    //         if k in new_active_consensus_instances_on_beacon_blocks.Keys
     //         {
-    //             var ci := new_active_block_consensus_instances[k];                
+    //             var ci := new_active_consensus_instances_on_beacon_blocks[k];                
 
     //             if vp == ci.validityPredicate
     //             {
@@ -230,12 +230,12 @@ module Common_Proofs_For_Block_Proposer
     //     }
      
     //     lem_updateBlockConsensusInstanceValidityCheckHelper(
-    //             s.active_block_consensus_instances,
+    //             s.active_consensus_instances_on_beacon_blocks,
     //             new_block_slashing_db,
-    //             new_active_block_consensus_instances);
-    //     assert new_active_block_consensus_instances.Keys == s.active_block_consensus_instances.Keys;
+    //             new_active_consensus_instances_on_beacon_blocks);
+    //     assert new_active_consensus_instances_on_beacon_blocks.Keys == s.active_consensus_instances_on_beacon_blocks.Keys;
 
-    //     var t := s.(active_block_consensus_instances := new_active_block_consensus_instances,
+    //     var t := s.(active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks,
     //                 block_slashing_db_hist := new_block_slashing_db_hist
     //                );
     //     assert inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(t);
@@ -250,21 +250,21 @@ module Common_Proofs_For_Block_Proposer
     // )
     // requires r == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)        
     // requires inv_every_db_in_block_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(s, new_block_slashing_db)
-    // requires ( forall k: Slot | k in s.active_block_consensus_instances.Keys ::
-    //                 s.active_block_consensus_instances[k].proposer_duty.slot == k )
+    // requires ( forall k: Slot | k in s.active_consensus_instances_on_beacon_blocks.Keys ::
+    //                 s.active_consensus_instances_on_beacon_blocks[k].proposer_duty.slot == k )
     // ensures inv_every_db_in_block_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(r, new_block_slashing_db)
     // {
     //     lem_updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db, r);
     //     assert r.block_slashing_db_hist.Keys
-    //             == s.block_slashing_db_hist.Keys + s.active_block_consensus_instances.Keys;
+    //             == s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys;
 
-    //     var new_active_block_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
-    //                 s.active_block_consensus_instances,
+    //     var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+    //                 s.active_consensus_instances_on_beacon_blocks,
     //                 new_block_slashing_db
     //             );
 
-    //     assert forall k: Slot | k in new_active_block_consensus_instances.Keys ::
-    //                 && var ci := new_active_block_consensus_instances[k];
+    //     assert forall k: Slot | k in new_active_consensus_instances_on_beacon_blocks.Keys ::
+    //                 && var ci := new_active_consensus_instances_on_beacon_blocks[k];
     //                 && ci.validityPredicate
     //                     == ((bb: BeaconBlock) => consensus_is_valid_beacon_block(
     //                                                     new_block_slashing_db, 
@@ -274,25 +274,25 @@ module Common_Proofs_For_Block_Proposer
                  
     //     var new_block_slashing_db_hist := updateBlockSlashingDBHist(
     //                                         s.block_slashing_db_hist,
-    //                                         new_active_block_consensus_instances,
+    //                                         new_active_consensus_instances_on_beacon_blocks,
     //                                         new_block_slashing_db
     //                                     );
-    //     assert forall k: Slot | k in new_active_block_consensus_instances.Keys ::
-    //                 && var ci := new_active_block_consensus_instances[k];
+    //     assert forall k: Slot | k in new_active_consensus_instances_on_beacon_blocks.Keys ::
+    //                 && var ci := new_active_consensus_instances_on_beacon_blocks[k];
     //                 && var vp := ci.validityPredicate;
     //                 && var duty := ci.proposer_duty;
     //                 && duty.slot == k
     //                 && new_block_slashing_db in new_block_slashing_db_hist[k][vp]
     //             ;
     //     assert forall k: Slot, vp, db | 
-    //                 && k in new_active_block_consensus_instances.Keys 
+    //                 && k in new_active_consensus_instances_on_beacon_blocks.Keys 
     //                 && vp in new_block_slashing_db_hist[k]
     //                 && db in new_block_slashing_db_hist[k][vp]
     //                 ::
     //                 && db <= new_block_slashing_db 
     //             ;
     //     assert new_block_slashing_db_hist.Keys 
-    //                 == s.block_slashing_db_hist.Keys + new_active_block_consensus_instances.Keys
+    //                 == s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys
     //             ;
     //     assert inv_every_db_in_block_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(s, new_block_slashing_db);
 
@@ -303,9 +303,9 @@ module Common_Proofs_For_Block_Proposer
     //                 )
     //     ensures db <= new_block_slashing_db
     //     {
-    //         if k in new_active_block_consensus_instances.Keys
+    //         if k in new_active_consensus_instances_on_beacon_blocks.Keys
     //         {
-    //             var ci := new_active_block_consensus_instances[k];                
+    //             var ci := new_active_consensus_instances_on_beacon_blocks[k];                
 
     //             if vp == ci.validityPredicate
     //             {
@@ -325,7 +325,7 @@ module Common_Proofs_For_Block_Proposer
     //         }
     //     }
      
-    //     var t := s.(active_block_consensus_instances := new_active_block_consensus_instances,
+    //     var t := s.(active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks,
     //                 block_slashing_db_hist := new_block_slashing_db_hist
     //                );
     //     assert inv_every_db_in_block_slashing_db_hist_is_subset_of_att_slashing_db_body_ces(t, new_block_slashing_db);
