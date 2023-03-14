@@ -313,6 +313,12 @@ module DV_Block_Proposer_Spec
         ) 
     }
 
+    predicate is_empty_bn(bn: BNState)
+    {
+        && bn.blocks_submitted == []
+        && bn.state_roots_of_imported_blocks == {}
+    }
+
     predicate Init(
         s: DVState,
         initial_block_slashing_db: set<SlashingDBBlock>
@@ -325,16 +331,19 @@ module DV_Block_Proposer_Spec
         && construct_complete_signed_randao_reveal_assumptions(s)
         && construct_complete_signed_block_assumptions(s)
         && s.all_block_created == {}
-        && ( forall pubkey | pubkey in s.honest_nodes_states.Keys ::
-                DVC_Block_Proposer_Spec_NonInstr.Init(
-                    s.honest_nodes_states[pubkey], 
-                    s.dv_pubkey, 
-                    s.all_nodes, 
-                    s.construct_complete_signed_randao_reveal, 
-                    s.construct_complete_signed_block, 
-                    initial_block_slashing_db, 
-                    pubkey
-            ))    
+        && ( forall pubkey | pubkey in s.honest_nodes_states.Keys 
+                ::
+                && is_empty_bn(s.honest_nodes_states[pubkey].bn)
+                && DVC_Block_Proposer_Spec_NonInstr.Init(
+                        s.honest_nodes_states[pubkey], 
+                        s.dv_pubkey, 
+                        s.all_nodes, 
+                        s.construct_complete_signed_randao_reveal, 
+                        s.construct_complete_signed_block, 
+                        initial_block_slashing_db, 
+                        pubkey
+                    )
+            )    
         &&  Block_Network_Spec.Init(s.block_share_network, s.all_nodes)
         &&  Block_Network_Spec.Init(s.randao_share_network, s.all_nodes)
         &&  ( forall bci | bci in  s.consensus_instances_on_beacon_block.Values ::
@@ -660,9 +669,9 @@ module DV_Block_Proposer_Spec
                     ;
                 && var validityPredicates := 
                         map nid | && nid in s.honest_nodes_states.Keys 
-                                  && slot in s.honest_nodes_states[nid].block_consensus_engine_state.active_consensus_instances_on_beacon_block.Keys
+                                  && slot in s.honest_nodes_states[nid].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
                                         ::
-                                            s.honest_nodes_states[nid].block_consensus_engine_state.active_consensus_instances_on_beacon_block[slot].validityPredicate
+                                            s.honest_nodes_states[nid].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[slot].validityPredicate
                     ;
                 && Block_Consensus_Spec.Next(
                         s.consensus_instances_on_beacon_block[slot],
