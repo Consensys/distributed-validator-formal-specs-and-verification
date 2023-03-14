@@ -19,7 +19,7 @@ module ConsensusSpec
         all_nodes: set<BLSPubkey>,
         decided_value: Optional<D>,
         honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
-        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>        
+        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>
     )    
 
 
@@ -40,7 +40,7 @@ module ConsensusSpec
         && !s.decided_value.isPresent()
         && s.honest_nodes_status.Keys == honest_nodes
         && s.honest_nodes_validity_functions == map[]
-        && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)        
+        && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)
     }
 
     predicate Next<D(!new, 0)>(

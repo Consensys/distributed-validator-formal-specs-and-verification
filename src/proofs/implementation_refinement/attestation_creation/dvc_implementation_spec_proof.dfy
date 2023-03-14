@@ -203,7 +203,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             ...; 
 
             {
-                if event.ServeAttstationDuty?
+                if event.ServeAttestationDuty?
                 {    
                     assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
                         && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()

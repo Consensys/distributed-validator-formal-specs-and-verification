@@ -8,7 +8,6 @@ module Spec_Spec_NonInstr_Refinement
 {
     import opened Types 
     import opened CommonFunctions
-    import opened DVC_Externs
     import opened DVC_Spec_Axioms
     import DVC_Spec_NonInstr
     import DVC_Spec

@@ -511,14 +511,14 @@ module Invs_DV_Next_2
         }
     }
 
-    lemma lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next_AdeversaryTakingStep(
+    lemma lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next_AdversaryTakingStep(
         s: DVState,
         event: DV.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires event.AdeversaryTakingStep?
+    requires event.AdversaryTakingStep?
     requires inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s)
     requires construct_signed_attestation_signature_assumptions_helper(
         s.construct_signed_attestation_signature,
@@ -534,7 +534,7 @@ module Invs_DV_Next_2
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
         {
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>    
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>    
                 forall a | 
                     && a in s'.all_attestations_created
                     && is_valid_attestation(a, s'.dv_pubkey)
@@ -687,8 +687,8 @@ module Invs_DV_Next_2
                         assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next_AdeversaryTakingStep(
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_dv_next_AdversaryTakingStep(
                     s,
                     event,
                     s'
@@ -742,7 +742,7 @@ module Invs_DV_Next_2
 
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
 
         }
     }     
@@ -1098,7 +1098,7 @@ module Invs_DV_Next_2
                 assert inv_decided_value_of_consensus_instance_is_decided_by_quorum(s');
                
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_decided_value_of_consensus_instance_is_decided_by_quorum(s');
         }        
     } 
@@ -1269,7 +1269,7 @@ module Invs_DV_Next_2
                 }
                 assert inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s');
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(s');
         }
     }   
@@ -1516,7 +1516,7 @@ module Invs_DV_Next_2
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires event.AdeversaryTakingStep?
+    requires event.AdversaryTakingStep?
     requires inv_data_of_att_share_is_decided_value(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)  
@@ -2140,7 +2140,7 @@ module Invs_DV_Next_2
                         assert inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s');
                 }            
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_for_dv(s');
         }        
     } 
@@ -2212,7 +2212,7 @@ module Invs_DV_Next_2
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
             
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
         }
         assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
@@ -2391,7 +2391,7 @@ module Invs_DV_Next_2
     //             }
 
 
-    //         case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+    //         case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
     //         //     lem_inv_data_of_att_share_is_decided_value_att_adversary(s, event, s');
     //     }        
     // }
@@ -2638,7 +2638,7 @@ module Invs_DV_Next_2
                     
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 lem_inv_data_of_att_share_is_decided_value_att_adversary(s, event, s');
         }        
     }

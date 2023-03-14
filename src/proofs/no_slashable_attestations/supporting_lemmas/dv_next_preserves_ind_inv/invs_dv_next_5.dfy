@@ -252,7 +252,7 @@ module Invs_DV_Next_5
                 }  
 
                          
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
                 assert s'.consensus_on_attestation_data == s.consensus_on_attestation_data;
                 assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                  
@@ -636,7 +636,7 @@ module Invs_DV_Next_5
         }
     }     
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdeversaryTakingStep(
+    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdversaryTakingStep(
         s: DVState,
         event: DV.Event,
         cid: Slot,
@@ -646,7 +646,7 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires event.AdeversaryTakingStep?
+    requires event.AdversaryTakingStep?
     requires inv_quorum_constraints(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
@@ -660,7 +660,7 @@ module Invs_DV_Next_5
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
         {
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
                 assert s'.consensus_on_attestation_data == s.consensus_on_attestation_data;
                 assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                  
@@ -713,8 +713,8 @@ module Invs_DV_Next_5
                     s'
                 );
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
-                lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdeversaryTakingStep(
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+                lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdversaryTakingStep(
                     s,
                     event,
                     cid,
@@ -1116,7 +1116,7 @@ module Invs_DV_Next_5
                 }  
                 assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s');
                          
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 forall hn |
                     && hn in s'.honest_nodes_states.Keys   
                 ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_attestation_duty_to_be_served); 
@@ -1306,7 +1306,7 @@ module Invs_DV_Next_5
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_served_att_duty(s, event, s');
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }
     }
@@ -1431,7 +1431,7 @@ module Invs_DV_Next_5
                 }  
                 assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s');
                          
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
 
         }
     }   
@@ -1600,7 +1600,7 @@ module Invs_DV_Next_5
                     dv'
                 );    
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_decided_data_has_an_honest_witness(dv');
         }   
     }          
@@ -1676,7 +1676,7 @@ module Invs_DV_Next_5
                 assert inv_outputs_attestations_submited_are_valid(nodeOutputs, dv.dv_pubkey);
                 assert inv_all_created_attestations_are_valid(dv');
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert NextAdversary(
                     dv,
                     node,
@@ -1790,14 +1790,14 @@ module Invs_DV_Next_5
         }
     }
 
-    lemma lem_inv_data_of_att_shares_is_known_dv_next_AdeversaryTakingStep(
+    lemma lem_inv_data_of_att_shares_is_known_dv_next_AdversaryTakingStep(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires event.AdeversaryTakingStep?
+    requires event.AdversaryTakingStep?
     requires inv_quorum_constraints(dv)
     requires inv_data_of_att_shares_is_known(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
@@ -1806,7 +1806,7 @@ module Invs_DV_Next_5
     {        
         match event 
         {
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 lem_inv_quorum_constraints_dv_next(dv, event, dv');
                 assert inv_quorum_constraints(dv');
                 var dishonest_nodes := dv'.adversary.nodes;
@@ -1973,8 +1973,8 @@ module Invs_DV_Next_5
                     nodeOutputs
                 );
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                lem_inv_data_of_att_shares_is_known_dv_next_AdeversaryTakingStep(
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                lem_inv_data_of_att_shares_is_known_dv_next_AdversaryTakingStep(
                     dv,
                     event,
                     dv'
@@ -2020,12 +2020,12 @@ module Invs_DV_Next_5
                     case NoEvent => 
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }  
     }  
 
-    lemma lem_AdeversaryTakingStep_new_att_share_sent_is_not_from_honest_node(
+    lemma lem_AdversaryTakingStep_new_att_share_sent_is_not_from_honest_node(
         dv: DVState,        
         event: DV.Event,
         node: BLSPubkey,
@@ -2037,7 +2037,7 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv') 
-    requires event.AdeversaryTakingStep? 
+    requires event.AdversaryTakingStep? 
     requires NextAdversary(dv, node, new_attestation_shares_sent, messagesReceivedByTheNode, dv')
     requires inv_quorum_constraints(dv)
     requires && new_att_share_sent in new_attestation_shares_sent
@@ -2062,7 +2062,7 @@ module Invs_DV_Next_5
         assert !is_honest_node(dv, pubkey);
     }
 
-    lemma lem_AdeversaryTakingStep_att_share_from_honest_node_were_sent_before(
+    lemma lem_AdversaryTakingStep_att_share_from_honest_node_were_sent_before(
         dv: DVState,        
         event: DV.Event,
         node: BLSPubkey,
@@ -2074,7 +2074,7 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv') 
-    requires event.AdeversaryTakingStep? 
+    requires event.AdversaryTakingStep? 
     requires NextAdversary(dv, node, new_attestation_shares_sent, messagesReceivedByTheNode, dv')
     requires inv_quorum_constraints(dv)
     requires is_honest_node(dv', pubkey)
@@ -2118,14 +2118,14 @@ module Invs_DV_Next_5
         assert old_att_share in dv.att_network.allMessagesSent;
     }
 
-    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AdeversaryTakingStep(
+    lemma lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AdversaryTakingStep(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires event.AdeversaryTakingStep?
+    requires event.AdversaryTakingStep?
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_quorum_constraints(dv)
     requires inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
@@ -2142,7 +2142,7 @@ module Invs_DV_Next_5
         
         match event 
         {
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
         
                 forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
@@ -2185,7 +2185,7 @@ module Invs_DV_Next_5
                                             signing_root := Some(hash_tree_root(att_data)));
                             && slashing_db_attestation in db
                     {
-                        lem_AdeversaryTakingStep_att_share_from_honest_node_were_sent_before(
+                        lem_AdversaryTakingStep_att_share_from_honest_node_were_sent_before(
                             dv,        
                             event,
                             node,
@@ -2587,8 +2587,8 @@ module Invs_DV_Next_5
                         assert  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv');
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AdeversaryTakingStep(
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                lem_inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_dv_next_AdversaryTakingStep(
                             dv,
                             event,
                             dv'
@@ -2596,14 +2596,14 @@ module Invs_DV_Next_5
         }  
     }    
 
-    lemma lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_AdeversaryTakingStep(
+    lemma lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_AdversaryTakingStep(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires event.AdeversaryTakingStep?
+    requires event.AdversaryTakingStep?
     requires inv_only_dv_construct_signed_attestation_signature(dv)
     requires invNetwork(dv)
     requires inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
@@ -2625,7 +2625,7 @@ module Invs_DV_Next_5
 
         match event 
         {
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert NextAdversary(
                     dv,
                     node,
@@ -2814,8 +2814,8 @@ module Invs_DV_Next_5
                     nodeOutputs
                 );
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_AdeversaryTakingStep(
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+                lem_inv_attestation_is_created_with_shares_from_quorum_dv_next_AdversaryTakingStep(
                     dv,
                     event,
                     dv'

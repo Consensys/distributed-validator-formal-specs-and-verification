@@ -77,7 +77,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -129,7 +129,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -181,7 +181,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -228,7 +228,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -280,7 +280,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -327,7 +327,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -375,7 +375,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }
@@ -505,7 +505,7 @@ module Invs_DV_Next_3
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }        
     }  
@@ -666,7 +666,7 @@ module Invs_DV_Next_3
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }        
     }  
@@ -703,7 +703,7 @@ module Invs_DV_Next_3
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }      
@@ -790,7 +790,7 @@ module Invs_DV_Next_3
                         
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv');        
                 
         }   
@@ -843,7 +843,7 @@ module Invs_DV_Next_3
                         assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv'); 
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv');        
                 
         }   
@@ -895,7 +895,7 @@ module Invs_DV_Next_3
                         assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv'); 
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_no_rcvd_att_duty_is_higher_than_latest_att_duty(dv');        
                 
         }   
@@ -961,7 +961,7 @@ module Invs_DV_Next_3
                         assert inv_unique_rcvd_att_duty_per_slot(dv'); 
                 }
 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 assert inv_unique_rcvd_att_duty_per_slot(dv');        
                 
         }   

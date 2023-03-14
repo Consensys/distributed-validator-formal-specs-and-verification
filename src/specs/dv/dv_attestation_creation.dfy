@@ -38,9 +38,16 @@ module DV
     )
 
     datatype Event = 
-    | AdeversaryTakingStep(node: BLSPubkey, new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
-        messagesReceivedByTheNode: set<AttestationShare>)
-    | HonestNodeTakingStep(node: BLSPubkey, event: Types.Event, nodeOutputs: DVC_Spec.Outputs)
+        | AdversaryTakingStep(
+                node: BLSPubkey, 
+                new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
+                messagesReceivedByTheNode: set<AttestationShare>
+            )
+        | HonestNodeTakingStep(
+                node: BLSPubkey, 
+                event: Types.Event, 
+                nodeOutputs: DVC_Spec.Outputs
+            )
 
     predicate all_att_shares_have_the_same_data(
         att_shares: set<AttestationShare>,
@@ -377,7 +384,7 @@ module DV
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
                     && NextHonestNode(s, node, nodeEvent, nodeOutputs, s')
-                case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+                case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
                     NextAdversary(s, node, new_attestation_shares_sent, messagesReceivedByTheNode, s')
         )
 
@@ -490,7 +497,7 @@ module DV
         && DVC_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
         && s'.honest_nodes_states == s.honest_nodes_states[
             node := new_node_state
-        ]        
+        ]
         && var messagesReceivedByTheNode :=
             match nodeEvent
                 case ReceivedAttestationShare(attestation_share) => {attestation_share}
@@ -513,30 +520,27 @@ module DV
         s': DVState
     )
     {
+        && node in (s.all_nodes - s.honest_nodes_states.Keys)
         && (
-            && node in (s.all_nodes - s.honest_nodes_states.Keys)
-            && (
-                forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
-                    var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(new_attestation_share_sent.message.data.target.epoch));
-                    var attestation_signing_root := compute_attestation_signing_root(new_attestation_share_sent.message.data, fork_version);
-                    verify_bls_signature(attestation_signing_root, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
-            )
-            && NetworkSpec.Next(s.att_network, s'.att_network, node, new_attestation_shares_sent, messagesReceivedByTheNode)
-            && s.all_attestations_created <= s'.all_attestations_created
-            && var new_aggregated_attestations_sent := s'.all_attestations_created - s.all_attestations_created;
-            && (forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent ::
-                    exists attestation_shares ::
-                            && attestation_shares <= s'.att_network.allMessagesSent
-                            && var constructed_sig := s.construct_signed_attestation_signature(attestation_shares);
-                            && constructed_sig.isPresent()
-                            && constructed_sig.safe_get() == aggregated_attestation_sent.signature
-                            && all_att_shares_have_the_same_data(attestation_shares, aggregated_attestation_sent.data)
-            )
-            && s' == s.(
-                att_network := s'.att_network,
-                all_attestations_created := s'.all_attestations_created
-            )            
-           )         
+            forall new_attestation_share_sent, signer | new_attestation_share_sent in new_attestation_shares_sent ::
+                var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(new_attestation_share_sent.message.data.target.epoch));
+                var attestation_signing_root := compute_attestation_signing_root(new_attestation_share_sent.message.data, fork_version);
+                verify_bls_signature(attestation_signing_root, new_attestation_share_sent.message.signature, signer) ==> signer in s.adversary.nodes
+        )
+        && NetworkSpec.Next(s.att_network, s'.att_network, node, new_attestation_shares_sent, messagesReceivedByTheNode)
+        && s.all_attestations_created <= s'.all_attestations_created
+        && var new_aggregated_attestations_sent := s'.all_attestations_created - s.all_attestations_created;
+        && (forall aggregated_attestation_sent | aggregated_attestation_sent in new_aggregated_attestations_sent ::
+                exists attestation_shares ::
+                        && attestation_shares <= s'.att_network.allMessagesSent
+                        && var constructed_sig := s.construct_signed_attestation_signature(attestation_shares);
+                        && constructed_sig.isPresent()
+                        && constructed_sig.safe_get() == aggregated_attestation_sent.signature
+                        && all_att_shares_have_the_same_data(attestation_shares, aggregated_attestation_sent.data)
+        )
+        && s' == s.( att_network := s'.att_network,
+                     all_attestations_created := s'.all_attestations_created
+                    )            
     }
 
 

@@ -281,7 +281,7 @@ module Invs_DV_Next_4
                         
                 }
                 
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 
         }   
     }  
@@ -470,7 +470,7 @@ module Invs_DV_Next_4
                 }  
                 assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s');
                          
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 forall hn |
                     && hn in s'.honest_nodes_states.Keys   
                 ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', hn, s'.honest_nodes_states[hn]); 
@@ -698,7 +698,7 @@ module Invs_DV_Next_4
                 }  
                 assert inv_slot_in_future_decided_data_is_correct(s');
                          
-            case AdeversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 forall hn |
                     && hn in s'.honest_nodes_states.Keys   
                 ensures inv_slot_in_future_decided_data_is_correct_body(s', hn, s'.honest_nodes_states[hn]); 
