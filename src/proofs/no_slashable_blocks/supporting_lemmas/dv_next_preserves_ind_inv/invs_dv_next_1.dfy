@@ -90,9 +90,58 @@ module Invs_DV_Next_1
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
                         lem_inv_current_proposer_duty_is_rcvd_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
-                    case ResendRandaoShares =>
+                    case ResendRandaoRevealSignatureShare =>
 
-                    case ResendBlockShares =>
+                    case ResendBlockShare =>
+                        
+                    case NoEvent => 
+                        
+                }
+
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+                
+        }   
+    }     
+
+    lemma lem_inv_latest_served_duty_is_rcvd_duty_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_latest_served_duty_is_rcvd_duty(dv)
+    ensures inv_latest_served_duty_is_rcvd_duty(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_latest_served_duty_is_rcvd_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                    
+                    case ReceiveRandaoShare(randao_share) =>                         
+                        lem_inv_latest_served_duty_is_rcvd_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
+                        
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
+                        {
+                            lem_inv_latest_served_duty_is_rcvd_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                        }                 
+                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_latest_served_duty_is_rcvd_duty_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_latest_served_duty_is_rcvd_duty_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendRandaoRevealSignatureShare =>
+
+                    case ResendBlockShare =>
                         
                     case NoEvent => 
                         
@@ -103,422 +152,331 @@ module Invs_DV_Next_1
         }   
     } 
 
-    
-
-    // lemma lem_inv_latest_served_duty_is_rcvd_duty_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')  
-    // requires inv_latest_served_duty_is_rcvd_duty(dv)
-    // ensures inv_latest_served_duty_is_rcvd_duty(dv')
-    // {        
-    //     match event 
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var dvc := dv.honest_nodes_states[node];
-    //             var dvc' := dv'.honest_nodes_states[node];
-    //             match nodeEvent
-    //             {
-    //                 case ServeProposerDuty(proposer_duty) =>     
-    //                     lem_inv_latest_served_duty_is_rcvd_duty_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+    lemma lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_none_latest_served_duty_implies_none_current_proposer_duty(dv)
+    ensures inv_none_latest_served_duty_implies_none_current_proposer_duty(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                    
+                    case ReceiveRandaoShare(randao_share) =>                         
+                        lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
                         
-    //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
-    //                     {
-    //                         lem_inv_latest_served_duty_is_rcvd_duty_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                        
-    //                     }
-
-    //                 case ReceiveRandaoShare(randao_share) =>                         
-    //                     lem_inv_latest_served_duty_is_rcvd_duty_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
+                        {
+                            lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                        }                 
+                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
    
-    //                 case ImportedNewBlock(block) => 
-    //                     var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
-    //                     lem_inv_latest_served_duty_is_rcvd_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
-    //                 case ResendRandaoShares =>                         
-                        
-    //                 case NoEvent => 
-                        
-    //             }
+                    case ResendRandaoRevealSignatureShare =>
 
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
+                    case ResendBlockShare =>
+                        
+                    case NoEvent => 
+                        
+                }
+
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
-    //     }   
-    // }  
+        }   
+    } 
 
-    // lemma lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')      
-    // requires inv_none_latest_served_duty_implies_none_current_proposer_duty(dv)
-    // ensures inv_none_latest_served_duty_implies_none_current_proposer_duty(dv')
-    // {        
-    //     match event 
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var dvc := dv.honest_nodes_states[node];
-    //             var dvc' := dv'.honest_nodes_states[node];
-    //             assert inv_none_latest_served_duty_implies_none_current_proposer_duty_body(dvc);
-    //             match nodeEvent
-    //             {
-    //                 case ServeProposerDuty(proposer_duty) =>                             
-    //                     lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+    lemma lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_current_proposer_duty_is_either_none_or_latest_served_duty(dv)
+    ensures inv_current_proposer_duty_is_either_none_or_latest_served_duty(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                    
+                    case ReceiveRandaoShare(randao_share) =>                         
+                        lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
                         
-    //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
-    //                     {
-    //                         lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
-    //                     }
-
-    //                 case ReceiveRandaoShare(randao_share) =>                         
-    //                     lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
+                        {
+                            lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                        }                 
+                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
    
-    //                 case ImportedNewBlock(block) => 
-    //                     var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-    //                     lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-    //                     assert inv_none_latest_served_duty_implies_none_current_proposer_duty_body(dvc_mod);
-    //                     lem_inv_none_latest_served_duty_implies_none_current_proposer_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    //                     assert inv_none_latest_served_duty_implies_none_current_proposer_duty_body(dvc');
-                        
-    //                 case ResendRandaoShares =>                                                                      
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendRandaoRevealSignatureShare =>
 
-    //                 case NoEvent => 
+                    case ResendBlockShare =>
                         
-    //             }
+                    case NoEvent => 
+                        
+                }
 
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
-    //     }   
-    // }  
+        }   
+    } 
 
-    // lemma lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')      
-    // requires inv_current_proposer_duty_is_either_none_or_latest_served_duty(dv)
-    // ensures inv_current_proposer_duty_is_either_none_or_latest_served_duty(dv')
-    // {        
-    //     match event 
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var dvc := dv.honest_nodes_states[node];
-    //             var dvc' := dv'.honest_nodes_states[node];
-    //             assert inv_current_proposer_duty_is_either_none_or_latest_served_duty_body(dvc);
-    //             match nodeEvent
-    //             {
-    //                 case ServeProposerDuty(proposer_duty) =>                             
-    //                     lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+    lemma lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
+    ensures inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                    
+                    case ReceiveRandaoShare(randao_share) =>                         
+                        lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
                         
-    //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
-    //                     {
-    //                         lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
-    //                     }
-
-    //                 case ReceiveRandaoShare(randao_share) =>                         
-    //                     lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
+                        {
+                            lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                        }                 
+                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
    
-    //                 case ImportedNewBlock(block) => 
-    //                     var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-    //                     lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-    //                     assert inv_current_proposer_duty_is_either_none_or_latest_served_duty_body(dvc_mod);
-    //                     lem_inv_current_proposer_duty_is_either_none_or_latest_served_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    //                     assert inv_current_proposer_duty_is_either_none_or_latest_served_duty_body(dvc');
-                        
-    //                 case ResendRandaoShares =>                                                                      
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendRandaoRevealSignatureShare =>
 
-    //                 case NoEvent => 
+                    case ResendBlockShare =>
                         
-    //             }
+                    case NoEvent => 
+                        
+                }
 
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
-    //     }   
-    // }  
+        }   
+    } 
 
-    // lemma lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')          
-    // requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    // ensures inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv')
-    // {        
-    //     match event 
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var dvc := dv.honest_nodes_states[node];
-    //             var dvc' := dv'.honest_nodes_states[node];
-    //             assert inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(dvc);
-    //             match nodeEvent
-    //             {
-    //                 case ServeProposerDuty(proposer_duty) =>                             
-    //                     lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_f_serve_proposer_duty(dvc, proposer_duty, dvc');
-                        
-    //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
-    //                     {
-    //                         lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
-    //                     }
+    lemma lem_inv_seq_of_proposer_duties_is_ordered_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    requires inv_seq_of_proposer_duties_is_ordered(dv)
+    ensures inv_seq_of_proposer_duties_is_ordered(dv')
+    { 
+        assert dv.sequence_proposer_duties_to_be_served == dv'.sequence_proposer_duties_to_be_served;
+    }
 
-    //                 case ReceiveRandaoShare(randao_share) =>                         
-    //                     lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
-   
-    //                 case ImportedNewBlock(block) => 
-    //                     var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-    //                     lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-    //                     assert inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(dvc_mod);
-    //                     lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    //                     assert inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(dvc');
-                        
-    //                 case ResendRandaoShares =>                                                                      
+    lemma lem_inv_no_duplicated_proposer_duties_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    requires inv_no_duplicated_proposer_duties(dv')    
+    ensures inv_no_duplicated_proposer_duties(dv')    
+    { }
 
-    //                 case NoEvent => 
-                        
-    //             }
-
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
-                
-    //     }   
-    // }  
+    lemma lem_inv_unchanged_dvn_seq_of_proposer_duties_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')      
+    ensures inv_unchanged_dvn_seq_of_proposer_duties(dv, dv')
+    { }
 
     
-    // lemma lem_inv_is_sequence_attestation_duties_to_be_serves_orders_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')      
-    // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    // ensures inv_is_sequence_attestation_duties_to_be_serves_orders(dv')
-    // { 
-    //     assert dv.sequence_attestation_duties_to_be_served == dv'.sequence_attestation_duties_to_be_served;
-    // }
-    
 
-    // // // It takes more than 60 seconds to prove lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_dv_next.
-    // // // lemma lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_dv_next(
-    // // //     dv: DVState,
-    // // //     event: DV_Block_Proposer_Spec.Event,
-    // // //     dv': DVState
-    // // // )    
-    // // // requires NextEventPreCond(dv, event)
-    // // // requires NextEvent(dv, event, dv')      
-    // // // requires inv_none_latest_served_duty_implies_none_current_proposer_duty(dv)
-    // // // requires inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none(dv)
-    // // // ensures inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none(dv')
-    // // // {        
-    // // //     match event 
-    // // //     {
-    // // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // // //             var dvc := dv.honest_nodes_states[node];
-    // // //             var dvc' := dv'.honest_nodes_states[node];
-    // // //             assert inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_body(dvc);
-    // // //             match nodeEvent
-    // // //             {
-    // // //                 case ServeProposerDuty(proposer_duty) =>                             
-    // // //                     lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+    lemma lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEvent.requires(dv, event, dv')  
+    requires NextEvent(dv, event, dv')  
+    requires inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
+    ensures inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv')
+    {        
+        assert dv.sequence_proposer_duties_to_be_served == dv'.sequence_proposer_duties_to_be_served;
+
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];   
+                var sequence_proposer_duties_to_be_served := dv.sequence_proposer_duties_to_be_served;
+                var index_next_proposer_duty_to_be_served := dv.index_next_proposer_duty_to_be_served;
+                
+                
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        assert index_next_proposer_duty_to_be_served + 1 == dv'.index_next_proposer_duty_to_be_served;
+                        assert pred_proposer_duty_is_from_dv_seq_of_proposer_duties_new_body(  
+                            proposer_duty,
+                            node,
+                            sequence_proposer_duties_to_be_served, 
+                            index_next_proposer_duty_to_be_served + 1
+                        );
+                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
+                                        node, 
+                                        dvc, 
+                                        sequence_proposer_duties_to_be_served, 
+                                        index_next_proposer_duty_to_be_served + 1
+                                );
+                        lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_serve_proposer_duty(
+                            dvc,
+                            proposer_duty,
+                            dvc',
+                            node,
+                            sequence_proposer_duties_to_be_served,
+                            index_next_proposer_duty_to_be_served + 1
+                        );
+                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
+                                        node, 
+                                        dvc', 
+                                        sequence_proposer_duties_to_be_served, 
+                                        index_next_proposer_duty_to_be_served + 1
+                                );
+                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
+                    
+                    case ReceiveRandaoShare(randao_share) =>                         
+                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
+                                        node, 
+                                        dvc, 
+                                        sequence_proposer_duties_to_be_served, 
+                                        index_next_proposer_duty_to_be_served
+                                );
+                        lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_listen_for_randao_shares(
+                            dvc,
+                            randao_share,
+                            dvc',
+                            node,
+                            sequence_proposer_duties_to_be_served,
+                            index_next_proposer_duty_to_be_served
+                        );
+                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
+
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
                         
-    // // //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    // // //                     lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
-                        
-    // // //                 case ReceiveRandaoShare(randao_share) =>                         
-    // // //                     lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
    
-    // // //                 case ImportedNewBlock(block) => 
-    // // //                     var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-    // // //                     lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-    // // //                     assert inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_body(dvc_mod);
-    // // //                     lem_inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    // // //                     assert inv_no_queued_proposer_duty_if_latest_served_proposer_duty_is_none_body(dvc');
-                        
-    // // //                 case ResendRandaoShares =>                                                                      
+                    case ImportedNewBlock(block) => 
+                                                
+                    case ResendRandaoRevealSignatureShare =>
 
-    // // //                 case NoEvent => 
-                        
-    // // //             }
+                    case ResendBlockShare =>
 
-    // // //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
-                
-    // // //     }   
-    // // // }  
+                    case NoEvent => 
 
-    // // // lemma lem_inv_strictly_increasing_queue_of_att_duties_dv_next(
-    // // //     dv: DVState,
-    // // //     event: DV_Block_Proposer_Spec.Event,
-    // // //     dv': DVState
-    // // // )    
-    // // // requires NextEventPreCond(dv, event)
-    // // // requires NextEvent(dv, event, dv')    
-    // // // requires inv_quorum_constraints(dv)  
-    // // // requires inv_unchanged_paras_of_consensus_instances(dv)
-    // // // requires inv_queued_proposer_duty_is_dvn_seq_of_proposer_duty(dv)
-    // // // 
-    // // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    // // // requires concl_future_proposer_duty_is_higher_than_queued_proposer_duty(dv)
-    // // // requires inv_strictly_increasing_queue_of_att_duties(dv)
-    // // // ensures inv_strictly_increasing_queue_of_att_duties(dv')
-    // // // {        
-    // // //     match event 
-    // // //     {
-    // // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // // //             var dvc := dv.honest_nodes_states[node];
-    // // //             var dvc' := dv'.honest_nodes_states[node];
+                }
                 
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
-    // // //             match nodeEvent
-    // // //             {
-    // // //                 case ServeProposerDuty(proposer_duty) =>                                                                     
-    // // //                     lem_inv_strictly_increasing_queue_of_att_duties_f_serve_proposer_duty(dvc, proposer_duty, dvc');                                                
-                        
-    // // //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    // // //                     lem_inv_strictly_increasing_queue_of_att_duties_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
-                        
-    // // //                 case ReceiveRandaoShare(randao_share) =>                         
-    // // //                     lem_inv_strictly_increasing_queue_of_att_duties_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
-                       
-    // // //                 case ImportedNewBlock(block) => 
-    // // //                     var dvc_mod := f_add_block_to_bn(dvc, block);
-    // // //                     lem_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
-    // // //                     assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
-    // // //                     lem_inv_strictly_increasing_queue_of_att_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    // // //                     assert inv_strictly_increasing_queue_of_att_duties_body(dvc');
+        }   
+    }     
+
+    lemma lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
+    requires inv_no_active_consensus_instance_before_receiving_a_proposer_duty(dv)
+    ensures inv_no_active_consensus_instance_before_receiving_a_proposer_duty(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var dvc := dv.honest_nodes_states[node];
+                var dvc' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
                     
-    // // //                 case ResendRandaoShares =>                                                                      
-
-    // // //                 case NoEvent => 
+                    case ReceiveRandaoShare(randao_share) =>                         
+                        lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
                         
-    // // //             }
-    // // //             assert inv_strictly_increasing_queue_of_att_duties_body(dvc');
-    // // //             forall n | n in dv'.honest_nodes_states.Keys 
-    // // //             ensures inv_strictly_increasing_queue_of_att_duties_body(dv'.honest_nodes_states[n]);
-    // // //             {
-    // // //                 if n != node 
-    // // //                 {
-    // // //                     assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
-    // // //                     assert inv_strictly_increasing_queue_of_att_duties_body(dv'.honest_nodes_states[n]);
-    // // //                 }
-    // // //             }
-                
-    // // //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
-    // // //             assert inv_strictly_increasing_queue_of_att_duties(dv');
-                
-    // // //     }   
-    // // // }  
-
-    // // // lemma lem_inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_dv_next(
-    // // //     dv: DVState,
-    // // //     event: DV_Block_Proposer_Spec.Event,
-    // // //     dv': DVState
-    // // // )    
-    // // // requires NextEventPreCond(dv, event)
-    // // // requires NextEvent(dv, event, dv')    
-    // // // requires inv_quorum_constraints(dv)  
-    // // // requires inv_unchanged_paras_of_consensus_instances(dv)  
-    // // // requires inv_queued_proposer_duty_is_dvn_seq_of_proposer_duty(dv)
-    // // // 
-    // // // requires inv_latest_served_duty_is_rcvd_duty(dv)
-    // // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)  
-    // // // requires inv_strictly_increasing_queue_of_att_duties(dv)
-    // // // requires inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty(dv)
-    // // // ensures inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty(dv')
-    // // // {        
-    // // //     match event 
-    // // //     {
-    // // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // // //             var dvc := dv.honest_nodes_states[node];
-    // // //             var dvc' := dv'.honest_nodes_states[node];
-                
-    // // //             match nodeEvent
-    // // //             {
-    // // //                 case ServeProposerDuty(proposer_duty) =>                                                                     
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
+                        {
+                            lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                        }                 
                         
-    // // //                     assert inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, proposer_duty); 
-    // // //                     assert concl_future_proposer_duty_is_higher_than_queued_proposer_duty_body(dvc, proposer_duty);                                             
-    // // //                     lem_inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_f_serve_proposer_duty(dvc, proposer_duty, dvc');    
-                        
-    // // //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    // // //                     lem_inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
-                        
-    // // //                 case ReceiveRandaoShare(randao_share) =>                         
-    // // //                     lem_inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
-                       
-    // // //                 case ImportedNewBlock(block) =>                     
-    // // //                     var dvc_mod := f_add_block_to_bn(dvc, block);
-    // // //                     
-    // // //                     
-    // // //                     lem_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
-    // // //                     assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
-    // // //                     lem_inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_add_block_to_bn(dvc, block, dvc_mod);
-    // // //                     assert inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dvc_mod);
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                                                
+                    case ResendRandaoRevealSignatureShare =>
 
-    // // //                     lem_inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    // // //                     assert inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dvc');
-                    
-    // // //                 case ResendRandaoShares =>                                                                                      
-
-    // // //                 case NoEvent => 
+                    case ResendBlockShare =>
                         
-    // // //             }
-    // // //             assert inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dvc');
+                    case NoEvent => 
+                        
+                }
 
-    // // //             forall n | n in dv'.honest_nodes_states.Keys 
-    // // //             ensures inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dv'.honest_nodes_states[n]);
-    // // //             {
-    // // //                 if n != node 
-    // // //                 {
-    // // //                     assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
-    // // //                     assert inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dv'.honest_nodes_states[n]);
-    // // //                 }
-    // // //             }                
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
-    // // //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
-    // // //             forall n | n in dv'.honest_nodes_states.Keys 
-    // // //             ensures inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dv'.honest_nodes_states[n]);
-    // // //             {
-    // // //                 assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
-    // // //                 assert inv_queued_proposer_duty_is_higher_than_latest_served_proposer_duty_body(dv'.honest_nodes_states[n]);
-    // // //             }   
-                
-    // // //     }   
-    // // // } 
-
-    // lemma lem_inv_no_duplicated_att_duties_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')      
-    // requires inv_no_duplicated_att_duties(dv')    
-    // ensures inv_no_duplicated_att_duties(dv')    
-    // { }
-
-    // lemma lem_pred_unchanged_dvn_seq_of_att_duties_dv_next(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState
-    // )    
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')      
-    // ensures pred_unchanged_dvn_seq_of_att_duties(dv, dv')
-    // { }
+        }   
+    } 
 
     // // TODO
     // // IMPORTANT: update by using patterns in lem_ServeProposerDuty2_helper
-    // lemma lem_inv_every_proposer_duty_before_dvn_att_index_was_delivered_f_serve_proposer_duty(
+    // lemma lem_inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_f_serve_proposer_duty(
     //     dv: DVState,
     //     event: DV_Block_Proposer_Spec.Event,
     //     dv': DVState
@@ -527,9 +485,9 @@ module Invs_DV_Next_1
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')  
     // requires event.HonestNodeTakingStep?
-    // requires pred_unchanged_dvn_seq_of_att_duties(dv, dv')
-    // requires inv_every_proposer_duty_before_dvn_att_index_was_delivered(dv)
-    // ensures inv_every_proposer_duty_before_dvn_att_index_was_delivered(dv')
+    // requires inv_unchanged_dvn_seq_of_proposer_duties(dv, dv')
+    // requires inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv)
+    // ensures inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv')
     // {
     //     match event 
     //     {
@@ -540,20 +498,20 @@ module Invs_DV_Next_1
     //             {
     //                 case ServeProposerDuty(proposer_duty) =>     
     //                     var index := dv.index_next_proposer_duty_to_be_served;
-    //                     var new_duty := dv.sequence_attestation_duties_to_be_served[index].proposer_duty;                                
+    //                     var new_duty := dv.sequence_proposer_duties_to_be_served[index].proposer_duty;                                
     //                     lem_updated_all_rcvd_duties_f_serve_proposer_duty(dvc, new_duty, dvc');   
     //                     assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {new_duty};                                                                                                       
     //                     var new_index := dv'.index_next_proposer_duty_to_be_served;
     //                     assert index + 1 == new_index;
                         
     //                     forall k: nat | ( && 0 <= k < new_index
-    //                                       && dv'.sequence_attestation_duties_to_be_served[k].node in dv'.honest_nodes_states.Keys
+    //                                       && dv'.sequence_proposer_duties_to_be_served[k].node in dv'.honest_nodes_states.Keys
     //                                     )    
     //                     ensures index + 1 == new_index
-    //                     ensures dv'.sequence_attestation_duties_to_be_served[k].proposer_duty
-    //                                 in dv'.honest_nodes_states[dv'.sequence_attestation_duties_to_be_served[k].node].all_rcvd_duties                            
+    //                     ensures dv'.sequence_proposer_duties_to_be_served[k].proposer_duty
+    //                                 in dv'.honest_nodes_states[dv'.sequence_proposer_duties_to_be_served[k].node].all_rcvd_duties                            
     //                     {
-    //                         var duty_and_node: ProposerDutyAndNode := dv.sequence_attestation_duties_to_be_served[k];
+    //                         var duty_and_node: ProposerDutyAndNode := dv.sequence_proposer_duties_to_be_served[k];
     //                         var duty := duty_and_node.proposer_duty;
     //                         var hn := duty_and_node.node;
     //                         var dvc_state := dv.honest_nodes_states[hn];
@@ -563,8 +521,8 @@ module Invs_DV_Next_1
     //                         {
     //                             if k < index
     //                             {     
-    //                                 assert inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc_state, duty);
-    //                                 assert inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
+    //                                 assert inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_body(dvc_state, duty);
+    //                                 assert inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_body(dvc_state', duty);
     //                             }
     //                             else
     //                             {
@@ -573,19 +531,19 @@ module Invs_DV_Next_1
     //                                 lem_updated_all_rcvd_duties_f_serve_proposer_duty(dvc, new_duty, dvc');                                  
     //                                 assert dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {proposer_duty};
     //                                 assert proposer_duty in dvc'.all_rcvd_duties;                                
-    //                                 assert inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
+    //                                 assert inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_body(dvc_state', duty);
     //                             }
     //                         }
     //                         else
     //                         {
     //                             assert dvc_state == dvc_state';
-    //                             assert inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
+    //                             assert inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_body(dvc_state', duty);
     //                         }
                             
-    //                         assert inv_every_proposer_duty_before_dvn_att_index_was_delivered_body(dvc_state', duty);
+    //                         assert inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_body(dvc_state', duty);
     //                     }
                         
-    //                     assert inv_every_proposer_duty_before_dvn_att_index_was_delivered(dv');
+    //                     assert inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv');
 
     //                 case BlockConsensusDecided(id, decided_beacon_block) => 
                         
@@ -593,7 +551,7 @@ module Invs_DV_Next_1
 
     //                 case ImportedNewBlock(block) => 
 
-    //                 case ResendRandaoShares =>         
+    //                 case ResendRandaoRevealSignatureShare =>         
                         
     //                 case NoEvent => 
                         
@@ -605,7 +563,7 @@ module Invs_DV_Next_1
     // }
 
 
-    // lemma lem_inv_every_proposer_duty_before_dvn_att_index_was_delivered_dv_next(
+    // lemma lem_inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_dv_next(
     //     dv: DVState,
     //     event: DV_Block_Proposer_Spec.Event,
     //     dv': DVState
@@ -613,9 +571,9 @@ module Invs_DV_Next_1
     // requires inv_quorum_constraints(dv)    
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')  
-    // requires pred_unchanged_dvn_seq_of_att_duties(dv, dv')
-    // requires inv_every_proposer_duty_before_dvn_att_index_was_delivered(dv)
-    // ensures inv_every_proposer_duty_before_dvn_att_index_was_delivered(dv')
+    // requires inv_unchanged_dvn_seq_of_proposer_duties(dv, dv')
+    // requires inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv)
+    // ensures inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv')
     // {        
     //     match event 
     //     {
@@ -625,14 +583,14 @@ module Invs_DV_Next_1
     //             match nodeEvent
     //             {
     //                 case ServeProposerDuty(proposer_duty) =>     
-    //                     lem_inv_every_proposer_duty_before_dvn_att_index_was_delivered_f_serve_proposer_duty(
+    //                     lem_inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_f_serve_proposer_duty(
     //                             dv,
     //                             event,
     //                             dv'
     //                         );
 
     //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     lem_updated_all_rcvd_duties_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');    
+    //                     lem_updated_all_rcvd_duties_f_proposer_consensus_decided(dvc, id, decided_beacon_block, dvc');    
                         
     //                 case ReceiveRandaoShare(randao_share) =>                         
     //                     lem_updated_all_rcvd_duties_f_listen_for_randao_shares(dvc, randao_share, dvc');  
@@ -641,7 +599,7 @@ module Invs_DV_Next_1
     //                     var dvc_mod := f_add_block_to_bn(dvc, block);
     //                     lem_updated_all_rcvd_duties_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');
 
-    //                 case ResendRandaoShares =>         
+    //                 case ResendRandaoRevealSignatureShare =>         
     //                     lem_updated_all_rcvd_duties_f_resend_randao_share(dvc, dvc');
                         
     //                 case NoEvent => 
@@ -653,15 +611,15 @@ module Invs_DV_Next_1
     //     }        
     // }   
     
-    // lemma lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_dv_next(
+    // lemma lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_dv_next(
     //     dv: DVState,
     //     event: DV_Block_Proposer_Spec.Event,
     //     dv': DVState
     // )    
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')    
-    // requires inv_no_active_consensus_instance_before_receiving_an_proposer_duty(dv)  
-    // ensures inv_no_active_consensus_instance_before_receiving_an_proposer_duty(dv')
+    // requires inv_no_active_consensus_instance_before_receiving_a_proposer_duty(dv)  
+    // ensures inv_no_active_consensus_instance_before_receiving_a_proposer_duty(dv')
     // {        
     //     match event 
     //     {
@@ -672,25 +630,25 @@ module Invs_DV_Next_1
     //             match nodeEvent
     //             {
     //                 case ServeProposerDuty(proposer_duty) =>                                                                     
-    //                     lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');                                                
+    //                     lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');                                                
                         
     //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
+    //                     if f_proposer_consensus_decided.requires(dvc, id, decided_beacon_block)
     //                     {
-    //                         lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
+    //                         lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_proposer_consensus_decided(dvc, id, decided_beacon_block, dvc');                                                
     //                     }
 
     //                 case ReceiveRandaoShare(randao_share) =>                         
-    //                     lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
+    //                     lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');                        
                        
     //                 case ImportedNewBlock(block) => 
     //                     var dvc_mod := f_add_block_to_bn(dvc, block);
-    //                     lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
-    //                     assert inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc_mod);
-    //                     lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    //                     assert inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc');
+    //                     lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc_mod);
+    //                     lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc');
                     
-    //                 case ResendRandaoShares =>                                                                      
+    //                 case ResendRandaoRevealSignatureShare =>                                                                      
 
     //                 case NoEvent => 
                         
@@ -709,9 +667,9 @@ module Invs_DV_Next_1
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')    
     // requires inv_latest_served_duty_is_rcvd_duty(dv)
-    // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    // requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
-    // requires inv_no_active_consensus_instance_before_receiving_an_proposer_duty(dv)
+    // requires inv_is_sequence_proposer_duties_to_be_serves_orders(dv)
+    // requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
+    // requires inv_no_active_consensus_instance_before_receiving_a_proposer_duty(dv)
     // requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty(dv)  
     // ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty(dv')
     // {        
@@ -725,17 +683,17 @@ module Invs_DV_Next_1
     //             {
     //                 case ServeProposerDuty(proposer_duty) =>   
     //                     assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
-    //                     assert inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, proposer_duty);
-    //                     assert inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc);
+    //                     assert inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc, proposer_duty);
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc);
     //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc);                                           
     //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
     //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
                         
     //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
+    //                     if f_proposer_consensus_decided.requires(dvc, id, decided_beacon_block)
     //                     {
-    //                         assert inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc);
-    //                         lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');
+    //                         assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc);
+    //                         lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_proposer_consensus_decided(dvc, id, decided_beacon_block, dvc');
     //                         assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
     //                     }
 
@@ -744,17 +702,17 @@ module Invs_DV_Next_1
     //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
                        
     //                 case ImportedNewBlock(block) => 
-    //                     assert inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc);
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc);
                         
     //                     var dvc_mod := f_add_block_to_bn(dvc, block);
-    //                     lem_inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
-    //                     assert inv_no_active_consensus_instance_before_receiving_an_proposer_duty_body(dvc_mod);
+    //                     lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc_mod);
     //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
     //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc_mod);
     //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
     //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
 
-    //                 case ResendRandaoShares =>                                                                      
+    //                 case ResendRandaoRevealSignatureShare =>                                                                      
 
     //                 case NoEvent => 
                         
@@ -789,9 +747,9 @@ module Invs_DV_Next_1
     //                     assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc');
                         
     //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
+    //                     if f_proposer_consensus_decided.requires(dvc, id, decided_beacon_block)
     //                     {
-    //                         lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');
+    //                         lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_proposer_consensus_decided(dvc, id, decided_beacon_block, dvc');
     //                         assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc');
     //                     }
 
@@ -806,7 +764,7 @@ module Invs_DV_Next_1
     //                     lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
     //                     assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc');
 
-    //                 case ResendRandaoShares =>                                                                      
+    //                 case ResendRandaoRevealSignatureShare =>                                                                      
 
     //                 case NoEvent => 
                         
@@ -841,9 +799,9 @@ module Invs_DV_Next_1
     //                     assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
                         
     //                 case BlockConsensusDecided(id, decided_beacon_block) => 
-    //                     if f_att_consensus_decided.requires(dvc, id, decided_beacon_block)
+    //                     if f_proposer_consensus_decided.requires(dvc, id, decided_beacon_block)
     //                     {
-    //                         lem_inv_consensus_instances_only_for_rcvd_duties_body_f_att_consensus_decided(dvc, id, decided_beacon_block, dvc');
+    //                         lem_inv_consensus_instances_only_for_rcvd_duties_body_f_proposer_consensus_decided(dvc, id, decided_beacon_block, dvc');
     //                         assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
     //                     }
 
@@ -858,7 +816,7 @@ module Invs_DV_Next_1
     //                     lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
     //                     assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
 
-    //                 case ResendRandaoShares =>                                                                      
+    //                 case ResendRandaoRevealSignatureShare =>                                                                      
 
     //                 case NoEvent => 
                         

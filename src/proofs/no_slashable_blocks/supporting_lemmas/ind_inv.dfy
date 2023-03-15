@@ -108,7 +108,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     predicate invs_group_10(dv: DVState)       
     {                
         && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv)        
-        && inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+        && inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
         && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)        
         && inv_data_of_att_share_is_decided_value(dv)                     
     }
