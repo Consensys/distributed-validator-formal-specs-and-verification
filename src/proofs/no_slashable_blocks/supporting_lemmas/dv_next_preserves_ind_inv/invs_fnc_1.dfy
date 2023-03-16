@@ -1513,6 +1513,350 @@ module Fnc_Invs_1
     ensures inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(process')
     { }      
 
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_terminate_current_proposer_duty(
+        process: DVCState,
+        process': DVCState
+    )
+    requires f_terminate_current_proposer_duty.requires(process)
+    requires process' == f_terminate_current_proposer_duty(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_start_consensus_if_can_construct_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_start_consensus_if_can_construct_randao_share.requires(process)
+    requires process' == f_start_consensus_if_can_construct_randao_share(process).state    
+    requires inv_current_proposer_duty_is_rcvd_duty_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }      
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_listen_for_randao_shares(
+        process: DVCState, 
+        randao_share: RandaoShare,
+        process': DVCState)
+    requires f_listen_for_randao_shares.requires(process, randao_share)
+    requires process' == f_listen_for_randao_shares(process, randao_share).state   
+    requires inv_current_proposer_duty_is_rcvd_duty_body(process)
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { 
+        var slot := randao_share.slot;
+        var active_consensus_instances_on_beacon_blocks := process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+
+        if is_slot_for_current_or_future_instances(process, slot) 
+        {
+            var process_with_new_randao_share := 
+                process.(
+                    rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
+                                                                                    {randao_share} ]
+                );   
+            lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_start_consensus_if_can_construct_randao_share(
+                process_with_new_randao_share,
+                process'
+            );
+        }
+        else
+        { }
+    }      
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_check_for_next_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires process' == f_check_for_next_duty(process, proposer_duty).state
+    requires proposer_duty in process.all_rcvd_duties
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_broadcast_randao_share(
+        dvc: DVCState,
+        proposer_duty: ProposerDuty, 
+        dvc': DVCState
+    )
+    requires f_broadcast_randao_share.requires(dvc, proposer_duty)
+    requires dvc' == f_broadcast_randao_share(dvc, proposer_duty).state
+    requires proposer_duty in dvc.all_rcvd_duties
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc')
+    { 
+        var slot := proposer_duty.slot;
+        var fork_version := bn_get_fork_version(slot);    
+        var epoch := compute_epoch_at_slot(slot);
+        var randao_reveal_signing_root := compute_randao_reveal_signing_root(slot);
+        var randao_reveal_signature_share := rs_sign_randao_reveal(epoch, fork_version, randao_reveal_signing_root, dvc.rs);
+        var randao_share := 
+            RandaoShare(
+                proposer_duty := proposer_duty,
+                slot := slot,
+                signing_root := randao_reveal_signing_root,
+                signature := randao_reveal_signature_share
+            );
+        var process_after_adding_randao_share :=
+            dvc.(
+                    randao_shares_to_broadcast := dvc.randao_shares_to_broadcast[proposer_duty.slot := randao_share]
+            );
+
+        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_check_for_next_duty(
+            process_after_adding_randao_share,
+            proposer_duty,
+            dvc'
+        );
+    }
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_serve_proposer_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )  
+    requires f_serve_proposer_duty.requires(process, proposer_duty)
+    requires process' == f_serve_proposer_duty(process, proposer_duty).state
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    {
+        var process_rcvd_duty := 
+            process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
+        var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process_rcvd_duty);
+        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_terminate_current_proposer_duty(
+            process_rcvd_duty,
+            process_after_stopping_active_consensus_instance
+        );
+        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_broadcast_randao_share(
+            process_after_stopping_active_consensus_instance,
+            proposer_duty,
+            process'
+        );   
+    } 
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_block_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        block: BeaconBlock, 
+        process': DVCState
+    )
+    requires f_block_consensus_decided.requires(process, id, block)
+    requires process' == f_block_consensus_decided(process, id, block).state 
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_listen_for_block_signature_shares(
+        process: DVCState,
+        block_share: SignedBeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_block_signature_shares.requires(process, block_share)
+    requires process' == f_listen_for_block_signature_shares(process, block_share).state
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_resend_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_randao_share.requires(process)
+    requires process' == f_resend_randao_share(process).state    
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body_f_resend_block_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_block_share.requires(process)
+    requires process' == f_resend_block_share(process).state    
+    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process)
+    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_terminate_current_proposer_duty(
+        process: DVCState,
+        process': DVCState
+    )
+    requires f_terminate_current_proposer_duty.requires(process)
+    requires process' == f_terminate_current_proposer_duty(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_start_consensus_if_can_construct_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_start_consensus_if_can_construct_randao_share.requires(process)
+    requires process' == f_start_consensus_if_can_construct_randao_share(process).state    
+    requires inv_current_proposer_duty_is_rcvd_duty_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }      
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_randao_shares(
+        process: DVCState, 
+        randao_share: RandaoShare,
+        process': DVCState)
+    requires f_listen_for_randao_shares.requires(process, randao_share)
+    requires process' == f_listen_for_randao_shares(process, randao_share).state   
+    requires inv_current_proposer_duty_is_rcvd_duty_body(process)
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { 
+        var slot := randao_share.slot;
+        var active_consensus_instances_on_beacon_blocks := process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+
+        if is_slot_for_current_or_future_instances(process, slot) 
+        {
+            var process_with_new_randao_share := 
+                process.(
+                    rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
+                                                                                    {randao_share} ]
+                );   
+            lem_inv_consensus_instances_only_for_rcvd_duties_body_f_start_consensus_if_can_construct_randao_share(
+                process_with_new_randao_share,
+                process'
+            );
+        }
+        else
+        { }
+    }      
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_check_for_next_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires process' == f_check_for_next_duty(process, proposer_duty).state
+    requires proposer_duty in process.all_rcvd_duties
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_broadcast_randao_share(
+        dvc: DVCState,
+        proposer_duty: ProposerDuty, 
+        dvc': DVCState
+    )
+    requires f_broadcast_randao_share.requires(dvc, proposer_duty)
+    requires dvc' == f_broadcast_randao_share(dvc, proposer_duty).state
+    requires proposer_duty in dvc.all_rcvd_duties
+    requires inv_consensus_instances_only_for_rcvd_duties_body(dvc)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(dvc')
+    { 
+        var slot := proposer_duty.slot;
+        var fork_version := bn_get_fork_version(slot);    
+        var epoch := compute_epoch_at_slot(slot);
+        var randao_reveal_signing_root := compute_randao_reveal_signing_root(slot);
+        var randao_reveal_signature_share := rs_sign_randao_reveal(epoch, fork_version, randao_reveal_signing_root, dvc.rs);
+        var randao_share := 
+            RandaoShare(
+                proposer_duty := proposer_duty,
+                slot := slot,
+                signing_root := randao_reveal_signing_root,
+                signature := randao_reveal_signature_share
+            );
+        var process_after_adding_randao_share :=
+            dvc.(
+                    randao_shares_to_broadcast := dvc.randao_shares_to_broadcast[proposer_duty.slot := randao_share]
+            );
+
+        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_check_for_next_duty(
+            process_after_adding_randao_share,
+            proposer_duty,
+            dvc'
+        );
+    }
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_serve_proposer_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )  
+    requires f_serve_proposer_duty.requires(process, proposer_duty)
+    requires process' == f_serve_proposer_duty(process, proposer_duty).state
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    {
+        var process_rcvd_duty := 
+            process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
+        var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process_rcvd_duty);
+        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_terminate_current_proposer_duty(
+            process_rcvd_duty,
+            process_after_stopping_active_consensus_instance
+        );
+        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_broadcast_randao_share(
+            process_after_stopping_active_consensus_instance,
+            proposer_duty,
+            process'
+        );   
+    } 
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_block_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        block: BeaconBlock, 
+        process': DVCState
+    )
+    requires f_block_consensus_decided.requires(process, id, block)
+    requires process' == f_block_consensus_decided(process, id, block).state 
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_block_signature_shares(
+        process: DVCState,
+        block_share: SignedBeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_block_signature_shares.requires(process, block_share)
+    requires process' == f_listen_for_block_signature_shares(process, block_share).state
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_resend_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_randao_share.requires(process)
+    requires process' == f_resend_randao_share(process).state    
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }  
+
+    lemma lem_inv_consensus_instances_only_for_rcvd_duties_body_f_resend_block_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_block_share.requires(process)
+    requires process' == f_resend_block_share(process).state    
+    requires inv_consensus_instances_only_for_rcvd_duties_body(process)
+    ensures inv_consensus_instances_only_for_rcvd_duties_body(process')
+    { }  
+
     // lemma lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_terminate_current_proposer_duty(
     //     process: DVCState,
     //     process': DVCState

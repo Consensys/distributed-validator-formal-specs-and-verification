@@ -270,6 +270,36 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && inv_every_proposer_duty_before_dvn_proposer_index_was_delivered_body(dvc, duty)
     }   
 
+    predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc: DVCState)
+    {
+        forall k: Slot | k in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys ::
+            exists rcvd_duty: ProposerDuty :: 
+                && rcvd_duty in dvc.all_rcvd_duties
+                && rcvd_duty.slot == k
+    }
+
+    predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty(dv: DVState)
+    {
+        forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
+            && var dvc := dv.honest_nodes_states[hn];
+            && inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc)
+    }
+
+    predicate inv_consensus_instances_only_for_rcvd_duties_body(dvc: DVCState)
+    {
+        forall k: Slot | k in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
+            ::
+            && dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[k].proposer_duty in dvc.all_rcvd_duties                
+            && dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[k].proposer_duty.slot == k
+    }
+
+    predicate inv_consensus_instances_only_for_rcvd_duties(dv: DVState)
+    {
+        forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
+            && var dvc := dv.honest_nodes_states[hn];
+            && inv_consensus_instances_only_for_rcvd_duties_body(dvc)
+    }
+
     // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc: DVCState, next_duty: ProposerDuty)
     // {
     //    forall rcvd_duty: ProposerDuty | rcvd_duty in dvc.all_rcvd_duties ::
@@ -1073,45 +1103,6 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     inv_proposer_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(dv, n)
     // }    
 
-
-
-
-
- 
-
-
-    
- 
-
-    // predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc: DVCState)
-    // {
-    //     forall k: Slot | k in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys ::
-    //         exists rcvd_duty: ProposerDuty :: 
-    //             && rcvd_duty in dvc.all_rcvd_duties
-    //             && rcvd_duty.slot == k
-    // }
-
-    // predicate inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty(dv: DVState)
-    // {
-    //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
-    //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc)
-    // }
-
-    // predicate inv_consensus_instances_only_for_rcvd_duties_body(dvc: DVCState)
-    // {
-    //     forall k: Slot | k in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
-    //         ::
-    //         && dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[k].proposer_duty in dvc.all_rcvd_duties                
-    //         && dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[k].proposer_duty.slot == k
-    // }
-
-    // predicate inv_consensus_instances_only_for_rcvd_duties(dv: DVState)
-    // {
-    //     forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
-    //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_consensus_instances_only_for_rcvd_duties_body(dvc)
-    // }
 
     // predicate inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(hn_state: DVCState, s: Slot)
     // requires s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
