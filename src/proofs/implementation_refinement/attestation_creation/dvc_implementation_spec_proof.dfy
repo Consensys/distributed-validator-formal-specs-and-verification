@@ -19,7 +19,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         var attestation_slashing_db := acvc.slashing_db.attestations[pubkey];
         AttestationConsensusValidityCheckState(
             attestation_duty := attestation_duty,
-            validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+            validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
         )
     }    
 

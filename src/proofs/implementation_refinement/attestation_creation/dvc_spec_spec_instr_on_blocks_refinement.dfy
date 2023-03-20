@@ -38,11 +38,11 @@ module Spec_Spec_NonInstr_Refinement
         && dvci.latest_proposer_duty == dvcni.latest_proposer_duty
         && dvci.block_slashing_db == dvcni.block_slashing_db
         && dvci.rcvd_randao_shares == dvcni.rcvd_randao_shares
-        && dvci.rcvd_signed_beacon_blocks == dvcni.rcvd_signed_beacon_blocks
+        && dvci.rcvd_block_shares == dvcni.rcvd_block_shares
         && dvci.construct_complete_signed_randao_reveal == dvcni.construct_complete_signed_randao_reveal
         && dvci.construct_complete_signed_block == dvcni.construct_complete_signed_block
         && dvci.randao_shares_to_broadcast == dvcni.randao_shares_to_broadcast
-        && dvci.signed_beacon_blocks_to_broadcast == dvcni.signed_beacon_blocks_to_broadcast
+        && dvci.block_shares_to_broadcast == dvcni.block_shares_to_broadcast
         && dvci.peers == dvcni.peers
         && dvci.dv_pubkey == dvcni.dv_pubkey
         && dvci.future_consensus_instances_on_blocks_already_decided == dvcni.future_consensus_instances_on_blocks_already_decided

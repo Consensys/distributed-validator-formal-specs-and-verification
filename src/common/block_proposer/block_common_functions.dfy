@@ -130,25 +130,7 @@ module Block_Common_Functions{
     }
 
     
-
-    // consensus_is_valid_beacon_block is for line 174
-    /*
-    method consensus_is_valid_beacon_block(
-        block_slashing_db: set<SlashingDBBlock>,
-        block: BeaconBlock,
-        proposer_duty: ProposerDuty,
-        complete_signed_randao_reveal: BLSSignature)
-    returns (b: bool) 
-    {
-        // TODO: Add correct block.proposer_index check
-        var slashable: bool;
-        slashable := is_slashable_block(block_slashing_db, block, proposer_duty.pubkey);
-        b := block.slot == proposer_duty.slot &&            
-             block.body.randao_reveal == complete_signed_randao_reveal &&
-             !slashable;                 
-    }
-    */
-    predicate method consensus_is_valid_beacon_block(
+   predicate method ci_decision_is_valid_beacon_block(
         block_slashing_db: set<SlashingDBBlock>,
         block: BeaconBlock,
         proposer_duty: ProposerDuty,
