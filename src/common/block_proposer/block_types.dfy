@@ -199,7 +199,7 @@ module Block_Types
 
     datatype Event = 
         | ServeProposerDuty(proposer_duty: ProposerDuty)
-        | BlockConsensusDecided(id: Slot, block: BeaconBlock)
+        | BlockConsensusDecided(id: Slot, decided_beacon_block: BeaconBlock)
         | ReceiveRandaoShare(randao_share: RandaoShare)
         | ReceiveSignedBeaconBlock(block_share: SignedBeaconBlock)
         | ImportedNewBlock(block: BeaconBlock)       

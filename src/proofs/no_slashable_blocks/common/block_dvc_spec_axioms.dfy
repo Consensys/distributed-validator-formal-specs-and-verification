@@ -10,7 +10,7 @@ module DVC_Block_Proposer_Spec_Axioms
 
     datatype BNState = BNState(
         state_roots_of_imported_blocks: set<Root>,
-        blocks_submitted: seq<SignedBeaconBlock>    
+        submitted_blocks: seq<SignedBeaconBlock>    
     )  
 
     datatype RSState = RSState(

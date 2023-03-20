@@ -40,14 +40,14 @@ module DVC_Block_Proposer_Spec_Instr {
             BlockConsensusValidityCheckState(
                     proposer_duty := proposer_duty,
                     complete_signed_randao_reveal := complete_signed_randao_reveal,
-                    validityPredicate := (block: BeaconBlock) => consensus_is_valid_beacon_block(
+                    validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
                                                                     block_slashing_db, 
                                                                     block, 
                                                                     proposer_duty,
                                                                     complete_signed_randao_reveal)
             );
         
-        assert (bcvc.validityPredicate == ((block: BeaconBlock) => consensus_is_valid_beacon_block(
+        assert (bcvc.validityPredicate == ((block: BeaconBlock) => ci_decision_is_valid_beacon_block(
                                                                     block_slashing_db, 
                                                                     block, 
                                                                     bcvc.proposer_duty,
@@ -144,7 +144,7 @@ module DVC_Block_Proposer_Spec_Instr {
             map it | it in m.Items
                 ::
                 it.0 := it.1.(
-                    validityPredicate := (block: BeaconBlock) => consensus_is_valid_beacon_block(
+                    validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
                                                                     new_block_slashing_db, 
                                                                     block, 
                                                                     it.1.proposer_duty,
@@ -177,10 +177,10 @@ module DVC_Block_Proposer_Spec_Instr {
         latest_proposer_duty: Optional<ProposerDuty>,
         block_slashing_db: set<SlashingDBBlock>,
         rcvd_randao_shares: map<Slot, set<RandaoShare>>,
-        rcvd_signed_beacon_blocks: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
+        rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
-        signed_beacon_blocks_to_broadcast: map<Slot, SignedBeaconBlock>, 
+        block_shares_to_broadcast: map<Slot, SignedBeaconBlock>, 
         randao_shares_to_broadcast: map<Slot, RandaoShare>,
         peers: set<BLSPubkey>,        
         dv_pubkey: BLSPubkey,
@@ -229,16 +229,16 @@ module DVC_Block_Proposer_Spec_Instr {
         rs_pubkey: BLSPubkey
     )
     requires && s.bn.state_roots_of_imported_blocks == {}
-             && s.bn.blocks_submitted == []
+             && s.bn.submitted_blocks == []
     {
         s == DVCState(
             // proposer_duty_queue := [],
             future_consensus_instances_on_blocks_already_decided := map[],
-            signed_beacon_blocks_to_broadcast := map[],
+            block_shares_to_broadcast := map[],
             randao_shares_to_broadcast := map[],
             block_slashing_db := initial_block_slashing_db,
             rcvd_randao_shares := map[],
-            rcvd_signed_beacon_blocks := map[],
+            rcvd_block_shares := map[],
             current_proposer_duty := None,
             latest_proposer_duty := None,
             bn := s.bn,
@@ -317,7 +317,7 @@ module DVC_Block_Proposer_Spec_Instr {
         getEmptyOuputs().(
             sent_block_shares := outputs1.sent_block_shares + outputs2.sent_block_shares,
             sent_randao_shares := outputs1.sent_randao_shares + outputs2.sent_randao_shares,
-            submitted_signed_blocks := outputs1.submitted_signed_blocks + outputs2.submitted_signed_blocks
+            submitted_blocks := outputs1.submitted_blocks + outputs2.submitted_blocks
         )
     }
 
@@ -490,7 +490,7 @@ module DVC_Block_Proposer_Spec_Instr {
                && proposer_duty.slot !in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
             then                      
                 var validityPredicate := ((block: BeaconBlock)  => 
-                                            consensus_is_valid_beacon_block(
+                                            ci_decision_is_valid_beacon_block(
                                                 process.block_slashing_db, 
                                                 block, 
                                                 process.current_proposer_duty.safe_get(),
@@ -545,7 +545,7 @@ module DVC_Block_Proposer_Spec_Instr {
             var block_share := SignedBeaconBlock(block, block_signature);
             var slot := block.slot;
             var process_after_broadcasting_block_share := process.(                
-                    signed_beacon_blocks_to_broadcast := process.signed_beacon_blocks_to_broadcast[slot := block_share]
+                    block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share]
                 );
             var multicastOutputs := getEmptyOuputs().(
                                         sent_block_shares := multicast(block_share, process.peers)
@@ -590,25 +590,26 @@ module DVC_Block_Proposer_Spec_Instr {
 
         if is_slot_for_current_or_future_instances(process, slot) then
             var data := block_share.block;
-            var rcvd_signed_beacon_blocks_db_at_slot := getOrDefault(process.rcvd_signed_beacon_blocks, slot, map[]);
+            var rcvd_block_shares_db_at_slot := getOrDefault(process.rcvd_block_shares, slot, map[]);
             var process_with_new_block_share :=
                 process.(
-                    rcvd_signed_beacon_blocks := 
-                        process.rcvd_signed_beacon_blocks[
+                    rcvd_block_shares := 
+                        process.rcvd_block_shares[
                             slot := 
-                                rcvd_signed_beacon_blocks_db_at_slot[
+                                rcvd_block_shares_db_at_slot[
                                     data := 
-                                        getOrDefault(rcvd_signed_beacon_blocks_db_at_slot, data, {}) + 
+                                        getOrDefault(rcvd_block_shares_db_at_slot, data, {}) + 
                                         {block_share}
                                     ]
                         ]
                 );            
-            if process.construct_complete_signed_block(process_with_new_block_share.rcvd_signed_beacon_blocks[slot][data]).isPresent() then                
-                    var complete_signed_block := process.construct_complete_signed_block(process_with_new_block_share.rcvd_signed_beacon_blocks[slot][data]).safe_get();                      
+            if process.construct_complete_signed_block(process_with_new_block_share.rcvd_block_shares[slot][data]).isPresent() 
+            then                
+                    var complete_signed_block := process.construct_complete_signed_block(process_with_new_block_share.rcvd_block_shares[slot][data]).safe_get();                      
                     f_wrap_DVCState_with_Outputs(
                         process_with_new_block_share,
                         getEmptyOuputs().(
-                                submitted_signed_blocks := {complete_signed_block}
+                                submitted_blocks := {complete_signed_block}
                             )
                     )
             else 
@@ -687,8 +688,8 @@ module DVC_Block_Proposer_Spec_Instr {
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
-                signed_beacon_blocks_to_broadcast := process.signed_beacon_blocks_to_broadcast - consensus_instances_on_blocks_already_decided.Keys,
-                rcvd_signed_beacon_blocks := process.rcvd_signed_beacon_blocks - consensus_instances_on_blocks_already_decided.Keys                    
+                block_shares_to_broadcast := process.block_shares_to_broadcast - consensus_instances_on_blocks_already_decided.Keys,
+                rcvd_block_shares := process.rcvd_block_shares - consensus_instances_on_blocks_already_decided.Keys                    
             );   
 
         if process_after_stopping_consensus_instance.current_proposer_duty.isPresent() && process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot in consensus_instances_on_blocks_already_decided then
@@ -716,8 +717,8 @@ module DVC_Block_Proposer_Spec_Instr {
             state := process,
             outputs := getEmptyOuputs().(
                 sent_block_shares :=
-                    if process.signed_beacon_blocks_to_broadcast.Keys != {} then
-                        multicast_multiple(process.signed_beacon_blocks_to_broadcast.Values, process.peers)                        
+                    if process.block_shares_to_broadcast.Keys != {} then
+                        multicast_multiple(process.block_shares_to_broadcast.Values, process.peers)                        
                     else
                         {}
                     )

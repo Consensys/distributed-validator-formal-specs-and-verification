@@ -442,7 +442,7 @@ abstract module Block_DVC_Impl
             var attestations := slashing_db.get_proposals(dv_pubkey);
             Repr := Repr + slashing_db.Repr;
 
-            valid := consensus_is_valid_beacon_block(attestations, data, proposer_duty, randao_reveal);             
+            valid := ci_decision_is_valid_beacon_block(attestations, data, proposer_duty, randao_reveal);             
         }        
     }    
 }

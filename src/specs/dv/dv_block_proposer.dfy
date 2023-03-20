@@ -203,7 +203,7 @@ module DV_Block_Proposer_Spec
                 && share.block == beacon_block
     }
 
-    predicate signed_beacon_blocksigner_threshold(
+    predicate signed_beacon_block_signer_threshold(
         all_nodes: set<BLSPubkey>,
         signed_beacon_blocks: set<SignedBeaconBlock>,
         signing_root: Root
@@ -218,7 +218,6 @@ module DV_Block_Proposer_Spec
                         signer;
         && |signers| >= quorum(|all_nodes|)
         && signers <= all_nodes
-           
     }    
 
     predicate construct_complete_signed_block_assumptions_forward(
@@ -232,7 +231,7 @@ module DV_Block_Proposer_Spec
                 signed_beacon_blocks: set<SignedBeaconBlock> 
             |
             && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, beacon_block)
-            && signed_beacon_blocksigner_threshold(all_nodes, signed_beacon_blocks, signing_root) 
+            && signed_beacon_block_signer_threshold(all_nodes, signed_beacon_blocks, signing_root) 
             ::
             && construct_complete_signed_block(signed_beacon_blocks).isPresent()
             && var complete_signed_beacon_block := construct_complete_signed_block(signed_beacon_blocks).safe_get();
@@ -254,7 +253,7 @@ module DV_Block_Proposer_Spec
     {
         && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, beacon_block)
         && var signing_root := compute_block_signing_root(beacon_block);
-        && signed_beacon_blocksigner_threshold(all_nodes, signed_beacon_blocks, signing_root)         
+        && signed_beacon_block_signer_threshold(all_nodes, signed_beacon_blocks, signing_root)         
         && var complete_signed_beacon_block := construct_complete_signed_block(signed_beacon_blocks).safe_get();
         && verify_bls_signature(
                     signing_root,
@@ -315,7 +314,7 @@ module DV_Block_Proposer_Spec
 
     predicate is_empty_bn(bn: BNState)
     {
-        && bn.blocks_submitted == []
+        && bn.submitted_blocks == []
         && bn.state_roots_of_imported_blocks == {}
     }
 
@@ -358,7 +357,7 @@ module DV_Block_Proposer_Spec
         && s.index_next_proposer_duty_to_be_served == 0   
         // //
         && ( forall n | n in s.honest_nodes_states.Keys ::
-                |s.honest_nodes_states[n].bn.blocks_submitted| == 0    
+                |s.honest_nodes_states[n].bn.submitted_blocks| == 0    
         )
     }
 
@@ -499,7 +498,7 @@ module DV_Block_Proposer_Spec
             match event 
             case ServeProposerDuty(proposer_duty) => 
                 && f_serve_proposer_duty.requires(s, proposer_duty)
-            case BlockConsensusDecided(id, decided_attestation_data) => 
+            case BlockConsensusDecided(id, decided_beacon_block) => 
                 true
             case ReceiveRandaoShare(randao_share) => 
                 true
@@ -623,7 +622,7 @@ module DV_Block_Proposer_Spec
             forall cid | cid in s.consensus_instances_on_beacon_block.Keys ::
                 var output := 
                     if nodeEvent.BlockConsensusDecided? && nodeEvent.id == cid then 
-                        Some(Decided(node, nodeEvent.block))
+                        Some(Decided(node, nodeEvent.decided_beacon_block))
                     else
                         None
                     ;
@@ -659,7 +658,7 @@ module DV_Block_Proposer_Spec
                 && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
     {
         && var new_node_state := s'.honest_nodes_states[node];
-        && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_signed_blocks
+        && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_blocks
         && (
             if nodeEvent.ServeProposerDuty? then
                 var proposer_duty_to_be_served := s.sequence_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];
