@@ -522,4 +522,10 @@ module Helper_Sets_Lemmas {
     ensures S1  <= S3
     {}
 
+    lemma lem_member_of_subset_is_member_of_superset<T>(m: T, S1: set<T>, S2: set<T>)
+    requires m in S1
+    requires S1 <= S2 
+    ensures  m in S2
+    {}
+
 }
