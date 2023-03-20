@@ -393,52 +393,7 @@ module Invs_DV_Next_3
         assert dv.construct_signed_attestation_signature == dv'.construct_signed_attestation_signature;
     }
 
-    lemma lem_inv_all_in_transit_messages_were_sent_body_network_spec_next<M>(
-        e: Network<M>,
-        e': Network<M>,
-        n: BLSPubkey,
-        messagesToBeSent: set<MessaageWithRecipient<M>>,
-        messagesReceived: set<M>
-    )
-    requires NetworkSpec.Next(e, e', n, messagesToBeSent, messagesReceived)
-    requires inv_all_in_transit_messages_were_sent_body(e)
-    ensures inv_all_in_transit_messages_were_sent_body(e')
-    {}
 
-    
-    lemma lem_inv_all_in_transit_messages_were_sent_dv_next(
-        dv: DVState,
-        event: DV.Event,
-        dv': DVState
-    )    
-    requires NextEventPreCond(dv, event)
-    requires NextEvent(dv, event, dv')    
-    requires inv_all_in_transit_messages_were_sent(dv)
-    ensures inv_all_in_transit_messages_were_sent(dv')    
-    {
-        var n: BLSPubkey,
-            messagesToBeSent: set<MessaageWithRecipient<AttestationShare>>,
-            messagesReceived: set<AttestationShare> 
-            :|
-            NetworkSpec.Next<AttestationShare>(
-                dv.att_network, 
-                dv'.att_network, 
-                n, 
-                messagesToBeSent, 
-                messagesReceived);
-
-        lem_inv_all_in_transit_messages_were_sent_body_network_spec_next<AttestationShare>(
-                dv.att_network, 
-                dv'.att_network, 
-                n, 
-                messagesToBeSent, 
-                messagesReceived);  
-    }
-
-    lemma lem_inv_all_in_transit_messages_were_sent_invNetwork(dv: DVState)
-    requires inv_all_in_transit_messages_were_sent(dv)
-    ensures invNetwork(dv)
-    {}
 
     lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(
         dv: DVState,
@@ -671,42 +626,7 @@ module Invs_DV_Next_3
         }        
     }  
 
-    lemma lem_inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties_new_body_dv_next(
-        dv: DVState,
-        event: DV.Event,
-        dv': DVState
-    )    
-    requires NextEvent.requires(dv, event, dv')  
-    requires NextEvent(dv, event, dv')  
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
-    ensures inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv')
-    {        
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var dvc := dv.honest_nodes_states[node];
-                var dvc' := dv'.honest_nodes_states[node];   
-                
-                match nodeEvent
-                {
-                    case ServeAttestationDuty(attestation_duty) =>                           
-                        
-                    case AttConsensusDecided(id, decided_attestation_data) => 
-                        
-                    case ReceivedAttestationShare(attestation_share) =>                         
-                       
-                    case ImportedNewBlock(block) => 
-                
-                    case ResendAttestationShares =>                                                                      
-
-                    case NoEvent => 
-                        
-                }
-                
-            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                
-        }   
-    }      
+     
 
     lemma lem_inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_dv_next(
         dv: DVState,
@@ -966,5 +886,69 @@ module Invs_DV_Next_3
                 
         }   
     }
+
+    // lemma lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_dv_next(
+    //     dv: DVState,
+    //     event: DV_Block_Proposer_Spec.Event,
+    //     dv': DVState
+    // )    
+    // requires NextEventPreCond(dv, event)
+    // requires NextEvent(dv, event, dv')    
+    // requires inv_latest_served_duty_is_rcvd_duty(dv)
+    // requires inv_is_sequence_proposer_duties_to_be_serves_orders(dv)
+    // requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
+    // requires inv_no_active_consensus_instance_before_receiving_a_proposer_duty(dv)
+    // requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty(dv)  
+    // ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty(dv')
+    // {        
+    //     match event 
+    //     {
+    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+    //             var dvc := dv.honest_nodes_states[node];
+    //             var dvc' := dv'.honest_nodes_states[node];                
+                
+    //             match nodeEvent
+    //             {
+    //                 case ServeProposerDuty(proposer_duty) =>   
+    //                     assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
+    //                     assert inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc, proposer_duty);
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc);
+    //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc);                                           
+    //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+    //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
+                        
+    //                 case BlockConsensusDecided(id, decided_beacon_block) => 
+    //                     if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
+    //                     {
+    //                         assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc);
+    //                         lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');
+    //                         assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
+    //                     }
+
+    //                 case ReceiveRandaoShare(randao_share) =>                         
+    //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');
+    //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
+                       
+    //                 case ImportedNewBlock(block) => 
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc);
+                        
+    //                     var dvc_mod := f_add_block_to_bn(dvc, block);
+    //                     lem_inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
+    //                     assert inv_no_active_consensus_instance_before_receiving_a_proposer_duty_body(dvc_mod);
+    //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
+    //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc_mod);
+    //                     lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+    //                     assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc');
+
+    //                 case ResendRandaoRevealSignatureShare =>                                                                      
+
+    //                 case NoEvent => 
+                        
+    //             }
+                
+    //         case AdversaryTakingStep(node, new_randao_shares_sent, messagesReceivedByTheNode) =>
+                
+    //     }   
+    // } 
 }   
         

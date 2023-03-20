@@ -163,13 +163,13 @@ module Proofs_Intermediate_Steps
             assert ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                         && duty.slot == s
                         && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-                        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                        && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                     );
 
             var db: set<SlashingDBAttestation>, duty: AttestationDuty :|
                         && duty.slot == s
                         && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-                        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                        && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                     ;
 
             assert inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, hn, s, db, duty, vp);

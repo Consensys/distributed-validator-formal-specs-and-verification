@@ -2786,7 +2786,7 @@ module Fnc_Invs_2
     // // ensures &&  var acvc := 
     // //             AttestationConsensusValidityCheckState(
     // //                 attestation_duty := attestation_duty,
-    // //                 validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+    // //                 validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
     // //             );
     // //         &&  var vp := acvc.validityPredicate;
     // //         &&  var hist_id := getOrDefault(s.att_slashing_db_hist, id, map[]);
@@ -2841,7 +2841,7 @@ module Fnc_Invs_2
         var acvc := 
             AttestationConsensusValidityCheckState(
                 attestation_duty := attestation_duty,
-                validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+                validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
             );
         var new_vp := acvc.validityPredicate;
         var new_active_attestation_consensus_instances := 
@@ -3038,7 +3038,7 @@ module Fnc_Invs_2
                         ::
                         validityPredicate(att_data)
                         <==> 
-                        consensus_is_valid_attestation_data(new_attestation_slashing_db, att_data, attestation_duty)
+                        ci_decision_is_valid_attestation_data(new_attestation_slashing_db, att_data, attestation_duty)
                 )
         {
             var validityPredicate := new_active_attestation_consensus_instances[slot].validityPredicate;
@@ -3047,7 +3047,7 @@ module Fnc_Invs_2
                         ::
                         validityPredicate(att_data)
                         <==> 
-                        consensus_is_valid_attestation_data(new_attestation_slashing_db, att_data, attestation_duty)
+                        ci_decision_is_valid_attestation_data(new_attestation_slashing_db, att_data, attestation_duty)
                     )
             ;
         }

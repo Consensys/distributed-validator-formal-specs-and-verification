@@ -14,6 +14,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 {
     import opened Block_Types 
     import opened Block_Common_Functions
+    import opened Block_Signing_Functions
     import opened Block_Consensus_Spec
     import opened Block_Network_Spec
     import opened DVC_Block_Proposer_Spec_Instr
@@ -47,6 +48,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                && ci.honest_nodes_status.Keys <= ci.all_nodes
                && ci.honest_nodes_validity_functions.Keys <= ci.honest_nodes_status.Keys
                && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
+    }
+
+    predicate same_honest_nodes_in_dv_and_ci(dv: DVState)
+    {
+        forall s: Slot ::
+            && var ci := dv.consensus_instances_on_beacon_block[s];            
+            && dv.all_nodes == ci.all_nodes
+            && dv.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
     }
 
     predicate inv_current_proposer_duty_is_rcvd_duty_body(dvc: DVCState)
@@ -299,6 +308,145 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && var dvc := dv.honest_nodes_states[hn];
             && inv_consensus_instances_only_for_rcvd_duties_body(dvc)
     }
+             
+    predicate inv_the_latest_proposer_duty_was_sent_from_dv(
+        s': DVState,
+        index_next_proposer_duty_to_be_served: nat,
+        proposer_duty: ProposerDuty,
+        node: BLSPubkey
+    )
+    {
+        && index_next_proposer_duty_to_be_served > 0
+        && var an := s'.sequence_proposer_duties_to_be_served[index_next_proposer_duty_to_be_served - 1];
+        && proposer_duty == an.proposer_duty
+        && node == an.node    
+    }   
+
+    predicate inv_all_in_transit_messages_were_sent_body<M>(e: Network<M>)
+    {
+         forall m | m in e.messagesInTransit::
+                m.message in e.allMessagesSent       
+    } 
+     
+    predicate inv_all_in_transit_messages_were_sent(dv: DVState)
+    {
+         forall m | m in dv.block_share_network.messagesInTransit::
+                m.message in dv.block_share_network.allMessagesSent       
+    } 
+
+    predicate inv_rcvd_block_shares_are_in_all_sent_messages_body(
+        dv: DVState,
+        dvc: DVCState
+    )
+    {
+        var rcvd_block_shares := dvc.rcvd_block_shares;
+
+        forall i, j |
+            && i in rcvd_block_shares.Keys 
+            && j in rcvd_block_shares[i]
+            ::
+            rcvd_block_shares[i][j] <= dv.block_share_network.allMessagesSent
+    }
+    
+    predicate invNetwork(
+        dv: DVState
+    )
+    {
+        forall m | m in dv.block_share_network.messagesInTransit
+            ::
+            m.message in dv.block_share_network.allMessagesSent       
+    }
+
+    predicate inv_rcvd_block_shares_are_in_all_sent_messages(
+        dv: DVState
+    )
+    {
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+            && var dvc := dv.honest_nodes_states[hn];
+            && inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, dvc)
+        
+    }
+
+    predicate inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(
+        dv: DVState,
+        hn: BLSPubkey, 
+        block_share: SignedBeaconBlock,
+        complete_signed_block: SignedBeaconBlock
+    )
+    {
+        && hn in dv.honest_nodes_states.Keys 
+        && block_share in dv.block_share_network.allMessagesSent
+        && block_share.block == complete_signed_block.block
+        && var block_signing_root := compute_block_signing_root(block_share.block);                                      
+        && verify_bls_signature(block_signing_root, block_share.signature, hn)
+    }
+
+    predicate inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv: DVState)
+    {
+        forall block: SignedBeaconBlock |
+            block in dv.all_blocks_created            
+            ::
+            exists hn, block_share: SignedBeaconBlock 
+                :: 
+                inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(dv, hn, block_share, block)
+    }
+   
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(
+        s: Slot,
+        proposer_duty: ProposerDuty,
+        block_slashing_db: set<SlashingDBBlock>,
+        vp: BeaconBlock -> bool,
+        complete_signed_randao_reveal: BLSSignature
+    )
+    {
+        && proposer_duty.slot == s
+        && (vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(block_slashing_db, block, proposer_duty, complete_signed_randao_reveal))
+    }
+
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv: DVState)
+    {
+        forall hn, s: Slot, vp |
+            && hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
+            && vp in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions[hn]
+            ::
+            exists proposer_duty, block_slashing_db, complete_signed_randao_reveal ::
+                inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(s, proposer_duty, block_slashing_db, vp, complete_signed_randao_reveal)
+    }    
+
+    predicate inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState)
+    {
+        forall cid |
+            && cid in dv.consensus_instances_on_beacon_block.Keys
+            && dv.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
+            ::
+            is_a_valid_decided_value(dv.consensus_instances_on_beacon_block[cid])
+    }  
+
+    predicate inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState)
+    {
+        forall cid |
+            && cid in dv.consensus_instances_on_beacon_block.Keys
+            && dv.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
+            ::
+            dv.consensus_instances_on_beacon_block[cid].decided_value.safe_get().slot == cid
+    }   
+
+    predicate inv_block_of_block_share_is_decided_value(dv: DVState)
+    {
+        forall hn, block_share |
+                && hn in dv.honest_nodes_states.Keys 
+                && block_share in dv.block_share_network.allMessagesSent
+                && var block_signing_root := compute_block_signing_root(block_share.block);                                      
+                && verify_bls_signature(block_signing_root, block_share.signature, hn)
+                ::
+                inv_block_of_block_share_is_decided_value_body(dv, block_share)
+    }  
+
+    predicate inv_block_of_block_share_is_decided_value_body(dv: DVState, block_share: SignedBeaconBlock)
+    {
+        && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.isPresent()
+        && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.safe_get() == block_share.block
+    }  
 
     // predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc: DVCState, next_duty: ProposerDuty)
     // {
@@ -338,105 +486,41 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_proposer_duty_body(dvc)
     // }
 
-    // predicate inv_rcvd_proposer_shares_is_in_all_messages_sent_single_node_state(
-    //     dv: DVState,
-    //     dvc: DVCState
-    // )
-    // {
-    //     var rcvd_proposer_shares := dvc.rcvd_proposer_shares;
 
-    //     forall i, j |
-    //         && i in rcvd_proposer_shares.Keys 
-    //         && j in rcvd_proposer_shares[i]
-    //         ::
-    //         rcvd_proposer_shares[i][j] <= dv.proposer_network.allMessagesSent
-    // }
 
-    // predicate inv_rcvd_proposer_shares_is_in_all_messages_sent_single_node(
+    // predicate inv_rcvd_block_shares_are_in_all_messages_sent_single_node(
     //     dv: DVState,
     //     n: BLSPubkey
     // )
     // requires n in dv.honest_nodes_states.Keys
     // {
-    //     inv_rcvd_proposer_shares_is_in_all_messages_sent_single_node_state(
+    //     inv_rcvd_block_shares_are_in_all_sent_messages_body(
     //         dv,
     //         dv.honest_nodes_states[n]
     //     )
     // }
 
-    // predicate inv_rcvd_proposer_shares_is_in_all_messages_sent(
+    // predicate inv_rcvd_block_shares_are_in_all_messages_sent(
     //     dv: DVState    
     // )
     // {
     //     forall n |
     //         n in dv.honest_nodes_states
     //         ::
-    //         inv_rcvd_proposer_shares_is_in_all_messages_sent_single_node(dv, n)
+    //         inv_rcvd_block_shares_are_in_all_messages_sent_single_node(dv, n)
     // }  
-
-    // predicate inv_exists_honest_dvc_that_sent_proposer_share_for_submitted_proposer_body(
-    //     dv: DVState,
-    //     hn: BLSPubkey, 
-    //     proposer_share: AttestationShare,
-    //     a: Attestation
-    // )
-    // {
-    //     && hn in dv.honest_nodes_states.Keys 
-    //     && proposer_share in dv.proposer_network.allMessagesSent
-    //     && proposer_share.data == a.data
-    //     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(proposer_share.data.target.epoch));
-    //     && var proposer_signing_root := compute_proposer_signing_root(proposer_share.data, fork_version);
-    //     && verify_bls_signature(proposer_signing_root, proposer_share.signature, hn)
-    // }
-
-    // predicate inv_exists_honest_dvc_that_sent_proposer_share_for_submitted_proposer(dv: DVState)
-    // {
-    //     forall a |
-    //         && a in dv.all_proposers_created
-    //         && is_valid_proposer(a, dv.dv_pubkey)
-    //         ::
-    //         exists hn, proposer_share: AttestationShare :: inv_exists_honest_dvc_that_sent_proposer_share_for_submitted_proposer_body(dv, hn, proposer_share, a)
-    // }
-
-    // predicate inv_data_of_proposer_share_is_decided_value(dv: DVState)
-    // {
-    //     forall hn, proposer_share |
-    //             && hn in dv.honest_nodes_states.Keys 
-    //             && proposer_share in dv.proposer_network.allMessagesSent
-    //             && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(proposer_share.data.target.epoch));                
-    //             && var proposer_signing_root := compute_proposer_signing_root(proposer_share.data, fork_version);
-    //             && verify_bls_signature(proposer_signing_root, proposer_share.signature, hn)
-    //         ::
-    //             inv_data_of_proposer_share_is_decided_value_body(dv, proposer_share)
-    // }  
-
-    // predicate inv_data_of_proposer_share_is_decided_value_body(dv: DVState, proposer_share: AttestationShare)
-    // {
-    //     && dv.consensus_instances_on_beacon_block.Event[proposer_share.data.slot].decided_value.isPresent()
-    //     && dv.consensus_instances_on_beacon_block.Event[proposer_share.data.slot].decided_value.safe_get() == proposer_share.data
-    // }  
-
-    // predicate inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState)
-    // {
-    //     forall cid |
-    //         && cid in dv.consensus_instances_on_beacon_block.Event.Keys
-    //         && dv.consensus_instances_on_beacon_block.Event[cid].decided_value.isPresent()
-    //         ::
-    //         is_a_valid_decided_value(dv.consensus_instances_on_beacon_block.Event[cid])
-    // }  
-
-
-    // predicate inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState)
-    // {
-    //     forall cid |
-    //         && cid in dv.consensus_instances_on_beacon_block.Event.Keys
-    //         && dv.consensus_instances_on_beacon_block.Event[cid].decided_value.isPresent()
-    //         ::
-    //         dv.consensus_instances_on_beacon_block.Event[cid].decided_value.safe_get().slot == cid
-    // }     
 
     
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc(
+
+
+
+
+
+
+  
+
+    
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(
     //     dv: DVState,
     //     n: BLSPubkey,
     //     cid: Slot
@@ -447,48 +531,48 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     var dvc := dv.honest_nodes_states[n];
     //     var acvc := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
 
-    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
+    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(
     //         cid, 
     //         acvc.proposer_duty, 
     //         acvc.validityPredicate
     //     ) 
     // }
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(
     //     dvc: DVCState,
     //     cid: Slot
     // )
     // requires cid in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
     // {
     //     var acvc := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
-    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
+    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(
     //         cid, 
     //         acvc.proposer_duty, 
     //         acvc.validityPredicate
     //     ) 
     // }     
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body_body(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(
     //     cid: Slot,
     //     proposer_duty: ProposerDuty,
     //     vp: AttestationData -> bool
     // )
     // {
-    //     exists proposer_slashing_db ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_body(cid, proposer_duty, proposer_slashing_db, vp)        
+    //     exists block_slashing_db ::
+    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp)        
     // }         
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(
     //     dvc: DVCState
     // )
     // {
     //     forall cid | 
     //         && cid in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
     //         ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc_2_body(dvc, cid)        
+    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(dvc, cid)        
     // }    
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dv(
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(
     //     dv: DVState
     // )
     // {
@@ -496,60 +580,40 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && n in dv.honest_nodes_states 
     //         && cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
     //         ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_for_dvc_single_dvc(dv, n, cid)
+    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(dv, n, cid)
     // }
 
-   
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_body(
-    //     s: Slot,
-    //     proposer_duty: ProposerDuty,
-    //     proposer_slashing_db: set<SlashingDBAttestation>,
-    //     vp: AttestationData -> bool
-    // )
-    // {
-    //     && proposer_duty.slot == s
-    //     && (vp == (ad: AttestationData) => consensus_is_valid_proposer_data(proposer_slashing_db, ad, proposer_duty))
-    // }
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db(dv: DVState)
-    // {
-    //     forall hn, s: Slot, vp |
-    //         && hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
-    //         && vp in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions[hn]
-    //         ::
-    //         exists proposer_duty, proposer_slashing_db ::
-    //             inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_body(s, proposer_duty, proposer_slashing_db, vp)
-    // }
 
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_dbi(dv: DVState)    
+    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveali(dv: DVState)    
     // {
     //     forall hn, s1: Slot, s2: Slot, vp, db2 |
     //         && hn in dv.honest_nodes_states.Keys
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && s2 in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys            
+    //         && s2 in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys            
     //         && s1 < s2
-    //         && hn in dv.consensus_instances_on_beacon_block.Event[s1].honest_nodes_validity_functions.Keys
-    //         && hn in dv.consensus_instances_on_beacon_block.Event[s2].honest_nodes_validity_functions.Keys
-    //         && vp in dv.consensus_instances_on_beacon_block.Event[s2].honest_nodes_validity_functions[hn]        
-    //         && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s2].Keys   
-    //         && db2 in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s2][vp]          
-    //         && dv.consensus_instances_on_beacon_block.Event[s1].decided_value.isPresent()
+    //         && hn in dv.consensus_instances_on_beacon_block[s1].honest_nodes_validity_functions.Keys
+    //         && hn in dv.consensus_instances_on_beacon_block[s2].honest_nodes_validity_functions.Keys
+    //         && vp in dv.consensus_instances_on_beacon_block[s2].honest_nodes_validity_functions[hn]        
+    //         && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s2].Keys   
+    //         && db2 in hn_state.block_consensus_engine_state.block_slashing_db_hist[s2][vp]          
+    //         && dv.consensus_instances_on_beacon_block[s1].decided_value.isPresent()
     //         ::                
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && dv.consensus_instances_on_beacon_block.Event[s1].decided_value.isPresent()
-    //         && var decided_proposer_data := dv.consensus_instances_on_beacon_block.Event[s1].decided_value.safe_get();
-    //         && var sdba := construct_SlashingDBAttestation_from_proposer_data(decided_proposer_data);
+    //         && dv.consensus_instances_on_beacon_block[s1].decided_value.isPresent()
+    //         && var decided_beacon_block := dv.consensus_instances_on_beacon_block[s1].decided_value.safe_get();
+    //         && var sdba := construct_SlashingDBAttestation_from_proposer_data(decided_beacon_block);
     //         && sdba in db2
     // }    
 
        
 
-    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_proposer_slashing_db_hist(dv: DVState)    
+    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_block_slashing_db_hist(dv: DVState)    
     // {
     //     forall hn |
     //         && hn in dv.honest_nodes_states.Keys          
     //         ::
-    //         inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_proposer_slashing_db_hist_body(
+    //         inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_block_slashing_db_hist_body(
     //             dv, 
     //             hn,
     //             dv.honest_nodes_states[hn],
@@ -557,7 +621,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         )                    
     // }       
 
-    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_proposer_slashing_db_hist_body(
+    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_block_slashing_db_hist_body(
     //     dv: DVState, 
     //     n: BLSPubkey,
     //     n_state: DVCState,
@@ -565,7 +629,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // )
     // {
     //     forall slot  |
-    //         && slot in n_state.block_consensus_engine_state.proposer_slashing_db_hist
+    //         && slot in n_state.block_consensus_engine_state.block_slashing_db_hist
     //         ::
     //         exists i: Slot :: 
     //             && i < index_next_proposer_duty_to_be_served
@@ -574,7 +638,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && an.node == n
     // }   
 
-    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_proposer_slashing_db_hist_a(dv: DVState)    
+    // predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duty_for_every_slot_in_block_slashing_db_hist_a(dv: DVState)    
     // {
     //     forall hn |
     //         && hn in dv.honest_nodes_states.Keys          
@@ -603,7 +667,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // )
     // {
     //     forall slot  |
-    //         && slot in n_state.block_consensus_engine_state.proposer_slashing_db_hist
+    //         && slot in n_state.block_consensus_engine_state.block_slashing_db_hist
     //         ::
     //         slot < get_upperlimit_active_instances(n_state)
     // }      
@@ -613,7 +677,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // )
     // {
     //     forall slot: Slot |
-    //         && slot in dvc.block_consensus_engine_state.proposer_slashing_db_hist
+    //         && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
     //         ::
     //         slot < get_upperlimit_active_instances(dvc)
     // }     
@@ -666,8 +730,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall slot |
     //         && slot in n_state.future_proposer_consensus_instances_already_decided.Keys
     //         ::
-    //         && dv.consensus_instances_on_beacon_block.Event[slot].decided_value.isPresent()
-    //         && n_state.future_proposer_consensus_instances_already_decided[slot] == dv.consensus_instances_on_beacon_block.Event[slot].decided_value.safe_get()
+    //         && dv.consensus_instances_on_beacon_block[slot].decided_value.isPresent()
+    //         && n_state.future_proposer_consensus_instances_already_decided[slot] == dv.consensus_instances_on_beacon_block[slot].decided_value.safe_get()
     // }  
 
     // predicate inv_slot_in_future_decided_data_is_correct(dv: DVState)    
@@ -694,34 +758,34 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         n_state.future_proposer_consensus_instances_already_decided[slot].slot == slot
     // }       
 
-    // predicate inv_active_consensus_instances_on_beacon_blocks_keys_is_subset_of_proposer_slashing_db_hist(dv: DVState)    
+    // predicate inv_active_consensus_instances_on_beacon_blocks_keys_is_subset_of_block_slashing_db_hist(dv: DVState)    
     // {
     //     forall hn |
     //         && hn in dv.honest_nodes_states.Keys          
     //         ::
-    //         inv_active_consensus_instances_on_beacon_blocks_keys_is_subset_of_proposer_slashing_db_hist_body_body(
+    //         inv_active_consensus_instances_on_beacon_blocks_keys_is_subset_of_block_slashing_db_hist_body_body(
     //             dv.honest_nodes_states[hn]
     //         )                    
     // }       
 
-    // predicate inv_active_consensus_instances_on_beacon_blocks_keys_is_subset_of_proposer_slashing_db_hist_body_body
+    // predicate inv_active_consensus_instances_on_beacon_blocks_keys_is_subset_of_block_slashing_db_hist_body_body
     // (
     //     n_state: DVCState
     // )
     // {
-    //     n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys <= n_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    //     n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys <= n_state.block_consensus_engine_state.block_slashing_db_hist.Keys
     // }
 
-    // predicate inv_active_consensus_instances_on_beacon_blocks_predicate_is_in_proposer_slashing_db_hist(dv: DVState)    
+    // predicate inv_active_consensus_instances_on_beacon_blocks_predicate_is_in_block_slashing_db_hist(dv: DVState)    
     // {
     //     forall hn, cid |
     //         && hn in dv.honest_nodes_states.Keys        
     //         ::
-    //         inv_active_consensus_instances_on_beacon_blocks_predicate_is_in_proposer_slashing_db_hist_body(dv.honest_nodes_states[hn], cid)
+    //         inv_active_consensus_instances_on_beacon_blocks_predicate_is_in_block_slashing_db_hist_body(dv.honest_nodes_states[hn], cid)
              
     // }       
 
-    // predicate inv_active_consensus_instances_on_beacon_blocks_predicate_is_in_proposer_slashing_db_hist_body
+    // predicate inv_active_consensus_instances_on_beacon_blocks_predicate_is_in_block_slashing_db_hist_body
     // (
     //     n_state: DVCState,
     //     cid: Slot
@@ -730,8 +794,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && cid in n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks 
     //     ==>
     //     (
-    //         && cid in n_state.block_consensus_engine_state.proposer_slashing_db_hist
-    //         && n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate in n_state.block_consensus_engine_state.proposer_slashing_db_hist[cid] 
+    //         && cid in n_state.block_consensus_engine_state.block_slashing_db_hist
+    //         && n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate in n_state.block_consensus_engine_state.block_slashing_db_hist[cid] 
     //     )
     // }    
 
@@ -785,7 +849,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             && an.proposer_duty.slot < n_state.latest_proposer_duty.safe_get().slot
     //         ::
     //             var slot := an.proposer_duty.slot;
-    //             && dv.consensus_instances_on_beacon_block.Event[slot].decided_value.isPresent()
+    //             && dv.consensus_instances_on_beacon_block[slot].decided_value.isPresent()
     // }         
 
     // predicate inv_slot_in_future_decided_data_is_correctody_body(
@@ -797,7 +861,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall slot |
     //         && slot in n_state.future_proposer_consensus_instances_already_decided
     //         ::
-    //         dv.consensus_instances_on_beacon_block.Event[slot].decided_value.isPresent()
+    //         dv.consensus_instances_on_beacon_block[slot].decided_value.isPresent()
     // }    
 
     // predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body(
@@ -858,16 +922,16 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && ( forall r | r in S :: get_slot_from_slashing_db_proposer(r) < s )
     // }
 
-    // predicate inv_sent_validity_predicate_only_for_slots_stored_in_proposer_slashing_db_hist(dv: DVState)
+    // predicate inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(dv: DVState)
     // {
     //     forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn) ::
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && ( hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
+    //         && ( hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
     //              ==> 
-    //              s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys)
+    //              s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys)
     // }
 
-    // predicate inv_all_validity_predicates_are_stored_in_proposer_slashing_db_hist_body(
+    // predicate inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(
     //     dv: DVState, 
     //     hn: BLSPubkey,
     //     hn_state: DVCState,
@@ -878,23 +942,23 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // {
     //     (
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
-    //         && s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //         && vp in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions[hn]
+    //         && hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
+    //         && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //         && vp in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions[hn]
     //     )
     //         ==>
     //     (
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s]   
+    //         && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]   
     //     )             
     // }       
     
-    // predicate inv_all_validity_predicates_are_stored_in_proposer_slashing_db_hist(dv: DVState)
+    // predicate inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv: DVState)
     // {
     //     forall hn: BLSPubkey, s: Slot, vp : AttestationData -> bool |
     //         hn in dv.honest_nodes_states.Keys
     //         ::
-    //         inv_all_validity_predicates_are_stored_in_proposer_slashing_db_hist_body(
+    //         inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(
     //             dv,
     //             hn,
     //             dv.honest_nodes_states[hn],
@@ -940,8 +1004,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     // {
     //     && is_honest_node(dv, m)                
-    //     && consa == dv.consensus_instances_on_beacon_block.Event[a.data.slot]
-    //     && consa' == dv.consensus_instances_on_beacon_block.Event[a'.data.slot]
+    //     && consa == dv.consensus_instances_on_beacon_block[a.data.slot]
+    //     && consa' == dv.consensus_instances_on_beacon_block[a'.data.slot]
     //     && m in consa.honest_nodes_validity_functions.Keys
     //     && m in h_nodes_a
     //     && m in consa'.honest_nodes_validity_functions.Keys                
@@ -978,13 +1042,13 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     vp: AttestationData -> bool)
     // requires && is_honest_node(dv, hn)
     //          && var hn_state := dv.honest_nodes_states[hn];
-    //          && s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //          && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s]
+    //          && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //          && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
     // {
     //     && var hn_state := dv.honest_nodes_states[hn];
     //     && duty.slot == s
-    //     && db in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s][vp]
-    //     && vp == (ad: AttestationData) => consensus_is_valid_proposer_data(db, ad, duty)
+    //     && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+    //     && vp == (ad: AttestationData) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
     // }
 
     // predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty(dv: DVState)
@@ -992,8 +1056,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
     //         && is_honest_node(dv, hn)
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //         && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s]
+    //         && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //         && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
     //         ::
     //         exists duty, db ::
     //             && var hn_state := dv.honest_nodes_states[hn];
@@ -1010,18 +1074,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_decided_data_has_an_honest_witness(dv: DVState)
     // {
     //     forall s: Slot ::
-    //         && var ci := dv.consensus_instances_on_beacon_block.Event[s];
+    //         && var ci := dv.consensus_instances_on_beacon_block[s];
     //         && inv_decided_data_has_an_honest_witness_body(ci)            
     // }
 
 
-    // predicate same_honest_nodes_in_dv_and_ci(dv: DVState)
-    // {
-    //     forall s: Slot ::
-    //         && var ci := dv.consensus_instances_on_beacon_block.Event[s];            
-    //         && dv.all_nodes == ci.all_nodes
-    //         && dv.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
-    // }
+ 
     
 
 
@@ -1072,40 +1130,31 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
 
 
-    // predicate invNetwork(
-    //     dv: DVState
-    // )
-    // {
-    //      forall m | 
-    //             && m in dv.proposer_network.messagesInTransit
-    //         ::
-    //             m.message in dv.proposer_network.allMessagesSent       
-    // }
 
 
 
-    // predicate inv_proposer_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(
+    // predicate inv_block_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(
     //     dv: DVState,
     //     n: BLSPubkey
     // )
     // requires n in dv.honest_nodes_states.Keys 
     // {
-    //     dv.honest_nodes_states[n].proposer_shares_to_broadcast.Values <= dv.proposer_network.allMessagesSent
+    //     dv.honest_nodes_states[n].block_shares_to_broadcast.Values <= dv.block_share_network.allMessagesSent
     // }
 
-    // predicate inv_proposer_shares_to_broadcast_is_a_subset_of_all_messages_sent(
+    // predicate inv_block_shares_to_broadcast_is_a_subset_of_all_messages_sent(
     //     dv: DVState
     // )
     // {
     //     forall n |
     //         n in dv.honest_nodes_states.Keys 
     //         ::
-    //     inv_proposer_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(dv, n)
+    //     inv_block_shares_to_broadcast_is_a_subset_of_all_messages_sent_single_node(dv, n)
     // }    
 
 
     // predicate inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(hn_state: DVCState, s: Slot)
-    // requires s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    // requires s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
     // {
     //     exists duty: ProposerDuty :: 
     //                 && duty in hn_state.all_rcvd_duties
@@ -1118,190 +1167,180 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall hn: BLSPubkey, s: Slot ::
     //         ( && is_honest_node(dv, hn) 
     //           && var hn_state := dv.honest_nodes_states[hn];
-    //           && s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    //           && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
     //         )
     //         ==>
     //         inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)                
     // }
 
-    // predicate inv_proposer_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state: DVCState)    
+    // predicate inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state: DVCState)    
     // {
-    //     forall k: Slot | k in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys ::
+    //     forall k: Slot | k in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys ::
     //         exists duty: ProposerDuty :: 
     //                 && duty in hn_state.all_rcvd_duties
     //                 && duty.slot == k
     // }
 
-    // predicate inv_proposer_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv: DVState)
+    // predicate inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv: DVState)
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) ::
     //         && var hn_state := dv.honest_nodes_states[hn];            
-    //         && inv_proposer_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state)       
+    //         && inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state)       
     // }
 
-    // predicate inv_exists_db_in_proposer_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(ces: ConsensusEngineState)
+    // predicate inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(ces: ConsensusEngineState)
     // {
     //     forall s: Slot, vp: AttestationData -> bool |
-    //             ( && s in ces.proposer_slashing_db_hist.Keys
-    //               && vp in ces.proposer_slashing_db_hist[s]
+    //             ( && s in ces.block_slashing_db_hist.Keys
+    //               && vp in ces.block_slashing_db_hist[s]
     //             )
     //             :: 
     //             ( exists db: set<SlashingDBAttestation>, duty: ProposerDuty ::
     //                     && duty.slot == s
-    //                     && db in ces.proposer_slashing_db_hist[s][vp]
-    //                     && vp == (ad: AttestationData) => consensus_is_valid_proposer_data(db, ad, duty)
+    //                     && db in ces.block_slashing_db_hist[s][vp]
+    //                     && vp == (ad: AttestationData) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
     //             )
     // }
 
-    // predicate inv_exists_db_in_proposer_slashing_db_hist_and_duty_for_every_validity_predicate_body(hn_state: DVCState)
+    // predicate inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body(hn_state: DVCState)
     // {
     //     forall s: Slot, vp: AttestationData -> bool |
-    //             ( && s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //               && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s]
+    //             ( && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //               && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
     //             )
     //             :: 
     //             ( exists db: set<SlashingDBAttestation>, duty: ProposerDuty ::
     //                     && duty.slot == s
-    //                     && db in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s][vp]
-    //                     && vp == (ad: AttestationData) => consensus_is_valid_proposer_data(db, ad, duty)
+    //                     && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+    //                     && vp == (ad: AttestationData) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
     //             )
     // }
 
-    // predicate inv_exists_db_in_proposer_slashing_db_hist_and_duty_for_every_validity_predicate(dv: DVState)
+    // predicate inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate(dv: DVState)
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_exists_db_in_proposer_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc)
+    //         && inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body(dvc)
     // }
 
-    // predicate inv_current_validity_predicate_for_slot_k_is_stored_in_proposer_slashing_db_hist_k_body(hn_state: DVCState)
+    // predicate inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(hn_state: DVCState)
     // {
     //     forall k: Slot |
     //         k in hn_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys ::
     //             && var ci := hn_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[k];
     //             && var vp: AttestationData -> bool := ci.validityPredicate;
-    //             && k in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys 
-    //             && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[k].Keys             
+    //             && k in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys 
+    //             && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[k].Keys             
     // }
 
-    // predicate inv_current_validity_predicate_for_slot_k_is_stored_in_proposer_slashing_db_hist_k(dv: DVState)
+    // predicate inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k(dv: DVState)
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_current_validity_predicate_for_slot_k_is_stored_in_proposer_slashing_db_hist_k_body(dvc)
+    //         && inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(dvc)
     // }
 
-    // predicate inv_monotonic_proposer_slashing_db_body(dvc: DVCState, dvc': DVCState)
+    // predicate inv_monotonic_block_slashing_db_body(dvc: DVCState, dvc': DVCState)
     // {
-    //     dvc.proposer_slashing_db <= dvc'.proposer_slashing_db
+    //     dvc.block_slashing_db <= dvc'.block_slashing_db
     // }
 
-    // predicate inv_monotonic_proposer_slashing_db(dv: DVState, event: DV.Event, dv': DVState)    
+    // predicate inv_monotonic_block_slashing_db(dv: DVState, event: DV.Event, dv': DVState)    
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) ::
     //         && hn in dv'.honest_nodes_states
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && var dvc' := dv'.honest_nodes_states[hn];
-    //         && inv_monotonic_proposer_slashing_db_body(dvc, dvc')
+    //         && inv_monotonic_block_slashing_db_body(dvc, dvc')
     // }
 
-    // predicate inv_every_db_in_proposer_slashing_db_hist_is_subset_of_proposer_slashing_db_body_ces(ces: ConsensusEngineState, proposer_slashing_db: set<SlashingDBAttestation>)
+    // predicate inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_ces(ces: ConsensusEngineState, block_slashing_db: set<SlashingDBAttestation>)
     // {
     //     forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
-    //             ( && s in ces.proposer_slashing_db_hist.Keys
-    //               && vp in ces.proposer_slashing_db_hist[s]
-    //               && db in ces.proposer_slashing_db_hist[s][vp]
+    //             ( && s in ces.block_slashing_db_hist.Keys
+    //               && vp in ces.block_slashing_db_hist[s]
+    //               && db in ces.block_slashing_db_hist[s][vp]
     //             )
     //             :: 
-    //             db <= proposer_slashing_db
+    //             db <= block_slashing_db
     // }
 
-    // predicate inv_every_db_in_proposer_slashing_db_hist_is_subset_of_proposer_slashing_db_body(hn_state: DVCState)
+    // predicate inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(hn_state: DVCState)
     // {
     //     forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
-    //             ( && s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //               && vp in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s]
-    //               && db in hn_state.block_consensus_engine_state.proposer_slashing_db_hist[s][vp]
+    //             ( && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //               && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
+    //               && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
     //             )
     //             :: 
-    //             db <= hn_state.proposer_slashing_db
+    //             db <= hn_state.block_slashing_db
     // }
 
-    // predicate inv_every_db_in_proposer_slashing_db_hist_is_subset_of_proposer_slashing_db(dv: DVState)
+    // predicate inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db(dv: DVState)
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_every_db_in_proposer_slashing_db_hist_is_subset_of_proposer_slashing_db_body(dvc)
+    //         && inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc)
     // }
 
-    // predicate inv_monotonic_proposer_slashing_db_hist_body(dvc: DVCState, dvc': DVCState)
+    // predicate inv_monotonic_block_slashing_db_hist_body(dvc: DVCState, dvc': DVCState)
     // {        
-    //     dvc.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    //     dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
     //     <= 
-    //     dvc'.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    //     dvc'.block_consensus_engine_state.block_slashing_db_hist.Keys
     // }
 
-    // predicate inv_monotonic_proposer_slashing_db_hist(dv: DVState, event: DV.Event, dv': DVState)    
+    // predicate inv_monotonic_block_slashing_db_hist(dv: DVState, event: DV.Event, dv': DVState)    
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) ::
     //         && hn in dv'.honest_nodes_states
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && var dvc' := dv'.honest_nodes_states[hn];
-    //         && inv_monotonic_proposer_slashing_db_hist_body(dvc, dvc')
+    //         && inv_monotonic_block_slashing_db_hist_body(dvc, dvc')
     // }
 
     // predicate prop_monotonic_set_of_in_transit_messages(dv: DVState, dv': DVState)
     // {
-    //     && dv.proposer_network.allMessagesSent <= dv'.proposer_network.allMessagesSent
+    //     && dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent
     // }
      
    
-    // predicate inv_active_proposern_consensus_instances_are_tracked_in_proposer_slashing_db_hist_body(dvc: DVCState)
+    // predicate inv_active_proposern_consensus_instances_are_tracked_in_block_slashing_db_hist_body(dvc: DVCState)
     // {
     //     dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
     //     <= 
-    //     dvc.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    //     dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
     // } 
 
-    // predicate inv_active_proposern_consensus_instances_are_tracked_in_proposer_slashing_db_hist(dv: DVState)
+    // predicate inv_active_proposern_consensus_instances_are_tracked_in_block_slashing_db_hist(dv: DVState)
     // {
     //     forall hn | hn in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_active_proposern_consensus_instances_are_tracked_in_proposer_slashing_db_hist_body(dvc)
+    //         && inv_active_proposern_consensus_instances_are_tracked_in_block_slashing_db_hist_body(dvc)
     // } 
 
-    // predicate inv_construct_signed_proposer_signature_assumptions_helper(dv: DVState)
+    // predicate inv_construct_complete_signed_signature_assumptions_helper(dv: DVState)
     // {
-    //     construct_signed_proposer_signature_assumptions_helper(
-    //         dv.construct_signed_proposer_signature,
+    //     construct_complete_signed_signature_assumptions_helper(
+    //         dv.construct_complete_signed_block,
     //         dv.dv_pubkey,
     //         dv.all_nodes)
     // }
 
-    // predicate inv_all_in_transit_messages_were_sent_body<M>(e: Network<M>)
-    // {
-    //      forall m | m in e.messagesInTransit::
-    //             m.message in e.allMessagesSent       
-    // } 
-     
-    // predicate inv_all_in_transit_messages_were_sent(dv: DVState)
-    // {
-    //      forall m | m in dv.proposer_network.messagesInTransit::
-    //             m.message in dv.proposer_network.allMessagesSent       
-    // } 
+
 
     // predicate inv_rcvd_proposern_shares_are_from_sent_messages_body(
     //     dv: DVState,
     //     dvc: DVCState
     // )
     // {
-    //     var rcvd_proposer_shares := dvc.rcvd_proposer_shares;
+    //     var rcvd_block_shares := dvc.rcvd_block_shares;
 
     //     forall i, j |
-    //         && i in rcvd_proposer_shares.Keys 
-    //         && j in rcvd_proposer_shares[i]
+    //         && i in rcvd_block_shares.Keys 
+    //         && j in rcvd_block_shares[i]
     //         ::
-    //         rcvd_proposer_shares[i][j] <= dv.proposer_network.allMessagesSent
+    //         rcvd_block_shares[i][j] <= dv.block_share_network.allMessagesSent
     // }    
 
     // predicate inv_rcvd_proposern_shares_are_from_sent_messages(
@@ -1314,21 +1353,21 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // } 
 
 
-    // predicate inv_proposer_shares_to_broadcast_are_sent_messages_body(
+    // predicate inv_block_shares_to_broadcast_are_sent_messages_body(
     //     dv: DVState,
     //     dvc: DVCState
     // )    
     // {
-    //     dvc.proposer_shares_to_broadcast.Values <= dv.proposer_network.allMessagesSent
+    //     dvc.block_shares_to_broadcast.Values <= dv.block_share_network.allMessagesSent
     // }
 
-    // predicate inv_proposer_shares_to_broadcast_are_sent_messages(
+    // predicate inv_block_shares_to_broadcast_are_sent_messages(
     //     dv: DVState
     // )
     // {
     //     forall n | n in dv.honest_nodes_states.Keys ::
     //         && var dvc := dv.honest_nodes_states[n];
-    //         && inv_proposer_shares_to_broadcast_are_sent_messages_body(dv, dvc)
+    //         && inv_block_shares_to_broadcast_are_sent_messages_body(dv, dvc)
     // }
 
     // predicate inv39(
@@ -1336,27 +1375,27 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     dv': DVState
     // )       
     // {
-    //     dv.proposer_network.allMessagesSent <= dv'.proposer_network.allMessagesSent
+    //     dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent
     // }
 
     
-    // predicate inv_slots_for_sent_validity_predicate_are_stored_in_proposer_slashing_db_hist_body(
+    // predicate inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_body(
     //     dv: DVState, 
     //     hn: BLSPubkey,
     //     hn_state: DVCState,
     //     s: Slot
     // )
     // {
-    //     hn in dv.consensus_instances_on_beacon_block.Event[s].honest_nodes_validity_functions.Keys
-    //     ==> s in hn_state.block_consensus_engine_state.proposer_slashing_db_hist.Keys
+    //     hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
+    //     ==> s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
     // }
 
-    // predicate inv_slots_for_sent_validity_predicate_are_stored_in_proposer_slashing_db_hist(dv: DVState)
+    // predicate inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(dv: DVState)
     // {
     //     forall hn: BLSPubkey, s: Slot |
     //         hn in dv.honest_nodes_states
     //         :: 
-    //         inv_slots_for_sent_validity_predicate_are_stored_in_proposer_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
+    //         inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
     // } 
 
     // predicate inv_no_active_consensus_instance_before_receiving_proposer_duty_body(dvc: DVCState)
@@ -1390,8 +1429,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_consensus_instances_are_isConditionForSafetyTrue(dv: DVState)
     // {
-    //     forall slot: Slot | slot in dv.consensus_instances_on_beacon_block.Event.Keys  ::
-    //                 isConditionForSafetyTrue(dv.consensus_instances_on_beacon_block.Event[slot])                    
+    //     forall slot: Slot | slot in dv.consensus_instances_on_beacon_block.Keys  ::
+    //                 isConditionForSafetyTrue(dv.consensus_instances_on_beacon_block[slot])                    
     // }
 
     // predicate pred_last_proposer_duty_is_delivering_to_given_honest_node(
@@ -1440,7 +1479,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_data_of_all_created_proposers_is_set_of_decided_values(dv: DVState)
     // {
     //     forall a | a in dv.all_proposers_created ::
-    //             && var consa := dv.consensus_instances_on_beacon_block.Event[a.data.slot];
+    //             && var consa := dv.consensus_instances_on_beacon_block[a.data.slot];
     //             && consa.decided_value.isPresent() 
     //             && a.data == consa.decided_value.safe_get() 
     // }
@@ -1448,12 +1487,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_one_honest_dvc_is_required_to_pass_signer_threshold(
     //     dv: DVState,
     //     signers: set<BLSPubkey>,
-    //     proposer_shares: set<AttestationShare>,
+    //     block_shares: set<AttestationShare>,
     //     signing_root: Root
     // )
     // {
     //     (
-    //         && signer_threshold(signers, proposer_shares, signing_root)
+    //         && signer_threshold(signers, block_shares, signing_root)
     //         && signers <= dv.all_nodes
     //     )
     //     ==>
@@ -1474,8 +1513,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     outputs: Outputs,
     //     dv_pubkey: BLSPubkey)
     // {
-    //     forall submitted_proposer | submitted_proposer in outputs.proposers_submitted ::
-    //         is_valid_proposer(submitted_proposer, dv_pubkey)
+    //     forall submitted_block | submitted_block in outputs.proposers_submitted ::
+    //         is_valid_proposer(submitted_block, dv_pubkey)
     // }
 
     // predicate pred_slashing_db_proposer_in_two_dbs(
@@ -1524,13 +1563,13 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // )
     // {
     //     forall slot:Slot, slot': Slot | 
-    //         && slot in dvc.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //         && slot' in dvc.block_consensus_engine_state.proposer_slashing_db_hist.Keys 
+    //         && slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //         && slot' in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys 
     //         && slot < slot'
     //         ::
     //         inv_slashing_db_proposer_in_db_for_low_slot_is_in_db_for_high_slot_body_body(
-    //              dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot], 
-    //              dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot']
+    //              dvc.block_consensus_engine_state.block_slashing_db_hist[slot], 
+    //              dvc.block_consensus_engine_state.block_slashing_db_hist[slot']
     //         )
     // }
 
@@ -1543,201 +1582,201 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         
     // }
 
-    // predicate pred_verify_owner_of_proposer_share_with_bls_signature(
+    // predicate pred_verify_owner_of_block_share_with_bls_signature(
     //     rs_pubkey: BLSPubkey,
-    //     proposer_share: AttestationShare
+    //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var decided_proposer_data := proposer_share.data;
-    //     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_proposer_data.target.epoch));
-    //     && var proposer_signing_root := compute_proposer_signing_root(decided_proposer_data, fork_version);
-    //     && verify_bls_signature(proposer_signing_root, proposer_share.signature, rs_pubkey)
+    //     && var decided_beacon_block := block_share.block;
+    //     && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_beacon_block.target.epoch));
+    //     && var proposer_signing_root := compute_proposer_signing_root(decided_beacon_block, fork_version);
+    //     && verify_bls_signature(proposer_signing_root, block_share.signature, rs_pubkey)
     // }
 
     // predicate pred_is_owner_of_one_proposerestaion_share_in_set_of_shares(
     //     rs_pubkey: BLSPubkey,
-    //     proposer_shares: set<AttestationShare>
+    //     block_shares: set<AttestationShare>
     // )
     // {
-    //     exists share | share in proposer_shares ::
-    //         pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, share)
+    //     exists share | share in block_shares ::
+    //         pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, share)
     // }
 
-    // predicate pred_proposer_is_created_based_on_sent_proposer_shares(
+    // predicate pred_proposer_is_created_based_on_sent_block_shares(
     //     dv: DVState,
     //     proposer: Attestation,
-    //     proposer_shares: set<AttestationShare>
+    //     block_shares: set<AttestationShare>
     // )
     // {
-    //     && proposer_shares <= dv.proposer_network.allMessagesSent
-    //     && var constructed_sig := dv.construct_signed_proposer_signature(proposer_shares);
+    //     && block_shares <= dv.block_share_network.allMessagesSent
+    //     && var constructed_sig := dv.construct_complete_signed_block(block_shares);
     //     && constructed_sig.isPresent()
     //     && constructed_sig.safe_get() == proposer.signature
-    //     && all_proposer_shares_have_the_same_data(proposer_shares, proposer.data)
+    //     && all_block_shares_have_the_same_data(block_shares, proposer.data)
     // }
 
-    // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_proposers_body(
+    // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_blocks_body(
     //     dv: DVState,
     //     a: Attestation, 
     //     a': Attestation
     // )
     // {
-    //     exists hn: BLSPubkey, proposer_shares: set<AttestationShare>, proposer_shares': set<AttestationShare> ::
+    //     exists hn: BLSPubkey, block_shares: set<AttestationShare>, block_shares': set<AttestationShare> ::
     //         && is_honest_node(dv, hn)
     //         && var rs_pubkey: BLSPubkey := dv.honest_nodes_states[hn].rs.pubkey;
-    //         && pred_proposer_is_created_based_on_sent_proposer_shares(dv, a, proposer_shares)            
-    //         && pred_is_owner_of_one_proposerestaion_share_in_set_of_shares(rs_pubkey, proposer_shares)
-    //         && pred_proposer_is_created_based_on_sent_proposer_shares(dv, a', proposer_shares')
-    //         && pred_is_owner_of_one_proposerestaion_share_in_set_of_shares(rs_pubkey, proposer_shares')
+    //         && pred_proposer_is_created_based_on_sent_block_shares(dv, a, block_shares)            
+    //         && pred_is_owner_of_one_proposerestaion_share_in_set_of_shares(rs_pubkey, block_shares)
+    //         && pred_proposer_is_created_based_on_sent_block_shares(dv, a', block_shares')
+    //         && pred_is_owner_of_one_proposerestaion_share_in_set_of_shares(rs_pubkey, block_shares')
     // }
 
-    // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_proposers(
+    // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_blocks(
     //     dv: DVState)
     // {
     //     forall a: Attestation, a': Attestation |
     //         && a in dv.all_proposers_created
     //         && a' in dv.all_proposers_created
     //         ::
-    //         inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_proposers_body(dv, a, a')
+    //         inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_blocks_body(dv, a, a')
     // }
     
-    // predicate inv_if_honest_node_sends_proposer_share_it_receives_proposer_data_before_body(
+    // predicate inv_if_honest_node_sends_block_share_it_receives_proposer_data_before_body(
     //     dvc: DVCState,
-    //     proposer_share: AttestationShare
+    //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data: AttestationData := proposer_share.data;
+    //     && var proposer_data: AttestationData := block_share.block;
     //     && var slot: Slot := proposer_data.slot;
     //     && var slashing_db_proposer := SlashingDBAttestation(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(proposer_data)));
-    //     && slashing_db_proposer in dvc.proposer_slashing_db
+    //     && slashing_db_proposer in dvc.block_slashing_db
     //     && exists proposer_duty: ProposerDuty, vp: AttestationData -> bool :: 
     //             (   && proposer_duty in dvc.all_rcvd_duties
-    //                 && slot in dvc.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //                 && vp in dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot].Keys
+    //                 && slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //                 && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
     //                 && vp(proposer_data)
     //             )
     // }
 
-    // predicate inv_if_honest_node_sends_proposer_share_it_receives_proposer_data_before(dv: DVState)
+    // predicate inv_if_honest_node_sends_block_share_it_receives_proposer_data_before(dv: DVState)
     // {
-    //     forall hn, proposer_share |
+    //     forall hn, block_share |
     //         && is_honest_node(dv, hn)
-    //         && proposer_share in dv.proposer_network.allMessagesSent
+    //         && block_share in dv.block_share_network.allMessagesSent
     //         && var rs_pubkey: BLSPubkey := dv.honest_nodes_states[hn].rs.pubkey;
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
     //         ::
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && inv_if_honest_node_sends_proposer_share_it_receives_proposer_data_before_body(dvc, proposer_share)
+    //         && inv_if_honest_node_sends_block_share_it_receives_proposer_data_before_body(dvc, block_share)
     // }
 
-    // predicate inv_data_of_sent_proposer_shares_is_known_body(
+    // predicate inv_data_of_sent_block_shares_is_known_body(
     //     dvc: DVCState,
-    //     proposer_share: AttestationShare
+    //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data: AttestationData := proposer_share.data;
+    //     && var proposer_data: AttestationData := block_share.block;
     //     && var slot: Slot := proposer_data.slot;
     //     && var slashing_db_proposer := SlashingDBAttestation(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(proposer_data)));
-    //     && slashing_db_proposer in dvc.proposer_slashing_db
+    //     && slashing_db_proposer in dvc.block_slashing_db
     //     && exists proposer_duty: ProposerDuty, vp: AttestationData -> bool :: 
     //             (   && proposer_duty in dvc.all_rcvd_duties
-    //                 && slot in dvc.block_consensus_engine_state.proposer_slashing_db_hist.Keys
-    //                 && vp in dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot].Keys
+    //                 && slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
+    //                 && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
     //                 && vp(proposer_data)
     //             )
     // }
 
-    // predicate inv_outputs_proposer_shares_sent_is_tracked_in_proposer_slashing_db_body(
+    // predicate inv_outputs_block_shares_sent_is_tracked_in_block_slashing_db_body(
     //     dvc: DVCState, 
-    //     proposer_share: AttestationShare
+    //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data: AttestationData := proposer_share.data;
+    //     && var proposer_data: AttestationData := block_share.block;
     //     && var slashing_db_proposer := construct_SlashingDBAttestation_from_proposer_data(proposer_data);
-    //     && slashing_db_proposer in dvc.proposer_slashing_db  
+    //     && slashing_db_proposer in dvc.block_slashing_db  
     //     && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;    
-    //     && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
+    //     && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
     // }   
 
-    // predicate inv_outputs_proposer_shares_sent_is_tracked_in_proposer_slashing_db(
+    // predicate inv_outputs_block_shares_sent_is_tracked_in_block_slashing_db(
     //     outputs: Outputs,
     //     dvc: DVCState)
     // {
-    //     forall proposer_share: AttestationShare | 
-    //         proposer_share in getMessagesFromMessagesWithRecipient(outputs.proposer_shares_sent) 
+    //     forall block_share: SignedBeaconBlock | 
+    //         block_share in getMessagesFromMessagesWithRecipient(outputs.block_shares_sent) 
     //         ::
-    //         inv_outputs_proposer_shares_sent_is_tracked_in_proposer_slashing_db_body(dvc, proposer_share)
+    //         inv_outputs_block_shares_sent_is_tracked_in_block_slashing_db_body(dvc, block_share)
     // } 
 
-    // predicate inv_proposer_shares_to_broadcast_is_tracked_in_proposer_slashing_db_body(
+    // predicate inv_block_shares_to_broadcast_is_tracked_in_block_slashing_db_body(
     //     dvc: DVCState
     // )
     // {
     //     forall slot: Slot | 
-    //         slot in dvc.proposer_shares_to_broadcast.Keys
+    //         slot in dvc.block_shares_to_broadcast.Keys
     //         ::
-    //         && var proposer_share: AttestationShare := dvc.proposer_shares_to_broadcast[slot];
-    //         && var proposer_data: AttestationData := proposer_share.data;
+    //         && var block_share: SignedBeaconBlock := dvc.block_shares_to_broadcast[slot];
+    //         && var proposer_data: AttestationData := block_share.block;
     //         && var slashing_db_proposer := construct_SlashingDBAttestation_from_proposer_data(proposer_data);
-    //         && slashing_db_proposer in dvc.proposer_slashing_db  
+    //         && slashing_db_proposer in dvc.block_slashing_db  
     //         && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;    
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
     // }   
 
-    // predicate inv_proposer_shares_to_broadcast_is_tracked_in_proposer_slashing_db(
+    // predicate inv_block_shares_to_broadcast_is_tracked_in_block_slashing_db(
     //     dv: DVState)
     // {
     //     forall hn: BLSPubkey | 
     //         is_honest_node(dv, hn)
     //         ::
-    //         inv_proposer_shares_to_broadcast_is_tracked_in_proposer_slashing_db_body(dv.honest_nodes_states[hn])
+    //         inv_block_shares_to_broadcast_is_tracked_in_block_slashing_db_body(dv.honest_nodes_states[hn])
     // } 
 
-    // predicate inv_data_of_proposer_shares_is_known_body(
+    // predicate inv_block_of_block_shares_is_known_body(
     //     dvc: DVCState,
-    //     proposer_share: AttestationShare
+    //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data := proposer_share.data;
+    //     && var proposer_data := block_share.block;
     //     && var slashing_db_proposer := construct_SlashingDBAttestation_from_proposer_data(proposer_data);
-    //     && slashing_db_proposer in dvc.proposer_slashing_db     
+    //     && slashing_db_proposer in dvc.block_slashing_db     
     // }
 
-    // predicate inv_data_of_proposer_shares_is_known(
+    // predicate inv_block_of_block_shares_is_known(
     //     dv: DVState
     // )
     // {
-    //     forall hn: BLSPubkey, proposer_share: AttestationShare | 
+    //     forall hn: BLSPubkey, block_share: SignedBeaconBlock | 
     //         && is_honest_node(dv, hn)
-    //         && proposer_share in dv.proposer_network.allMessagesSent 
+    //         && block_share in dv.block_share_network.allMessagesSent 
     //         && var dvc: DVCState := dv.honest_nodes_states[hn];
     //         && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
     //         ::
     //         && var dvc: DVCState := dv.honest_nodes_states[hn];
-    //         && inv_data_of_proposer_shares_is_known_body(dvc, proposer_share)            
+    //         && inv_block_of_block_shares_is_known_body(dvc, block_share)            
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_body_signers_helper(
-    //     proposer_shares: set<AttestationShare>,
+    //     block_shares: set<AttestationShare>,
     //     dvc: DVCState
     // )
     // {
-    //     exists proposer_share: AttestationShare ::
-    //         && proposer_share in proposer_shares
+    //     exists block_share: SignedBeaconBlock ::
+    //         && block_share in block_shares
     //         && var rs_pubkey := dvc.rs.pubkey;
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_body_signers(
     //     dv: DVState,
-    //     proposer_shares: set<AttestationShare>,
+    //     block_shares: set<AttestationShare>,
     //     dvc_signer_pubkeys: set<BLSPubkey>
     // )
     // {
@@ -1745,7 +1784,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         key in dv.honest_nodes_states.Keys
     //         ==>
     //         inv_proposer_is_created_with_shares_from_quorum_body_signers_helper(
-    //                 proposer_shares,
+    //                 block_shares,
     //                 dv.honest_nodes_states[key]
     //             )        
     // }
@@ -1753,17 +1792,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_proposer_is_created_with_shares_from_quorum_body_helper(
     //     dv: DVState, 
     //     proposer: Attestation,
-    //     proposer_shares: set<AttestationShare>, 
+    //     block_shares: set<AttestationShare>, 
     //     signers: set<BLSPubkey>
     // )
     // {
-    //     && proposer_shares <= dv.proposer_network.allMessagesSent
-    //     && var constructed_sig := dv.construct_signed_proposer_signature(proposer_shares);
+    //     && block_shares <= dv.block_share_network.allMessagesSent
+    //     && var constructed_sig := dv.construct_complete_signed_block(block_shares);
     //     && constructed_sig.isPresent()
     //     && constructed_sig.safe_get() == proposer.signature
-    //     && all_proposer_shares_have_the_same_data(proposer_shares, proposer.data)
+    //     && all_block_shares_have_the_same_data(block_shares, proposer.data)
     //     && signers <= dv.all_nodes
-    //     && inv_proposer_is_created_with_shares_from_quorum_body_signers(dv, proposer_shares, signers)
+    //     && inv_proposer_is_created_with_shares_from_quorum_body_signers(dv, block_shares, signers)
     //     && |signers| >= quorum(|dv.all_nodes|)
     // }
 
@@ -1772,14 +1811,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     proposer: Attestation        
     // )
     // {
-    //     exists proposer_shares, dvc_signer_pubkeys :: 
-    //             && proposer_shares <= dv.proposer_network.allMessagesSent
-    //             && var constructed_sig := dv.construct_signed_proposer_signature(proposer_shares);
+    //     exists block_shares, dvc_signer_pubkeys :: 
+    //             && block_shares <= dv.block_share_network.allMessagesSent
+    //             && var constructed_sig := dv.construct_complete_signed_block(block_shares);
     //             && constructed_sig.isPresent()
     //             && constructed_sig.safe_get() == proposer.signature
-    //             && all_proposer_shares_have_the_same_data(proposer_shares, proposer.data)
+    //             && all_block_shares_have_the_same_data(block_shares, proposer.data)
     //             && dvc_signer_pubkeys <= dv.all_nodes
-    //             && inv_proposer_is_created_with_shares_from_quorum_body_signers(dv, proposer_shares, dvc_signer_pubkeys)
+    //             && inv_proposer_is_created_with_shares_from_quorum_body_signers(dv, block_shares, dvc_signer_pubkeys)
     //             && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
     // }
 
@@ -1790,23 +1829,23 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_rs_signers_body(
-    //     proposer_shares: set<AttestationShare>,
+    //     block_shares: set<AttestationShare>,
     //     rs_signer_pubkey: BLSPubkey
     // )
     // {
-    //     exists proposer_share: AttestationShare ::
-    //         && proposer_share in proposer_shares
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_signer_pubkey, proposer_share)
+    //     exists block_share: SignedBeaconBlock ::
+    //         && block_share in block_shares
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_signer_pubkey, block_share)
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_rs_signers(
-    //     proposer_shares: set<AttestationShare>,
+    //     block_shares: set<AttestationShare>,
     //     rs_signer_pubkeys: set<BLSPubkey>
     // )
     // {
     //     forall key: BLSPubkey | key in rs_signer_pubkeys ::
     //             inv_proposer_is_created_with_shares_from_quorum_rs_signers_body(
-    //                 proposer_shares,
+    //                 block_shares,
     //                 key
     //             )        
     // }
@@ -1816,15 +1855,15 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     proposer: Attestation
     // )
     // {
-    //     && proposer.data.slot in dvc.rcvd_proposer_shares.Keys
-    //     && exists proposer_shares, rs_signer_pubkeys, k ::          
-    //             && k in dvc.rcvd_proposer_shares[proposer.data.slot].Keys
-    //             && proposer_shares <= dvc.rcvd_proposer_shares[proposer.data.slot][k]
-    //             && var constructed_sig := dvc.construct_signed_proposer_signature(proposer_shares);
+    //     && proposer.data.slot in dvc.rcvd_block_shares.Keys
+    //     && exists block_shares, rs_signer_pubkeys, k ::          
+    //             && k in dvc.rcvd_block_shares[proposer.data.slot].Keys
+    //             && block_shares <= dvc.rcvd_block_shares[proposer.data.slot][k]
+    //             && var constructed_sig := dvc.construct_complete_signed_block(block_shares);
     //             && constructed_sig.isPresent()
     //             && constructed_sig.safe_get() == proposer.signature
-    //             && all_proposer_shares_have_the_same_data(proposer_shares, proposer.data)
-    //             && inv_proposer_is_created_with_shares_from_quorum_rs_signers(proposer_shares, rs_signer_pubkeys)
+    //             && all_block_shares_have_the_same_data(block_shares, proposer.data)
+    //             && inv_proposer_is_created_with_shares_from_quorum_rs_signers(block_shares, rs_signer_pubkeys)
     //             && |rs_signer_pubkeys| >= quorum(|dvc.peers|)
     //             && rs_signer_pubkeys <= dvc.peers
     // }   
@@ -1833,8 +1872,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     outputs: Outputs,
     //     dvc: DVCState)
     // {
-    //     forall submitted_proposer | submitted_proposer in outputs.proposers_submitted ::
-    //         inv_outputs_proposers_submited_is_created_with_shares_from_quorum_body(dvc, submitted_proposer)
+    //     forall submitted_block | submitted_block in outputs.proposers_submitted ::
+    //         inv_outputs_proposers_submited_is_created_with_shares_from_quorum_body(dvc, submitted_block)
     // } 
 
     // predicate pred_intersection_of_honest_nodes_in_two_quorum_contains_an_honest_node(
@@ -1854,7 +1893,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && hn in h_nodes_2
     // }
 
-    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_proposer_shares_for_lower_slots_body(
+    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_body(
     //     dv: DVState,
     //     hn: BLSPubkey,
     //     slot: Slot, 
@@ -1862,15 +1901,15 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     db: set<SlashingDBAttestation>
     // )
     // {
-    //     forall proposer_share: AttestationShare | 
-    //         && proposer_share in dv.proposer_network.allMessagesSent
+    //     forall block_share: SignedBeaconBlock | 
+    //         && block_share in dv.block_share_network.allMessagesSent
     //         && is_honest_node(dv, hn)
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && var rs_pubkey := dvc.rs.pubkey;
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
-    //         && proposer_share.data.slot < slot
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
+    //         && block_share.block.slot < slot
     //         ::
-    //         && var proposer_data := proposer_share.data;
+    //         && var proposer_data := block_share.block;
     //         && var slashing_db_proposer := SlashingDBAttestation(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
@@ -1878,16 +1917,16 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && slashing_db_proposer in db
     // }
 
-    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_proposer_shares_for_lower_slots(dv: DVState)
+    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots(dv: DVState)
     // {
     //     forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
     //         && is_honest_node(dv, hn) 
     //         && var dvc := dv.honest_nodes_states[hn];
-    //         && slot in dvc.block_consensus_engine_state.proposer_slashing_db_hist
-    //         && vp in dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot]
-    //         && db in dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot][vp]
+    //         && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
+    //         && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot]
+    //         && db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
     //         :: 
-    //         inv_db_of_vp_contains_all_proposer_data_of_sent_proposer_shares_for_lower_slots_body(
+    //         inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_body(
     //             dv,
     //             hn,
     //             slot,
@@ -1895,7 +1934,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //             db)
     // }
 
-    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_proposer_shares_for_lower_slots_body_dvc(
+    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_body_dvc(
     //     allMessagesSent: set<AttestationShare>,
     //     rs_pubkey: BLSPubkey,
     //     slot: Slot, 
@@ -1903,12 +1942,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     db: set<SlashingDBAttestation>
     // )
     // {
-    //     forall proposer_share: AttestationShare | 
-    //         && proposer_share in allMessagesSent
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(rs_pubkey, proposer_share)
-    //         && proposer_share.data.slot < slot
+    //     forall block_share: SignedBeaconBlock | 
+    //         && block_share in allMessagesSent
+    //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
+    //         && block_share.block.slot < slot
     //         ::
-    //         && var proposer_data := proposer_share.data;
+    //         && var proposer_data := block_share.block;
     //         && var slashing_db_proposer := SlashingDBAttestation(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
@@ -1916,17 +1955,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && slashing_db_proposer in db
     // }
 
-    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_proposer_shares_for_lower_slots_dvc(
+    // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_dvc(
     //     allMessagesSent: set<AttestationShare>,
     //     dvc: DVCState        
     // )
     // {
     //     forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
-    //         && slot in dvc.block_consensus_engine_state.proposer_slashing_db_hist
-    //         && vp in dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot]
-    //         && db in dvc.block_consensus_engine_state.proposer_slashing_db_hist[slot][vp]
+    //         && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
+    //         && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot]
+    //         && db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
     //         :: 
-    //         inv_db_of_vp_contains_all_proposer_data_of_sent_proposer_shares_for_lower_slots_body_dvc(
+    //         inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_body_dvc(
     //             allMessagesSent,
     //             dvc.rs.pubkey,
     //             slot,
@@ -1942,22 +1981,22 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && dvc.rs.pubkey == hn
     // }
 
-    // predicate inv_honest_nodes_are_not_owner_of_proposer_shares_from_adversary_body(
+    // predicate inv_honest_nodes_are_not_owner_of_block_shares_from_adversary_body(
     //     dv: DVState, 
-    //     proposer_share: AttestationShare
+    //     block_share: SignedBeaconBlock
     // )
     // {
     //     forall hn: BLSPubkey | is_honest_node(dv, hn) :: 
-    //         !pred_verify_owner_of_proposer_share_with_bls_signature(hn, proposer_share)
+    //         !pred_verify_owner_of_block_share_with_bls_signature(hn, block_share)
     // }
 
-    // predicate inv_honest_nodes_are_not_owner_of_proposer_shares_from_adversary(dv: DVState)
+    // predicate inv_honest_nodes_are_not_owner_of_block_shares_from_adversary(dv: DVState)
     // {
-    //     forall byz_node: BLSPubkey, proposer_share: AttestationShare | 
+    //     forall byz_node: BLSPubkey, block_share: SignedBeaconBlock | 
     //         && byz_node in dv.adversary.nodes 
-    //         && proposer_share in dv.proposer_network.allMessagesSent
-    //         && pred_verify_owner_of_proposer_share_with_bls_signature(byz_node, proposer_share)
+    //         && block_share in dv.block_share_network.allMessagesSent
+    //         && pred_verify_owner_of_block_share_with_bls_signature(byz_node, block_share)
     //         ::
-    //         inv_honest_nodes_are_not_owner_of_proposer_shares_from_adversary_body(dv, proposer_share)
+    //         inv_honest_nodes_are_not_owner_of_block_shares_from_adversary_body(dv, block_share)
     // }
 }

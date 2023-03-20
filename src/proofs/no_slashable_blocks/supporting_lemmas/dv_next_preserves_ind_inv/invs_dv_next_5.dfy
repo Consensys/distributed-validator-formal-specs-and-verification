@@ -1294,7 +1294,7 @@ module Invs_DV_Next_5
     )
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_sequence_attestation_duties_to_be_served_ordered(s)
     requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_attestation_duty(s)
     requires NextEventPreCond(s, event)
@@ -1318,7 +1318,7 @@ module Invs_DV_Next_5
     )
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_sequence_attestation_duties_to_be_served_ordered(s);    
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -1407,7 +1407,7 @@ module Invs_DV_Next_5
     requires NextEvent(s, event, s')  
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s)        
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(s)       
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_sequence_attestation_duties_to_be_served_ordered(s);
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(s');  
     {
@@ -2135,7 +2135,7 @@ module Invs_DV_Next_5
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_sequence_attestation_duties_to_be_served_ordered(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
@@ -2236,7 +2236,7 @@ module Invs_DV_Next_5
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_sequence_attestation_duties_to_be_served_ordered(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
@@ -2411,7 +2411,7 @@ module Invs_DV_Next_5
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_sequence_attestation_duties_to_be_served_ordered(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
@@ -2453,7 +2453,7 @@ module Invs_DV_Next_5
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_sequence_attestation_duties_to_be_served_ordered(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
@@ -2496,7 +2496,7 @@ module Invs_DV_Next_5
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_sequence_attestation_duties_to_be_served_ordered(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
@@ -2540,7 +2540,7 @@ module Invs_DV_Next_5
     requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
     requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_a(dv)
     requires inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)   
-    requires inv_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
+    requires inv_available_latest_attestation_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_sequence_attestation_duties_to_be_served_ordered(dv)
     ensures  inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots(dv')
     {        
