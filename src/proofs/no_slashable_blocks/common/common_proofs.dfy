@@ -82,7 +82,7 @@ module Common_Proofs_For_Block_Proposer
                 && slot in m'.Keys 
                 ::
                 && var bcvc := m'[slot];
-                && bcvc.validityPredicate == ((bb: BeaconBlock) => consensus_is_valid_beacon_block(
+                && bcvc.validityPredicate == ((bb: BeaconBlock) => ci_decision_is_valid_beacon_block(
                                                                         new_block_slashing_db, 
                                                                         bb, 
                                                                         bcvc.proposer_duty,
@@ -102,7 +102,7 @@ module Common_Proofs_For_Block_Proposer
                 && slot in m'.Keys 
                 ::
                 && var bcvc := m'[slot];
-                && bcvc.validityPredicate == (bb: BeaconBlock) => consensus_is_valid_beacon_block(
+                && bcvc.validityPredicate == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(
                                                                         new_block_slashing_db, 
                                                                         bb, 
                                                                         bcvc.proposer_duty,
@@ -156,7 +156,7 @@ module Common_Proofs_For_Block_Proposer
     //     assert forall k: Slot | k in new_active_consensus_instances_on_beacon_blocks.Keys ::
     //                 && var ci := new_active_consensus_instances_on_beacon_blocks[k];
     //                 && ci.validityPredicate
-    //                     == ((bb: BeaconBlock) => consensus_is_valid_beacon_block(
+    //                     == ((bb: BeaconBlock) => ci_decision_is_valid_beacon_block(
     //                                                     new_block_slashing_db, 
     //                                                     ad, 
     //                                                     ci.proposer_duty)
@@ -189,7 +189,7 @@ module Common_Proofs_For_Block_Proposer
     //     ensures ( exists db: set<SlashingDBBlock>, duty: BlockDuty ::
     //                         && duty.slot == k
     //                         && db in new_block_slashing_db_hist[k][vp]
-    //                         && vp == (bb: BeaconBlock) => consensus_is_valid_beacon_block(db, ad, duty)
+    //                         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, ad, duty)
     //                     )
     //     {
     //         if k in new_active_consensus_instances_on_beacon_blocks.Keys
@@ -204,7 +204,7 @@ module Common_Proofs_For_Block_Proposer
     //                 assert (exists db: set<SlashingDBBlock>, duty: BlockDuty ::
     //                         && duty.slot == k
     //                         && db in new_block_slashing_db_hist[k][vp]
-    //                         && vp == (bb: BeaconBlock) => consensus_is_valid_beacon_block(db, ad, duty)
+    //                         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, ad, duty)
     //                     );
     //             }
     //             else 
@@ -213,7 +213,7 @@ module Common_Proofs_For_Block_Proposer
     //                 assert (exists db: set<SlashingDBBlock>, duty: BlockDuty ::
     //                         && duty.slot == k
     //                         && db in s.block_slashing_db_hist[k][vp]
-    //                         && vp == (bb: BeaconBlock) => consensus_is_valid_beacon_block(db, ad, duty)
+    //                         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, ad, duty)
     //                     );
     //             }
     //         }
@@ -224,7 +224,7 @@ module Common_Proofs_For_Block_Proposer
     //             assert (exists db: set<SlashingDBBlock>, duty: BlockDuty ::
     //                         && duty.slot == k
     //                         && db in s.block_slashing_db_hist[k][vp]
-    //                         && vp == (bb: BeaconBlock) => consensus_is_valid_beacon_block(db, ad, duty)
+    //                         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, ad, duty)
     //                     );                
     //         }
     //     }
@@ -266,7 +266,7 @@ module Common_Proofs_For_Block_Proposer
     //     assert forall k: Slot | k in new_active_consensus_instances_on_beacon_blocks.Keys ::
     //                 && var ci := new_active_consensus_instances_on_beacon_blocks[k];
     //                 && ci.validityPredicate
-    //                     == ((bb: BeaconBlock) => consensus_is_valid_beacon_block(
+    //                     == ((bb: BeaconBlock) => ci_decision_is_valid_beacon_block(
     //                                                     new_block_slashing_db, 
     //                                                     ad, 
     //                                                     ci.proposer_duty)
