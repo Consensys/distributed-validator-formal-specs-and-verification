@@ -83,7 +83,7 @@ module Common_Proofs
                 && slot in m'.Keys 
                 ::
                 var acvc := m'[slot];
-                && acvc.validityPredicate == ((ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty));
+                && acvc.validityPredicate == ((ad: AttestationData) => ci_decision_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty));
   
     {
         forall k | k in  m 
@@ -99,7 +99,7 @@ module Common_Proofs
                 && slot in m'.Keys 
                 ::
                 var acvc := m'[slot];
-                && acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty);
+                && acvc.validityPredicate == (ad: AttestationData) => ci_decision_is_valid_attestation_data(new_attestation_slashing_db, ad, acvc.attestation_duty);
 
     }  
 
@@ -149,7 +149,7 @@ module Common_Proofs
         assert forall k: Slot | k in new_active_attestation_consensus_instances.Keys ::
                     && var ci := new_active_attestation_consensus_instances[k];
                     && ci.validityPredicate
-                        == ((ad: AttestationData) => consensus_is_valid_attestation_data(
+                        == ((ad: AttestationData) => ci_decision_is_valid_attestation_data(
                                                         new_attestation_slashing_db, 
                                                         ad, 
                                                         ci.attestation_duty)
@@ -182,7 +182,7 @@ module Common_Proofs
         ensures ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                             && duty.slot == k
                             && db in new_att_slashing_db_hist[k][vp]
-                            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                            && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                         )
         {
             if k in new_active_attestation_consensus_instances.Keys
@@ -197,7 +197,7 @@ module Common_Proofs
                     assert (exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                             && duty.slot == k
                             && db in new_att_slashing_db_hist[k][vp]
-                            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                            && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                         );
                 }
                 else 
@@ -206,7 +206,7 @@ module Common_Proofs
                     assert (exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                             && duty.slot == k
                             && db in s.att_slashing_db_hist[k][vp]
-                            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                            && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                         );
                 }
             }
@@ -217,7 +217,7 @@ module Common_Proofs
                 assert (exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                             && duty.slot == k
                             && db in s.att_slashing_db_hist[k][vp]
-                            && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                            && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                         );                
             }
         }
@@ -259,7 +259,7 @@ module Common_Proofs
         assert forall k: Slot | k in new_active_attestation_consensus_instances.Keys ::
                     && var ci := new_active_attestation_consensus_instances[k];
                     && ci.validityPredicate
-                        == ((ad: AttestationData) => consensus_is_valid_attestation_data(
+                        == ((ad: AttestationData) => ci_decision_is_valid_attestation_data(
                                                         new_attestation_slashing_db, 
                                                         ad, 
                                                         ci.attestation_duty)

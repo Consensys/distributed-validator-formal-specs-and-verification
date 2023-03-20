@@ -182,9 +182,9 @@ module Core_Proofs
         var db': set<SlashingDBAttestation>, duty': AttestationDuty :| 
                 && duty'.slot == slot'
                 && db' in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot'][vp']
-                && vp' == (ad: AttestationData) => consensus_is_valid_attestation_data(db', ad, duty')
+                && vp' == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db', ad, duty')
                 ;
-        assert consensus_is_valid_attestation_data(db', data', duty');
+        assert ci_decision_is_valid_attestation_data(db', data', duty');
         assert !is_slashable_attestation_data(db', data');
         assert inv_db_of_vp_contains_all_att_data_of_sent_att_shares_for_lower_slots_body(
                         dv,

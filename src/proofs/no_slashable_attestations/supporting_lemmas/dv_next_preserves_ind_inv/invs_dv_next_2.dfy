@@ -139,7 +139,7 @@ module Invs_DV_Next_2
     { } 
 
     // // Note: Lemma's name should be revisited due to second postcondition
-    lemma lem_f_listen_for_new_imported_blocksd_unchanged_dvc_vars(
+    lemma lem_f_listen_for_new_imported_blocks_unchanged_dvc_vars(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState
@@ -671,7 +671,7 @@ module Invs_DV_Next_2
 
                     case ImportedNewBlock(block) => 
                         var s_node := f_add_block_to_bn(s_node, nodeEvent.block);
-                        lem_f_listen_for_new_imported_blocksd_unchanged_dvc_vars(s_node, block, s'_node);
+                        lem_f_listen_for_new_imported_blocks_unchanged_dvc_vars(s_node, block, s'_node);
                         assert s'.all_attestations_created == s.all_attestations_created;
                         lem_inv_exists_honest_dvc_that_sent_att_share_for_submitted_att_ex_helper(s, event, s');
                         assert inv_exists_honest_dvc_that_sent_att_share_for_submitted_att(s');     
@@ -733,7 +733,7 @@ module Invs_DV_Next_2
 
                     case ImportedNewBlock(block) => 
                         var s_node := f_add_block_to_bn(s_node, nodeEvent.block);
-                        lem_f_listen_for_new_imported_blocksd_unchanged_dvc_vars(s_node, block, s'_node);
+                        lem_f_listen_for_new_imported_blocks_unchanged_dvc_vars(s_node, block, s'_node);
                         assert inv_rcvd_attestation_shares_is_in_all_messages_sent(s');      
 
                     case ResendAttestationShares => 
@@ -1081,9 +1081,8 @@ module Invs_DV_Next_2
                         s 
                     ;                
 
-                forall cid | 
-                        && cid in s'.consensus_on_attestation_data.Keys
-                        && s'.consensus_on_attestation_data[cid].decided_value.isPresent()
+                forall cid | && cid in s'.consensus_on_attestation_data.Keys
+                             && s'.consensus_on_attestation_data[cid].decided_value.isPresent()
                 ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]);
                 {
                     if s.consensus_on_attestation_data[cid].decided_value.isPresent()
@@ -1599,7 +1598,7 @@ module Invs_DV_Next_2
         ensures inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_body(k, m'[k].attestation_duty, new_attestation_slashing_db, m'[k].validityPredicate); 
         {
             assert m'[k] == m[k].(
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, m[k].attestation_duty)
+                    validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(new_attestation_slashing_db, ad, m[k].attestation_duty)
             );
             assert  inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db_body(k, m'[k].attestation_duty, new_attestation_slashing_db, m'[k].validityPredicate);        
         }
@@ -1755,7 +1754,7 @@ module Invs_DV_Next_2
 
         var acvc := AttestationConsensusValidityCheckState(
             attestation_duty := attestation_duty,
-            validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+            validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
         );     
 
         // assert s'.attestation_consensus_engine_state.active_attestation_consensus_instances == process.attestation_consensus_engine_state.active_attestation_consensus_instances[attestation_duty.slot := acvc];
@@ -1811,7 +1810,7 @@ module Invs_DV_Next_2
                 
                 var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(process.attestation_slashing_db, ad, attestation_duty)
+                    validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(process.attestation_slashing_db, ad, attestation_duty)
                 );
 
                 assert acvc == process'.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
@@ -2364,7 +2363,7 @@ module Invs_DV_Next_2
     //                     //     var messagesToBeSent := f_listen_for_new_imported_blocks(s_node, block).outputs.att_shares_sent;
     //                     //     assert s'.att_network.allMessagesSent == 
     //                     //                 s.att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(messagesToBeSent);
-    //                     //     lem_f_listen_for_new_imported_blocksd_unchanged_dvc_vars(s_node, block, s'_node);
+    //                     //     lem_f_listen_for_new_imported_blocks_unchanged_dvc_vars(s_node, block, s'_node);
     //                     //     assert messagesToBeSent == {};
     //                     //     lem_inv_data_of_att_share_is_decided_value_helper2(s'.att_network.allMessagesSent, s.att_network.allMessagesSent, messagesToBeSent);
     //                     //     assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;                 
@@ -2513,7 +2512,7 @@ module Invs_DV_Next_2
                             var messagesToBeSent := f_listen_for_new_imported_blocks(s_node, block).outputs.att_shares_sent;
                             assert s'.att_network.allMessagesSent == 
                                         s.att_network.allMessagesSent + getMessagesFromMessagesWithRecipient(messagesToBeSent);
-                            lem_f_listen_for_new_imported_blocksd_unchanged_dvc_vars(s_node, block, s'_node);
+                            lem_f_listen_for_new_imported_blocks_unchanged_dvc_vars(s_node, block, s'_node);
                             assert messagesToBeSent == {};
                             lem_inv_data_of_att_share_is_decided_value_helper2(s'.att_network.allMessagesSent, s.att_network.allMessagesSent, messagesToBeSent);
                             assert s'.att_network.allMessagesSent == s.att_network.allMessagesSent;                  

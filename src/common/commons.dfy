@@ -458,7 +458,7 @@ module CommonFunctions{
         }
     } 
 
-    predicate method consensus_is_valid_attestation_data(
+    predicate method ci_decision_is_valid_attestation_data(
         slashing_db: set<SlashingDBAttestation>,
         attestation_data: AttestationData, 
         attestation_duty: AttestationDuty

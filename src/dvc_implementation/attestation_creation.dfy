@@ -411,7 +411,7 @@ abstract module DVC_Implementation
             var attestations := slashing_db.get_attestations(dv_pubkey);
             Repr := Repr + slashing_db.Repr;
 
-            return consensus_is_valid_attestation_data(attestations, data, this.attestation_duty);             
+            return ci_decision_is_valid_attestation_data(attestations, data, this.attestation_duty);             
         }
     }      
 }

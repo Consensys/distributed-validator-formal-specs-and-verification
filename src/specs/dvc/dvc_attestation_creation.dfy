@@ -32,10 +32,10 @@ module DVC_Spec_NonInstr {
     {
         var acvc := AttestationConsensusValidityCheckState(
                     attestation_duty := attestation_duty,
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
+                    validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
                 );
         
-        assert (acvc.validityPredicate == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
+        assert (acvc.validityPredicate == (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
         
         var new_active_attestation_consensus_instances := 
                 s.active_attestation_consensus_instances[
@@ -86,7 +86,7 @@ module DVC_Spec_NonInstr {
             map it | it in m.Items
                 ::
                 it.0 := it.1.(
-                    validityPredicate := (ad: AttestationData) => consensus_is_valid_attestation_data(new_attestation_slashing_db, ad, it.1.attestation_duty)
+                    validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(new_attestation_slashing_db, ad, it.1.attestation_duty)
                 )        
     }
 

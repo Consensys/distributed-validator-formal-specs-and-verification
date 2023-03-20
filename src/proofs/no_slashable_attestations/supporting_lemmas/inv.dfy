@@ -198,7 +198,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         && attestation_duty.slot == s
-        && (vp == (ad: AttestationData) => consensus_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty))
+        && (vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty))
     }
 
     predicate inv_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv: DVState)
@@ -1090,7 +1090,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //             && var ad := dv.consensus_on_attestation_data[s].decided_value.safe_get();
     //             && exists vp, db :: && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s].Keys 
     //                                 && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-    //                                 && consensus_is_valid_attestation_data(db, ad, duty)    
+    //                                 && ci_decision_is_valid_attestation_data(db, ad, duty)    
     //        )
     // }
 
@@ -1299,7 +1299,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         && var hn_state := dv.honest_nodes_states[hn];
         && duty.slot == s
         && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+        && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
     }
 
     predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv: DVState)
@@ -1864,7 +1864,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                         && duty.slot == s
                         && db in ces.att_slashing_db_hist[s][vp]
-                        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                        && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                 )
     }
 
@@ -1878,7 +1878,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                         && duty.slot == s
                         && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
-                        && vp == (ad: AttestationData) => consensus_is_valid_attestation_data(db, ad, duty)
+                        && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                 )
     }
 
@@ -2343,7 +2343,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 (   && att_duty in dvc.all_rcvd_duties
                     && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                     && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
-                    // && consensus_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty)
+                    // && ci_decision_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty)
                     && vp(att_data)
                 )
     }
@@ -2376,7 +2376,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                 (   && att_duty in dvc.all_rcvd_duties
                     && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
                     && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
-                    // && consensus_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty)
+                    // && ci_decision_is_valid_attestation_data(dvc.attestation_slashing_db, att_data, att_duty)
                     && vp(att_data)
                 )
     }
