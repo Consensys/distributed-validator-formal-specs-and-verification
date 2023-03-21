@@ -457,9 +457,8 @@ module Invs_DV_Next_2
                         s
                     ;
 
-                forall cid |
-                        && cid in s'.consensus_instances_on_beacon_block.Keys
-                        && s'.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
+                forall cid | && cid in s'.consensus_instances_on_beacon_block.Keys
+                             && s'.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
                 ensures is_a_valid_decided_value(s'.consensus_instances_on_beacon_block[cid]);
                 {
                     if s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
@@ -531,36 +530,73 @@ module Invs_DV_Next_2
     requires inv_only_dv_construct_complete_signed_block(s)
     ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     {
-        forall cid |
-            && cid in s.consensus_instances_on_beacon_block.Keys
-            && s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
+        forall cid | && cid in s.consensus_instances_on_beacon_block.Keys
+                     && s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
         {
            lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_helper(s, cid);
         }
     }
 
-    // lemma lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ServeProposerDuty(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.ServeProposerDuty?
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
+    {
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>
+                        forall n | n in s'.honest_nodes_states
+                        ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s'.honest_nodes_states[n]);
+                        {
+                            if n == node
+                            {
+                                lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_serve_proposer_duty(s_node, proposer_duty, s'_node);
+                                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s'_node);
+                            }
+                        }
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+                }
+        }
+    }
+
+    lemma lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)    
+    requires inv_only_dv_construct_complete_signature_functions(s)
+    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
     // ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s')
-    // {
-    //     lem_inv_quorum_constraints_dv_next(s, event, s');
-    //     lem_inv_unchanged_paras_of_consensus_instances_dv_next(s, event, s');
-    //     lem_inv_only_dv_construct_complete_signed_block_dv_next(s, event, s');
-    //     lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum(s, event, s');
-    //     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s, event, s');
-    //     lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(s');
-    // }
+    {
+        lem_inv_quorum_constraints_dv_next(s, event, s');
+        lem_inv_unchanged_paras_of_consensus_instances_dv_next(s, event, s');
+        lem_inv_only_dv_construct_complete_signature_functions_dv_next(s, event, s');
+        assert inv_only_dv_construct_complete_signed_block(s');
+        lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum(s, event, s');
+        // lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s, event, s');
+        // lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(s');
+    }
 
     // lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_dv_next(
     //     dv: DVState,
@@ -1133,26 +1169,26 @@ module Invs_DV_Next_2
     // ensures s.decided_value.safe_get() == s'.decided_value.safe_get()
     // { }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(
-    //     s: DVState,
-    //     node: BLSPubkey,
-    //     nodeEvent: Block_Types.Event
-    // ) returns (s_w_honest_node_states_updated: DVState)
-    // requires node in s.honest_nodes_states
-    // ensures s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
-    // ensures s_w_honest_node_states_updated == s.(honest_nodes_states := s_w_honest_node_states_updated.honest_nodes_states)
-    // ensures s_w_honest_node_states_updated.honest_nodes_states == s.honest_nodes_states[node := s_w_honest_node_states_updated.honest_nodes_states[node]]
-    // ensures s_w_honest_node_states_updated.honest_nodes_states[node] == s.honest_nodes_states[node].(bn := s_w_honest_node_states_updated.honest_nodes_states[node].bn)
-    // {
-    //     s_w_honest_node_states_updated :=
-    //         if nodeEvent.ImportedNewBlock? then
-    //             s.(
-    //                 honest_nodes_states := s.honest_nodes_states[node := f_add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
-    //             )
-    //         else
-    //             s
-    //         ;
-    // }
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Block_Types.Event
+    ) returns (s_w_honest_node_states_updated: DVState)
+    requires node in s.honest_nodes_states
+    ensures s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
+    ensures s_w_honest_node_states_updated == s.(honest_nodes_states := s_w_honest_node_states_updated.honest_nodes_states)
+    ensures s_w_honest_node_states_updated.honest_nodes_states == s.honest_nodes_states[node := s_w_honest_node_states_updated.honest_nodes_states[node]]
+    ensures s_w_honest_node_states_updated.honest_nodes_states[node] == s.honest_nodes_states[node].(bn := s_w_honest_node_states_updated.honest_nodes_states[node].bn)
+    {
+        s_w_honest_node_states_updated :=
+            if nodeEvent.ImportedNewBlock? then
+                s.(
+                    honest_nodes_states := s.honest_nodes_states[node := f_add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                )
+            else
+                s
+            ;
+    }
 
    
 
@@ -1217,139 +1253,139 @@ module Invs_DV_Next_2
 
 
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated_2(
-    //     s: DVState,
-    //     node: BLSPubkey,
-    //     nodeEvent: Block_Types.Event,
-    //     node': BLSPubkey,
-    //     s_w_honest_node_states_updated: DVState
-    // )
-    // requires node in s.honest_nodes_states
-    // requires node' in s.honest_nodes_states
-    // requires s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
-    // ensures s_w_honest_node_states_updated.honest_nodes_states[node'].block_consensus_engine_state == s.honest_nodes_states[node'].block_consensus_engine_state
-    // {
-    // }
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated_2(
+        s: DVState,
+        node: BLSPubkey,
+        nodeEvent: Block_Types.Event,
+        node': BLSPubkey,
+        s_w_honest_node_states_updated: DVState
+    )
+    requires node in s.honest_nodes_states
+    requires node' in s.honest_nodes_states
+    requires s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
+    ensures s_w_honest_node_states_updated.honest_nodes_states[node'].block_consensus_engine_state == s.honest_nodes_states[node'].block_consensus_engine_state
+    {
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_helper(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState,
-    //     cid: Slot,
-    //     hn: BLSPubkey,
-    //     vp: BeaconBlock -> bool
-    // )   returns (proposer_duty: ProposerDuty, block_slashing_db: set<SlashingDBBlock>)
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires
-    //         && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
-    //         && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
-    // requires event.HonestNodeTakingStep?
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
-    // {
-    //     assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_helper(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState,
+        cid: Slot,
+        hn: BLSPubkey,
+        vp: BeaconBlock -> bool
+    )   returns (proposer_duty: ProposerDuty, block_slashing_db: set<SlashingDBBlock>)
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires
+            && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
+            && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
+    requires event.HonestNodeTakingStep?
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
+    {
+        assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
 
-    //             var s_w_honest_node_states_updated :=
-    //                 lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(s, node, nodeEvent);
+                var s_w_honest_node_states_updated :=
+                    lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(s, node, nodeEvent);
 
-    //             assert s_w_honest_node_states_updated.consensus_instances_on_beacon_block == s.consensus_instances_on_beacon_block;
+                assert s_w_honest_node_states_updated.consensus_instances_on_beacon_block == s.consensus_instances_on_beacon_block;
 
 
-    //             var output :=
-    //                 if nodeEvent.BlockConsensusDecided? && nodeEvent.id == cid then
-    //                     Some(Decided(node, nodeEvent.decided_beacon_block))
-    //                 else
-    //                     None
-    //                 ;
+                var output :=
+                    if nodeEvent.BlockConsensusDecided? && nodeEvent.id == cid then
+                        Some(Decided(node, nodeEvent.decided_beacon_block))
+                    else
+                        None
+                    ;
 
-    //             var validityPredicates :=
-    //                 map n |
-    //                         && n in s_w_honest_node_states_updated.honest_nodes_states.Keys
-    //                         && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
-    //                     ::
-    //                         s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
-    //                 ;
+                var validityPredicates :=
+                    map n |
+                            && n in s_w_honest_node_states_updated.honest_nodes_states.Keys
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
+                        ::
+                            s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
+                    ;
 
-    //             var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
-    //             var s'_consensus := s'.consensus_instances_on_beacon_block[cid];
+                var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
+                var s'_consensus := s'.consensus_instances_on_beacon_block[cid];
 
-    //             assert
-    //                 Block_Consensus_Spec.Next(
-    //                     s_consensus,
-    //                     validityPredicates,
-    //                     s'_consensus,
-    //                     output
-    //                 );
+                assert
+                    Block_Consensus_Spec.Next(
+                        s_consensus,
+                        validityPredicates,
+                        s'_consensus,
+                        output
+                    );
 
-    //         if hn in s_consensus.honest_nodes_validity_functions.Keys  && vp in s_consensus.honest_nodes_validity_functions[hn]
-    //         {
-    //             assert vp in s'_consensus.honest_nodes_validity_functions[hn];
+            if hn in s_consensus.honest_nodes_validity_functions.Keys  && vp in s_consensus.honest_nodes_validity_functions[hn]
+            {
+                assert vp in s'_consensus.honest_nodes_validity_functions[hn];
 
-    //             proposer_duty, block_slashing_db :| inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
+                proposer_duty, block_slashing_db :| inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
 
-    //         }
-    //         else
-    //         {
-    //             assert vp in validityPredicates.Values;
-    //             var vpn :| vpn in validityPredicates.Keys && validityPredicates[vpn] == vp;
-    //             assert validityPredicates[vpn] == s_w_honest_node_states_updated.honest_nodes_states[vpn].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate;
+            }
+            else
+            {
+                assert vp in validityPredicates.Values;
+                var vpn :| vpn in validityPredicates.Keys && validityPredicates[vpn] == vp;
+                assert validityPredicates[vpn] == s_w_honest_node_states_updated.honest_nodes_states[vpn].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate;
 
-    //             assert vpn in s.honest_nodes_states.Keys;
-    //             assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+                assert vpn in s.honest_nodes_states.Keys;
+                assert cid in s_w_honest_node_states_updated.honest_nodes_states[vpn].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
 
-    //             lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
+                lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated_2(s, node, nodeEvent, vpn, s_w_honest_node_states_updated);
 
-    //             assert s_w_honest_node_states_updated.honest_nodes_states[vpn].block_consensus_engine_state == s.honest_nodes_states[vpn].block_consensus_engine_state;
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(s, vpn, cid);
+                assert s_w_honest_node_states_updated.honest_nodes_states[vpn].block_consensus_engine_state == s.honest_nodes_states[vpn].block_consensus_engine_state;
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(s, vpn, cid);
 
-    //             proposer_duty, block_slashing_db :| inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
-    //         }
+                proposer_duty, block_slashing_db :| inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
+            }
 
-    //         assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
-    //     }
+            assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp);
+        }
 
-    // }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s')
-    // {
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             forall hn, cid: Slot, vp |
-    //                 && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
-    //                 && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
-    //             ensures exists proposer_duty, block_slashing_db :: inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp)
-    //             {
-    //                 var proposer_duty: ProposerDuty, block_slashing_db := lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_helper(s, event, s', cid, hn, vp);
-    //             }
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s');
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s')
+    {
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                forall hn, cid: Slot, vp |
+                    && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
+                    && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
+                ensures exists proposer_duty, block_slashing_db :: inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp)
+                {
+                    var proposer_duty: ProposerDuty, block_slashing_db := lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_helper(s, event, s', cid, hn, vp);
+                }
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s');
 
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s');
-    //     }
-    // }
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s');
+        }
+    }
 
 
 
@@ -1617,33 +1653,7 @@ module Invs_DV_Next_2
 
 
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
-    //     m: map<Slot, BlockConsensusValidityCheckState>,
-    //     new_block_slashing_db: set<SlashingDBBlock>,
-    //     m': map<Slot, BlockConsensusValidityCheckState>
-    // )
-    // requires m' == updateBlockConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
-    // requires forall k | k in m :: inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(k, m[k].proposer_duty, m[k].validityPredicate)
-    // ensures forall k | k in m' :: inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(k, m'[k].proposer_duty, m'[k].validityPredicate)
-    // {
-    //     forall k | k in  m
-    //     ensures k in m'
-    //     {
-    //         lemmaMapKeysHasOneEntryInItems(m, k);
-    //         assert k in m';
-    //     }
-
-    //     assert m.Keys == m'.Keys;
-
-    //     forall k | k in m'
-    //     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(k, m'[k].proposer_duty, new_block_slashing_db, m'[k].validityPredicate);
-    //     {
-    //         assert m'[k] == m[k].(
-    //                 validityPredicate := (ad: BeaconBlock) => ci_decision_is_valid_beacon_block(new_block_slashing_db, ad, m[k].proposer_duty)
-    //         );
-    //         assert  inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(k, m'[k].proposer_duty, new_block_slashing_db, m'[k].validityPredicate);
-    //     }
-    // }
+    
 
 
     // lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateBlockConsensusInstanceValidityCheck(
@@ -1770,420 +1780,377 @@ module Invs_DV_Next_2
     //     assert s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
     // }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_terminate_current_proposer_duty(
-    //     process: DVCState,
-    //     process': DVCState
-    // )
-    // requires f_terminate_current_proposer_duty.requires(process)
-    // requires process' == f_terminate_current_proposer_duty(process)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process')
-    // { }
+    
 
-    // // TODO: new proof
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_check_for_next_duty_helper(
-    //     process: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     s': DVCState
-    // )
-    // requires f_check_for_next_duty.requires(process, proposer_duty)
-    // requires s' == f_check_for_next_duty(process, proposer_duty).state
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // // ensures  inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s')
-    // {
-    //     var block_slashing_db := process.block_slashing_db;
+    // TODO: new proof
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_check_for_next_duty_helper(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        s': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires s' == f_check_for_next_duty(process, proposer_duty).state
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
+    // ensures  inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s')
+    {
+        var block_slashing_db := process.block_slashing_db;
 
-    //     var acvc := BlockConsensusValidityCheckState(
-    //         proposer_duty := proposer_duty,
-    //         validityPredicate := (ad: BeaconBlock) => ci_decision_is_valid_beacon_block(block_slashing_db, ad, proposer_duty)
-    //     );
+        var acvc := BlockConsensusValidityCheckState(
+            proposer_duty := proposer_duty,
+            validityPredicate := (ad: BeaconBlock) => ci_decision_is_valid_beacon_block(block_slashing_db, ad, proposer_duty)
+        );
 
-    //     // assert s'.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks == process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[proposer_duty.slot := acvc];
+        // assert s'.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks == process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[proposer_duty.slot := acvc];
 
 
-    //     forall cid | cid in s'.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(s', cid);
-    //     {
-    //         if cid != proposer_duty.slot
-    //         {
-    //             assert cid in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks;
-    //             // assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(s', cid);
-    //         }
-    //         else
-    //         {
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(
-    //                 cid,
-    //                 proposer_duty,
-    //                 block_slashing_db,
-    //                 acvc.validityPredicate
-    //             );
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(s', cid);
-    //         }
-    //     }
-    // }
+        forall cid | cid in s'.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(s', cid);
+        {
+            if cid != proposer_duty.slot
+            {
+                assert cid in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks;
+                // assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(s', cid);
+            }
+            else
+            {
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(
+                    cid,
+                    proposer_duty,
+                    block_slashing_db,
+                    acvc.validityPredicate
+                );
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(s', cid);
+            }
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_start_next_duty(
-    //     process: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     process': DVCState
-    // )
-    // requires f_check_for_next_duty.requires(process, proposer_duty)
-    // requires process' == f_start_next_duty(process, proposer_duty).state
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process')
-    // {
-    //     var new_process := f_new_process_after_starting_new_proposer_duty(process, proposer_duty);
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_start_next_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires process' == f_start_next_duty(process, proposer_duty).state
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process')
+    {
+        var new_process := f_new_process_after_starting_new_proposer_duty(process, proposer_duty);
 
-    //     assert { proposer_duty.slot } ==
-    //                  new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys -
-    //                         process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+        assert { proposer_duty.slot } ==
+                     new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys -
+                            process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
 
-    //     forall cid | cid in new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(new_process, cid)
-    //     {
-    //         if cid in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         {
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(new_process, cid);
-    //         }
-    //         else
-    //         {
-    //             assert cid == proposer_duty.slot;
+        forall cid | cid in new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+        ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(new_process, cid)
+        {
+            if cid in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            {
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(new_process, cid);
+            }
+            else
+            {
+                assert cid == proposer_duty.slot;
 
-    //             var acvc := BlockConsensusValidityCheckState(
-    //                 proposer_duty := proposer_duty,
-    //                 validityPredicate := (ad: BeaconBlock) => ci_decision_is_valid_beacon_block(process.block_slashing_db, ad, proposer_duty)
-    //             );
+                var acvc := BlockConsensusValidityCheckState(
+                    proposer_duty := proposer_duty,
+                    validityPredicate := (ad: BeaconBlock) => ci_decision_is_valid_beacon_block(process.block_slashing_db, ad, proposer_duty)
+                );
 
-    //             assert acvc == process'.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, process.block_slashing_db, acvc.validityPredicate);
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(cid, proposer_duty, acvc.validityPredicate);
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(new_process, cid);
-    //         }
-    //     }
-    // }
+                assert acvc == process'.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, process.block_slashing_db, acvc.validityPredicate);
+                assert inv_existing_block_slashing_db_and_randao_reveal_for_sent_vp(cid, proposer_duty, acvc.validityPredicate);
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(new_process, cid);
+            }
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_check_for_next_duty(
-    //     process: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     process': DVCState
-    // )
-    // requires f_check_for_next_duty.requires(process, proposer_duty)
-    // requires process' == f_check_for_next_duty(process, proposer_duty).state
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process');
-    // {
-    //     if pred_decision_of_proposer_duty_was_known(process, proposer_duty)
-    //     {
-    //         var new_process := f_new_process_after_updateBlockConsensusInstanceValidityCheck(process, proposer_duty);
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_check_for_next_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires process' == f_check_for_next_duty(process, proposer_duty).state
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process');
+    {
+        if pred_decision_of_proposer_duty_was_known(process, proposer_duty)
+        {
+            var new_process := f_new_process_after_updateBlockConsensusInstanceValidityCheck(process, proposer_duty);
 
-    //         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
-    //                 process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
-    //                 new_process.block_slashing_db,
-    //                 new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         );
-    //     }
-    //     else
-    //     {
-    //         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_start_next_duty(
-    //             process,
-    //             proposer_duty,
-    //             process'
-    //         );
-    //     }
-    // }
+            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
+                    process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
+                    new_process.block_slashing_db,
+                    new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            );
+        }
+        else
+        {
+            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_start_next_duty(
+                process,
+                proposer_duty,
+                process'
+            );
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_serve_proposer_duty(
-    //     process: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     process': DVCState
-    // )
-    // requires f_serve_proposer_duty.requires(process, proposer_duty)
-    // requires process' == f_serve_proposer_duty(process, proposer_duty).state
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process');
-    // {
-    //     var process_rcvd_duty :=
-    //             process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
-    //     var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process_rcvd_duty);
-    //     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_terminate_current_proposer_duty(
-    //         process_rcvd_duty,
-    //         process_after_stopping_active_consensus_instance
-    //     );
-    //     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_check_for_next_duty(
-    //         process_after_stopping_active_consensus_instance,
-    //         proposer_duty,
-    //         process'
-    //     );
-    // }
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_serve_proposer_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_serve_proposer_duty.requires(process, proposer_duty)
+    requires process' == f_serve_proposer_duty(process, proposer_duty).state
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process');
+    {
+        var process_rcvd_duty :=
+                process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
+        var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process_rcvd_duty);
+        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_terminate_current_proposer_duty(
+            process_rcvd_duty,
+            process_after_stopping_active_consensus_instance
+        );
+        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_check_for_next_duty(
+            process_after_stopping_active_consensus_instance,
+            proposer_duty,
+            process'
+        );
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_block_consensus_decided(
-    //     process: DVCState,
-    //     id: Slot,
-    //     decided_beacon_block: BeaconBlock,
-    //     s': DVCState
-    // )
-    // requires f_block_consensus_decided.requires(process, id, decided_beacon_block)
-    // requires s' == f_block_consensus_decided(process, id, decided_beacon_block).state
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s');
-    // {
-    //     if  is_decided_data_for_current_slot(process, decided_beacon_block, id)
-    //     {
-    //         var s_mod := f_update_process_after_proposer_duty_decided(
-    //                         process,
-    //                         id,
-    //                         decided_beacon_block);
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_block_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        decided_beacon_block: BeaconBlock,
+        s': DVCState
+    )
+    requires f_block_consensus_decided.requires(process, id, decided_beacon_block)
+    requires s' == f_block_consensus_decided(process, id, decided_beacon_block).state
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s');
+    {
+        if  is_decided_data_for_current_slot(process, decided_beacon_block, id)
+        {
+            var s_mod := f_update_process_after_proposer_duty_decided(
+                            process,
+                            id,
+                            decided_beacon_block);
 
-    //         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
-    //                 process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
-    //                 s_mod.block_slashing_db,
-    //                 s_mod.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         );
-    //     }
-    // }
+            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
+                    process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
+                    s_mod.block_slashing_db,
+                    s_mod.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            );
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_f_listen_for_new_imported_blocks(
-    //     process: DVCState,
-    //     block: BeaconBlock,
-    //     s': DVCState
-    // )
-    // requires f_listen_for_new_imported_blocks.requires(process, block)
-    // requires s' == f_listen_for_new_imported_blocks(process, block).state
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(process)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s');
-    // {
-    //     var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        s': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires s' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s');
+    {
+        var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
 
-    //     var proposer_consensus_instances_already_decided := process.future_proposer_consensus_instances_already_decided + new_consensus_instances_already_decided;
+        var proposer_consensus_instances_already_decided := process.future_proposer_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-    //     var process := f_stopBlockConsensusInstances_after_receiving_new_imported_blocks(
-    //                             process,
-    //                             block
-    //                         );
+        var process := f_stopBlockConsensusInstances_after_receiving_new_imported_blocks(
+                                process,
+                                block
+                            );
 
-    //     if pred_listen_for_new_imported_blocks_checker(process, proposer_consensus_instances_already_decided)
-    //     {
-    //         var s_mod := f_updateBlockConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
-    //                                 process,
-    //                                 proposer_consensus_instances_already_decided
-    //                             );
+        if pred_listen_for_new_imported_blocks_checker(process, proposer_consensus_instances_already_decided)
+        {
+            var s_mod := f_updateBlockConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+                                    process,
+                                    proposer_consensus_instances_already_decided
+                                );
 
-    //         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
-    //                 process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
-    //                 s_mod.block_slashing_db,
-    //                 s_mod.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         );
-    //     }
-    // }
+            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
+                    process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
+                    s_mod.block_slashing_db,
+                    s_mod.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            );
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ServeProposerDuty(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires event.HonestNodeTakingStep?
-    // requires event.event.ServeProposerDuty?
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
-    // {
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
-    //             match nodeEvent
-    //             {
-    //                 case ServeProposerDuty(proposer_duty) =>
-    //                     forall n | n in s'.honest_nodes_states
-    //                     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s'.honest_nodes_states[n]);
-    //                     {
-    //                         if n == node
-    //                         {
-    //                             lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_serve_proposer_duty(s_node, proposer_duty, s'_node);
-    //                             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s'_node);
-    //                         }
-    //                     }
-    //                     assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
-    //             }
-    //     }
-    // }
+    
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_BlockConsensusDecided(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires event.HonestNodeTakingStep?
-    // requires event.event.BlockConsensusDecided?
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
-    // {
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
-    //             match nodeEvent
-    //             {
-    //                 case BlockConsensusDecided(id, decided_beacon_block) =>
-    //                     forall n | n in s'.honest_nodes_states
-    //                     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s'.honest_nodes_states[n]);
-    //                     {
-    //                         if n == node
-    //                         {
-    //                             lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_f_block_consensus_decided(s_node, id, decided_beacon_block, s'_node);
-    //                             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s'_node);
-    //                         }
-    //                     }
-    //                     assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
-    //             }
-    //     }
-    // }
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_BlockConsensusDecided(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.BlockConsensusDecided?
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
+    {
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case BlockConsensusDecided(id, decided_beacon_block) =>
+                        forall n | n in s'.honest_nodes_states
+                        ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s'.honest_nodes_states[n]);
+                        {
+                            if n == node
+                            {
+                                lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_block_consensus_decided(s_node, id, decided_beacon_block, s'_node);
+                                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s'_node);
+                            }
+                        }
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+                }
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ReceivedSignedBeaconBlock(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires event.HonestNodeTakingStep?
-    // requires event.event.ReceivedSignedBeaconBlock?
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
-    // {
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
-    //             match nodeEvent
-    //             {
-    //                 case ReceivedSignedBeaconBlock(block_share) =>
-    //                     forall n | n in s'.honest_nodes_states
-    //                     ensures s'.honest_nodes_states[n].block_consensus_engine_state == s.honest_nodes_states[n].block_consensus_engine_state
-    //                     {
-    //                         if n == node
-    //                         {
-    //                             lem_f_listen_for_block_signature_shares_unchanged_dvc_vars(s_node, block_share, s'_node);
-    //                         }
-    //                     }
-    //                     assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
-    //             }
-    //     }
-    // }
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ReceivedSignedBeaconBlock(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.ReceivedSignedBeaconBlock?
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
+    {
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ReceivedSignedBeaconBlock(block_share) =>
+                        forall n | n in s'.honest_nodes_states
+                        ensures s'.honest_nodes_states[n].block_consensus_engine_state == s.honest_nodes_states[n].block_consensus_engine_state
+                        {
+                            if n == node
+                            {
+                                lem_f_listen_for_block_signature_shares_unchanged_dvc_vars(s_node, block_share, s'_node);
+                            }
+                        }
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+                }
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ImportedNewBlock(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires event.HonestNodeTakingStep?
-    // requires event.event.ImportedNewBlock?
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
-    // {
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
-    //             match nodeEvent
-    //             {
-    //                 case ImportedNewBlock(block) =>
-    //                     forall n | n in s'.honest_nodes_states
-    //                     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s'.honest_nodes_states[n]);
-    //                     {
-    //                         if n == node
-    //                         {
-    //                             var s_node := f_add_block_to_bn(s_node, nodeEvent.block);
-    //                             lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_f_listen_for_new_imported_blocks(s_node, block, s'_node);
-    //                             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(s'_node);
-    //                         }
-    //                     }
-    //                     assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
-    //             }
-    //     }
-    // }
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ImportedNewBlock(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires event.HonestNodeTakingStep?
+    requires event.event.ImportedNewBlock?
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
+    {
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ImportedNewBlock(block) =>
+                        forall n | n in s'.honest_nodes_states
+                        ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s'.honest_nodes_states[n]);
+                        {
+                            if n == node
+                            {
+                                var s_node := f_add_block_to_bn(s_node, nodeEvent.block);
+                                lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_f_listen_for_new_imported_blocks(s_node, block, s'_node);
+                                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(s'_node);
+                            }
+                        }
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+                }
+        }
+    }
 
-    // lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')
-    // requires inv_quorum_constraints(s)
-    // requires inv_unchanged_paras_of_consensus_instances(s)
-    // requires inv_only_dv_construct_complete_signed_block(s)
-    // requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
-    // {
-    //     match event
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
-    //             match nodeEvent
-    //             {
-    //                 case ServeProposerDuty(proposer_duty) =>
-    //                     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ServeProposerDuty(
-    //                         s,
-    //                         event,
-    //                         s'
-    //                     );
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next(
+        s: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        s': DVState
+    )
+    requires NextEventPreCond(s, event)
+    requires NextEvent(s, event, s')
+    requires inv_quorum_constraints(s)
+    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_only_dv_construct_complete_signed_block(s)
+    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
+    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
+    {
+        match event
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var s_node := s.honest_nodes_states[node];
+                var s'_node := s'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>
+                        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ServeProposerDuty(
+                            s,
+                            event,
+                            s'
+                        );
 
-    //                 case BlockConsensusDecided(id, decided_beacon_block) =>
-    //                     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_BlockConsensusDecided(
-    //                         s,
-    //                         event,
-    //                         s'
-    //                     );
+                    case BlockConsensusDecided(id, decided_beacon_block) =>
+                        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_BlockConsensusDecided(
+                            s,
+                            event,
+                            s'
+                        );
 
 
-    //                 case ReceivedSignedBeaconBlock(block_share) =>
-    //                     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ReceivedSignedBeaconBlock(
-    //                         s,
-    //                         event,
-    //                         s'
-    //                     );
+                    case ReceivedSignedBeaconBlock(block_share) =>
+                        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ReceivedSignedBeaconBlock(
+                            s,
+                            event,
+                            s'
+                        );
 
-    //                 case ImportedNewBlock(block) =>
-    //                     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ImportedNewBlock(
-    //                         s,
-    //                         event,
-    //                         s'
-    //                     );
+                    case ImportedNewBlock(block) =>
+                        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_next_ImportedNewBlock(
+                            s,
+                            event,
+                            s'
+                        );
 
-    //                 case ResendSignedBeaconBlocks =>
-    //                     assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+                    case ResendSignedBeaconBlocks =>
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
 
-    //                 case NoEvent =>
-    //                     assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
-    //             }
+                    case NoEvent =>
+                        assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+                }
 
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-    //             assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
-    //     }
-    // }
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+                assert inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s');
+        }
+    }
 
     // lemma lem_f_listen_for_new_imported_blocks_helper_1(
     //     dv: DVState,
@@ -2619,7 +2586,7 @@ module Invs_DV_Next_2
     // requires inv_quorum_constraints(s)
     // requires inv_unchanged_paras_of_consensus_instances(s)
     // requires same_honest_nodes_in_dv_and_ci(s)
-    // requires inv_only_dv_construct_complete_functions(s)
+    // requires inv_only_dv_construct_complete_signature_functions(s)
     // requires inv_block_of_block_share_is_decided_value(s)
     // requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     // requires inv_block_shares_to_broadcast_is_a_subset_of_all_messages_sent(s)
