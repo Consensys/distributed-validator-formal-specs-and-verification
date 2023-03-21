@@ -86,7 +86,7 @@ module Common_Proofs_For_Block_Proposer
                                                                         new_block_slashing_db, 
                                                                         bb, 
                                                                         bcvc.proposer_duty,
-                                                                        bcvc.complete_signed_randao_reveal));
+                                                                        bcvc.randao_reveal));
   
     {
         forall k | k in  m 
@@ -106,7 +106,7 @@ module Common_Proofs_For_Block_Proposer
                                                                         new_block_slashing_db, 
                                                                         bb, 
                                                                         bcvc.proposer_duty,
-                                                                        bcvc.complete_signed_randao_reveal);
+                                                                        bcvc.randao_reveal);
 
     }  
 
