@@ -92,7 +92,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && nodes.peers == dv.all_nodes
     }
 
-    predicate inv_only_dv_construct_complete_functions(dv: DVState)
+    predicate inv_only_dv_construct_complete_signature_functions(dv: DVState)
     {
         && inv_only_dv_construct_complete_signed_randao_reveal(dv)
         && inv_only_dv_construct_complete_signed_block(dv)                
@@ -391,16 +391,102 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(dv, hn, block_share, block)
     }
    
+
+
+
+
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(
+        dvc: DVCState,
+        cid: Slot
+    )
+    requires cid in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+    {
+        var bci := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
+        inv_existing_block_slashing_db_and_randao_reveal_for_sent_vp(
+            cid, 
+            bci.proposer_duty, 
+            bci.randao_reveal,
+            bci.validityPredicate            
+        ) 
+    }     
+
+   
+
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(
+        dvc: DVCState
+    )
+    {
+        forall cid | 
+            cid in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            ::
+            inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(dvc, cid)        
+    }    
+
     predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(
         s: Slot,
-        proposer_duty: ProposerDuty,
+        proposer_duty: ProposerDuty,        
         block_slashing_db: set<SlashingDBBlock>,
-        vp: BeaconBlock -> bool,
-        complete_signed_randao_reveal: BLSSignature
+        randao_reveal: BLSSignature,
+        vp: BeaconBlock -> bool
     )
     {
         && proposer_duty.slot == s
-        && (vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(block_slashing_db, block, proposer_duty, complete_signed_randao_reveal))
+        && (vp ==   (block: BeaconBlock) 
+                    => 
+                    ci_decision_is_valid_beacon_block(
+                        block_slashing_db, 
+                        block, 
+                        proposer_duty, 
+                        randao_reveal
+                    )
+            )
+    }
+
+    predicate inv_existing_block_slashing_db_and_randao_reveal_for_sent_vp(
+        cid: Slot,
+        proposer_duty: ProposerDuty,
+        randao_reveal: BLSSignature,
+        vp: BeaconBlock -> bool        
+    )
+    {
+        exists  block_slashing_db: set<SlashingDBBlock>, randao_reveal: BLSSignature
+                ::
+                inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(
+                    cid, 
+                    proposer_duty,                 
+                    block_slashing_db, 
+                    randao_reveal,
+                    vp
+                )
+    }      
+
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(
+        dv: DVState,
+        n: BLSPubkey,
+        cid: Slot
+    )
+    requires n in dv.honest_nodes_states.Keys 
+    requires cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+    {
+        && var dvc := dv.honest_nodes_states[n];
+        && var bci := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
+        && inv_existing_block_slashing_db_and_randao_reveal_for_sent_vp(
+                cid, 
+                bci.proposer_duty, 
+                bci.randao_reveal,
+                bci.validityPredicate
+            ) 
+    }
+
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(
+        dv: DVState
+    )
+    {
+        forall n, cid | 
+            && n in dv.honest_nodes_states 
+            && cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+            ::
+            inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(dv, n, cid)
     }
 
     predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv: DVState)
@@ -409,9 +495,16 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
             && vp in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions[hn]
             ::
-            exists proposer_duty, block_slashing_db, complete_signed_randao_reveal ::
-                inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(s, proposer_duty, block_slashing_db, vp, complete_signed_randao_reveal)
-    }    
+            exists proposer_duty, block_slashing_db, randao_reveal ::
+                inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(
+                    s, 
+                    proposer_duty, 
+                    block_slashing_db, 
+                    randao_reveal,
+                    vp
+                )
+    }   
+
 
     predicate inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState)
     {
@@ -520,91 +613,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
   
 
     
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(
-    //     dv: DVState,
-    //     n: BLSPubkey,
-    //     cid: Slot
-    // )
-    // requires n in dv.honest_nodes_states.Keys 
-    // requires cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    // {
-    //     var dvc := dv.honest_nodes_states[n];
-    //     var acvc := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
-
-    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(
-    //         cid, 
-    //         acvc.proposer_duty, 
-    //         acvc.validityPredicate
-    //     ) 
-    // }
-
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(
-    //     dvc: DVCState,
-    //     cid: Slot
-    // )
-    // requires cid in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    // {
-    //     var acvc := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
-    //     inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(
-    //         cid, 
-    //         acvc.proposer_duty, 
-    //         acvc.validityPredicate
-    //     ) 
-    // }     
-
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body_body(
-    //     cid: Slot,
-    //     proposer_duty: ProposerDuty,
-    //     vp: AttestationData -> bool
-    // )
-    // {
-    //     exists block_slashing_db ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_body(cid, proposer_duty, block_slashing_db, vp)        
-    // }         
-
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2(
-    //     dvc: DVCState
-    // )
-    // {
-    //     forall cid | 
-    //         && cid in dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc_2_body(dvc, cid)        
-    // }    
-
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(
-    //     dv: DVState
-    // )
-    // {
-    //     forall n, cid | 
-    //         && n in dv.honest_nodes_states 
-    //         && cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
-    //         ::
-    //         inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(dv, n, cid)
-    // }
 
 
-
-    // predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveali(dv: DVState)    
-    // {
-    //     forall hn, s1: Slot, s2: Slot, vp, db2 |
-    //         && hn in dv.honest_nodes_states.Keys
-    //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && s2 in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys            
-    //         && s1 < s2
-    //         && hn in dv.consensus_instances_on_beacon_block[s1].honest_nodes_validity_functions.Keys
-    //         && hn in dv.consensus_instances_on_beacon_block[s2].honest_nodes_validity_functions.Keys
-    //         && vp in dv.consensus_instances_on_beacon_block[s2].honest_nodes_validity_functions[hn]        
-    //         && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s2].Keys   
-    //         && db2 in hn_state.block_consensus_engine_state.block_slashing_db_hist[s2][vp]          
-    //         && dv.consensus_instances_on_beacon_block[s1].decided_value.isPresent()
-    //         ::                
-    //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && dv.consensus_instances_on_beacon_block[s1].decided_value.isPresent()
-    //         && var decided_beacon_block := dv.consensus_instances_on_beacon_block[s1].decided_value.safe_get();
-    //         && var sdba := construct_SlashingDBAttestation_from_proposer_data(decided_beacon_block);
-    //         && sdba in db2
-    // }    
+ 
 
        
 
@@ -910,12 +921,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }  
 
     // predicate has_all_slashing_db_proposers_before_slot_s(
-    //     db: set<SlashingDBAttestation>,
-    //     S: set<SlashingDBAttestation>,
+    //     db: set<SlashingDBBlock>,
+    //     S: set<SlashingDBBlock>,
     //     s: Slot
     // )
-    // requires (forall r: SlashingDBAttestation :: 
-    //                 r in db ==> (exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))))
+    // requires (forall r: SlashingDBBlock :: 
+    //                 r in db ==> (exists data: BeaconBlock :: r.signing_root == Some(hash_tree_root(data))))
     // {
     //     && S <= db
     //     && ( forall r | r in db && r !in S :: get_slot_from_slashing_db_proposer(r) >= s )
@@ -936,7 +947,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     hn: BLSPubkey,
     //     hn_state: DVCState,
     //     s: Slot,
-    //     vp: AttestationData -> bool
+    //     vp: BeaconBlock -> bool
     // )
     // requires hn in dv.honest_nodes_states.Keys
     // {
@@ -955,7 +966,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     
     // predicate inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv: DVState)
     // {
-    //     forall hn: BLSPubkey, s: Slot, vp : AttestationData -> bool |
+    //     forall hn: BLSPubkey, s: Slot, vp : BeaconBlock -> bool |
     //         hn in dv.honest_nodes_states.Keys
     //         ::
     //         inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(
@@ -969,7 +980,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate safety(dv: DVState)
     // {
-    //     forall a: Attestation ::
+    //     forall a: Block ::
     //         a in dv.globally_signed_proposers 
     //             ==> 
     //             (
@@ -985,22 +996,22 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     is_a_valid_decided_value(ci)            
     // }
 
-    // predicate honest_nodes_with_validityPredicate(consa: ConsensusInstance<AttestationData>,  h_nodes_a: set<BLSPubkey>)
+    // predicate honest_nodes_with_validityPredicate(consa: ConsensusInstance<BeaconBlock>,  h_nodes_a: set<BLSPubkey>)
     // requires h_nodes_a <= consa.honest_nodes_validity_functions.Keys  
     // requires |h_nodes_a| >= quorum(|consa.all_nodes|) 
     //                                     - (|consa.all_nodes| - |consa.honest_nodes_status.Keys|)
     // requires consa.decided_value.isPresent()
     // {
     //     forall n | n in h_nodes_a 
-    //         :: exists vp: AttestationData -> bool | vp in consa.honest_nodes_validity_functions[n] 
+    //         :: exists vp: BeaconBlock -> bool | vp in consa.honest_nodes_validity_functions[n] 
     //                 :: vp(consa.decided_value.safe_get())
     // }
     
     // predicate inv_exists_honest_node_that_contributed_to_decisions_of_consensus_instances(
     //     dv: DVState, 
-    //     a: Attestation, a': Attestation, 
+    //     a: Block, a': Block, 
     //     m: BLSPubkey,
-    //     consa: ConsensusInstance<AttestationData>, consa': ConsensusInstance<AttestationData>,
+    //     consa: ConsensusInstance<BeaconBlock>, consa': ConsensusInstance<BeaconBlock>,
     //     h_nodes_a: set<BLSPubkey>, h_nodes_a': set<BLSPubkey>)
     // {
     //     && is_honest_node(dv, m)                
@@ -1037,9 +1048,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     dv: DVState, 
     //     hn: BLSPubkey, 
     //     s: Slot, 
-    //     db: set<SlashingDBAttestation>, 
+    //     db: set<SlashingDBBlock>, 
     //     duty: ProposerDuty, 
-    //     vp: AttestationData -> bool)
+    //     vp: BeaconBlock -> bool)
     // requires && is_honest_node(dv, hn)
     //          && var hn_state := dv.honest_nodes_states[hn];
     //          && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
@@ -1048,12 +1059,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     && var hn_state := dv.honest_nodes_states[hn];
     //     && duty.slot == s
     //     && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
-    //     && vp == (ad: AttestationData) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
+    //     && vp == (ad: BeaconBlock) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
     // }
 
     // predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty(dv: DVState)
     // {
-    //     forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
+    //     forall hn: BLSPubkey, s: Slot, vp: BeaconBlock -> bool | 
     //         && is_honest_node(dv, hn)
     //         && var hn_state := dv.honest_nodes_states[hn];
     //         && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
@@ -1190,29 +1201,29 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body_ces(ces: ConsensusEngineState)
     // {
-    //     forall s: Slot, vp: AttestationData -> bool |
+    //     forall s: Slot, vp: BeaconBlock -> bool |
     //             ( && s in ces.block_slashing_db_hist.Keys
     //               && vp in ces.block_slashing_db_hist[s]
     //             )
     //             :: 
-    //             ( exists db: set<SlashingDBAttestation>, duty: ProposerDuty ::
+    //             ( exists db: set<SlashingDBBlock>, duty: ProposerDuty ::
     //                     && duty.slot == s
     //                     && db in ces.block_slashing_db_hist[s][vp]
-    //                     && vp == (ad: AttestationData) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
+    //                     && vp == (ad: BeaconBlock) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
     //             )
     // }
 
     // predicate inv_exists_db_in_block_slashing_db_hist_and_duty_for_every_validity_predicate_body(hn_state: DVCState)
     // {
-    //     forall s: Slot, vp: AttestationData -> bool |
+    //     forall s: Slot, vp: BeaconBlock -> bool |
     //             ( && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
     //               && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
     //             )
     //             :: 
-    //             ( exists db: set<SlashingDBAttestation>, duty: ProposerDuty ::
+    //             ( exists db: set<SlashingDBBlock>, duty: ProposerDuty ::
     //                     && duty.slot == s
     //                     && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
-    //                     && vp == (ad: AttestationData) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
+    //                     && vp == (ad: BeaconBlock) => ci_decision_ivalilid_beacon_bloc(db, ad, duty)
     //             )
     // }
 
@@ -1228,7 +1239,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     forall k: Slot |
     //         k in hn_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys ::
     //             && var ci := hn_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[k];
-    //             && var vp: AttestationData -> bool := ci.validityPredicate;
+    //             && var vp: BeaconBlock -> bool := ci.validityPredicate;
     //             && k in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys 
     //             && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[k].Keys             
     // }
@@ -1254,9 +1265,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && inv_monotonic_block_slashing_db_body(dvc, dvc')
     // }
 
-    // predicate inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_ces(ces: ConsensusEngineState, block_slashing_db: set<SlashingDBAttestation>)
+    // predicate inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_ces(ces: ConsensusEngineState, block_slashing_db: set<SlashingDBBlock>)
     // {
-    //     forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
+    //     forall s: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> |
     //             ( && s in ces.block_slashing_db_hist.Keys
     //               && vp in ces.block_slashing_db_hist[s]
     //               && db in ces.block_slashing_db_hist[s][vp]
@@ -1267,7 +1278,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(hn_state: DVCState)
     // {
-    //     forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
+    //     forall s: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> |
     //             ( && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
     //               && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
     //               && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
@@ -1487,7 +1498,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_one_honest_dvc_is_required_to_pass_signer_threshold(
     //     dv: DVState,
     //     signers: set<BLSPubkey>,
-    //     block_shares: set<AttestationShare>,
+    //     block_shares: set<BlockShare>,
     //     signing_root: Root
     // )
     // {
@@ -1518,9 +1529,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate pred_slashing_db_proposer_in_two_dbs(
-    //     sdba: SlashingDBAttestation,
-    //     db1: set<SlashingDBAttestation>,
-    //     db2: set<SlashingDBAttestation>
+    //     sdba: SlashingDBBlock,
+    //     db1: set<SlashingDBBlock>,
+    //     db2: set<SlashingDBBlock>
     // )
     // {
     //     && sdba in db1
@@ -1528,8 +1539,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_slashing_db_proposer_in_db_for_low_slot_is_in_db_for_high_slot_body_helper(
-    //             set_db:  set<set<SlashingDBAttestation>>,
-    //             set_db':  set<set<SlashingDBAttestation>>
+    //             set_db:  set<set<SlashingDBBlock>>,
+    //             set_db':  set<set<SlashingDBBlock>>
     // )
     // {
     //     forall db, db', sdba |
@@ -1543,8 +1554,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_slashing_db_proposer_in_db_for_low_slot_is_in_db_for_high_slot_body_body(
-    //     db_hist_on_slot: map<AttestationData -> bool, set<set<SlashingDBAttestation>>>,
-    //     db_hist_on_slot': map<AttestationData -> bool, set<set<SlashingDBAttestation>>>
+    //     db_hist_on_slot: map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>,
+    //     db_hist_on_slot': map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>
     // )
     // {
     //     forall vp, vp' |
@@ -1595,7 +1606,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate pred_is_owner_of_one_proposerestaion_share_in_set_of_shares(
     //     rs_pubkey: BLSPubkey,
-    //     block_shares: set<AttestationShare>
+    //     block_shares: set<BlockShare>
     // )
     // {
     //     exists share | share in block_shares ::
@@ -1604,8 +1615,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate pred_proposer_is_created_based_on_sent_block_shares(
     //     dv: DVState,
-    //     proposer: Attestation,
-    //     block_shares: set<AttestationShare>
+    //     proposer: Block,
+    //     block_shares: set<BlockShare>
     // )
     // {
     //     && block_shares <= dv.block_share_network.allMessagesSent
@@ -1617,11 +1628,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_blocks_body(
     //     dv: DVState,
-    //     a: Attestation, 
-    //     a': Attestation
+    //     a: Block, 
+    //     a': Block
     // )
     // {
-    //     exists hn: BLSPubkey, block_shares: set<AttestationShare>, block_shares': set<AttestationShare> ::
+    //     exists hn: BLSPubkey, block_shares: set<BlockShare>, block_shares': set<BlockShare> ::
     //         && is_honest_node(dv, hn)
     //         && var rs_pubkey: BLSPubkey := dv.honest_nodes_states[hn].rs.pubkey;
     //         && pred_proposer_is_created_based_on_sent_block_shares(dv, a, block_shares)            
@@ -1633,7 +1644,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // predicate inv_exists_honest_node_that_contributed_to_creation_of_two_submitted_blocks(
     //     dv: DVState)
     // {
-    //     forall a: Attestation, a': Attestation |
+    //     forall a: Block, a': Block |
     //         && a in dv.all_proposers_created
     //         && a' in dv.all_proposers_created
     //         ::
@@ -1645,14 +1656,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data: AttestationData := block_share.block;
+    //     && var proposer_data: BeaconBlock := block_share.block;
     //     && var slot: Slot := proposer_data.slot;
-    //     && var slashing_db_proposer := SlashingDBAttestation(
+    //     && var slashing_db_proposer := SlashingDBBlock(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(proposer_data)));
     //     && slashing_db_proposer in dvc.block_slashing_db
-    //     && exists proposer_duty: ProposerDuty, vp: AttestationData -> bool :: 
+    //     && exists proposer_duty: ProposerDuty, vp: BeaconBlock -> bool :: 
     //             (   && proposer_duty in dvc.all_rcvd_duties
     //                 && slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
     //                 && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
@@ -1677,14 +1688,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data: AttestationData := block_share.block;
+    //     && var proposer_data: BeaconBlock := block_share.block;
     //     && var slot: Slot := proposer_data.slot;
-    //     && var slashing_db_proposer := SlashingDBAttestation(
+    //     && var slashing_db_proposer := SlashingDBBlock(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(proposer_data)));
     //     && slashing_db_proposer in dvc.block_slashing_db
-    //     && exists proposer_duty: ProposerDuty, vp: AttestationData -> bool :: 
+    //     && exists proposer_duty: ProposerDuty, vp: BeaconBlock -> bool :: 
     //             (   && proposer_duty in dvc.all_rcvd_duties
     //                 && slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
     //                 && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
@@ -1697,8 +1708,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     block_share: SignedBeaconBlock
     // )
     // {
-    //     && var proposer_data: AttestationData := block_share.block;
-    //     && var slashing_db_proposer := construct_SlashingDBAttestation_from_proposer_data(proposer_data);
+    //     && var proposer_data: BeaconBlock := block_share.block;
+    //     && var slashing_db_proposer := construct_SlashingDBBlock_from_proposer_data(proposer_data);
     //     && slashing_db_proposer in dvc.block_slashing_db  
     //     && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;    
     //     && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
@@ -1722,8 +1733,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         slot in dvc.block_shares_to_broadcast.Keys
     //         ::
     //         && var block_share: SignedBeaconBlock := dvc.block_shares_to_broadcast[slot];
-    //         && var proposer_data: AttestationData := block_share.block;
-    //         && var slashing_db_proposer := construct_SlashingDBAttestation_from_proposer_data(proposer_data);
+    //         && var proposer_data: BeaconBlock := block_share.block;
+    //         && var slashing_db_proposer := construct_SlashingDBBlock_from_proposer_data(proposer_data);
     //         && slashing_db_proposer in dvc.block_slashing_db  
     //         && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;    
     //         && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
@@ -1744,7 +1755,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // )
     // {
     //     && var proposer_data := block_share.block;
-    //     && var slashing_db_proposer := construct_SlashingDBAttestation_from_proposer_data(proposer_data);
+    //     && var slashing_db_proposer := construct_SlashingDBBlock_from_proposer_data(proposer_data);
     //     && slashing_db_proposer in dvc.block_slashing_db     
     // }
 
@@ -1764,7 +1775,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_body_signers_helper(
-    //     block_shares: set<AttestationShare>,
+    //     block_shares: set<BlockShare>,
     //     dvc: DVCState
     // )
     // {
@@ -1776,7 +1787,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_body_signers(
     //     dv: DVState,
-    //     block_shares: set<AttestationShare>,
+    //     block_shares: set<BlockShare>,
     //     dvc_signer_pubkeys: set<BLSPubkey>
     // )
     // {
@@ -1791,8 +1802,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_body_helper(
     //     dv: DVState, 
-    //     proposer: Attestation,
-    //     block_shares: set<AttestationShare>, 
+    //     proposer: Block,
+    //     block_shares: set<BlockShare>, 
     //     signers: set<BLSPubkey>
     // )
     // {
@@ -1808,7 +1819,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_body(
     //     dv: DVState, 
-    //     proposer: Attestation        
+    //     proposer: Block        
     // )
     // {
     //     exists block_shares, dvc_signer_pubkeys :: 
@@ -1824,12 +1835,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_proposer_is_created_with_shares_from_quorum(dv: DVState)
     // {
-    //     forall proposer: Attestation | proposer in dv.all_proposers_created ::
+    //     forall proposer: Block | proposer in dv.all_proposers_created ::
     //             inv_proposer_is_created_with_shares_from_quorum_body(dv, proposer)
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_rs_signers_body(
-    //     block_shares: set<AttestationShare>,
+    //     block_shares: set<BlockShare>,
     //     rs_signer_pubkey: BLSPubkey
     // )
     // {
@@ -1839,7 +1850,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_proposer_is_created_with_shares_from_quorum_rs_signers(
-    //     block_shares: set<AttestationShare>,
+    //     block_shares: set<BlockShare>,
     //     rs_signer_pubkeys: set<BLSPubkey>
     // )
     // {
@@ -1852,7 +1863,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_outputs_proposers_submited_is_created_with_shares_from_quorum_body(
     //     dvc: DVCState, 
-    //     proposer: Attestation
+    //     proposer: Block
     // )
     // {
     //     && proposer.data.slot in dvc.rcvd_block_shares.Keys
@@ -1897,8 +1908,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //     dv: DVState,
     //     hn: BLSPubkey,
     //     slot: Slot, 
-    //     vp: AttestationData -> bool, 
-    //     db: set<SlashingDBAttestation>
+    //     vp: BeaconBlock -> bool, 
+    //     db: set<SlashingDBBlock>
     // )
     // {
     //     forall block_share: SignedBeaconBlock | 
@@ -1910,7 +1921,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && block_share.block.slot < slot
     //         ::
     //         && var proposer_data := block_share.block;
-    //         && var slashing_db_proposer := SlashingDBAttestation(
+    //         && var slashing_db_proposer := SlashingDBBlock(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(proposer_data)));
@@ -1919,7 +1930,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots(dv: DVState)
     // {
-    //     forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
+    //     forall hn: BLSPubkey, slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
     //         && is_honest_node(dv, hn) 
     //         && var dvc := dv.honest_nodes_states[hn];
     //         && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
@@ -1935,11 +1946,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_body_dvc(
-    //     allMessagesSent: set<AttestationShare>,
+    //     allMessagesSent: set<BlockShare>,
     //     rs_pubkey: BLSPubkey,
     //     slot: Slot, 
-    //     vp: AttestationData -> bool, 
-    //     db: set<SlashingDBAttestation>
+    //     vp: BeaconBlock -> bool, 
+    //     db: set<SlashingDBBlock>
     // )
     // {
     //     forall block_share: SignedBeaconBlock | 
@@ -1948,7 +1959,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     //         && block_share.block.slot < slot
     //         ::
     //         && var proposer_data := block_share.block;
-    //         && var slashing_db_proposer := SlashingDBAttestation(
+    //         && var slashing_db_proposer := SlashingDBBlock(
     //                                         source_epoch := proposer_data.source.epoch,
     //                                         target_epoch := proposer_data.target.epoch,
     //                                         signing_root := Some(hash_tree_root(proposer_data)));
@@ -1956,11 +1967,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     // }
 
     // predicate inv_db_of_vp_contains_all_proposer_data_of_sent_block_shares_for_lower_slots_dvc(
-    //     allMessagesSent: set<AttestationShare>,
+    //     allMessagesSent: set<BlockShare>,
     //     dvc: DVCState        
     // )
     // {
-    //     forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
+    //     forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
     //         && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
     //         && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot]
     //         && db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
