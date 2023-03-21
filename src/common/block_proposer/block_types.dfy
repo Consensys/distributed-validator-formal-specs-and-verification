@@ -209,7 +209,7 @@ module Block_Types
 
     datatype BlockConsensusValidityCheckState = BlockConsensusValidityCheckState(
         proposer_duty: ProposerDuty,
-        complete_signed_randao_reveal: BLSSignature,
+        randao_reveal: BLSSignature,
         validityPredicate: BeaconBlock -> bool
     )
 

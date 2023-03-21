@@ -130,12 +130,13 @@ module Block_Common_Functions{
     }
 
     
+
    predicate method ci_decision_is_valid_beacon_block(
         block_slashing_db: set<SlashingDBBlock>,
         block: BeaconBlock,
         proposer_duty: ProposerDuty,
-        complete_signed_randao_reveal: BLSSignature)
-    
+        complete_signed_randao_reveal: BLSSignature
+    )    
     {
         && block.slot == proposer_duty.slot 
         && block.body.randao_reveal == complete_signed_randao_reveal

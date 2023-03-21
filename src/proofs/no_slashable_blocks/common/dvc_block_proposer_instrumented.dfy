@@ -39,7 +39,7 @@ module DVC_Block_Proposer_Spec_Instr {
         var bcvc := 
             BlockConsensusValidityCheckState(
                     proposer_duty := proposer_duty,
-                    complete_signed_randao_reveal := complete_signed_randao_reveal,
+                    randao_reveal := complete_signed_randao_reveal,
                     validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
                                                                     block_slashing_db, 
                                                                     block, 
@@ -51,7 +51,7 @@ module DVC_Block_Proposer_Spec_Instr {
                                                                     block_slashing_db, 
                                                                     block, 
                                                                     bcvc.proposer_duty,
-                                                                    bcvc.complete_signed_randao_reveal)));                
+                                                                    bcvc.randao_reveal)));                
         
         var new_active_consensus_instances_on_beacon_blocks := 
             s.active_consensus_instances_on_beacon_blocks[
@@ -148,7 +148,7 @@ module DVC_Block_Proposer_Spec_Instr {
                                                                     new_block_slashing_db, 
                                                                     block, 
                                                                     it.1.proposer_duty,
-                                                                    it.1.complete_signed_randao_reveal 
+                                                                    it.1.randao_reveal 
                                                                  )
                 )        
     } 
