@@ -47,11 +47,11 @@ module Invs_DV_Next_1
     ensures inv_unchanged_paras_of_consensus_instances(dv')
     { }    
 
-    lemma lem_inv_only_dv_construct_complete_functions_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_inv_only_dv_construct_complete_signature_functions_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_only_dv_construct_complete_functions(dv)
-    ensures inv_only_dv_construct_complete_functions(dv')
+    requires inv_only_dv_construct_complete_signature_functions(dv)
+    ensures inv_only_dv_construct_complete_signature_functions(dv')
     { }    
 
     lemma lem_inv_current_proposer_duty_is_rcvd_duty_dv_next(
