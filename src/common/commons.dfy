@@ -30,15 +30,20 @@ module Types
         source: Checkpoint,
         target: Checkpoint
     )
-    // type ProposerDuty
+    
     datatype BeaconBlock = BeaconBlock(
+        slot: Slot,
+        proposer_index: ValidatorIndex,
+        parent_root: Root,
+        state_root: Root,
         body: BeaconBlockBody
         // ... Other fields irrelevant to this spec
     )
 
     datatype BeaconBlockBody = BeaconBlockBody(
         attestations: seq<Attestation>,
-        state_root: Root
+        state_root: Root,
+        randao_reveal: BLSSignature
         // ... Other fields irrelevant to this spec
     )
 
