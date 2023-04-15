@@ -528,4 +528,8 @@ module Helper_Sets_Lemmas {
     ensures  m in S2
     {}
 
+    lemma lem_union_with_subset_is_unchanged<T>(S1: set<T>, S2: set<T>)
+    requires S1 <= S2 
+    ensures  S1 + S2 == S2
+    {}
 }
