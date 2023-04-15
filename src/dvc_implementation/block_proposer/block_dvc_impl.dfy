@@ -244,7 +244,7 @@ abstract module Block_DVC_Impl
         ensures fresh(slashing_db.Repr - old(slashing_db.Repr))
         ensures  ValidRepr()
         {   
-            var newDBBlock := SlashingDBBlock(block.slot, hash_tree_root(block));
+            var newDBBlock := construct_SlashingDBBlock_from_beacon_block(block);
             slashing_db.add_proposal(newDBBlock, dv_pubkey);                
         }        
 
