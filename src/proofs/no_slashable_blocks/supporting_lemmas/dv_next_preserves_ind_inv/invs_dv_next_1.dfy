@@ -47,11 +47,11 @@ module Invs_DV_Next_1
     ensures inv_unchanged_paras_of_consensus_instances(dv')
     { }    
 
-    lemma lem_inv_only_dv_construct_complete_signature_functions_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_only_dv_construct_complete_signature_functions(dv)
-    ensures inv_only_dv_construct_complete_signature_functions(dv')
+    requires inv_only_dv_construct_complete_signing_functions(dv)
+    ensures inv_only_dv_construct_complete_signing_functions(dv')
     { }    
 
     lemma lem_inv_current_proposer_duty_is_rcvd_duty_dv_next(
@@ -72,23 +72,23 @@ module Invs_DV_Next_1
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_current_proposer_duty_is_rcvd_duty_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                        lem_inv_current_proposer_duty_is_rcvd_duty_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
                     
                     case ReceiveRandaoShare(randao_share) =>                         
-                        lem_inv_current_proposer_duty_is_rcvd_duty_f_listen_for_randao_shares(dvc, randao_share, dvc');    
+                        lem_inv_current_proposer_duty_is_rcvd_duty_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
                         {
-                            lem_inv_current_proposer_duty_is_rcvd_duty_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                            lem_inv_current_proposer_duty_is_rcvd_duty_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_current_proposer_duty_is_rcvd_duty_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
+                        lem_inv_current_proposer_duty_is_rcvd_duty_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_current_proposer_duty_is_rcvd_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                        lem_inv_current_proposer_duty_is_rcvd_duty_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
                     case ResendRandaoRevealSignatureShare =>
 
@@ -98,7 +98,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     }     
@@ -147,7 +147,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
@@ -196,7 +196,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
@@ -245,7 +245,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
@@ -294,7 +294,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
@@ -323,27 +323,27 @@ module Invs_DV_Next_1
     ensures inv_no_duplicated_proposer_duties(dv')    
     { }
 
-    lemma lem_inv_unchanged_dvn_seq_of_proposer_duties_dv_next(
+    lemma lem_inv_unchanged_dv_seq_of_proposer_duties_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    ensures inv_unchanged_dvn_seq_of_proposer_duties(dv, dv')
+    ensures inv_unchanged_dv_seq_of_proposer_duties(dv, dv')
     { }
 
     
 
-    lemma lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(
+    lemma lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
-    requires inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
-    ensures inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv')
+    requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
+    ensures inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv')
     {        
         assert dv.sequence_proposer_duties_to_be_served == dv'.sequence_proposer_duties_to_be_served;
 
@@ -360,19 +360,19 @@ module Invs_DV_Next_1
                 {
                     case ServeProposerDuty(proposer_duty) =>     
                         assert index_next_proposer_duty_to_be_served + 1 == dv'.index_next_proposer_duty_to_be_served;
-                        assert pred_proposer_duty_is_from_dv_seq_of_proposer_duties_new_body(  
+                        assert pred_proposer_duty_is_from_dv_seq_of_proposer_duties_body(  
                             proposer_duty,
                             node,
                             sequence_proposer_duties_to_be_served, 
                             index_next_proposer_duty_to_be_served + 1
                         );
-                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
+                        assert inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
                                         node, 
                                         dvc, 
                                         sequence_proposer_duties_to_be_served, 
                                         index_next_proposer_duty_to_be_served + 1
                                 );
-                        lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_serve_proposer_duty(
+                        lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_serve_proposer_duty(
                             dvc,
                             proposer_duty,
                             dvc',
@@ -380,22 +380,22 @@ module Invs_DV_Next_1
                             sequence_proposer_duties_to_be_served,
                             index_next_proposer_duty_to_be_served + 1
                         );
-                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
+                        assert inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
                                         node, 
                                         dvc', 
                                         sequence_proposer_duties_to_be_served, 
                                         index_next_proposer_duty_to_be_served + 1
                                 );
-                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
+                        assert inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
                     
                     case ReceiveRandaoShare(randao_share) =>                         
-                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
+                        assert inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
                                         node, 
                                         dvc, 
                                         sequence_proposer_duties_to_be_served, 
                                         index_next_proposer_duty_to_be_served
                                 );
-                        lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_listen_for_randao_shares(
+                        lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_listen_for_randao_shares(
                             dvc,
                             randao_share,
                             dvc',
@@ -403,7 +403,7 @@ module Invs_DV_Next_1
                             sequence_proposer_duties_to_be_served,
                             index_next_proposer_duty_to_be_served
                         );
-                        assert inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
+                        assert inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
 
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         
@@ -419,7 +419,7 @@ module Invs_DV_Next_1
 
                 }
                 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     }     
@@ -469,7 +469,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
@@ -489,7 +489,7 @@ module Invs_DV_Next_1
     requires NextHonestAfterAddingBlockToBn.requires(dv, node, nodeEvent, nodeOutputs, dv');
     requires NextHonestAfterAddingBlockToBn(dv, node, nodeEvent, nodeOutputs, dv');      
     requires nodeEvent.ServeProposerDuty?
-    requires inv_unchanged_dvn_seq_of_proposer_duties(dv, dv')
+    requires inv_unchanged_dv_seq_of_proposer_duties(dv, dv')
     requires inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv)
     ensures inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv')
     {
@@ -557,7 +557,7 @@ module Invs_DV_Next_1
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_quorum_constraints(dv) 
-    requires inv_unchanged_dvn_seq_of_proposer_duties(dv, dv')
+    requires inv_unchanged_dv_seq_of_proposer_duties(dv, dv')
     requires inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv)
     ensures inv_every_proposer_duty_before_dvn_proposer_index_was_delivered(dv')
     {        
@@ -602,7 +602,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     }
@@ -652,7 +652,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
@@ -702,7 +702,7 @@ module Invs_DV_Next_1
                         
                 }
 
-            case AdversaryTakingStep(node, new_randao_shares_sent, new_block_shares_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
         }   
     } 
