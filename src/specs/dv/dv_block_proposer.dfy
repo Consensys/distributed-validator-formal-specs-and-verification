@@ -235,6 +235,7 @@ module DV_Block_Proposer_Spec
             ::
             && construct_complete_signed_block(signed_beacon_blocks).isPresent()
             && var complete_signed_beacon_block := construct_complete_signed_block(signed_beacon_blocks).safe_get();
+            && beacon_block == complete_signed_beacon_block.block
             && verify_bls_signature(
                     signing_root,
                     complete_signed_beacon_block.signature,
@@ -247,17 +248,17 @@ module DV_Block_Proposer_Spec
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>,
         signed_beacon_blocks: set<SignedBeaconBlock>,
-        beacon_block: BeaconBlock
+        complete_block: SignedBeaconBlock
     )       
-    requires construct_complete_signed_block(signed_beacon_blocks).isPresent()
+    requires && construct_complete_signed_block(signed_beacon_blocks).isPresent()
+             && construct_complete_signed_block(signed_beacon_blocks).safe_get() == complete_block
     {
-        && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, beacon_block)
-        && var signing_root := compute_block_signing_root(beacon_block);
+        && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, complete_block.block)
+        && var signing_root := compute_block_signing_root(complete_block.block);
         && signed_beacon_block_signer_threshold(all_nodes, signed_beacon_blocks, signing_root)         
-        && var complete_signed_beacon_block := construct_complete_signed_block(signed_beacon_blocks).safe_get();
         && verify_bls_signature(
                     signing_root,
-                    complete_signed_beacon_block.signature,
+                    complete_block.signature,
                     dv_pubkey
                 )        
     }
@@ -269,16 +270,15 @@ module DV_Block_Proposer_Spec
     )    
     {
         forall signed_beacon_blocks: set<SignedBeaconBlock> |
-            && construct_complete_signed_block(signed_beacon_blocks).isPresent()
+            &&  construct_complete_signed_block(signed_beacon_blocks).isPresent()
             ::
-            exists beacon_block: BeaconBlock
-                ::      
-                construct_complete_signed_block_assumptions_reverse_helper(
+            &&  var complete_block: SignedBeaconBlock := construct_complete_signed_block(signed_beacon_blocks).safe_get();
+            &&  construct_complete_signed_block_assumptions_reverse_helper(
                     construct_complete_signed_block,
                     dv_pubkey,
                     all_nodes,
                     signed_beacon_blocks,
-                    beacon_block                
+                    complete_block                
                 )
     }    
 
@@ -350,8 +350,10 @@ module DV_Block_Proposer_Spec
                     s.all_nodes, 
                     s.honest_nodes_states.Keys
             ))
-        && (forall i: Slot :: i in s.consensus_instances_on_beacon_block 
-                            ==> !s.consensus_instances_on_beacon_block[i].decided_value.isPresent()
+        && ( forall i: Slot :: 
+                i in s.consensus_instances_on_beacon_block.Keys
+                ==> 
+                !s.consensus_instances_on_beacon_block[i].decided_value.isPresent()
             )        
         && assumption_on_sequence_of_proposer_duties(s)
         && s.index_next_proposer_duty_to_be_served == 0   
@@ -377,7 +379,7 @@ module DV_Block_Proposer_Spec
         )        
     }
 
-    predicate is_valid_attestation(
+    predicate is_verified_attestation_with_pubkey(
         a: Attestation,
         pubkey: BLSPubkey
     )
@@ -387,7 +389,16 @@ module DV_Block_Proposer_Spec
         && verify_bls_signature(attestation_signing_root, a.signature, pubkey)  
     }    
 
-    predicate pred_axiom_is_my_attestation_2(
+    predicate is_verified_block_with_pubkey(
+        signed_block: SignedBeaconBlock,
+        pubkey: BLSPubkey
+    )
+    {
+        && var block_signing_root := compute_block_signing_root(signed_block.block);
+        && verify_bls_signature(block_signing_root, signed_block.signature, pubkey)  
+    }    
+
+    predicate valid_attestations_in_beacon_block(
         dv: DVState,
         new_p: DVCState,
         block: BeaconBlock
@@ -395,18 +406,27 @@ module DV_Block_Proposer_Spec
     requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
     {
         var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
-        forall a | 
-            && a in block.body.attestations 
-            && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(
-            a,
-            new_p.bn,
-            block,
-            valIndex
-            )
+        forall a |  && a in block.body.attestations 
+                    && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(
+                        a,
+                        new_p.bn,
+                        block,
+                        valIndex
+                    )
         ::
-        exists a' ::
-            is_valid_attestation(a', dv.dv_pubkey)    
+        ( exists a' :: is_verified_attestation_with_pubkey(a', dv.dv_pubkey) )
     }  
+
+    predicate is_block_of_submitted_signed_beacon_block(
+        dv: DVState,
+        block: BeaconBlock
+    )
+    {
+        exists complete_signed_block: SignedBeaconBlock ::
+            && complete_signed_block in dv.all_blocks_created
+            && block == complete_signed_block.block
+    }
+    
 
     predicate blockIsValidAfterAdd(
         dv: DVState,
@@ -424,7 +444,8 @@ module DV_Block_Proposer_Spec
             ::
                 a1.data.slot == a2.data.slot ==> a1 == a2  
         )      
-        && pred_axiom_is_my_attestation_2(dv, process, block)
+        && valid_attestations_in_beacon_block(dv, process, block)
+        && is_block_of_submitted_signed_beacon_block(dv, block)
     } 
 
     predicate validNodeEvent(
@@ -491,13 +512,13 @@ module DV_Block_Proposer_Spec
     }  
 
     predicate NextHonestNodePrecond(
-        s: DVCState,
+        dvc: DVCState,
         event: Block_Types.Event
     )
     {
             match event 
             case ServeProposerDuty(proposer_duty) => 
-                && f_serve_proposer_duty.requires(s, proposer_duty)
+                && f_serve_proposer_duty.requires(dvc, proposer_duty)
             case BlockConsensusDecided(id, decided_beacon_block) => 
                 true
             case ReceiveRandaoShare(randao_share) => 
@@ -515,12 +536,20 @@ module DV_Block_Proposer_Spec
     }
 
     predicate NextEventPreCond(
-        s: DVState,
+        dv: DVState,
         event: Event
     )
     {
-        && validEvent(s, event)         
-        && (event.HonestNodeTakingStep? ==> NextHonestNodePrecond(add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event))      
+        && validEvent(dv, event)         
+        && (event.HonestNodeTakingStep? 
+            ==> 
+            NextHonestNodePrecond(
+                add_block_to_bn_with_event(
+                    dv, 
+                    event.node, 
+                    event.event).honest_nodes_states[event.node], 
+                event.event
+            ))      
     }
 
     predicate NextPreCond(
@@ -559,18 +588,6 @@ module DV_Block_Proposer_Spec
            )
     }
 
-    function add_signed_block_to_bn(
-        s: DVCState,
-        block: SignedBeaconBlock
-    ): DVCState
-    {
-        s.(
-            bn := s.bn.(
-                state_roots_of_imported_blocks := s.bn.state_roots_of_imported_blocks + {block.block.state_root}
-            )
-        )
-    }
-
     predicate unchanged_fixed_paras(dv: DVState, dv': DVState)
     {
         && dv.all_nodes == dv'.all_nodes
@@ -600,10 +617,9 @@ module DV_Block_Proposer_Spec
         s': DVState        
     ) 
     requires unchanged_fixed_paras(s, s')
-    requires 
-            && node in s.honest_nodes_states.Keys     
-            && validNodeEvent( add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
-            && NextHonestNodePrecond(add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
+    requires && node in s.honest_nodes_states.Keys     
+             && validNodeEvent( add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
+             && NextHonestNodePrecond(add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
     {
         && node in s.honest_nodes_states.Keys
         && var s_w_honest_node_states_updated := add_block_to_bn_with_event(s, node, nodeEvent);
@@ -618,30 +634,26 @@ module DV_Block_Proposer_Spec
         s': DVState
     )
     {
-        &&  (
-            forall cid | cid in s.consensus_instances_on_beacon_block.Keys ::
-                var output := 
+        forall cid | cid in s.consensus_instances_on_beacon_block.Keys ::
+            && var  output := 
                     if nodeEvent.BlockConsensusDecided? && nodeEvent.id == cid then 
                         Some(Decided(node, nodeEvent.decided_beacon_block))
                     else
                         None
                     ;
-
-                && var validityPredicates := 
+            && var  validityPredicates := 
                     map n |
                             && n in s.honest_nodes_states.Keys 
                             && cid in s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
                         ::
                             s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
                     ;
-
-                && Block_Consensus_Spec.Next(
-                        s.consensus_instances_on_beacon_block[cid],
-                        validityPredicates,
-                        s'.consensus_instances_on_beacon_block[cid],
-                        output
-                    )
-            )
+            &&  Block_Consensus_Spec.Next(
+                    s.consensus_instances_on_beacon_block[cid],
+                    validityPredicates,
+                    s'.consensus_instances_on_beacon_block[cid],
+                    output
+                )
     }
 
     predicate NextHonestAfterAddingBlockToBn(
@@ -654,8 +666,8 @@ module DV_Block_Proposer_Spec
     requires unchanged_fixed_paras(s, s')
     requires node in s.honest_nodes_states.Keys 
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
-    requires    && validNodeEvent(s, node, nodeEvent)
-                && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
+    requires && validNodeEvent(s, node, nodeEvent)
+             && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
     {
         && var new_node_state := s'.honest_nodes_states[node];
         && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_blocks
@@ -725,9 +737,8 @@ module DV_Block_Proposer_Spec
         && (forall new_signed_block_created | new_signed_block_created in new_blocks_created ::
                 exists block_shares ::
                         && block_shares <= s'.block_share_network.allMessagesSent
-                        && var complete_signed_beacon_block := s.construct_complete_signed_block(block_shares);
-                        && complete_signed_beacon_block.isPresent()
-                        && complete_signed_beacon_block.safe_get()== new_signed_block_created
+                        && s.construct_complete_signed_block(block_shares).isPresent()
+                        && new_signed_block_created == s.construct_complete_signed_block(block_shares).safe_get()
                         && signed_beacon_blocks_for_the_same_beacon_block(block_shares, new_signed_block_created.block)
         )
         &&  s' == 
@@ -736,4 +747,13 @@ module DV_Block_Proposer_Spec
                 all_blocks_created := s'.all_blocks_created
             )
     }
+
+    predicate is_valid_signed_beacon_block(
+        signed_block: SignedBeaconBlock,
+        pubkey: BLSPubkey
+    )
+    {        
+        && var block_signing_root := compute_block_signing_root(signed_block.block);      
+        && verify_bls_signature(block_signing_root, signed_block.signature, pubkey)  
+    }  
 }

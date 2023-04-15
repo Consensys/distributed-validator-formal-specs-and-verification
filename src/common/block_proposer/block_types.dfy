@@ -99,7 +99,7 @@ module Block_Types
  
     datatype SlashingDBBlock = SlashingDBBlock(        
         slot: Slot,
-        signing_root: Root 
+        signing_root: Optional<Root>
     )
     
     // The block slashing database is only with one pubkey.

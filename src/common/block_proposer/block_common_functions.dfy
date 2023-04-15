@@ -140,7 +140,7 @@ module Block_Common_Functions{
     {
         && block.slot == proposer_duty.slot 
         && block.body.randao_reveal == complete_signed_randao_reveal
-        && !is_slashable_block(block_slashing_db, block, proposer_duty.pubkey)
+        && !is_slashable_block(block_slashing_db, block)
     }
 
     // 
@@ -167,8 +167,7 @@ module Block_Common_Functions{
     // is_slashable_block is for line 153 in helpers.py
     predicate is_slashable_block(
         block_slashing_db: set<SlashingDBBlock>,
-        block: BeaconBlock, 
-        pubkey: BLSPubkey
+        block: BeaconBlock
     ) 
     {
         if block_slashing_db != {} then
@@ -179,9 +178,11 @@ module Block_Common_Functions{
             if block.slot < min_slot then
                 true
             else 
-                if exists db_block :: db_block in block_slashing_db && 
-                                      block.slot == db_block.slot &&
-                                      hash_tree_root(block) != db_block.signing_root
+                if exists db_block :: 
+                        && db_block in block_slashing_db
+                        && block.slot == db_block.slot 
+                        && db_block.signing_root.isPresent()
+                        && hash_tree_root(block) != db_block.signing_root.safe_get()
                 then 
                     true
                 else
@@ -201,9 +202,10 @@ module Block_Common_Functions{
                 return true;
             }
             
-            if exists db_block :: db_block in block_slashing_db && 
-                                    block.slot == db_block.slot &&
-                                    hash_tree_root(block) != db_block.signing_root
+            if exists db_block ::   && db_block in block_slashing_db  
+                                    && block.slot == db_block.slot
+                                    && db_block.signing_root.isPresent()
+                                    && hash_tree_root(block) != db_block.signing_root.safe_get()
             {
                 return true;
             }
@@ -212,4 +214,107 @@ module Block_Common_Functions{
         return false;            
     }     
 
+    lemma lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame<M>(
+        messagesToBeSent: set<MessaageWithRecipient<M>>,
+        message: M
+    )
+    requires forall m | m in messagesToBeSent :: m.message == message 
+    requires messagesToBeSent != {}
+    ensures getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {message}
+    { }
+
+    lemma lemmaImaptotalElementInDomainIsInKeys<K(!new), V>(m: imaptotal<K, V>, e: K)
+    ensures e in m.Keys
+    { }
+
+    function method {:opaque} minInSet(s: set<int>): (min: int)
+    requires s != {}
+    ensures min in s 
+    ensures forall e | e in s :: min <= e 
+    {
+        existsMinOfNonemptySetOfInt(s);
+        var e :| e in s && forall e' | e' in s :: e' >= e;
+        e
+    }
+
+    function method {:opaque} maxInSet(s: set<int>): (max: int)
+    requires s != {}
+    ensures max in s 
+    ensures forall e | e in s :: max >= e 
+    {
+        existsMaxOfNonemptySetOfInt(s);
+        var e :| e in s && forall e' | e' in s :: e' <= e;
+        e
+    } 
+
+    lemma existsMinOfNonemptySetOfInt(s: set<int>)
+    requires s != {}
+    ensures exists min :: 
+                        && min in s 
+                        && forall e | e in s :: min <= e 
+    {
+        if |s| == 1 {
+            var e :| e in s;
+            assert |s - {e}| == 0;
+        } 
+        else
+        {
+            var e :| e in s;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            existsMinOfNonemptySetOfInt(sMinusE);
+            var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' >= mMinusE;
+        }    
+    }  
+
+    lemma existsMaxOfNonemptySetOfInt(s: set<int>)
+    requires s != {}
+    ensures exists max :: 
+                        && max in s 
+                        && forall e | e in s :: max >= e 
+    {
+        if |s| == 1 {
+            var e :| e in s;
+            assert |s - {e}| == 0;
+        } 
+        else
+        {
+            var e :| e in s;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            existsMaxOfNonemptySetOfInt(sMinusE);
+            var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' <= mMinusE;
+        }    
+    }  
+
+    predicate method is_slashable_pair_of_beacon_blocks(
+        block_1: SlashingDBBlock, 
+        block_2: SlashingDBBlock)
+    {
+        && block_1.slot == block_2.slot
+        && block_1.signing_root.isPresent()
+        && block_2.signing_root.isPresent()
+        && block_1.signing_root.safe_get() != block_2.signing_root.safe_get()
+    }  
+
+    function method construct_SlashingDBBlock_from_beacon_block(block: BeaconBlock
+    ): (slashing_db_block: SlashingDBBlock)
+    ensures slashing_db_block == SlashingDBBlock(block.slot, Some(hash_tree_root(block)))
+    ensures slashing_db_block.slot == block.slot
+    ensures && slashing_db_block.signing_root.isPresent()
+            && slashing_db_block.signing_root.safe_get() == hash_tree_root(block)
+    {   
+        var slot := block.slot;
+        var signing_root := hash_tree_root(block);
+        var slashing_db_block := SlashingDBBlock(
+                                            slot := slot,                                            
+                                            signing_root := Some(signing_root)
+                                );
+
+        slashing_db_block
+    }  
 }

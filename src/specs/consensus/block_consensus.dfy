@@ -118,24 +118,22 @@ module Block_Consensus_Spec
         && honest_nodes_validity_predicates.Keys <= s.honest_nodes_status.Keys
         && s'.honest_nodes_validity_functions == add_set_of_validity_predicates(s.honest_nodes_validity_functions, honest_nodes_validity_predicates)
         && (
-            || (
-                && (isConditionForSafetyTrue(s) ==>
-                                                    && s'.decided_value.isPresent()
-                                                    && (s.decided_value.isPresent() ==> s'.decided_value == s.decided_value)
-                                                    && is_a_valid_decided_value(s')
-                )
-                && s'.honest_nodes_status.Keys == s.honest_nodes_status.Keys
-                && (forall n | n in s.honest_nodes_status.Keys ::
-                    if n in honest_nodes_validity_predicates.Keys then 
-                        s.honest_nodes_status[n] == DECIDED ==> s'.honest_nodes_status[n] == DECIDED
-                    else 
-                        s'.honest_nodes_status[n] == s.honest_nodes_status[n]
-                )
-                && s'.all_nodes == s.all_nodes
-            ) 
-            || (
-                s' == s
-            )
+            ||  ( && (isConditionForSafetyTrue(s) 
+                      ==>
+                      && s'.decided_value.isPresent()
+                      && (s.decided_value.isPresent() ==> s'.decided_value.safe_get() == s.decided_value.safe_get())
+                      && is_a_valid_decided_value(s')
+                     )
+                 && s'.honest_nodes_status.Keys == s.honest_nodes_status.Keys
+                 && ( forall n | n in s.honest_nodes_status.Keys ::
+                      if n in honest_nodes_validity_predicates.Keys then 
+                            s.honest_nodes_status[n] == DECIDED ==> s'.honest_nodes_status[n] == DECIDED
+                      else 
+                            s'.honest_nodes_status[n] == s.honest_nodes_status[n]
+                    )
+                 && s'.all_nodes == s.all_nodes
+                ) 
+            || s' == s
         )
     }    
 }

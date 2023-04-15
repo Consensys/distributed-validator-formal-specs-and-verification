@@ -10,7 +10,7 @@ module Block_Signing_Functions{
         domain: Domain
     ): Root
 
-
+    
     
     // function method compute_attestation_signing_root_with_attestation_and_epoch(
     //     attestation_data: AttestationData, 
@@ -55,4 +55,19 @@ module Block_Signing_Functions{
         signature: BLSSignature,
         pubkey: BLSPubkey
     )             
+
+    lemma {:axiom} lem_verify_bls_signature()
+    ensures 
+        forall d: Root, s, pk1, pk2 |
+            && verify_bls_signature(d, s, pk1)
+            && verify_bls_signature(d, s, pk2)
+            ::
+            pk1 == pk2
+
+    lemma {:axiom} compute_signing_root_properties<T>()
+    ensures forall da1, do1, da2, do2 ::
+        compute_signing_root<T>(da1, do1) == compute_signing_root<T>(da2, do2) ==>
+            && da1 == da2 
+            && do1 == do2
+
 }
