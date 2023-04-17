@@ -4078,4 +4078,109 @@ module Invs_DV_Next_5
                 
         }   
     } 
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db(dv)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var process := dv.honest_nodes_states[node];
+                var process' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_serve_proposer_duty(process, proposer_duty, process');
+                    
+                    case ReceiveRandaoShare(randao_share) =>
+                        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_listen_for_randao_shares(process, randao_share, process');    
+                        
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(process, id, decided_beacon_block)
+                        {
+                            lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
+                        }                 
+                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_listen_for_block_signature_shares(process, block_share, process');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var process := f_add_block_to_bn(process, nodeEvent.block);
+                        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_listen_for_new_imported_blocks(process, block, process');                        
+                                                
+                    case ResendRandaoRevealSignatureShare =>
+
+                    case ResendBlockShare =>
+                        
+                    case NoEvent => 
+                        
+                }
+
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+                
+        }   
+    } 
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_dv_next(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.Event,
+        dv': DVState
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv)
+    requires inv_slot_in_future_beacon_block_is_correct(dv)
+    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv)
+    requires inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv')
+    {        
+        match event 
+        {
+            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
+                var process := dv.honest_nodes_states[node];
+                var process' := dv'.honest_nodes_states[node];
+                match nodeEvent
+                {
+                    case ServeProposerDuty(proposer_duty) =>     
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_serve_proposer_duty(process, proposer_duty, process');
+                    
+                    case ReceiveRandaoShare(randao_share) =>
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_randao_shares(process, randao_share, process');    
+                        
+                    case BlockConsensusDecided(id, decided_beacon_block) => 
+                        if f_block_consensus_decided.requires(process, id, decided_beacon_block)
+                        {
+                            lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
+                        }                 
+                        
+                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_block_signature_shares(process, block_share, process');                        
+   
+                    case ImportedNewBlock(block) => 
+                        var process := f_add_block_to_bn(process, nodeEvent.block);
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_new_imported_blocks(process, block, process');                        
+                                                
+                    case ResendRandaoRevealSignatureShare =>
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_resend_randao_share(process, process');
+
+                    case ResendBlockShare =>
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_resend_block_share(process, process');
+                        
+                    case NoEvent => 
+                        
+                }
+
+            case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
+                
+        }   
+    } 
 }

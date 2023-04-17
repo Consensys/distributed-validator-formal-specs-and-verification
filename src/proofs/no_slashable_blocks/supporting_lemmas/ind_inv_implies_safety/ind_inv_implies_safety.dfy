@@ -29,8 +29,8 @@ module Ind_Inv_Implies_Safety
         dv: DVState
     )
     {
-        && inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv)
         && inv_at_most_submitted_signed_beacon_block_for_every_slot(dv)
+        && inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv)
     }
 
     lemma lem_ind_inv_no_slashable_submitted_blocks(dv: DVState)

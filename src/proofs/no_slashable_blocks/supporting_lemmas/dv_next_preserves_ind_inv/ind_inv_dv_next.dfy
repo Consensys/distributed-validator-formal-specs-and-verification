@@ -457,6 +457,11 @@ module Ind_Inv_DV_Next
         lem_inv_all_created_signed_beacon_blocks_are_valid_dv_next(dv, e, dv');
         lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(dv');
         lem_inv_at_most_submitted_signed_beacon_block_for_every_slot_dv_next(dv');
+
+        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_dv_next(dv, e, dv');
+        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_dv_next(dv, e, dv');
+        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_dv_next(dv, e, dv');
+        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_dv_next(dv, e, dv');
     }
     
     lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       

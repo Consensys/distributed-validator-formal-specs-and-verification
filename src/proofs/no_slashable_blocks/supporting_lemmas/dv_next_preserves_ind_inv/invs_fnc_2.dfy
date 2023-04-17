@@ -341,18 +341,9 @@ module Fnc_Invs_2
             && process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot in consensus_instances_on_blocks_already_decided 
         {
             var decided_beacon_blocks := consensus_instances_on_blocks_already_decided[process.current_proposer_duty.safe_get().slot];
-            var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, decided_beacon_blocks);
-            assert  process' ==    
-                    process_after_stopping_consensus_instance.(
-                        current_proposer_duty := None,
-                        block_slashing_db := new_block_slashing_db,
-                        block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
-                            process_after_stopping_consensus_instance.block_consensus_engine_state,
-                            new_block_slashing_db
-                        )
-                    );    
+            var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, decided_beacon_blocks);             
 
-            assert process_after_stopping_consensus_instance.block_slashing_db <= new_block_slashing_db;
+            assert process'.block_slashing_db <= new_block_slashing_db;
             assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_ces(process_after_stopping_consensus_instance.block_consensus_engine_state, 
                               process.block_slashing_db); 
 
@@ -4540,17 +4531,7 @@ module Fnc_Invs_2
         {
             var decided_beacon_block := consensus_instances_on_blocks_already_decided[process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot];
             var new_block_slashing_db := f_update_block_slashing_db(process_after_stopping_consensus_instance.block_slashing_db, decided_beacon_block);
-            var process_after_updating_validity_check := 
-                process_after_stopping_consensus_instance.(
-                    current_proposer_duty := None,
-                    block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
-                        process_after_stopping_consensus_instance.block_consensus_engine_state,
-                        new_block_slashing_db
-                    )
-                );
-
-            assert process_after_updating_validity_check == process';
+            
             assert process_after_stopping_consensus_instance.block_slashing_db <= new_block_slashing_db;
 
             var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
@@ -6617,31 +6598,52 @@ module Fnc_Invs_2
     )
     requires f_block_consensus_decided.requires(process, id, block)
     requires process' == f_block_consensus_decided(process, id, block).state 
+    requires inv_slot_in_future_beacon_block_is_correct_body(process)
     requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
+    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(process)
     ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process')
     { 
         if && process.current_proposer_duty.isPresent()
            && process.current_proposer_duty.safe_get().slot == block.slot
            && id == block.slot
         {
+            var slot := block.slot;
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(block);   
+            var block_slashing_db := process.block_slashing_db;
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);
+            assert  && block_slashing_db + {new_slashingDB_block} == new_block_slashing_db
+                    && new_slashingDB_block.slot == block.slot
+                    ;
+
+            forall slashing_db_block: SlashingDBBlock | slashing_db_block in new_block_slashing_db
+            ensures slashing_db_block.slot <= block.slot
+            {
+                if slashing_db_block in block_slashing_db
+                {
+                    assert  slashing_db_block.slot <= slot;
+                }
+                else
+                {
+                    assert  slashing_db_block == new_slashingDB_block;
+                    assert  slashing_db_block.slot <= slot;
+                }
+            }
+
             var block_signing_root := compute_block_signing_root(block);
             var fork_version := bn_get_fork_version(block.slot);
             var block_signature := rs_sign_block(block, fork_version, block_signing_root, process.rs);
             var block_share := SignedBeaconBlock(block, block_signature);
-            var slot := block.slot;
-            var process_after_updating_block_shares_to_broadcast := process.(                
+            var process_after_updating_block_shares_to_broadcast := 
+                process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
                     block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
-                        process.block_consensus_engine_state,
-                        new_block_slashing_db
-                    )
+                                                        process.block_consensus_engine_state,
+                                                        new_block_slashing_db
+                                                    ),
+                    latest_slashing_db_block := Some(new_slashingDB_block)
                 );
-            var multicastOutputs := getEmptyOuputs().(
-                                        sent_block_shares := multicast(block_share, process.peers)
-                                    );
-
+            
         }
         else
         { }
@@ -6740,5 +6742,505 @@ module Fnc_Invs_2
     requires process' == f_resend_block_share(process).state    
     requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
     ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process')
+    { }  
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_add_block_to_bn(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState 
+    )
+    requires f_add_block_to_bn.requires(process, block)
+    requires process' == f_add_block_to_bn(process, block)    
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_terminate_current_proposer_duty(
+        process: DVCState,
+        process': DVCState
+    )
+    requires f_terminate_current_proposer_duty.requires(process)
+    requires process' == f_terminate_current_proposer_duty(process)
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_start_consensus_if_can_construct_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_start_consensus_if_can_construct_randao_share.requires(process)
+    requires process' == f_start_consensus_if_can_construct_randao_share(process).state    
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }      
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_listen_for_randao_shares(
+        process: DVCState, 
+        randao_share: RandaoShare,
+        process': DVCState)
+    requires f_listen_for_randao_shares.requires(process, randao_share)
+    requires process' == f_listen_for_randao_shares(process, randao_share).state   
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { 
+        var slot := randao_share.slot;
+        var active_consensus_instances_on_beacon_blocks := process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+
+        if is_slot_for_current_or_future_instances(process, slot) 
+        {
+            var process_with_new_randao_share := 
+                process.(
+                    rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
+                                                                                    {randao_share} ]
+                );   
+            lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_start_consensus_if_can_construct_randao_share(
+                process_with_new_randao_share,
+                process'
+            );
+        }
+        else
+        { }
+    }      
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_check_for_next_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires process' == f_check_for_next_duty(process, proposer_duty).state
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_broadcast_randao_share(
+        process: DVCState,
+        proposer_duty: ProposerDuty, 
+        process': DVCState
+    )
+    requires f_broadcast_randao_share.requires(process, proposer_duty)
+    requires process' == f_broadcast_randao_share(process, proposer_duty).state
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { 
+        var slot := proposer_duty.slot;
+        var fork_version := bn_get_fork_version(slot);    
+        var epoch := compute_epoch_at_slot(slot);
+        var randao_reveal_signing_root := compute_randao_reveal_signing_root(slot);
+        var randao_reveal_signature_share := rs_sign_randao_reveal(epoch, fork_version, randao_reveal_signing_root, process.rs);
+        var randao_share := 
+            RandaoShare(
+                proposer_duty := proposer_duty,
+                slot := slot,
+                signing_root := randao_reveal_signing_root,
+                signature := randao_reveal_signature_share
+            );
+        var process_after_adding_randao_share :=
+            process.(
+                randao_shares_to_broadcast := process.randao_shares_to_broadcast[proposer_duty.slot := randao_share]
+            );
+
+        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_check_for_next_duty(
+            process_after_adding_randao_share,
+            proposer_duty,
+            process'
+        );
+    }
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_serve_proposer_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )  
+    requires f_serve_proposer_duty.requires(process, proposer_duty)
+    requires process' == f_serve_proposer_duty(process, proposer_duty).state
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    {
+        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
+        
+        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_terminate_current_proposer_duty(
+            process,
+            process_after_stopping_current_duty
+        );
+
+        var process_after_receiving_duty := 
+            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+       
+        lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_broadcast_randao_share(
+            process_after_receiving_duty,
+            proposer_duty,
+            process'
+        );
+    } 
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_block_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        block: BeaconBlock, 
+        process': DVCState
+    )
+    requires f_block_consensus_decided.requires(process, id, block)
+    requires process' == f_block_consensus_decided(process, id, block).state 
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }  
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_listen_for_block_signature_shares(
+        process: DVCState,
+        block_share: SignedBeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_block_signature_shares.requires(process, block_share)
+    requires process' == f_listen_for_block_signature_shares(process, block_share).state
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }  
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_resend_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_randao_share.requires(process)
+    requires process' == f_resend_randao_share(process).state    
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }  
+
+    lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body_f_resend_block_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_block_share.requires(process)
+    requires process' == f_resend_block_share(process).state    
+    requires inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process)
+    ensures inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(process')
+    { }  
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_add_block_to_bn(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState 
+    )
+    requires f_add_block_to_bn.requires(process, block)
+    requires process' == f_add_block_to_bn(process, block)    
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { }
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_terminate_current_proposer_duty(
+        process: DVCState,
+        process': DVCState
+    )
+    requires f_terminate_current_proposer_duty.requires(process)
+    requires process' == f_terminate_current_proposer_duty(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { }
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_start_consensus_if_can_construct_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_start_consensus_if_can_construct_randao_share.requires(process)
+    requires process' == f_start_consensus_if_can_construct_randao_share(process).state    
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { }      
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_randao_shares(
+        process: DVCState, 
+        randao_share: RandaoShare,
+        process': DVCState)
+    requires f_listen_for_randao_shares.requires(process, randao_share)
+    requires process' == f_listen_for_randao_shares(process, randao_share).state   
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { 
+        var slot := randao_share.slot;
+        var active_consensus_instances_on_beacon_blocks := process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+
+        if is_slot_for_current_or_future_instances(process, slot) 
+        {
+            var process_with_new_randao_share := 
+                process.(
+                    rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
+                                                                                    {randao_share} ]
+                );   
+            lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_start_consensus_if_can_construct_randao_share(
+                process_with_new_randao_share,
+                process'
+            );
+        }
+        else
+        { }
+    }
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_check_for_next_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )
+    requires f_check_for_next_duty.requires(process, proposer_duty)
+    requires process' == f_check_for_next_duty(process, proposer_duty).state
+    requires && process.latest_proposer_duty.isPresent()
+             && process.latest_proposer_duty.safe_get().slot <= proposer_duty.slot
+    requires inv_slot_in_future_beacon_block_is_correct_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { 
+        var slot := proposer_duty.slot;
+        if slot in process.future_consensus_instances_on_blocks_already_decided.Keys 
+        {
+            var block := process.future_consensus_instances_on_blocks_already_decided[slot];                
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(block);
+            var block_slashing_db := process.block_slashing_db;
+            var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);           
+
+            assert  process'.latest_slashing_db_block.isPresent();
+            assert  process'.latest_slashing_db_block.safe_get().slot == slot;
+
+            forall  slashing_db_block: SlashingDBBlock | slashing_db_block in new_block_slashing_db
+            ensures slashing_db_block.slot <= slot
+            {
+                if slashing_db_block in block_slashing_db
+                {
+                    assert  slashing_db_block.slot <= slot;
+                }
+                else
+                {
+                    assert  slashing_db_block == new_slashingDB_block;
+                    assert  slashing_db_block.slot <= slot;
+                }
+            }  
+
+            assert inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process');
+        }
+        else 
+        { }
+    }
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_broadcast_randao_share(
+        process: DVCState,
+        proposer_duty: ProposerDuty, 
+        process': DVCState
+    )
+    requires f_broadcast_randao_share.requires(process, proposer_duty)
+    requires process' == f_broadcast_randao_share(process, proposer_duty).state
+    requires && process.latest_proposer_duty.isPresent()
+             && process.latest_proposer_duty.safe_get().slot <= proposer_duty.slot
+    requires inv_slot_in_future_beacon_block_is_correct_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { 
+        var slot := proposer_duty.slot;
+        var fork_version := bn_get_fork_version(slot);    
+        var epoch := compute_epoch_at_slot(slot);
+        var randao_reveal_signing_root := compute_randao_reveal_signing_root(slot);
+        var randao_reveal_signature_share := rs_sign_randao_reveal(epoch, fork_version, randao_reveal_signing_root, process.rs);
+        var randao_share := 
+            RandaoShare(
+                proposer_duty := proposer_duty,
+                slot := slot,
+                signing_root := randao_reveal_signing_root,
+                signature := randao_reveal_signature_share
+            );
+        var process_after_adding_randao_share :=
+            process.(
+                randao_shares_to_broadcast := process.randao_shares_to_broadcast[proposer_duty.slot := randao_share]
+            );
+
+        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_check_for_next_duty(
+            process_after_adding_randao_share,
+            proposer_duty,
+            process'
+        );
+    }
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_serve_proposer_duty(
+        process: DVCState,
+        proposer_duty: ProposerDuty,
+        process': DVCState
+    )  
+    requires f_serve_proposer_duty.requires(process, proposer_duty)
+    requires process' == f_serve_proposer_duty(process, proposer_duty).state
+    requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(process, proposer_duty)
+    requires inv_slot_in_future_beacon_block_is_correct_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
+    requires inv_none_latest_proposer_duty_implies_emply_block_slashing_db_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    {
+        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
+        
+        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_terminate_current_proposer_duty(
+            process,
+            process_after_stopping_current_duty
+        );
+
+        assert  inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process_after_stopping_current_duty);
+        
+        if process_after_stopping_current_duty.latest_proposer_duty.isPresent()
+        {
+            assert  process_after_stopping_current_duty.latest_proposer_duty.safe_get().slot < proposer_duty.slot;
+        }
+
+        var process_after_receiving_duty := 
+            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+        var slot := proposer_duty.slot;
+
+        assert  && process_after_receiving_duty.latest_proposer_duty.isPresent()
+                && process_after_receiving_duty.latest_proposer_duty.safe_get().slot == slot
+                ;
+        assert  inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process_after_receiving_duty);
+
+        forall slashing_db_block | slashing_db_block in process_after_receiving_duty.block_slashing_db
+        ensures slashing_db_block.slot < slot;
+        {
+            assert  slashing_db_block in process_after_stopping_current_duty.block_slashing_db;
+            assert  slashing_db_block in process.block_slashing_db;
+            assert  process.latest_proposer_duty.isPresent();
+            assert  slashing_db_block.slot <= process.latest_proposer_duty.safe_get().slot;
+            assert  slashing_db_block.slot < slot;
+        }
+
+        assert  inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process_after_receiving_duty);        
+       
+        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_broadcast_randao_share(
+            process_after_receiving_duty,
+            proposer_duty,
+            process'
+        );
+    } 
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_block_consensus_decided(
+        process: DVCState,
+        id: Slot,
+        block: BeaconBlock, 
+        process': DVCState
+    )
+    requires f_block_consensus_decided.requires(process, id, block)
+    requires process' == f_block_consensus_decided(process, id, block).state 
+    requires inv_slot_in_future_beacon_block_is_correct_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
+    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { 
+        if && process.current_proposer_duty.isPresent()
+           && process.current_proposer_duty.safe_get().slot == block.slot
+           && id == block.slot
+        {
+            var slot := block.slot;            
+
+            assert  && process'.latest_proposer_duty.isPresent()
+                    && process'.latest_proposer_duty.safe_get().slot == slot;
+            assert  && process'.latest_slashing_db_block.isPresent()
+                    && process'.latest_slashing_db_block.safe_get().slot == slot;
+
+            lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_block_consensus_decided(
+                process, 
+                id, 
+                block, 
+                process'
+            );               
+        }
+        else
+        { }
+    }  
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_block_signature_shares(
+        process: DVCState,
+        block_share: SignedBeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_block_signature_shares.requires(process, block_share)
+    requires process' == f_listen_for_block_signature_shares(process, block_share).state
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { }
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_new_imported_blocks(
+        process: DVCState,
+        block: BeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_new_imported_blocks.requires(process, block)
+    requires process' == f_listen_for_new_imported_blocks(process, block).state
+    requires inv_slot_in_future_beacon_block_is_correct_body(process)
+    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(process)
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { 
+        var new_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock> := 
+            map[ block.slot := block ];
+
+        var consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided + new_consensus_instances_on_blocks_already_decided;
+
+        var future_consensus_instances_on_blocks_already_decided := 
+            f_listen_for_new_imported_blocks_helper(process, consensus_instances_on_blocks_already_decided);
+
+        var process_after_stopping_consensus_instance :=
+            process.(
+                future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
+                block_consensus_engine_state := stopBlockConsensusInstances(
+                                process.block_consensus_engine_state,
+                                consensus_instances_on_blocks_already_decided.Keys
+                ),
+                block_shares_to_broadcast := process.block_shares_to_broadcast - consensus_instances_on_blocks_already_decided.Keys,
+                rcvd_block_shares := process.rcvd_block_shares - consensus_instances_on_blocks_already_decided.Keys                    
+            );   
+
+        if  && process_after_stopping_consensus_instance.current_proposer_duty.isPresent() 
+            && process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot in consensus_instances_on_blocks_already_decided 
+        { 
+            var slot := process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot;
+            var decided_beacon_blocks := consensus_instances_on_blocks_already_decided[process.current_proposer_duty.safe_get().slot];
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(decided_beacon_blocks);
+            
+            lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(
+                process, 
+                block, 
+                process'
+            );
+
+            assert  new_slashingDB_block.slot == slot;
+            assert  && process'.latest_proposer_duty.isPresent()
+                    && process'.latest_proposer_duty.safe_get().slot == slot
+                    ;
+            assert  && process'.latest_slashing_db_block.isPresent()
+                    && process'.latest_slashing_db_block.safe_get().slot == slot;
+        }        
+        else
+        { }
+    }  
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_resend_randao_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_randao_share.requires(process)
+    requires process' == f_resend_randao_share(process).state    
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
+    { }  
+
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_resend_block_share(
+        process: DVCState, 
+        process': DVCState)
+    requires f_resend_block_share.requires(process)
+    requires process' == f_resend_block_share(process).state    
+    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(process')
     { }  
 }
