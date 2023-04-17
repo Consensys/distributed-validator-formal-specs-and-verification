@@ -166,5 +166,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         && inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv)
         && inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv)
         && inv_at_most_submitted_signed_beacon_block_for_every_slot(dv)
+        && inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv)
+        && inv_none_latest_slashing_db_block_implies_emply_block_slashing_db(dv)
     }
 }

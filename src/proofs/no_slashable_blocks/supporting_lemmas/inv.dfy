@@ -2223,4 +2223,34 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         forall hn | is_honest_node(dv, hn) ::
             inv_none_latest_proposer_duty_implies_emply_block_slashing_db_body(dv.honest_nodes_states[hn])
     }
+
+    predicate inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(dvc: DVCState)
+    {
+        !dvc.latest_slashing_db_block.isPresent()
+        ==>
+        dvc.block_slashing_db == {}
+    }
+
+    predicate inv_none_latest_slashing_db_block_implies_emply_block_slashing_db(dv: DVState)
+    {
+        forall hn | is_honest_node(dv, hn) ::
+            inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(dv.honest_nodes_states[hn])
+    }
+
+    predicate inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(dvc: DVCState)
+    {   
+        dvc.latest_slashing_db_block.isPresent()
+        ==>
+        ( && var slot := dvc.latest_slashing_db_block.safe_get().slot;
+          && forall slashing_db_block: SlashingDBBlock | slashing_db_block in dvc.block_slashing_db
+                ::
+                slashing_db_block.slot <= slot
+        )
+    }
+
+    predicate inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv: DVState)
+    {
+        forall hn | is_honest_node(dv, hn) ::
+            inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body(dv.honest_nodes_states[hn])
+    }
 }
