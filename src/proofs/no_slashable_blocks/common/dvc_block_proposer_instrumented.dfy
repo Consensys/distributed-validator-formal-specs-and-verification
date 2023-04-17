@@ -206,7 +206,8 @@ module DVC_Block_Proposer_Spec_Instr {
         rs: RSState,
         block_consensus_engine_state: BlockConsensusEngineState,
         
-        ghost all_rcvd_duties: set<ProposerDuty>
+        ghost all_rcvd_duties: set<ProposerDuty>,
+        ghost latest_slashing_db_block: Optional<SlashingDBBlock>
     )
 
     type Outputs = DVC_Block_Proposer_Spec_NonInstr.Outputs
@@ -265,7 +266,8 @@ module DVC_Block_Proposer_Spec_Instr {
             construct_complete_signed_block := construct_complete_signed_block,
             construct_complete_signed_randao_reveal := construct_complete_signed_randao_reveal,
             block_consensus_engine_state := getInitialBlockConensusEngineState(),
-            all_rcvd_duties := {}
+            all_rcvd_duties := {},
+            latest_slashing_db_block := None
         )
     }
 
@@ -459,10 +461,9 @@ module DVC_Block_Proposer_Spec_Instr {
         if slot in process.future_consensus_instances_on_blocks_already_decided.Keys 
         then        
             var block := process.future_consensus_instances_on_blocks_already_decided[slot];                
-            var new_block_slashing_db := 
-                f_update_block_slashing_db(process.block_slashing_db, block);            
-            var new_process
-                := 
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(block);
+            var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);            
+            var new_process := 
                 process.(
                     current_proposer_duty := None,                    
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
@@ -470,7 +471,8 @@ module DVC_Block_Proposer_Spec_Instr {
                     block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
-                    )     
+                    ),
+                    latest_slashing_db_block := Some(new_slashingDB_block)                    
                 );
 
             f_wrap_DVCState_with_Outputs(
@@ -555,19 +557,22 @@ module DVC_Block_Proposer_Spec_Instr {
            && process.current_proposer_duty.safe_get().slot == block.slot
            && id == block.slot
         then
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(block);                
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);
             var block_signing_root := compute_block_signing_root(block);
             var fork_version := bn_get_fork_version(block.slot);
             var block_signature := rs_sign_block(block, fork_version, block_signing_root, process.rs);
             var block_share := SignedBeaconBlock(block, block_signature);
             var slot := block.slot;
-            var process_after_updating_block_shares_to_broadcast := process.(                
+            var process_after_updating_block_shares_to_broadcast := 
+                process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
                     block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
-                    )
+                    ), 
+                    latest_slashing_db_block := Some(new_slashingDB_block)
                 );
             var multicastOutputs := getEmptyOuputs().(
                                         sent_block_shares := multicast(block_share, process.peers)
@@ -749,16 +754,18 @@ module DVC_Block_Proposer_Spec_Instr {
             && process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot in consensus_instances_on_blocks_already_decided 
         then
             var decided_beacon_blocks := consensus_instances_on_blocks_already_decided[process.current_proposer_duty.safe_get().slot];
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(decided_beacon_blocks);
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, decided_beacon_blocks);
             var process_after_updating_validity_check := 
-                    process_after_stopping_consensus_instance.(
+                process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
                     block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
-                    )                
-            );
+                    ),
+                    latest_slashing_db_block := Some(new_slashingDB_block)          
+                );
             f_wrap_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyOuputs())
         else
             f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())
