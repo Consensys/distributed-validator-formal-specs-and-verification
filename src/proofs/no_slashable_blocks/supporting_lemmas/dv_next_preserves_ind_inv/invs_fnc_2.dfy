@@ -1897,7 +1897,7 @@ module Fnc_Invs_2
     // requires s' == f_listen_for_new_imported_blocks(process, block).state       
     // requires inv_slots_in_future_decided_beacon_blocks_are_correct_body(dv', n, process)
     // requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv')
-    // requires inv_block_of_in_transit_block_share_is_decided_value(dv')
+    // requires inv_blocks_of_in_transit_block_shares_are_decided_values(dv')
     // requires valid_attestations_in_beacon_block(dv', process, block)
     // ensures inv_slots_in_future_decided_beacon_blocks_are_correct_body(dv', n, s');
     // {

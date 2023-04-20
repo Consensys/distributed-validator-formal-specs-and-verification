@@ -118,7 +118,7 @@ module Invs_DV_Next_2
     }
 
     // TODO: Split this lemma into smaller pieces
-    lemma lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_HonestNodeTakingStep(
+    lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_HonestNodeTakingStep(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         cid: Slot,
@@ -131,7 +131,7 @@ module Invs_DV_Next_2
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
     ensures is_a_valid_decided_value(s'.consensus_instances_on_beacon_block[cid]);
     {
@@ -223,7 +223,7 @@ module Invs_DV_Next_2
         }
     }
 
-    lemma lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_dv_next(
+    lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
@@ -233,8 +233,8 @@ module Invs_DV_Next_2
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
-    ensures inv_decided_value_of_consensus_instance_is_decided_by_quorum(s')
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
+    ensures inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s')
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         match event
@@ -258,18 +258,18 @@ module Invs_DV_Next_2
                 {
                     if s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
                     {
-                        lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_HonestNodeTakingStep(s, event, cid, s');
+                        lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_HonestNodeTakingStep(s, event, cid, s');
                     }
                     else
                     {
                         assert is_a_valid_decided_value(s'.consensus_instances_on_beacon_block[cid]);
                     }
                 }
-                assert inv_decided_value_of_consensus_instance_is_decided_by_quorum(s');
+                assert inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s');
 
 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                assert inv_decided_value_of_consensus_instance_is_decided_by_quorum(s');
+                assert inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s');
         }
     }
 
@@ -283,7 +283,7 @@ module Invs_DV_Next_2
         s: DVState,
         cid: Slot
     )
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_nodes_in_consensus_instances_are_in_dv(s)
@@ -323,7 +323,7 @@ module Invs_DV_Next_2
     lemma lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(
         s: DVState
     )
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_nodes_in_consensus_instances_are_in_dv(s)    

@@ -94,7 +94,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
     predicate invs_group_8(dv: DVState)       
     {   
         && inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv) 
-        && inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv)    
+        && inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)    
         && inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(dv)
         && inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv)
     }
@@ -115,7 +115,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
     {   
         && inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)        
         && inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(dv) 
-        && inv_block_of_in_transit_block_share_is_decided_value(dv)                     
+        && inv_blocks_of_in_transit_block_shares_are_decided_values(dv)                     
 
         // Move to intermediate steps
         && inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)                 

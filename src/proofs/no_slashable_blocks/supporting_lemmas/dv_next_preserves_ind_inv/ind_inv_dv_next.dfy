@@ -204,7 +204,7 @@ module Ind_Inv_DV_Next
     ensures invs_group_8(dv')
     {
         lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(dv, e, dv');
-        lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_dv_next(dv, e, dv');  
+        lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_dv_next(dv, e, dv');  
         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_dv_next(dv, e, dv');
         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_dv_next(dv, e, dv');        
     }
@@ -230,7 +230,7 @@ module Ind_Inv_DV_Next
         lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(dv, e, dv');
         lem_ind_inv_implies_intermediate_steps(dv);        
         lem_inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(dv, e, dv');        
-        lem_inv_block_of_in_transit_block_share_is_decided_value_dv_next(dv, e, dv');
+        lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next(dv, e, dv');
         lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(dv, e, dv');
     }
     
@@ -295,7 +295,7 @@ module Ind_Inv_DV_Next
         lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_dv_next(dv, e, dv');
         
         lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(dv, e, dv');
-        lem_inv_block_of_in_transit_block_share_is_decided_value_dv_next(dv, e, dv');
+        lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next(dv, e, dv');
         lem_inv_all_created_signed_beacon_blocks_are_valid_dv_next(dv, e, dv');
         lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(dv');
         lem_inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot_dv_next(dv');

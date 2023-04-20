@@ -2711,7 +2711,7 @@ module Invs_DV_Next_5
         dv: DVState
     )    
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
-    requires inv_block_of_in_transit_block_share_is_decided_value(dv)
+    requires inv_blocks_of_in_transit_block_shares_are_decided_values(dv)
     requires inv_all_created_signed_beacon_blocks_are_valid(dv)
     ensures  inv_block_of_all_created_blocks_is_set_of_decided_values(dv)
     {        
@@ -2725,7 +2725,7 @@ module Invs_DV_Next_5
                     inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(dv, hn, block_share, complete_block);
 
             assert complete_block.block.slot == block_share.block.slot;
-            assert  inv_block_of_in_transit_block_share_is_decided_value_body(dv, block_share);
+            assert  inv_blocks_of_in_transit_block_shares_are_decided_values_body(dv, block_share);
             assert  && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.isPresent()
                     && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.safe_get() == block_share.block
                     ;
@@ -2754,7 +2754,7 @@ module Invs_DV_Next_5
     requires nodeEvent.ImportedNewBlock?
     requires nodeEvent == ImportedNewBlock(block)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)
-    requires inv_block_of_in_transit_block_share_is_decided_value(s)               
+    requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)               
     requires inv_consensus_instance_isConditionForSafetyTrue(s) 
     requires lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(s)  
     requires inv_consensus_instance_isConditionForSafetyTrue(s)
@@ -2774,7 +2774,7 @@ module Invs_DV_Next_5
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
@@ -2803,7 +2803,7 @@ module Invs_DV_Next_5
         assert  complete_signed_block in s'.all_blocks_created;
 
         lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(s, event, s');
-        lem_inv_block_of_in_transit_block_share_is_decided_value_dv_next(s, event, s');
+        lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next(s, event, s');
         lem_inv_all_created_signed_beacon_blocks_are_valid_dv_next(s, event, s');
         lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(s');
 
@@ -2854,7 +2854,7 @@ module Invs_DV_Next_5
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)
-    requires inv_block_of_in_transit_block_share_is_decided_value(s)               
+    requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)               
     requires inv_consensus_instance_isConditionForSafetyTrue(s) 
     requires lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(s)  
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(s)
@@ -2873,7 +2873,7 @@ module Invs_DV_Next_5
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
@@ -2970,7 +2970,7 @@ module Invs_DV_Next_5
     requires NextEvent(s, event, s')  
     requires lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(s)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)
-    requires inv_block_of_in_transit_block_share_is_decided_value(s)               
+    requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)               
     requires inv_consensus_instance_isConditionForSafetyTrue(s) 
     requires lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(s)  
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(s)
@@ -2989,7 +2989,7 @@ module Invs_DV_Next_5
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
-    requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)

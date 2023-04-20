@@ -355,7 +355,6 @@ module Invs_DV_Next_1
                 var sequence_proposer_duties_to_be_served := dv.sequence_proposer_duties_to_be_served;
                 var index_next_proposer_duty_to_be_served := dv.index_next_proposer_duty_to_be_served;
                 
-                
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
@@ -406,10 +405,36 @@ module Invs_DV_Next_1
                         assert inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv');
 
                     case BlockConsensusDecided(id, decided_beacon_block) => 
+                        lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_block_consensus_decided(
+                            dvc,
+                            id,
+                            decided_beacon_block, 
+                            dvc',
+                            node,
+                            sequence_proposer_duties_to_be_served,
+                            index_next_proposer_duty_to_be_served
+                        );
                         
-                    case ReceiveSignedBeaconBlock(block_share) =>                         
+                    case ReceiveSignedBeaconBlock(block_share) =>      
+                        lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_listen_for_block_signature_shares(
+                            dvc,
+                            block_share,
+                            dvc',
+                            node,
+                            sequence_proposer_duties_to_be_served,
+                            index_next_proposer_duty_to_be_served
+                        );       
    
                     case ImportedNewBlock(block) => 
+                        var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
+                        lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_listen_for_new_imported_blocks(
+                            dvc,
+                            block,
+                            dvc',
+                            node,
+                            sequence_proposer_duties_to_be_served,
+                            index_next_proposer_duty_to_be_served
+                        );
                                                 
                     case ResendRandaoRevealSignatureShare =>
 

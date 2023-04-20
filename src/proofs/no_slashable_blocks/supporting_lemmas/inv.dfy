@@ -536,7 +536,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }   
 
 
-    predicate inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState)
+    predicate inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv: DVState)
     {
         forall cid |
             && cid in dv.consensus_instances_on_beacon_block.Keys
@@ -554,7 +554,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             dv.consensus_instances_on_beacon_block[cid].decided_value.safe_get().slot == cid
     }   
 
-    predicate inv_block_of_in_transit_block_share_is_decided_value(dv: DVState)
+    predicate inv_blocks_of_in_transit_block_shares_are_decided_values(dv: DVState)
     {
         forall hn, block_share |
                 && hn in dv.honest_nodes_states.Keys 
@@ -562,10 +562,10 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && var block_signing_root := compute_block_signing_root(block_share.block);                                      
                 && verify_bls_signature(block_signing_root, block_share.signature, hn)
                 ::
-                inv_block_of_in_transit_block_share_is_decided_value_body(dv, block_share)
+                inv_blocks_of_in_transit_block_shares_are_decided_values_body(dv, block_share)
     }  
 
-    predicate inv_block_of_in_transit_block_share_is_decided_value_body(dv: DVState, block_share: SignedBeaconBlock)
+    predicate inv_blocks_of_in_transit_block_shares_are_decided_values_body(dv: DVState, block_share: SignedBeaconBlock)
     {
         && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.isPresent()
         && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.safe_get() == block_share.block
