@@ -3891,7 +3891,6 @@ module Fnc_Invs_1
     requires inv_latest_served_duty_is_a_rcvd_duty_body(process)
     requires proposer_duty in process.all_rcvd_duties
     requires inv_available_current_proposer_duty_is_latest_proposer_duty_body(process)
-    // requires inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process)
     requires inv_slots_of_active_consensus_instances_are_lower_than_the_slot_of_latest_proposer_duty_body(process)
     ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
     { 
@@ -3938,7 +3937,6 @@ module Fnc_Invs_1
     requires proposer_duty in process.all_rcvd_duties
     requires inv_available_current_proposer_duty_is_latest_proposer_duty_body(process)
     requires inv_slots_of_active_consensus_instances_are_lower_than_the_slot_of_latest_proposer_duty_body(process)
-    // requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(process, proposer_duty)    
     requires process.latest_proposer_duty.isPresent()
     ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
     { 
@@ -3980,23 +3978,6 @@ module Fnc_Invs_1
     requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(process, proposer_duty)    
     ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
     {
-        // var process_rcvd_duty := 
-        //     process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
-        // var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process_rcvd_duty);
-        // assert  process_after_stopping_active_consensus_instance.all_rcvd_duties
-        //         ==
-        //         process_rcvd_duty.all_rcvd_duties
-        //         ;
-        // lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-        //     process_rcvd_duty,
-        //     process_after_stopping_active_consensus_instance
-        // );
-        // lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body_f_broadcast_randao_share(
-        //     process_after_stopping_active_consensus_instance,
-        //     proposer_duty,
-        //     process'
-        // );   
-
         var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
         
         lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body_f_terminate_current_proposer_duty(
@@ -4067,119 +4048,4 @@ module Fnc_Invs_1
     requires inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process)
     ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
     { }  
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_add_block_to_bn(
-    //     s: DVCState,
-    //     block: BeaconBlock,
-    //     s': DVCState 
-    // )
-    // requires f_add_block_to_bn.requires(s, block)
-    // requires s' == f_add_block_to_bn(s, block)    
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(s)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(s')
-    // { }
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_listen_for_block_signature_shares(
-    //     process: DVCState,
-    //     block_share: SignedBeaconBlock,
-    //     process': DVCState
-    // )
-    // requires f_listen_for_block_signature_shares.requires(process, block_share)
-    // requires process' == f_listen_for_block_signature_shares(process, block_share).state        
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { }
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_start_consensus_if_can_construct_randao_share(
-    //     process: DVCState, 
-    //     proposer_duty: ProposerDuty, 
-    //     process': DVCState
-    // )
-    // requires f_start_consensus_if_can_construct_randao_share.requires(process)
-    // requires process' == f_start_consensus_if_can_construct_randao_share(process, proposer_duty).state   
-    // requires proposer_duty in process.all_rcvd_duties
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { } 
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_f_resend_block_share(
-    //     process: DVCState,
-    //     process': DVCState)
-    // requires f_resend_block_share.requires(process)
-    // requires process' == f_resend_block_share(process).state        
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { } 
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_check_for_next_duty(
-    //     process: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     process': DVCState
-    // )
-    // requires f_check_for_next_duty.requires(process, proposer_duty)
-    // requires process' == f_check_for_next_duty(process, proposer_duty).state    
-    // requires proposer_duty in process.all_rcvd_duties
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { }
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_block_consensus_decided(
-    //     process: DVCState,
-    //     id: Slot,
-    //     block: BeaconBlock, 
-    //     process': DVCState
-    // )
-    // requires f_block_consensus_decided.requires(process, id, block)
-    // requires process' == f_block_consensus_decided(process, id, block).state         
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { }
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_terminate_current_proposer_duty(
-    //     process: DVCState,
-    //     process': DVCState
-    // )
-    // requires f_terminate_current_proposer_duty.requires(process)
-    // requires process' == f_terminate_current_proposer_duty(process)
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { }
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_serve_proposer_duty(
-    //     process: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     process': DVCState
-    // )  
-    // requires f_serve_proposer_duty.requires(process, proposer_duty)
-    // requires process' == f_serve_proposer_duty(process, proposer_duty).state
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // {
-    //     var process_rcvd_duty := 
-    //             process.(all_rcvd_duties := process.all_rcvd_duties + {proposer_duty});
-    //     var process_after_stopping_active_consensus_instance := f_terminate_current_proposer_duty(process_rcvd_duty);
-    //     lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_terminate_current_proposer_duty(
-    //         process_rcvd_duty,
-    //         process_after_stopping_active_consensus_instance
-    //     );
-    //     lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_check_for_next_duty(
-    //         process_after_stopping_active_consensus_instance,
-    //         proposer_duty,
-    //         process'
-    //     );       
-    // }
-
-    // lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_listen_for_new_imported_blocks(
-    //     process: DVCState,
-    //     block: BeaconBlock,
-    //     process': DVCState
-    // )
-    // requires f_listen_for_new_imported_blocks.requires(process, block)
-    // requires process' == f_listen_for_new_imported_blocks(process, block).state        
-    // requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    // ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    // { } 
-
-    
-    
 }
