@@ -31,15 +31,15 @@ module Proofs_Intermediate_Steps
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Helper_Pred_Fcn
     
-    lemma lem_inv_same_node_status_in_dv_and_ci_ind_inv(dv: DVState)
-    requires inv_unchanged_paras_of_consensus_instances(dv)
-    ensures inv_same_node_status_in_dv_and_ci(dv)
+    lemma lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv: DVState)
+    requires inv_nodes_in_consensus_instances_are_in_dv(dv)
+    ensures inv_the_same_node_status_in_dv_and_ci(dv)
     { }
         
     lemma lem_inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_ind_inv(
         dv: DVState
     )         
-    requires inv_current_proposer_duty_is_rcvd_duty(dv)    
+    requires inv_current_proposer_duty_is_a_rcvd_duty(dv)    
     requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv) 
     requires inv_seq_of_proposer_duties_is_ordered(dv)  
@@ -115,13 +115,13 @@ module Proofs_Intermediate_Steps
     ensures inv_active_consensus_instances_implied_the_delivery_of_proposer_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
-        ensures ( ( && is_honest_node(dv, hn) 
+        ensures ( ( && is_an_honest_node(dv, hn) 
                     && s in dv.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys
                   )
                   ==> inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
-            if && is_honest_node(dv, hn) 
+            if && is_an_honest_node(dv, hn) 
                && s in dv.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys
             {
                 var hn_state := dv.honest_nodes_states[hn];
@@ -140,7 +140,7 @@ module Proofs_Intermediate_Steps
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: BeaconBlock -> bool | 
-            && is_honest_node(dv, hn)
+            && is_an_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
             && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
             && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]            
@@ -170,11 +170,11 @@ module Proofs_Intermediate_Steps
         }
     }   
 
-    lemma lem_inv_current_latest_proposer_duty_match(
+    lemma lem_inv_available_current_proposer_duty_is_latest_proposer_duty(
         dv: DVState
     )    
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)    
-    ensures inv_current_latest_proposer_duty_match(dv)    
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)    
+    ensures inv_available_current_proposer_duty_is_latest_proposer_duty(dv)    
     {}
 
     lemma lem_construct_complete_signed_block_assumptions_helper(
@@ -220,8 +220,8 @@ module Proofs_Intermediate_Steps
     // lemma lem_inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty_ind_inv(
     //     dv: DVState
     // )         
-    // requires inv_quorum_constraints(dv)      
-    // requires inv_latest_served_duty_is_rcvd_duty(dv)    
+    // requires inv_all_honest_nodes_is_a_quorum(dv)      
+    // requires inv_latest_served_duty_is_a_rcvd_duty(dv)    
     // requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
     // ensures inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty(dv)
     // {   

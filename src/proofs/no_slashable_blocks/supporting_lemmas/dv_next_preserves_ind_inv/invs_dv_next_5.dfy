@@ -45,14 +45,14 @@ module Invs_DV_Next_5
     import opened Invs_DV_Next_3
     import opened Invs_DV_Next_4
 
-    lemma lem_inv_monotonic_block_slashing_db_dv_next(
+    lemma lem_inv__block_slashing_db_is_monotonic_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     ) 
     requires NextEvent.requires(dv, event, dv')    
     requires NextEvent(dv, event, dv')  
-    ensures inv_monotonic_block_slashing_db(dv, event, dv')
+    ensures inv__block_slashing_db_is_monotonic(dv, event, dv')
     { 
         match event 
         {
@@ -62,23 +62,23 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_monotonic_block_slashing_db_body_f_serve_proposer_duty(process, proposer_duty, process');
+                        lem_inv__block_slashing_db_is_monotonic_body_f_serve_proposer_duty(process, proposer_duty, process');
                     
                     case ReceiveRandaoShare(randao_share) =>                         
-                        lem_inv_monotonic_block_slashing_db_f_listen_for_randao_shares(process, randao_share, process');    
+                        lem_inv__block_slashing_db_is_monotonic_f_listen_for_randao_shares(process, randao_share, process');    
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(process, id, decided_beacon_block)
                         {
-                            lem_inv_monotonic_block_slashing_db_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
+                            lem_inv__block_slashing_db_is_monotonic_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_monotonic_block_slashing_db_f_listen_for_block_signature_shares(process, block_share, process');                        
+                        lem_inv__block_slashing_db_is_monotonic_f_listen_for_block_signature_shares(process, block_share, process');                        
    
                     case ImportedNewBlock(block) => 
                         var process := f_add_block_to_bn(process, nodeEvent.block);
-                        lem_inv_monotonic_block_slashing_db_body_f_listen_for_new_imported_blocks(process, block, process');                        
+                        lem_inv__block_slashing_db_is_monotonic_body_f_listen_for_new_imported_blocks(process, block, process');                        
                                                 
                     case ResendRandaoRevealSignatureShare =>
 
@@ -101,12 +101,12 @@ module Invs_DV_Next_5
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     ensures inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(dv')
     {        
         lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(dv, event, dv');
-        lem_inv_available_current_proposer_duty_is_latest_served_proposer_duty_dv_next(dv, event, dv');
+        lem_inv_available_current_proposer_duty_is_latest_proposer_duty_dv_next(dv, event, dv');
     }   
 
     lemma lem_NonServeProposerDuty_unchanged_vars(
@@ -122,7 +122,7 @@ module Invs_DV_Next_5
     ensures s.sequence_proposer_duties_to_be_served == s'.sequence_proposer_duties_to_be_served  
     { }  
 
-    lemma lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(
+    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
@@ -133,8 +133,8 @@ module Invs_DV_Next_5
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
-    requires inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
-    ensures inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s'.sequence_proposer_duties_to_be_served, event.node, s'.honest_nodes_states[event.node], s'.index_next_proposer_duty_to_be_served); 
+    requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
+    ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s'.sequence_proposer_duties_to_be_served, event.node, s'.honest_nodes_states[event.node], s'.index_next_proposer_duty_to_be_served); 
     {
         assert s.sequence_proposer_duties_to_be_served == s'.sequence_proposer_duties_to_be_served;
         var sequence_proposer_duties_to_be_served := s'.sequence_proposer_duties_to_be_served;
@@ -147,15 +147,15 @@ module Invs_DV_Next_5
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
                 
-                lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s_node, node);
-                assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s_node, s.index_next_proposer_duty_to_be_served);
+                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s_node, node);
+                assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s_node, s.index_next_proposer_duty_to_be_served);
                 assert inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s_node);     
 
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) => 
                         assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served - 1;
-                        lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_serve_proposer_duty(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_serve_proposer_duty(
                             s_node,
                             proposer_duty,
                             s'_node,
@@ -163,10 +163,10 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         );
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
                 
                     case ReceiveRandaoShare(randao_share) =>                             
-                        lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_randao_shares(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_randao_shares(
                             s_node, 
                             randao_share, 
                             s'_node,
@@ -179,7 +179,7 @@ module Invs_DV_Next_5
                         assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served;    
                         if f_block_consensus_decided.requires(s_node, id, decided_beacon_block)
                         {
-                            lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_block_consensus_decided(
+                            lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_block_consensus_decided(
                                 s_node,
                                 id,
                                 decided_beacon_block,
@@ -189,10 +189,10 @@ module Invs_DV_Next_5
                                 s'.index_next_proposer_duty_to_be_served
                             ); 
                         }
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                        
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                        
                
                     case ReceiveSignedBeaconBlock(block_share) =>
-                        lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_block_signature_shares(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_block_signature_shares(
                             s_node, 
                             block_share, 
                             s'_node,
@@ -200,11 +200,11 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         );                        
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
                         
                     case ImportedNewBlock(block) => 
                         var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-                        lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_new_imported_blocks(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
                             s'_node,
@@ -212,39 +212,39 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         );  
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
                  
                     case ResendRandaoRevealSignatureShare =>
-                        lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_resend_randao_share(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_resend_randao_share(
                             s_node,
                             s'_node,
                             sequence_proposer_duties_to_be_served, 
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         ); 
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
 
 
                     case ResendBlockShare =>
-                        lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_resend_block_share(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_resend_block_share(
                             s_node,
                             s'_node,
                             sequence_proposer_duties_to_be_served, 
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         ); 
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
 
                     case NoEvent => 
                         lem_NonServeProposerDuty_unchanged_vars(s, event, s');
                         assert s_node == s'_node; 
-                        assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                          
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                          
                 }                     
 
         }
     }   
 
-    lemma lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(
+    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
@@ -253,13 +253,13 @@ module Invs_DV_Next_5
     requires NextEvent(s, event, s')  
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
-    requires inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
-    ensures inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s')
+    requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
+    ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s')
     {
             match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(
+                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(
                     s,
                     event,
                     s'
@@ -270,7 +270,7 @@ module Invs_DV_Next_5
         }   
     }
 
-    lemma lem_inv_block_of_block_shares_is_known_dv_next_AdversaryTakingStep(
+    lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_AdversaryTakingStep(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
@@ -278,17 +278,17 @@ module Invs_DV_Next_5
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.AdversaryTakingStep?
-    requires inv_quorum_constraints(dv)
-    requires inv_block_of_block_shares_is_known(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_block_shares_to_broadcast_is_tracked_in_block_slashing_db(dv)
-    ensures  inv_block_of_block_shares_is_known(dv')
+    requires inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db(dv)
+    ensures  inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv')
     {        
         match event 
         {
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                lem_inv_quorum_constraints_dv_next(dv, event, dv');
-                assert inv_quorum_constraints(dv');
+                lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv, event, dv');
+                assert inv_all_honest_nodes_is_a_quorum(dv');
                 var dishonest_nodes := dv'.adversary.nodes;
                 var honest_nodes := dv'.honest_nodes_states.Keys;
                 lemmaEmptyIntersectionImpliesDisjointness(dishonest_nodes, honest_nodes);
@@ -300,16 +300,16 @@ module Invs_DV_Next_5
                                 && var block_signing_root := compute_block_signing_root(new_block_share.block);
                                 && verify_bls_signature(block_signing_root, new_block_share.signature, signer)
                             )
-                ensures !is_honest_node(dv, signer)
+                ensures !is_an_honest_node(dv, signer)
                 {
                     assert signer in dishonest_nodes;
-                    assert !is_honest_node(dv, signer);
+                    assert !is_an_honest_node(dv, signer);
                 }
-                assert inv_block_of_block_shares_is_known(dv');
+                assert inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv');
         }  
     } 
 
-    lemma lem_inv_block_of_block_shares_is_known_dv_next_HonestNodeTakingStep(
+    lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_HonestNodeTakingStep(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -322,29 +322,29 @@ module Invs_DV_Next_5
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires && var dvc' := dv'.honest_nodes_states[node];
-             && inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');
-    requires inv_quorum_constraints(dv)
-    requires inv_block_of_block_shares_is_known(dv)
+             && inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_block_shares_to_broadcast_is_tracked_in_block_slashing_db(dv)
-    ensures  inv_block_of_block_shares_is_known(dv')
+    requires inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db(dv)
+    ensures  inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv')
     {        
         var dvc := dv.honest_nodes_states[node];
         var dvc' := dv'.honest_nodes_states[node];
-        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');
+        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');
 
         assert  dv.block_share_network.allMessagesSent + getMessagesFromMessagesWithRecipient(nodeOutputs.sent_block_shares)
                 ==
                 dv'.block_share_network.allMessagesSent
                 ;
         forall hn: BLSPubkey, block_share: SignedBeaconBlock | 
-                    && is_honest_node(dv, hn)
+                    && is_an_honest_node(dv, hn)
                     && block_share in dv'.block_share_network.allMessagesSent 
                     && var hn_node': DVCState := dv'.honest_nodes_states[hn];
                     && var hn_rs_pubkey: BLSPubkey := hn_node'.rs.pubkey;
-                    && pred_verify_owner_of_block_share_with_bls_signature(hn_rs_pubkey, block_share)
+                    && pred_is_the_owner_of_a_block_share(hn_rs_pubkey, block_share)
         ensures && var hn_node': DVCState := dv'.honest_nodes_states[hn];
-                && inv_block_of_block_shares_is_known_body(hn_node', block_share)            
+                && inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(hn_node', block_share)            
         {
             var hn_node: DVCState := dv.honest_nodes_states[hn];
             var hn_node': DVCState := dv'.honest_nodes_states[hn];
@@ -353,13 +353,13 @@ module Invs_DV_Next_5
             lem_inv_unchanged_rs_dv_next(dv, event, dv');         
             assert hn_node.rs.pubkey == hn_node'.rs.pubkey;   
 
-            lem_inv_monotonic_block_slashing_db_dv_next(dv, event, dv');     
+            lem_inv__block_slashing_db_is_monotonic_dv_next(dv, event, dv');     
             assert hn_node.block_slashing_db <= hn_node'.block_slashing_db;      
             
 
             if block_share in dv.block_share_network.allMessagesSent 
             {
-                assert inv_block_of_block_shares_is_known_body(hn_node, block_share);
+                assert inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(hn_node, block_share);
                 
                 var beacon_block := block_share.block;
                 var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
@@ -368,19 +368,19 @@ module Invs_DV_Next_5
                 lem_member_of_subset_is_member_of_superset(slashing_db_block, hn_node.block_slashing_db, hn_node'.block_slashing_db);
                 assert slashing_db_block in hn_node'.block_slashing_db;
 
-                assert inv_block_of_block_shares_is_known_body(hn_node', block_share);
+                assert inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(hn_node', block_share);
             }
             else
             {                        
                 assert block_share in getMessagesFromMessagesWithRecipient(nodeOutputs.sent_block_shares);
                 rs_block_sign_and_verification_propeties();
-                assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_body(
+                assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_body(
                             dvc', 
                             block_share
                         );
-                assert inv_block_of_block_shares_is_known_body(dvc', block_share);
-                assert pred_verify_owner_of_block_share_with_bls_signature(dvc'.rs.pubkey, block_share);
-                assert pred_verify_owner_of_block_share_with_bls_signature(hn_rs_pubkey, block_share);
+                assert inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(dvc', block_share);
+                assert pred_is_the_owner_of_a_block_share(dvc'.rs.pubkey, block_share);
+                assert pred_is_the_owner_of_a_block_share(hn_rs_pubkey, block_share);
                 lem_unique_owner_of_block_share(hn_rs_pubkey, dvc'.rs.pubkey, block_share);
                 assert hn_rs_pubkey == dvc'.rs.pubkey;
 
@@ -398,23 +398,23 @@ module Invs_DV_Next_5
                 }
 
                 assert hn_node' == dvc';
-                assert inv_block_of_block_shares_is_known_body(hn_node', block_share);
+                assert inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(hn_node', block_share);
             }
         }
     }
 
-    lemma lem_inv_block_of_block_shares_is_known_dv_next(
+    lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_quorum_constraints(dv)
-    requires inv_block_of_block_shares_is_known(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_block_shares_to_broadcast_is_tracked_in_block_slashing_db(dv)
-    ensures  inv_block_of_block_shares_is_known(dv')
+    requires inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db(dv)
+    ensures  inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv')
     {        
         match event 
         {
@@ -424,44 +424,44 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_serve_proposer_duty(dvc, proposer_duty, dvc');
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');  
+                        lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');  
 
                     case ReceiveRandaoShare(randao_share) =>                         
-                        lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_listen_for_randao_shares(dvc, randao_share, dvc');    
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');  
+                        lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_listen_for_randao_shares(dvc, randao_share, dvc');    
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');  
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
                         {
-                            lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
-                            assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');  
+                            lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                            assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');  
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');  
+                        lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');  
    
                     case ImportedNewBlock(block) => 
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_listen_for_new_imported_blocks(dvc, block, dvc');
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');  
+                        lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_listen_for_new_imported_blocks(dvc, block, dvc');
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');  
 
                     case ResendRandaoRevealSignatureShare =>
-                        lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_resend_randao_share(dvc, dvc');
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');      
+                        lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_resend_randao_share(dvc, dvc');
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');      
                                                 
                     case ReceiveSignedBeaconBlock =>       
-                        lem_inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db_f_resend_block_share(dvc, dvc');
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');                    
+                        lem_inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_f_resend_block_share(dvc, dvc');
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');                    
                         
                     case NoEvent => 
-                        assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');  
+                        assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');  
                 }
                 
-                assert inv_outputs_sent_block_shares_is_tracked_in_block_slashing_db(nodeOutputs, dvc');
+                assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');
 
-                lem_inv_block_of_block_shares_is_known_dv_next_HonestNodeTakingStep(
+                lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_HonestNodeTakingStep(
                     dv,
                     event,
                     dv',
@@ -471,7 +471,7 @@ module Invs_DV_Next_5
                 );
 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                lem_inv_block_of_block_shares_is_known_dv_next_AdversaryTakingStep(
+                lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_AdversaryTakingStep(
                     dv,
                     event,
                     dv'
@@ -486,7 +486,7 @@ module Invs_DV_Next_5
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    ensures ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+    ensures ( forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
                     dv.honest_nodes_states[hn].rs.pubkey
                     ==
                     dv'.honest_nodes_states[hn].rs.pubkey
@@ -597,7 +597,7 @@ module Invs_DV_Next_5
         }  
     }  
     
-    lemma lem_inv_complete_block_is_created_with_shares_from_quorum_dv_next_AdversaryTakingStep(
+    lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_AdversaryTakingStep(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
@@ -606,17 +606,17 @@ module Invs_DV_Next_5
     requires NextEvent(dv, event, dv')  
     requires event.AdversaryTakingStep?
     requires inv_only_dv_construct_complete_signing_functions(dv)
-    requires invNetwork(dv)
+    requires inv_in_transit_messages_are_in_allMessagesSent(dv)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_complete_block_is_created_with_shares_from_quorum(dv)
-    ensures  inv_complete_block_is_created_with_shares_from_quorum(dv')
+    requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)
+    ensures  inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv')
     {        
         lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv, event, dv');
         assert inv_only_dv_construct_complete_signing_functions(dv');
 
         lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
-        assert ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+        assert ( forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
                         && hn == dv.honest_nodes_states[hn].rs.pubkey
                         && hn == dv'.honest_nodes_states[hn].rs.pubkey
         );
@@ -639,16 +639,16 @@ module Invs_DV_Next_5
                 var new_blocks_created := dv'.all_blocks_created - dv.all_blocks_created;
 
                 forall new_signed_block_created | new_signed_block_created in new_blocks_created 
-                ensures inv_complete_block_is_created_with_shares_from_quorum_body(dv', new_signed_block_created)
+                ensures inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv', new_signed_block_created)
                 {
-                    assert inv_complete_block_is_created_with_shares_from_quorum_body(dv', new_signed_block_created);
+                    assert inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv', new_signed_block_created);
                 }
                                 
-                assert inv_complete_block_is_created_with_shares_from_quorum(dv');
+                assert inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv');
         }  
     } 
 
-    // lemma lem_inv_complete_block_is_created_with_shares_from_quorum_body_helper_dv_next_HonestNodeTakingStep(
+    // lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_helper_dv_next_HonestNodeTakingStep(
     //     dv: DVState,
     //     event: DV_Block_Proposer_Spec.Event,
     //     dv': DVState,
@@ -661,26 +661,26 @@ module Invs_DV_Next_5
     // requires event.HonestNodeTakingStep?
     // requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     // requires && var dvc' := dv'.honest_nodes_states[node];
-    //          && inv_outputs_blocks_submited_is_created_with_shares_from_quorum(
+    //          && inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(
     //                 nodeOutputs,
     //                 dvc'
     //             )
     // requires inv_only_dv_construct_complete_signing_functions(dv)
-    // requires ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+    // requires ( forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
     //                     && hn == dv.honest_nodes_states[hn].rs.pubkey
     //                     && hn == dv'.honest_nodes_states[hn].rs.pubkey
     //         );
     // requires inv_rcvd_block_shares_are_in_all_sent_messages(dv')    
-    // requires invNetwork(dv)
+    // requires inv_in_transit_messages_are_in_allMessagesSent(dv)
     // requires inv_rcvd_block_shares_are_in_all_sent_messages(dv)
-    // requires inv_complete_block_is_created_with_shares_from_quorum(dv)   
+    // requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)   
     // requires inv_unchanged_dvc_rs_pubkey(dv)
-    // requires inv_complete_block_is_created_with_shares_from_quorum(dv)
+    // requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)
     // {
 
     // }
 
-    lemma lem_inv_complete_block_is_created_with_shares_from_quorum_dv_next_HonestNodeTakingStep(
+    lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_HonestNodeTakingStep(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -693,41 +693,41 @@ module Invs_DV_Next_5
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires && var dvc' := dv'.honest_nodes_states[node];
-             && inv_outputs_blocks_submited_is_created_with_shares_from_quorum(
+             && inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(
                     nodeOutputs,
                     dvc'
                 )
     requires inv_only_dv_construct_complete_signing_functions(dv)
-    requires ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+    requires ( forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
                         && hn == dv.honest_nodes_states[hn].rs.pubkey
                         && hn == dv'.honest_nodes_states[hn].rs.pubkey
             );
     requires inv_rcvd_block_shares_are_in_all_sent_messages(dv')    
-    requires invNetwork(dv)
+    requires inv_in_transit_messages_are_in_allMessagesSent(dv)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(dv)
-    requires inv_complete_block_is_created_with_shares_from_quorum(dv)   
+    requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)   
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    ensures inv_complete_block_is_created_with_shares_from_quorum(dv')
+    ensures inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv')
     {        
         var dvc := dv.honest_nodes_states[node];
         var dvc' := dv'.honest_nodes_states[node];
 
-        assert inv_outputs_blocks_submited_is_created_with_shares_from_quorum(nodeOutputs, dvc');
+        assert inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(nodeOutputs, dvc');
         assert dv'.all_blocks_created == dv.all_blocks_created + nodeOutputs.submitted_blocks;
 
         forall complete_signed_block: SignedBeaconBlock | complete_signed_block in dv'.all_blocks_created 
-        ensures inv_complete_block_is_created_with_shares_from_quorum_body(dv', complete_signed_block)
+        ensures inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv', complete_signed_block)
         {
             if complete_signed_block in dv.all_blocks_created 
             {
-                assert inv_complete_block_is_created_with_shares_from_quorum_body(dv, complete_signed_block);
+                assert inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv, complete_signed_block);
                 var block_shares, dvc_signer_pubkeys :|
                         && block_shares <= dv.block_share_network.allMessagesSent
                         && dv.construct_complete_signed_block(block_shares).isPresent()
                         && complete_signed_block == dv.construct_complete_signed_block(block_shares).safe_get()
                         && signed_beacon_blocks_for_the_same_beacon_block(block_shares, complete_signed_block.block)
                         && dvc_signer_pubkeys <= dv.all_nodes
-                        && inv_complete_block_is_created_with_shares_from_quorum_body_signers(dv, block_shares, dvc_signer_pubkeys)
+                        && inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers(dv, block_shares, dvc_signer_pubkeys)
                         && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
                         && dvc_signer_pubkeys <= dv.all_nodes
                         ;
@@ -741,13 +741,13 @@ module Invs_DV_Next_5
 
                 assert  dvc_signer_pubkeys <= dv'.all_nodes;
 
-                assert  inv_complete_block_is_created_with_shares_from_quorum_body_signers(dv', block_shares, dvc_signer_pubkeys);
-                assert  inv_complete_block_is_created_with_shares_from_quorum_body(dv', complete_signed_block);
+                assert  inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers(dv', block_shares, dvc_signer_pubkeys);
+                assert  inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv', complete_signed_block);
             }
             else
             {
                 assert complete_signed_block in nodeOutputs.submitted_blocks;
-                assert inv_outputs_blocks_submited_is_created_with_shares_from_quorum_body(dvc', complete_signed_block);
+                assert inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_body(dvc', complete_signed_block);
 
                 var block_shares, rs_signer_pubkeys, k :|        
                             && k in dvc'.rcvd_block_shares[complete_signed_block.block.slot].Keys
@@ -755,7 +755,7 @@ module Invs_DV_Next_5
                             && dvc'.construct_complete_signed_block(block_shares).isPresent()
                             && complete_signed_block == dvc'.construct_complete_signed_block(block_shares).safe_get()
                             && signed_beacon_blocks_for_the_same_beacon_block(block_shares, complete_signed_block.block)
-                            && inv_complete_block_is_created_with_shares_from_quorum_rs_signers(block_shares, rs_signer_pubkeys)
+                            && inv_a_complete_block_is_created_based_on_shares_from_a_quorum_of_rs_signers(block_shares, rs_signer_pubkeys)
                             && |rs_signer_pubkeys| >= quorum(|dvc'.peers|)
                             && rs_signer_pubkeys <= dvc'.peers
                             ;
@@ -776,14 +776,14 @@ module Invs_DV_Next_5
                 assert block_shares <= dv'.block_share_network.allMessagesSent;   
                 assert  block_shares <= dv'.block_share_network.allMessagesSent;   
 
-                assert  inv_complete_block_is_created_with_shares_from_quorum_body_signers(dv', block_shares, rs_signer_pubkeys);                
-                assert inv_complete_block_is_created_with_shares_from_quorum_body(dv', complete_signed_block);
+                assert  inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers(dv', block_shares, rs_signer_pubkeys);                
+                assert inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv', complete_signed_block);
             }
         }
-        assert inv_complete_block_is_created_with_shares_from_quorum(dv');            
+        assert inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv');            
     }  
 
-    lemma lem_inv_complete_block_is_created_with_shares_from_quorum_dv_next(
+    lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
@@ -791,17 +791,17 @@ module Invs_DV_Next_5
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_only_dv_construct_complete_signing_functions(dv)
-    requires invNetwork(dv)
+    requires inv_in_transit_messages_are_in_allMessagesSent(dv)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(dv)
-    requires inv_complete_block_is_created_with_shares_from_quorum(dv)
+    requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    ensures  inv_complete_block_is_created_with_shares_from_quorum(dv')
+    ensures  inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv')
     {        
         lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv, event, dv');
         assert inv_only_dv_construct_complete_signing_functions(dv');
 
         lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
-        assert ( forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+        assert ( forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
                         && hn == dv.honest_nodes_states[hn].rs.pubkey
                         && hn == dv'.honest_nodes_states[hn].rs.pubkey
         );
@@ -816,36 +816,36 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                        lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_serve_proposer_duty(dvc, proposer_duty, dvc');
                     
                     case ReceiveRandaoShare(randao_share) =>
-                        lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_listen_for_randao_shares(dvc, randao_share, dvc');
+                        lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_listen_for_randao_shares(dvc, randao_share, dvc');
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
                         {
-                            lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                            lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
+                        lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                        lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
                     case ReceiveSignedBeaconBlock =>   
-                        lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_resend_block_share(dvc, dvc');
+                        lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_resend_block_share(dvc, dvc');
 
                     case ResendRandaoRevealSignatureShare =>                      
-                        lem_inv_outputs_blocks_submited_is_created_with_shares_from_quorum_f_resend_randao_share(dvc, dvc');
+                        lem_inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_f_resend_randao_share(dvc, dvc');
                         
                     case NoEvent => 
                 }
 
-                assert inv_outputs_blocks_submited_is_created_with_shares_from_quorum(nodeOutputs, dvc');
+                assert inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(nodeOutputs, dvc');
 
-                lem_inv_complete_block_is_created_with_shares_from_quorum_dv_next_HonestNodeTakingStep(
+                lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_HonestNodeTakingStep(
                     dv,
                     event,
                     dv',
@@ -855,7 +855,7 @@ module Invs_DV_Next_5
                 );
 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                lem_inv_complete_block_is_created_with_shares_from_quorum_dv_next_AdversaryTakingStep(
+                lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_AdversaryTakingStep(
                     dv,
                     event,
                     dv'
@@ -873,16 +873,16 @@ module Invs_DV_Next_5
     
     
     
-    // lemma lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(
+    // lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(
     //     s: DVState,
     //     event: DV_Block_Proposer_Spec.Event,
     //     s': DVState
     // )
     // requires NextEventPreCond(s, event)
     // requires NextEvent(s, event, s')  
-    // requires inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
+    // requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
     // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    // ensures inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');  
+    // ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');  
     // {
     //     assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
     //     match event 
@@ -891,29 +891,29 @@ module Invs_DV_Next_5
     //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
     //             var s_node := s.honest_nodes_states[node];
     //             var s'_node := s'.honest_nodes_states[node];
-    //             lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(s, event, s');
+    //             lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(s, event, s');
                    
     //             forall hn |
     //                 && hn in s'.honest_nodes_states.Keys   
-    //             ensures inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_proposer_duty_to_be_served); 
+    //             ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_proposer_duty_to_be_served); 
     //             {
     //                 if hn != node 
     //                 {
     //                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-    //                     lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s.honest_nodes_states[hn], hn);
+    //                     lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s.honest_nodes_states[hn], hn);
     //                 }
     //             }  
-    //             assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');
+    //             assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');
                          
     //         case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
     //             forall hn |
     //                 && hn in s'.honest_nodes_states.Keys   
-    //             ensures inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_proposer_duty_to_be_served); 
+    //             ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_proposer_duty_to_be_served); 
     //             {
     //                 assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-    //                 lem_inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s.honest_nodes_states[hn], hn);
+    //                 lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s.honest_nodes_states[hn], hn);
     //             }  
-    //             assert inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');            
+    //             assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');            
     //     }
     // }  
     
@@ -924,11 +924,11 @@ module Invs_DV_Next_5
 
      
 
-    lemma lem_inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_implies_46_a(dv: DVState)
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(dv)
+    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_implies_46_a(dv: DVState)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(dv)
     {
-        forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn)
+        forall hn: BLSPubkey, s: Slot | is_an_honest_node(dv, hn)
         ensures
                 var hn_state := dv.honest_nodes_states[hn];
                 && ( hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
@@ -937,7 +937,7 @@ module Invs_DV_Next_5
         {
             assert hn in dv.honest_nodes_states.Keys;
             var hn_state := dv.honest_nodes_states[hn];
-            assert inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_body(dv, hn, hn_state, s);
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(dv, hn, hn_state, s);
             assert
                 && ( hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
                     ==> s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys)
@@ -952,16 +952,16 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)   
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s)   
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)   
     requires inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(s)   
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(s')   
     {
-        lem_inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s, event, s');
-        lem_inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_implies_46_a(s');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s, event, s');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_implies_46_a(s');
     }     
 
     // lemma lem_add_set_of_validity_predicates<D(!new, 0)>(
@@ -1161,11 +1161,11 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.AdversaryTakingStep?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
     
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s.honest_nodes_states[hn])
@@ -1190,10 +1190,10 @@ module Invs_DV_Next_5
                     vp
                 )
         {
-            assert inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
             assert inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp);
             assert inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s.honest_nodes_states[hn]);
-            assert inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
             assert cid in s.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys;
             assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
             assert cid in s'.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys;
@@ -1230,11 +1230,11 @@ module Invs_DV_Next_5
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)    
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
     requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, hn)
     requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
@@ -1302,7 +1302,7 @@ module Invs_DV_Next_5
                         ;
                 assert  cid in s.consensus_instances_on_beacon_block.Keys;
                 assert  hn in s.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys;
-                assert  inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist_body(
+                assert  inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(
                             s,
                             hn,
                             hn_state,
@@ -1381,11 +1381,11 @@ module Invs_DV_Next_5
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)    
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
     requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, hn)
     requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
@@ -1477,11 +1477,11 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s.honest_nodes_states[hn])
     requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
@@ -1519,10 +1519,10 @@ module Invs_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
-    requires inv_slots_for_sent_validity_predicate_are_stored_in_block_slashing_db_hist(s)  
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)  
     requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(s) 
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
@@ -1537,7 +1537,7 @@ module Invs_DV_Next_5
     }  
 
     
-    // // lemma lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_helper_honest_helper1(
+    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper1(
     // //     s: DVState,
     // //     event: DV_Block_Proposer_Spec.Event,
     // //     s': DVState,
@@ -1546,13 +1546,13 @@ module Invs_DV_Next_5
     // // )
     // // requires NextEventPreCond(s, event)
     // // requires NextEvent(s, event, s')      
-    // // requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s, n, s_node)
-    // // ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', n, s_node)
+    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s, n, s_node)
+    // // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', n, s_node)
     // // {
 
     // // }
 
-    // // lemma lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_helper_honest_helper2(
+    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper2(
     // //     s: DVState,
     // //     event: DV_Block_Proposer_Spec.Event,
     // //     s': DVState,
@@ -1568,43 +1568,43 @@ module Invs_DV_Next_5
         
     // // }    
 
-    // // lemma lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_dv_next(
+    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
     // //     s: DVState,
     // //     event: DV_Block_Proposer_Spec.Event,
     // //     s': DVState
     // // )
-    // // requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s)
+    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)
     // // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)   
     // // requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
     // // requires inv_seq_of_proposer_duties_is_ordered(s)
-    // // requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s)
+    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)
     // // requires NextEventPreCond(s, event)
     // // requires NextEvent(s, event, s')  
-    // // ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s')
+    // // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s')
     // // {
     // //     match event 
     // //     {
     // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // //             lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_dv_next(s, event, s');
+    // //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(s, event, s');
                 
     // //         case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 
     // //     }
     // // }
 
-    // // lemma lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_dv_next(
+    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
     // //     s: DVState,
     // //     event: DV_Block_Proposer_Spec.Event,
     // //     s': DVState
     // // )
-    // // requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s)
+    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)
     // // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)   
     // // requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
     // // requires inv_seq_of_proposer_duties_is_ordered(s);    
     // // requires NextEventPreCond(s, event)
     // // requires NextEvent(s, event, s')  
     // // requires event.HonestNodeTakingStep?
-    // // ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', event.node, s'.honest_nodes_states[event.node]); 
+    // // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', event.node, s'.honest_nodes_states[event.node]); 
     // // {
     // //     assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
     // //     match event 
@@ -1612,15 +1612,15 @@ module Invs_DV_Next_5
     // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
     // //             var s_node := s.honest_nodes_states[node];
     // //             var s'_node := s'.honest_nodes_states[node];
-    // //             lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_helper_honest_helper1(s, event, s', s_node, node);
-    // //             lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_helper_honest_helper2(s, event, s', s_node, node, s.index_next_proposer_duty_to_be_served);
+    // //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper1(s, event, s', s_node, node);
+    // //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper2(s, event, s', s_node, node, s.index_next_proposer_duty_to_be_served);
 
     // //             match nodeEvent
     // //             {
     // //                 case ServeProposerDuty(proposer_duty) => 
     // //                     assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served - 1;
     // //                     lem_ServeProposerDuty(s, event, s');
-    // //                     lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(
+    // //                     lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(
     // //                         s_node,
     // //                         proposer_duty,
     // //                         s'_node,
@@ -1628,12 +1628,12 @@ module Invs_DV_Next_5
     // //                         node,
     // //                         s'.index_next_proposer_duty_to_be_served
     // //                     );
-    // //                     assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', node, s'_node);                     
+    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                     
                 
     // //                 case BlockConsensusDecided(id, decided_beacon_block) =>  
     // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
     // //                     assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served;    
-    // //                     lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_block_consensus_decided(
+    // //                     lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_block_consensus_decided(
     // //                         s_node,
     // //                         id,
     // //                         decided_beacon_block,
@@ -1642,19 +1642,19 @@ module Invs_DV_Next_5
     // //                         node,
     // //                         s'.index_next_proposer_duty_to_be_served
     // //                     ); 
-    // //                     assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', node, s'_node);                        
+    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                        
                
                    
     // //                 case ReceiveSignedBeaconBlock(block_share) =>
     // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s'); 
     // //                     lem_f_listen_for_block_signature_shares_constants(s_node, block_share, s'_node);
-    // //                     assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', node, s'_node);  
+    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);  
                         
 
     // //                 case ImportedNewBlock(block) => 
     // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
     // //                     var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-    // //                     lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(
+    // //                     lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(
     // //                         s_node2,
     // //                         block,
     // //                         s'_node,
@@ -1662,37 +1662,37 @@ module Invs_DV_Next_5
     // //                         node,
     // //                         s'.index_next_proposer_duty_to_be_served
     // //                     );  
-    // //                     assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', node, s'_node);                     
+    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                     
                     
                  
     // //                 case ReceiveSignedBeaconBlock => 
     // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
     // //                     lem_f_resend_block_share_constants(s_node, s'_node);
-    // //                     // lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_helper_easy(s', event, s_node, s'_node, node );
-    // //                     assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', node, s'_node);  
+    // //                     // lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_easy(s', event, s_node, s'_node, node );
+    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);  
 
     // //                 case NoEvent => 
     // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
     // //                     assert s_node == s'_node; 
-    // //                     assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s', node, s'_node);                          
+    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                          
     // //             }                     
     // //     }
     // // }           
 
-    lemma lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_dv_next(
+    lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s)        
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)        
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)  
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(s)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(s)
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
     requires inv_seq_of_proposer_duties_is_ordered(s);
-    ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s');  
+    ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s');  
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         match event 
@@ -1704,23 +1704,23 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(process, proposer_duty, process');
+                        lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(process, proposer_duty, process');
                     
                     case ReceiveRandaoShare(randao_share) =>                         
-                        lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_listen_for_randao_shares(process, randao_share, process');    
+                        lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_listen_for_randao_shares(process, randao_share, process');    
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(process, id, decided_beacon_block)
                         {
-                            lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
+                            lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_listen_for_block_signature_shares(process, block_share, process');                        
+                        lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_listen_for_block_signature_shares(process, block_share, process');                        
    
                     case ImportedNewBlock(block) => 
                         var process := f_add_block_to_bn(process, nodeEvent.block);
-                        lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(process, block, process');                        
+                        lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(process, block, process');                        
                                                 
                     case ResendRandaoRevealSignatureShare =>
 
@@ -1732,15 +1732,15 @@ module Invs_DV_Next_5
                    
                 // forall hn |
                 //     && hn in s'.honest_nodes_states.Keys   
-                // ensures inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_body(s'.honest_nodes_states[hn]); 
+                // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body(s'.honest_nodes_states[hn]); 
                 // {
                 //     if hn != node 
                 //     {
                 //         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                //         // lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_helper_honest_helper1(s, event, s', s.honest_nodes_states[hn], hn);
+                //         // lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper1(s, event, s', s.honest_nodes_states[hn], hn);
                 //     }
                 // }  
-                // assert inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(s');
+                // assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s');
                          
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
 
@@ -1918,20 +1918,20 @@ module Invs_DV_Next_5
         block_share: SignedBeaconBlock
     )
     requires rs_pubkey != rs_pubkey'
-    requires pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
-    ensures !pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey', block_share)
+    requires pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+    ensures !pred_is_the_owner_of_a_block_share(rs_pubkey', block_share)
     {
-        if pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey', block_share)
+        if pred_is_the_owner_of_a_block_share(rs_pubkey', block_share)
         {
             lem_unique_owner_of_block_share(rs_pubkey, rs_pubkey', block_share);
         }        
     }
 
-    lemma lem_inv_honest_nodes_are_not_owner_of_block_shares_from_adversary(
+    lemma lem_inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(
         dv: DVState
     )
-    requires inv_quorum_constraints(dv)
-    ensures inv_honest_nodes_are_not_owner_of_block_shares_from_adversary(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    ensures inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(dv)
     {
         var honest_nodes := dv.honest_nodes_states.Keys;
         var dishonest_nodes := dv.adversary.nodes;
@@ -1941,11 +1941,11 @@ module Invs_DV_Next_5
         forall byz_node: BLSPubkey, block_share: SignedBeaconBlock | 
             && byz_node in dv.adversary.nodes 
             && block_share in dv.block_share_network.allMessagesSent
-            && pred_verify_owner_of_block_share_with_bls_signature(byz_node, block_share)
-        ensures inv_honest_nodes_are_not_owner_of_block_shares_from_adversary_body(dv, block_share)
+            && pred_is_the_owner_of_a_block_share(byz_node, block_share)
+        ensures inv_honest_nodes_are_not_owners_of_block_shares_from_adversary_body(dv, block_share)
         {
-            forall hn: BLSPubkey | is_honest_node(dv, hn)
-            ensures !pred_verify_owner_of_block_share_with_bls_signature(hn, block_share)
+            forall hn: BLSPubkey | is_an_honest_node(dv, hn)
+            ensures !pred_is_the_owner_of_a_block_share(hn, block_share)
             {
                 assert hn != byz_node;
                 lem_different_signers_cannot_generate_the_same_block_share(
@@ -1953,7 +1953,7 @@ module Invs_DV_Next_5
                     hn,
                     block_share
                 );
-                assert !pred_verify_owner_of_block_share_with_bls_signature(hn, block_share);
+                assert !pred_is_the_owner_of_a_block_share(hn, block_share);
             }
         }
     }
@@ -1972,16 +1972,16 @@ module Invs_DV_Next_5
     // // requires NextEvent(dv, event, dv') 
     // // requires event.AdversaryTakingStep? 
     // // requires NextAdversary(dv, node, new_block_shares_sent, messagesReceivedByTheNode, dv')
-    // // requires inv_quorum_constraints(dv)
+    // // requires inv_all_honest_nodes_is_a_quorum(dv)
     // // requires && new_block_share_sent in new_block_shares_sent
-    // //          && pred_verify_owner_of_block_share_with_bls_signature(pubkey, new_block_share_sent.message)
-    // // ensures !is_honest_node(dv', pubkey)
+    // //          && pred_is_the_owner_of_a_block_share(pubkey, new_block_share_sent.message)
+    // // ensures !is_an_honest_node(dv', pubkey)
     // // {
     // //     var message := new_block_share_sent.message;
     // //     var beacon_block := message.data;
 
-    // //     lem_inv_quorum_constraints_dv_next(dv, event, dv');
-    // //     assert inv_quorum_constraints(dv');
+    // //     lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv, event, dv');
+    // //     assert inv_all_honest_nodes_is_a_quorum(dv');
     // //     var dishonest_nodes := dv'.adversary.nodes;
     // //     var honest_nodes := dv'.honest_nodes_states.Keys;
     // //     lemmaEmptyIntersectionImpliesDisjointness(dishonest_nodes, honest_nodes);
@@ -1992,7 +1992,7 @@ module Invs_DV_Next_5
     // //     assert verify_bls_signature(block_signing_root, message.signature, pubkey);
 
     // //     assert pubkey in dishonest_nodes;
-    // //     assert !is_honest_node(dv, pubkey);
+    // //     assert !is_an_honest_node(dv, pubkey);
     // // }
 
     lemma lem_AdversaryTakingStep_block_share_from_honest_node_were_sent_before(
@@ -2011,10 +2011,10 @@ module Invs_DV_Next_5
     requires NextEvent(dv, event, dv') 
     requires event.AdversaryTakingStep? 
     requires NextAdversary(dv, node, new_randao_share_sent, new_block_share_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode, dv')
-    requires inv_quorum_constraints(dv)
-    requires is_honest_node(dv', pubkey)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires is_an_honest_node(dv', pubkey)
     requires && old_block_share in dv'.block_share_network.allMessagesSent
-             && pred_verify_owner_of_block_share_with_bls_signature(pubkey, old_block_share)
+             && pred_is_the_owner_of_a_block_share(pubkey, old_block_share)
     ensures old_block_share in dv.block_share_network.allMessagesSent
     {
         var beacon_block := old_block_share.block;
@@ -2041,7 +2041,7 @@ module Invs_DV_Next_5
                     ;
             var signer: BLSPubkey :| verify_bls_signature(block_signing_root, old_block_share.signature, signer);
             assert signer in dv'.adversary.nodes;     
-            lem_inv_honest_nodes_are_not_owner_of_block_shares_from_adversary(dv');
+            lem_inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(dv');
             lem_different_signers_cannot_generate_the_same_block_share(
                 signer,
                 pubkey,
@@ -2052,7 +2052,7 @@ module Invs_DV_Next_5
         assert old_block_share in dv.block_share_network.allMessagesSent;
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dv_next_AdversaryTakingStep(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next_AdversaryTakingStep(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
@@ -2061,17 +2061,17 @@ module Invs_DV_Next_5
     requires NextEvent(dv, event, dv')  
     requires event.AdversaryTakingStep?
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {        
         
         match event 
@@ -2080,12 +2080,12 @@ module Invs_DV_Next_5
                 lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, event, dv');
         
                 forall hn: BLSPubkey, slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                            && is_honest_node(dv, hn) 
+                            && is_an_honest_node(dv, hn) 
                             && var dvc' := dv.honest_nodes_states[hn];
                             && slot in dvc'.block_consensus_engine_state.block_slashing_db_hist
                             && vp in dvc'.block_consensus_engine_state.block_slashing_db_hist[slot]
                             && db in dvc'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
-                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_body(
+                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv',
                             hn,
                             slot,
@@ -2098,7 +2098,7 @@ module Invs_DV_Next_5
                     assert dvc == dvc';
                     assert db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp];
 
-                    assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_body(
+                    assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv,
                             hn,
                             slot, 
@@ -2110,8 +2110,8 @@ module Invs_DV_Next_5
 
                     forall block_share: SignedBeaconBlock | 
                             && block_share in dv'.block_share_network.allMessagesSent
-                            && is_honest_node(dv', hn)
-                            && pred_verify_owner_of_block_share_with_bls_signature(hn, block_share)
+                            && is_an_honest_node(dv', hn)
+                            && pred_is_the_owner_of_a_block_share(hn, block_share)
                             && block_share.block.slot < slot
                     ensures &&  var beacon_block := block_share.block;
                             &&  var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
@@ -2136,8 +2136,8 @@ module Invs_DV_Next_5
                             construct_SlashingDBBlock_from_beacon_block(beacon_block);
 
                         assert  && block_share in dv.block_share_network.allMessagesSent
-                                && is_honest_node(dv, hn)
-                                && pred_verify_owner_of_block_share_with_bls_signature(hn, block_share)
+                                && is_an_honest_node(dv, hn)
+                                && pred_is_the_owner_of_a_block_share(hn, block_share)
                                 && block_share.block.slot < slot
                                 ;
                         assert slashing_db_block in db;                        
@@ -2145,17 +2145,17 @@ module Invs_DV_Next_5
                     
                 }
 
-                assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+                assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
         }  
     }    
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
         dv: DVState,
         hn: BLSPubkey
     )
-    requires is_honest_node(dv, hn)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    ensures inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(
+    requires is_an_honest_node(dv, hn)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    ensures inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(
                 dv.block_share_network.allMessagesSent,
                 dv.honest_nodes_states[hn]     
             )
@@ -2167,7 +2167,7 @@ module Invs_DV_Next_5
                 && slot in process.block_consensus_engine_state.block_slashing_db_hist
                 && vp in process.block_consensus_engine_state.block_slashing_db_hist[slot]
                 && db in process.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
-        ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_body(
+        ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                     dv,
                     hn,
                     slot,
@@ -2178,13 +2178,13 @@ module Invs_DV_Next_5
 
             forall block_share: SignedBeaconBlock | 
                     && block_share in dv.block_share_network.allMessagesSent
-                    && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
+                    && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
                     && block_share.block.slot < slot
             ensures && var beacon_block := block_share.block;
                     && var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
                     && slashing_db_block in db
             {
-                assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_body_conclusion(
+                assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body_conclusion(
                             allMessagesSent,
                             rs_pubkey,
                             slot,
@@ -2200,7 +2200,7 @@ module Invs_DV_Next_5
         }
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ServeProposerDuty(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2216,37 +2216,37 @@ module Invs_DV_Next_5
     requires nodeEvent.ServeProposerDuty?
     requires nodeEvent == ServeProposerDuty(proposer_duty)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {        
-        assert  is_honest_node(dv, node);
+        assert  is_an_honest_node(dv, node);
 
         var process := dv.honest_nodes_states[node];
         var process' := dv'.honest_nodes_states[node];
         var allMessagesSent := dv.block_share_network.allMessagesSent;
 
         assert  allMessagesSent == dv'.block_share_network.allMessagesSent;
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_helper(dv, node);
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(allMessagesSent, process);
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv, node);
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(allMessagesSent, process);
 
-        lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_serve_proposer_duty(                            
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_serve_proposer_duty(                            
             process,
             proposer_duty,
             process',
             dv.block_share_network.allMessagesSent
         );
 
-        forall hn: BLSPubkey | is_honest_node(dv', hn)
-        ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_helper(dv', hn)
+        forall hn: BLSPubkey | is_an_honest_node(dv', hn)
+        ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv', hn)
         {
             if hn == node
             {
@@ -2254,7 +2254,7 @@ module Invs_DV_Next_5
                     && slot in process'.block_consensus_engine_state.block_slashing_db_hist
                     && vp in process'.block_consensus_engine_state.block_slashing_db_hist[slot]
                     && db in process'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
-                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_body(
+                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv,
                             hn,
                             slot,
@@ -2265,13 +2265,13 @@ module Invs_DV_Next_5
 
                     forall block_share: SignedBeaconBlock | 
                             && block_share in dv'.block_share_network.allMessagesSent
-                            && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
+                            && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
                             && block_share.block.slot < slot
                     ensures && var beacon_block := block_share.block;
                             && var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
                             && slashing_db_block in db
                     {
-                        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_body_conclusion(
+                        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body_conclusion(
                                     allMessagesSent,
                                     rs_pubkey,
                                     slot,
@@ -2295,7 +2295,7 @@ module Invs_DV_Next_5
         }                                                    
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_BlockConsensusDecided(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_BlockConsensusDecided(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2312,17 +2312,17 @@ module Invs_DV_Next_5
     requires nodeEvent.BlockConsensusDecided?
     requires nodeEvent == BlockConsensusDecided(id, decided_beacon_block)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {        
         var dvc := dv.honest_nodes_states[node];
         var dvc' := dv'.honest_nodes_states[node];
@@ -2335,17 +2335,17 @@ module Invs_DV_Next_5
             {
                 var allMessagesSent := dv.block_share_network.allMessagesSent;
 
-                lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+                lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
                     dv,
                     node
                 );
 
-                assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+                assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
                 
-                lem_inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty_dv_next(
+                lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
                     dv,
                     event,
                     dv'
@@ -2355,9 +2355,9 @@ module Invs_DV_Next_5
                             ::
                             slot <= dvc'.latest_proposer_duty.safe_get().slot
                         ;
-               assert  inv_available_current_proposer_duty_is_latest_served_proposer_duty_body(dvc');
+               assert  inv_available_current_proposer_duty_is_latest_proposer_duty_body(dvc');
 
-                lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_block_consensus_decided_new_sent_block_shares(                            
+                lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_block_consensus_decided_new_sent_block_shares(                            
                             dvc,
                             id,
                             decided_beacon_block, 
@@ -2386,12 +2386,12 @@ module Invs_DV_Next_5
                         ; 
 
                 forall hn: BLSPubkey, slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                            && is_honest_node(dv, hn) 
+                            && is_an_honest_node(dv, hn) 
                             && var process' := dv.honest_nodes_states[hn];
                             && slot in process'.block_consensus_engine_state.block_slashing_db_hist.Keys
                             && vp in process'.block_consensus_engine_state.block_slashing_db_hist[slot]
                             && db in process'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
-                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_body(
+                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv',
                             hn,
                             slot,
@@ -2404,8 +2404,8 @@ module Invs_DV_Next_5
 
                     forall block_share: SignedBeaconBlock | 
                             && block_share in dv'.block_share_network.allMessagesSent
-                            && is_honest_node(dv', hn)
-                            && pred_verify_owner_of_block_share_with_bls_signature(hn, block_share)
+                            && is_an_honest_node(dv', hn)
+                            && pred_is_the_owner_of_a_block_share(hn, block_share)
                             && block_share.block.slot < slot
                     ensures && var beacon_block := block_share.block;
                             && var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
@@ -2421,8 +2421,8 @@ module Invs_DV_Next_5
                                 construct_SlashingDBBlock_from_beacon_block(beacon_block);
 
                             assert  && block_share in dv.block_share_network.allMessagesSent
-                                    && is_honest_node(dv, hn)
-                                    && pred_verify_owner_of_block_share_with_bls_signature(hn, block_share)
+                                    && is_an_honest_node(dv, hn)
+                                    && pred_is_the_owner_of_a_block_share(hn, block_share)
                                     && block_share.block.slot < slot
                                     ;
                             assert slashing_db_block in db;                        
@@ -2436,7 +2436,7 @@ module Invs_DV_Next_5
                             var signer: BLSPubkey :| 
                                     verify_bls_signature(block_signing_root, block_share.signature, signer);
 
-                            assert pred_verify_owner_of_block_share_with_bls_signature(dvc'.rs.pubkey, block_share);
+                            assert pred_is_the_owner_of_a_block_share(dvc'.rs.pubkey, block_share);
 
                             lem_unique_owner_of_block_share(
                                 signer,
@@ -2458,7 +2458,7 @@ module Invs_DV_Next_5
                                     block_share
                                 );
 
-                                assert !pred_verify_owner_of_block_share_with_bls_signature(hn, block_share);
+                                assert !pred_is_the_owner_of_a_block_share(hn, block_share);
                             }
                         }
                     }
@@ -2469,22 +2469,22 @@ module Invs_DV_Next_5
                 assert  dvc == dvc';
                 assert  dv.block_share_network.allMessagesSent == dv'.block_share_network.allMessagesSent;
                 
-                forall hn: BLSPubkey | is_honest_node(dv', hn) 
-                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_helper(dv', hn)
+                forall hn: BLSPubkey | is_an_honest_node(dv', hn) 
+                ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv', hn)
                 {
-                    assert  is_honest_node(dv, hn);
+                    assert  is_an_honest_node(dv, hn);
                     assert  dv.honest_nodes_states[hn] == dv'.honest_nodes_states[hn];
-                    assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_helper(dv', hn);
+                    assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv', hn);
                 }
 
-                assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+                assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
             }
 
         }                 
-        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');        
+        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');        
     }   
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2497,28 +2497,28 @@ module Invs_DV_Next_5
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     requires && var dvc':= dv'.honest_nodes_states[node];
-             && inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+             && inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             dv'.block_share_network.allMessagesSent,
                             dvc'
                         )
     requires dv.block_share_network.allMessagesSent == dv'.block_share_network.allMessagesSent
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {
-        forall hn: BLSPubkey | is_honest_node(dv', hn) 
-        ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_helper(dv', hn)
+        forall hn: BLSPubkey | is_an_honest_node(dv', hn) 
+        ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv', hn)
         {
-            assert  is_honest_node(dv, hn);
+            assert  is_an_honest_node(dv, hn);
             var dvc := dv.honest_nodes_states[hn];
             var dvc' := dv'.honest_nodes_states[hn];
             var allMessagesSent := dv.block_share_network.allMessagesSent;
@@ -2540,7 +2540,7 @@ module Invs_DV_Next_5
 
                     forall block_share: SignedBeaconBlock | 
                             && block_share in allMessagesSent'
-                            && pred_verify_owner_of_block_share_with_bls_signature(rs_pubkey, block_share)
+                            && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
                             && block_share.block.slot < slot
                     ensures && var beacon_block := block_share.block;
                             && var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
@@ -2557,12 +2557,12 @@ module Invs_DV_Next_5
                 assert  hn != node;
                 assert  dvc == dvc';
                 assert  allMessagesSent == allMessagesSent';
-                assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_helper(dv', hn);
+                assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv', hn);
             }
         }
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ImportedNewBlock(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2579,45 +2579,45 @@ module Invs_DV_Next_5
     requires nodeEvent.ImportedNewBlock?
     requires nodeEvent == ImportedNewBlock(block)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {        
         var allMessagesSent := dv.block_share_network.allMessagesSent;
         var dvc := dv.honest_nodes_states[node];
         var dvc' := dv'.honest_nodes_states[node];
         var dvc_after_adding_block := f_add_block_to_bn(dvc, nodeEvent.block);
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
                     dv,
                     node
                 );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc_after_adding_block
                         );
 
-        lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_listen_for_new_imported_blocks(            
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_listen_for_new_imported_blocks(            
             dvc_after_adding_block,
             block,
             dvc',
             dv.block_share_network.allMessagesSent
         );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
             dv,
             event,
             dv',
@@ -2626,10 +2626,10 @@ module Invs_DV_Next_5
             nodeOutputs
         );
 
-        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');                
+        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');                
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ReceiveSignedBeaconBlock(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveSignedBeaconBlock(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2646,17 +2646,17 @@ module Invs_DV_Next_5
     requires nodeEvent.ReceiveSignedBeaconBlock?
     requires nodeEvent == ReceiveSignedBeaconBlock(block_share)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {                
         var allMessagesSent := dv.block_share_network.allMessagesSent;
         var allMessagesSent' := dv'.block_share_network.allMessagesSent;
@@ -2665,29 +2665,29 @@ module Invs_DV_Next_5
 
         assert  allMessagesSent == allMessagesSent';
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
                     dv,
                     node
                 );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
         
-        lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_listen_for_block_signature_shares(
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_listen_for_block_signature_shares(
             dvc,
             block_share,
             dvc',
             dv.block_share_network.allMessagesSent
         );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                     dv'.block_share_network.allMessagesSent,
                     dvc'
                 );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
             dv,
             event,
             dv',
@@ -2696,10 +2696,10 @@ module Invs_DV_Next_5
             nodeOutputs
         );
 
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ResendRandaoRevealSignatureShare(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendRandaoRevealSignatureShare(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2714,17 +2714,17 @@ module Invs_DV_Next_5
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ResendRandaoRevealSignatureShare?
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {                
         var allMessagesSent := dv.block_share_network.allMessagesSent;
         var allMessagesSent' := dv'.block_share_network.allMessagesSent;
@@ -2733,28 +2733,28 @@ module Invs_DV_Next_5
 
         assert  allMessagesSent == allMessagesSent';
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
                     dv,
                     node
                 );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
         
-        lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_resend_randao_share(
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_resend_randao_share(
             dvc,
             dvc',
             dv.block_share_network.allMessagesSent
         );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                     dv'.block_share_network.allMessagesSent,
                     dvc'
                 );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
             dv,
             event,
             dv',
@@ -2763,10 +2763,10 @@ module Invs_DV_Next_5
             nodeOutputs
         );
 
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ResendBlockShare(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendBlockShare(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2781,17 +2781,17 @@ module Invs_DV_Next_5
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ResendBlockShare?
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {                
         var allMessagesSent := dv.block_share_network.allMessagesSent;
         var allMessagesSent' := dv'.block_share_network.allMessagesSent;
@@ -2800,28 +2800,28 @@ module Invs_DV_Next_5
 
         assert  allMessagesSent == allMessagesSent';
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
                     dv,
                     node
                 );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
         
-        lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_resend_block_share(
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_resend_block_share(
             dvc,
             dvc',
             dv.block_share_network.allMessagesSent
         );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                     dv'.block_share_network.allMessagesSent,
                     dvc'
                 );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
             dv,
             event,
             dv',
@@ -2830,10 +2830,10 @@ module Invs_DV_Next_5
             nodeOutputs
         );
 
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ReceiveRandaoShare(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveRandaoShare(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2850,21 +2850,21 @@ module Invs_DV_Next_5
     requires nodeEvent.ReceiveRandaoShare?
     requires nodeEvent == ReceiveRandaoShare(randao_share)
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    requires is_honest_node(dv, node);
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    requires is_an_honest_node(dv, node);
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {   
-        assert is_honest_node(dv, node);   
-        assert is_honest_node(dv', node);       
+        assert is_an_honest_node(dv, node);   
+        assert is_an_honest_node(dv', node);       
 
         var dvc := dv.honest_nodes_states[node];        
         var dvc' := dv'.honest_nodes_states[node];
@@ -2877,31 +2877,31 @@ module Invs_DV_Next_5
         var allMessagesSent' := dv'.block_share_network.allMessagesSent;
         assert  allMessagesSent == allMessagesSent';
         
-        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv);
+        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv);
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
             dv,
             node
         );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
         
-        lem_inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc_f_listen_for_randao_shares(
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_listen_for_randao_shares(
             dvc,
             randao_share,
             dvc',
             dv.block_share_network.allMessagesSent
         );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                     dv'.block_share_network.allMessagesSent,
                     dvc'
                 );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
             dv,
             event,
             dv',
@@ -2910,10 +2910,10 @@ module Invs_DV_Next_5
             nodeOutputs
         );
 
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_NoEvent(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_NoEvent(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState,
@@ -2927,21 +2927,21 @@ module Invs_DV_Next_5
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.NoEvent?
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    requires is_honest_node(dv, node);
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    requires is_an_honest_node(dv, node);
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {   
-        assert is_honest_node(dv, node);   
-        assert is_honest_node(dv', node);       
+        assert is_an_honest_node(dv, node);   
+        assert is_an_honest_node(dv', node);       
 
         var dvc := dv.honest_nodes_states[node];        
         var dvc' := dv'.honest_nodes_states[node];
@@ -2951,24 +2951,24 @@ module Invs_DV_Next_5
         var allMessagesSent' := dv'.block_share_network.allMessagesSent;
         assert  allMessagesSent == allMessagesSent';
         
-        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv);
+        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv);
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_from_dv_to_dvc(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
             dv,
             node
         );
 
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                             allMessagesSent,
                             dvc
                         );
         
-        assert  inv_db_of_vp_from_block_share_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dvc(                
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
                     dv'.block_share_network.allMessagesSent,
                     dvc'
                 );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_HonestNodeTakingStep_helper(
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
             dv,
             event,
             dv',
@@ -2977,10 +2977,10 @@ module Invs_DV_Next_5
             nodeOutputs
         );
 
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv');
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dv_next(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
@@ -2988,17 +2988,17 @@ module Invs_DV_Next_5
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_unchanged_dvc_rs_pubkey(dv)
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
-    requires inv_block_of_block_shares_is_known(dv)
-    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slot_of_consensus_instance_is_up_to_slot_of_latest_proposer_duty(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots(dv')
+    ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
     {        
         
         match event 
@@ -3009,7 +3009,7 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>  
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ServeProposerDuty(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty(
                             dv,
                             event,
                             dv',
@@ -3020,7 +3020,7 @@ module Invs_DV_Next_5
                         );
 
                     case ReceiveRandaoShare(randao_share) =>
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ReceiveRandaoShare(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveRandaoShare(
                             dv,
                             event,
                             dv',
@@ -3031,7 +3031,7 @@ module Invs_DV_Next_5
                         );
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_BlockConsensusDecided(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_BlockConsensusDecided(
                             dv,
                             event,
                             dv',
@@ -3043,7 +3043,7 @@ module Invs_DV_Next_5
                         );
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ReceiveSignedBeaconBlock(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveSignedBeaconBlock(
                             dv,
                             event,
                             dv',
@@ -3054,7 +3054,7 @@ module Invs_DV_Next_5
                         );
 
                     case ImportedNewBlock(block) => 
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ImportedNewBlock(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
                             dv,
                             event,
                             dv',
@@ -3065,7 +3065,7 @@ module Invs_DV_Next_5
                         );
                                                 
                     case ResendRandaoRevealSignatureShare =>
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ResendRandaoRevealSignatureShare(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendRandaoRevealSignatureShare(
                             dv,
                             event,
                             dv',
@@ -3075,7 +3075,7 @@ module Invs_DV_Next_5
                         );
 
                     case ResendBlockShare =>
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_ResendBlockShare(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendBlockShare(
                             dv,
                             event,
                             dv',
@@ -3085,7 +3085,7 @@ module Invs_DV_Next_5
                         );
                         
                     case NoEvent =>                         
-                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_NoEvent(
+                        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_NoEvent(
                             dv,
                             event,
                             dv',
@@ -3097,7 +3097,7 @@ module Invs_DV_Next_5
                 }
 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_for_lower_slots_dv_next_AdversaryTakingStep(
+                lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next_AdversaryTakingStep(
                             dv,
                             event,
                             dv'
@@ -3243,7 +3243,7 @@ module Invs_DV_Next_5
     // // )
     // // requires NextEventPreCond(s, event)
     // // requires NextEvent(s, event, s')
-    // // requires invNetwork(s)
+    // // requires inv_in_transit_messages_are_in_allMessagesSent(s)
     // // requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
     // // ensures inv_rcvd_block_shares_are_in_all_sent_messages(s')
     // // {
@@ -3328,13 +3328,13 @@ module Invs_DV_Next_5
         }
     }  
 
-    lemma lem_inv_monotonic_set_of_created_blocks_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)    
+    lemma lem_inv_all_blocks_created_is_monotonic_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')     
     ensures dv.all_blocks_created <= dv'.all_blocks_created
     { }
 
-    lemma lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_ImportedNewBlock(
+    lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState,
@@ -3362,11 +3362,11 @@ module Invs_DV_Next_5
                     s.all_nodes
                 )
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires invNetwork(s)
-    requires inv_quorum_constraints(s)
+    requires inv_in_transit_messages_are_in_allMessagesSent(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
@@ -3374,8 +3374,8 @@ module Invs_DV_Next_5
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
-    requires inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s, event.node, s.honest_nodes_states[event.node])
-    ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', event.node, s'.honest_nodes_states[event.node]); 
+    requires inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s, event.node, s.honest_nodes_states[event.node])
+    ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', event.node, s'.honest_nodes_states[event.node]); 
     {
         var s_node := s.honest_nodes_states[node];
         var s'_node := s'.honest_nodes_states[node];
@@ -3383,7 +3383,7 @@ module Invs_DV_Next_5
         assert s'_node == f_listen_for_new_imported_blocks(s_node2, block).state ;
 
         lem_inv_decisions_of_consensus_instances_are_unchanged(s, event, s');
-        assert  inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s_node);
+        assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s_node);
 
         assert exists complete_signed_block: SignedBeaconBlock ::
                     && complete_signed_block in s.all_blocks_created
@@ -3395,7 +3395,7 @@ module Invs_DV_Next_5
                     && complete_signed_block.block == block
                     ;
 
-        lem_inv_monotonic_set_of_created_blocks_dv_next(s, event, s');
+        lem_inv_all_blocks_created_is_monotonic_dv_next(s, event, s');
         assert  complete_signed_block in s'.all_blocks_created;
 
         lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(s, event, s');
@@ -3414,7 +3414,7 @@ module Invs_DV_Next_5
                 s'.consensus_instances_on_beacon_block[slot].decided_value.safe_get()
                 ;
 
-        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body_f_add_block_to_bn(
+        lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_add_block_to_bn(
             s_node,
             block,
             s_node2,
@@ -3422,22 +3422,22 @@ module Invs_DV_Next_5
             node
         );
         
-        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s_node2);                     
+        assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s_node2);                     
         assert  && s'.consensus_instances_on_beacon_block[block.slot].decided_value.isPresent()
                 && block == s'.consensus_instances_on_beacon_block[block.slot].decided_value.safe_get()
                 ;
 
-        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body_f_listen_for_new_imported_blocks(
+        lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_listen_for_new_imported_blocks(
             s_node2,
             block,
             s'_node,
             s', 
             node
         );  
-        assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                                             
+        assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);                                             
     }     
 
-    lemma lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_HonestNodeTakingStep_helper(
+    lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_HonestNodeTakingStep_helper(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState,
@@ -3461,11 +3461,11 @@ module Invs_DV_Next_5
                     s.all_nodes
                 )
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires invNetwork(s)
-    requires inv_quorum_constraints(s)
+    requires inv_in_transit_messages_are_in_allMessagesSent(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
@@ -3473,39 +3473,39 @@ module Invs_DV_Next_5
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
-    requires inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s, event.node, s.honest_nodes_states[event.node])
-    ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', event.node, s'.honest_nodes_states[event.node]); 
+    requires inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s, event.node, s.honest_nodes_states[event.node])
+    ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', event.node, s'.honest_nodes_states[event.node]); 
     {
         var s_node := s.honest_nodes_states[node];
         var s'_node := s'.honest_nodes_states[node];
 
         lem_inv_decisions_of_consensus_instances_are_unchanged(s, event, s');
-        assert  inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s_node);
+        assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s_node);
 
         match nodeEvent
         {
             case ServeProposerDuty(proposer_duty) => 
-                lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body_f_serve_proposer_duty(
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_serve_proposer_duty(
                     s_node,
                     proposer_duty,
                     s'_node,
                     s', 
                     node
                 );
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);
 
                 case ReceiveRandaoShare(randao_share) =>
-                lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body_f_listen_for_randao_shares(
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_listen_for_randao_shares(
                     s_node,
                     randao_share,
                     s'_node,
                     s', 
                     node
                 ); 
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);
         
             case BlockConsensusDecided(id, decided_proposer_data) =>  
-                lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body_f_block_consensus_decided(
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_block_consensus_decided(
                     s_node,
                     id,
                     decided_proposer_data,
@@ -3513,20 +3513,20 @@ module Invs_DV_Next_5
                     s', 
                     node
                 ); 
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                        
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);                        
             
             case ReceiveSignedBeaconBlock(block_share) =>
-                lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body_f_listen_for_block_signature_shares(
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_listen_for_block_signature_shares(
                     s_node,
                     block_share,
                     s'_node,
                     s', 
                     node
                 ); 
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);  
                 
             case ImportedNewBlock(block) => 
-                lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_ImportedNewBlock(
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock(
                     s,
                     event,
                     s',
@@ -3535,30 +3535,30 @@ module Invs_DV_Next_5
                     nodeOutputs,
                     block
                 );
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                     
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);                     
             
             case ResendRandaoRevealSignatureShare =>
                 assert  s_node.future_consensus_instances_on_blocks_already_decided 
                         == 
                         s'_node.future_consensus_instances_on_blocks_already_decided
                         ;
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);  
 
             case ResendBlockShare =>
                 assert  s_node.future_consensus_instances_on_blocks_already_decided 
                         == 
                         s'_node.future_consensus_instances_on_blocks_already_decided
                         ;
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);  
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);  
 
             case NoEvent => 
                 assert  s_node == s'_node;
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', node, s'_node);                          
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);                          
         }        
     }     
 
     // TODO: Improve
-    lemma lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(
+    lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
@@ -3578,11 +3578,11 @@ module Invs_DV_Next_5
                     s.all_nodes
                 )
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires invNetwork(s)
-    requires inv_quorum_constraints(s)
+    requires inv_in_transit_messages_are_in_allMessagesSent(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
@@ -3590,8 +3590,8 @@ module Invs_DV_Next_5
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
-    requires inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s)
-    ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s')
+    requires inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(s)
+    ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(s')
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         match event 
@@ -3600,10 +3600,10 @@ module Invs_DV_Next_5
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-                lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_HonestNodeTakingStep_helper(s, event, s', node, nodeEvent, nodeOutputs);
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_HonestNodeTakingStep_helper(s, event, s', node, nodeEvent, nodeOutputs);
                    
                 forall hn | hn in s'.honest_nodes_states.Keys   
-                ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', hn, s'.honest_nodes_states[hn]); 
+                ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', hn, s'.honest_nodes_states[hn]); 
                 {
                     if hn != node 
                     {
@@ -3635,33 +3635,33 @@ module Invs_DV_Next_5
                     }
                     else
                     {
-                        lem_inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_HonestNodeTakingStep_helper(s, event, s', node, nodeEvent, nodeOutputs);
+                        lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_HonestNodeTakingStep_helper(s, event, s', node, nodeEvent, nodeOutputs);
                     }
                 }  
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s');
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(s');
                          
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 forall hn | hn in s'.honest_nodes_states.Keys   
-                ensures inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv_body(s', hn, s'.honest_nodes_states[hn]); 
+                ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', hn, s'.honest_nodes_states[hn]); 
                 {
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                 }  
-                assert inv_future_decided_data_of_dvc_is_consistent_with_existing_decision_dv(s');
+                assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(s');
         }
     }  
 
    
 
-    lemma lem_inv_slot_in_future_beacon_block_is_correct_HonestNodeTakingStep_helper(
+    lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_HonestNodeTakingStep_helper(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')     
-    requires inv_slot_in_future_beacon_block_is_correct(s)
+    requires inv_slots_in_future_decided_beacon_blocks_are_correct(s)
     requires event.HonestNodeTakingStep?
-    ensures inv_slot_in_future_beacon_block_is_correct_body(s'.honest_nodes_states[event.node])
+    ensures inv_slots_in_future_decided_beacon_blocks_are_correct_body(s'.honest_nodes_states[event.node])
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         match event 
@@ -3674,7 +3674,7 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) => 
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_serve_proposer_duty(
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_serve_proposer_duty(
                             s_node,
                             proposer_duty,
                             s'_node
@@ -3682,10 +3682,10 @@ module Invs_DV_Next_5
                         
 
                     case ReceiveRandaoShare(randao_share) =>
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_listen_for_randao_shares(s_node, randao_share, s'_node);
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_listen_for_randao_shares(s_node, randao_share, s'_node);
                 
                     case BlockConsensusDecided(id, decided_proposer_data) =>  
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_block_consensus_decided(
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_block_consensus_decided(
                             s_node,
                             id,
                             decided_proposer_data,
@@ -3693,7 +3693,7 @@ module Invs_DV_Next_5
                         ); 
                    
                     case ReceiveSignedBeaconBlock(block_share) =>
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_listen_for_block_signature_shares(
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_listen_for_block_signature_shares(
                             s_node, 
                             block_share, 
                             s'_node
@@ -3702,7 +3702,7 @@ module Invs_DV_Next_5
 
                     case ImportedNewBlock(block) => 
                         var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_listen_for_new_imported_blocks(
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
                             s'_node
@@ -3710,32 +3710,32 @@ module Invs_DV_Next_5
                     
                  
                     case ResendRandaoRevealSignatureShare =>
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_resend_randao_share(
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_resend_randao_share(
                             s_node,
                             s'_node
                         );
 
                     case ResendBlockShare =>
-                        lem_inv_slot_in_future_beacon_block_is_correct_body_f_resend_block_share(
+                        lem_inv_slots_in_future_decided_beacon_blocks_are_correct_body_f_resend_block_share(
                             s_node,
                             s'_node
                         );
 
                     case NoEvent => 
-                        assert inv_slot_in_future_beacon_block_is_correct_body(s'_node);                          
+                        assert inv_slots_in_future_decided_beacon_blocks_are_correct_body(s'_node);                          
                 }
         }
     }     
 
-    lemma lem_inv_slot_in_future_beacon_block_is_correct_dv_next(
+    lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_slot_in_future_beacon_block_is_correct(s)
-    ensures inv_slot_in_future_beacon_block_is_correct(s')  
+    requires inv_slots_in_future_decided_beacon_blocks_are_correct(s)
+    ensures inv_slots_in_future_decided_beacon_blocks_are_correct(s')  
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         match event 
@@ -3744,25 +3744,25 @@ module Invs_DV_Next_5
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-                lem_inv_slot_in_future_beacon_block_is_correct_HonestNodeTakingStep_helper(s, event, s');
+                lem_inv_slots_in_future_decided_beacon_blocks_are_correct_HonestNodeTakingStep_helper(s, event, s');
                    
                 forall hn | hn in s'.honest_nodes_states.Keys   
-                ensures inv_slot_in_future_beacon_block_is_correct_body(s'.honest_nodes_states[hn]); 
+                ensures inv_slots_in_future_decided_beacon_blocks_are_correct_body(s'.honest_nodes_states[hn]); 
                 {
                     if hn != node 
                     {
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                     }
                 }  
-                assert inv_slot_in_future_beacon_block_is_correct(s');
+                assert inv_slots_in_future_decided_beacon_blocks_are_correct(s');
                          
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
                 forall hn | hn in s'.honest_nodes_states.Keys   
-                ensures inv_slot_in_future_beacon_block_is_correct_body(s'.honest_nodes_states[hn]); 
+                ensures inv_slots_in_future_decided_beacon_blocks_are_correct_body(s'.honest_nodes_states[hn]); 
                 {
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                 }  
-                assert inv_slot_in_future_beacon_block_is_correct(s');
+                assert inv_slots_in_future_decided_beacon_blocks_are_correct(s');
         }
     }      
 
@@ -3778,18 +3778,18 @@ module Invs_DV_Next_5
     requires NextEvent(dv, event, dv') 
     requires event.HonestNodeTakingStep? 
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
-    requires inv_quorum_constraints(dv)
-    requires inv_unchanged_paras_of_consensus_instances(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires inv_nodes_in_consensus_instances_are_in_dv(dv)
     requires inv_only_dv_construct_complete_signing_functions(dv)
     requires inv_block_shares_to_broadcast_are_sent_messages(dv)    
     ensures inv_block_shares_to_broadcast_are_sent_messages(dv')
     {
-        lem_inv_quorum_constraints_dv_next(dv, event, dv');
-        lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv, event, dv');
+        lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv, event, dv');
+        lem_inv_nodes_in_consensus_instances_are_in_dv_dv_next(dv, event, dv');
         lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv, event, dv');
 
-        assert && inv_quorum_constraints(dv')
-               && inv_unchanged_paras_of_consensus_instances(dv')
+        assert && inv_all_honest_nodes_is_a_quorum(dv')
+               && inv_nodes_in_consensus_instances_are_in_dv(dv')
                && inv_only_dv_construct_complete_signing_functions(dv');
         
         
@@ -3851,18 +3851,18 @@ module Invs_DV_Next_5
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_quorum_constraints(dv)
-    requires inv_unchanged_paras_of_consensus_instances(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires inv_nodes_in_consensus_instances_are_in_dv(dv)
     requires inv_only_dv_construct_complete_signing_functions(dv)
     requires inv_block_shares_to_broadcast_are_sent_messages(dv)    
     ensures inv_block_shares_to_broadcast_are_sent_messages(dv')
     {   
-        lem_inv_quorum_constraints_dv_next(dv, event, dv');
-        lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv, event, dv');
+        lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv, event, dv');
+        lem_inv_nodes_in_consensus_instances_are_in_dv_dv_next(dv, event, dv');
         lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv, event, dv');
 
-        assert && inv_quorum_constraints(dv')
-               && inv_unchanged_paras_of_consensus_instances(dv')
+        assert && inv_all_honest_nodes_is_a_quorum(dv')
+               && inv_nodes_in_consensus_instances_are_in_dv(dv')
                && inv_only_dv_construct_complete_signing_functions(dv');
         
         match event 
@@ -3932,11 +3932,11 @@ module Invs_DV_Next_5
         }   
     } 
 
-    lemma lem_inv_at_most_submitted_signed_beacon_block_for_every_slot_dv_next(
+    lemma lem_inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot_dv_next(
         dv: DVState
     )    
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(dv)
-    ensures inv_at_most_submitted_signed_beacon_block_for_every_slot(dv)
+    ensures inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot(dv)
     {
         forall sbb1, sbb2: SignedBeaconBlock |
             && sbb1 in dv.all_blocks_created
@@ -3972,20 +3972,20 @@ module Invs_DV_Next_5
         }
     }
         
-    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_dv_next(
+    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv)
-    requires inv_slot_in_future_beacon_block_is_correct(dv)
+    requires inv_slots_in_future_decided_beacon_blocks_are_correct(dv)
     requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv)
-    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv')
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty(dv)
+    ensures inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty(dv')
     {        
         match event 
         {
@@ -3995,23 +3995,23 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(process, proposer_duty, process');
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(process, proposer_duty, process');
                     
                     case ReceiveRandaoShare(randao_share) =>
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_listen_for_randao_shares(process, randao_share, process');    
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body_f_listen_for_randao_shares(process, randao_share, process');    
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(process, id, decided_beacon_block)
                         {
-                            lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
+                            lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_listen_for_block_signature_shares(process, block_share, process');                        
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body_f_listen_for_block_signature_shares(process, block_share, process');                        
    
                     case ImportedNewBlock(block) => 
                         var process := f_add_block_to_bn(process, nodeEvent.block);
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(process, block, process');                        
+                        lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(process, block, process');                        
                                                 
                     case ResendRandaoRevealSignatureShare =>
 
@@ -4033,10 +4033,10 @@ module Invs_DV_Next_5
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv)
+    requires inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty(dv)
     requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv)
-    requires inv_slot_in_future_beacon_block_is_correct(dv)
-    requires inv_current_proposer_duty_is_either_none_or_latest_served_duty(dv)
+    requires inv_slots_in_future_decided_beacon_blocks_are_correct(dv)
+    requires inv_current_proposer_duty_is_either_none_or_latest_proposer_duty(dv)
     requires inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv)
     ensures inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv')
     {        
@@ -4128,7 +4128,7 @@ module Invs_DV_Next_5
         }   
     } 
 
-    lemma lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_dv_next(
+    lemma lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
@@ -4136,12 +4136,12 @@ module Invs_DV_Next_5
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv)
-    requires inv_slot_in_future_beacon_block_is_correct(dv)
-    requires inv_available_current_proposer_duty_is_latest_served_proposer_duty(dv)
-    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv)
+    requires inv_slots_in_future_decided_beacon_blocks_are_correct(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty(dv)
     requires inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv)
-    requires inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv)
-    ensures inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv')
+    requires inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block(dv)
+    ensures inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block(dv')
     {        
         match event 
         {
@@ -4151,29 +4151,29 @@ module Invs_DV_Next_5
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_serve_proposer_duty(process, proposer_duty, process');
+                        lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_serve_proposer_duty(process, proposer_duty, process');
                     
                     case ReceiveRandaoShare(randao_share) =>
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_randao_shares(process, randao_share, process');    
+                        lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_listen_for_randao_shares(process, randao_share, process');    
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(process, id, decided_beacon_block)
                         {
-                            lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
+                            lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_block_consensus_decided(process, id, decided_beacon_block, process');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_block_signature_shares(process, block_share, process');                        
+                        lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_listen_for_block_signature_shares(process, block_share, process');                        
    
                     case ImportedNewBlock(block) => 
                         var process := f_add_block_to_bn(process, nodeEvent.block);
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_listen_for_new_imported_blocks(process, block, process');                        
+                        lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_listen_for_new_imported_blocks(process, block, process');                        
                                                 
                     case ResendRandaoRevealSignatureShare =>
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_resend_randao_share(process, process');
+                        lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_resend_randao_share(process, process');
 
                     case ResendBlockShare =>
-                        lem_inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block_body_f_resend_block_share(process, process');
+                        lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body_f_resend_block_share(process, process');
                         
                     case NoEvent => 
                         

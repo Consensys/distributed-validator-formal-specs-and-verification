@@ -128,8 +128,8 @@ module Invs_DV_Next_2
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires cid in s'.consensus_instances_on_beacon_block.Keys
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signed_block(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     requires s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
@@ -230,8 +230,8 @@ module Invs_DV_Next_2
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signed_block(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     ensures inv_decided_value_of_consensus_instance_is_decided_by_quorum(s')
@@ -273,9 +273,9 @@ module Invs_DV_Next_2
         }
     }
 
-    lemma lem_inv_all_in_transit_messages_were_sent_invNetwork(dv: DVState)
+    lemma lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv: DVState)
     requires inv_all_in_transit_messages_were_sent(dv)
-    ensures invNetwork(dv)
+    ensures inv_in_transit_messages_are_in_allMessagesSent(dv)
     {        
     }
 
@@ -285,8 +285,8 @@ module Invs_DV_Next_2
     )
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
     requires cid in s.consensus_instances_on_beacon_block.Keys
     requires s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
     ensures s.consensus_instances_on_beacon_block[cid].decided_value.safe_get().slot == cid
@@ -325,8 +325,8 @@ module Invs_DV_Next_2
     )
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)    
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)    
     ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     {
         forall cid | && cid in s.consensus_instances_on_beacon_block.Keys
@@ -345,7 +345,7 @@ module Invs_DV_Next_2
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')
-    requires invNetwork(dv)
+    requires inv_in_transit_messages_are_in_allMessagesSent(dv)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(dv)
     ensures inv_rcvd_block_shares_are_in_all_sent_messages(dv')
     {
@@ -405,7 +405,7 @@ module Invs_DV_Next_2
                 process.dv_pubkey,
                 dv.all_nodes
             )
-    requires inv_quorum_constraints(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
     requires block_share in dv.block_share_network.allMessagesSent
     requires inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process)
     ensures forall block | block in f_listen_for_block_signature_shares(process, block_share).outputs.submitted_blocks
@@ -511,8 +511,8 @@ module Invs_DV_Next_2
                 s.all_nodes
             )
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires invNetwork(s)
-    requires inv_quorum_constraints(s)
+    requires inv_in_transit_messages_are_in_allMessagesSent(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
     ensures inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s')
     {
@@ -575,8 +575,8 @@ module Invs_DV_Next_2
         s.all_nodes
     )
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires invNetwork(s)
-    requires inv_quorum_constraints(s)
+    requires inv_in_transit_messages_are_in_allMessagesSent(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
     ensures inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s')
     {
@@ -650,8 +650,8 @@ module Invs_DV_Next_2
         s.all_nodes
     )
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires invNetwork(s)
-    requires inv_quorum_constraints(s)
+    requires inv_in_transit_messages_are_in_allMessagesSent(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
     ensures inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s')
     {

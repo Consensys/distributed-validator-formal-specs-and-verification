@@ -88,8 +88,8 @@ module Invs_DV_Next_3
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
     requires inv_only_dv_construct_complete_signed_block(s)
     requires && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
              && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]    
@@ -177,8 +177,8 @@ module Invs_DV_Next_3
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
     requires inv_only_dv_construct_complete_signed_block(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s')
@@ -221,8 +221,8 @@ module Invs_DV_Next_3
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires s'.block_share_network.allMessagesSent ==
                     s.block_share_network.allMessagesSent + getMessagesFromMessagesWithRecipient({});
     ensures  inv_block_of_in_transit_block_share_is_decided_value(s');
@@ -318,8 +318,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.BlockConsensusDecided?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires is_correct_block_share(s, hn, block_share)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     requires block_share in s.block_share_network.allMessagesSent
@@ -398,7 +398,7 @@ module Invs_DV_Next_3
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
@@ -406,8 +406,8 @@ module Invs_DV_Next_3
              && process.current_proposer_duty.isPresent()
              && process.current_proposer_duty.safe_get().slot == decided_beacon_block.slot
              && id == decided_beacon_block.slot
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s) 
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s) 
     requires inv_only_dv_construct_complete_signing_functions(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
     {   
@@ -472,8 +472,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.ServeProposerDuty?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
     {
@@ -507,8 +507,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.ReceiveRandaoShare?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
     {
@@ -542,8 +542,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.BlockConsensusDecided?
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
     ensures s'.consensus_instances_on_beacon_block[event.event.id].decided_value.safe_get() == event.event.decided_beacon_block;
     {
         match event
@@ -599,9 +599,9 @@ module Invs_DV_Next_3
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
@@ -655,8 +655,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.ReceiveSignedBeaconBlock?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
     {
@@ -690,8 +690,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.ImportedNewBlock?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
     {
@@ -730,8 +730,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.ResendBlockShare?
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
@@ -771,8 +771,8 @@ module Invs_DV_Next_3
     requires NextEvent(s, event, s')
     requires event.AdversaryTakingStep?
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
-    requires inv_quorum_constraints(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signed_block(s)
     ensures inv_block_of_in_transit_block_share_is_decided_value(s')
     {
@@ -820,9 +820,9 @@ module Invs_DV_Next_3
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
-    requires inv_same_node_status_in_dv_and_ci(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
+    requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_block_of_in_transit_block_share_is_decided_value(s)
     requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
@@ -880,16 +880,16 @@ module Invs_DV_Next_3
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)    
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)    
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_decided_value_of_consensus_instance_is_decided_by_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s')
     {
-        lem_inv_quorum_constraints_dv_next(s, event, s');
-        lem_inv_unchanged_paras_of_consensus_instances_dv_next(s, event, s');
+        lem_inv_all_honest_nodes_is_a_quorum_dv_next(s, event, s');
+        lem_inv_nodes_in_consensus_instances_are_in_dv_dv_next(s, event, s');
         lem_inv_only_dv_construct_complete_signing_functions_dv_next(s, event, s');
         assert inv_only_dv_construct_complete_signed_block(s');
         lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_dv_next(s, event, s');
@@ -904,8 +904,8 @@ module Invs_DV_Next_3
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty(dv)
-    requires inv_current_proposer_duty_is_rcvd_duty(dv)
+    requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties(dv)
+    requires inv_current_proposer_duty_is_a_rcvd_duty(dv)
     requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)
     requires inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv)  
     ensures inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv')
@@ -919,7 +919,7 @@ module Invs_DV_Next_3
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>   
-                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_proposer_duty_body(dvc);   
+                        assert inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(dvc);   
                         assert inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(dvc);                                           
                         lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
                         assert inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(dvc');
@@ -966,7 +966,7 @@ module Invs_DV_Next_3
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_consensus_instances_only_for_rcvd_duties(dv)
+    requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k(dv)
     requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv)
     ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv')
     {        
@@ -1058,14 +1058,14 @@ module Invs_DV_Next_3
         }   
     } 
 
-    lemma lem_inv_monotonic_block_slashing_db_hist_dv_next(
+    lemma lem_inv_block_slashing_db_hist_is_monotonic_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    ensures inv_monotonic_block_slashing_db_hist(dv, event, dv')
+    ensures inv_block_slashing_db_hist_is_monotonic(dv, event, dv')
     {        
         match event 
         {
@@ -1075,23 +1075,23 @@ module Invs_DV_Next_3
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>     
-                        lem_inv_block_slashing_db_hist_is_monotonic_dvc_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                        lem_inv_block_slashing_db_hist_is_monotonic_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
                     
                     case ReceiveRandaoShare(randao_share) =>                         
-                        lem_inv_block_slashing_db_hist_is_monotonic_dvc_f_listen_for_randao_shares(dvc, randao_share, dvc');    
+                        lem_inv_block_slashing_db_hist_is_monotonic_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         if f_block_consensus_decided.requires(dvc, id, decided_beacon_block)
                         {
-                            lem_inv_block_slashing_db_hist_is_monotonic_dvc_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
+                            lem_inv_block_slashing_db_hist_is_monotonic_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');      
                         }                 
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_block_slashing_db_hist_is_monotonic_dvc_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
+                        lem_inv_block_slashing_db_hist_is_monotonic_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_block_slashing_db_hist_is_monotonic_dvc_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                        lem_inv_block_slashing_db_hist_is_monotonic_body_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
                     case ResendRandaoRevealSignatureShare =>
 
@@ -1107,16 +1107,16 @@ module Invs_DV_Next_3
     } 
 
 
-    lemma lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_dv_next(
+    lemma lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_consensus_instances_only_for_rcvd_duties(dv)
-    requires inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db(dv)  
-    ensures inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db(dv')
+    requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k(dv)
+    requires inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db(dv)  
+    ensures inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db(dv')
     {        
         match event 
         {
@@ -1127,43 +1127,43 @@ module Invs_DV_Next_3
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) =>   
-                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);   
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc);                                           
-                        lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');
+                        assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(dvc);   
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc);                                           
+                        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');
 
                     case ReceiveRandaoShare(randao_share) =>        
-                        lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_f_listen_for_randao_shares(dvc, randao_share, dvc');   
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');                        
+                        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_f_listen_for_randao_shares(dvc, randao_share, dvc');   
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');                        
 
                     case BlockConsensusDecided(id, decided_beacon_block) => 
-                        lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');
+                        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');
                         
                     case ReceiveSignedBeaconBlock(block_share) =>                         
-                        lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');
+                        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc_mod);
-                        lem_inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');
+                        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc_mod);
+                        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');
 
                     case ResendRandaoRevealSignatureShare =>
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');
                     
                     case ResendBlockShare =>                                                                    
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');  
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');  
 
                     case NoEvent => 
-                        assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc');
+                        assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc');
                         
                 }
                 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                assert inv_every_db_in_block_slashing_db_hist_is_subset_of_block_slashing_db(dv');
+                assert inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db(dv');
                 
         }   
     }
@@ -1177,10 +1177,10 @@ module Invs_DV_Next_3
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
-    requires inv_quorum_constraints(s)
-    requires inv_unchanged_paras_of_consensus_instances(s)
+    requires inv_all_honest_nodes_is_a_quorum(s)
+    requires inv_nodes_in_consensus_instances_are_in_dv(s)
     requires inv_only_dv_construct_complete_signed_block(s)
-    requires inv_consensus_instances_only_for_rcvd_duties(s)
+    requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k(s)
     requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(s)    
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s')
