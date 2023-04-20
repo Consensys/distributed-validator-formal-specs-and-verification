@@ -9,7 +9,6 @@ include "../../../../specs/dv/dv_block_proposer.dfy"
 
 include "../inv.dfy"
 include "../ind_inv.dfy"
-// include "../dv_next_preserves_ind_inv/proofs_intermediate_steps.dfy"
 
 
 module Ind_Inv_Implies_Safety
@@ -23,21 +22,17 @@ module Ind_Inv_Implies_Safety
     import opened DV_Block_Proposer_Spec 
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
-    // import opened Proofs_Intermediate_Steps
 
     predicate non_slashable_submitted_blocks(
         dv: DVState
     )
     {
-        && inv_at_most_submitted_signed_beacon_block_for_every_slot(dv)
-        && inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_latest_slashing_db_block(dv)
+        && inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot(dv)
     }
 
     lemma lem_ind_inv_no_slashable_submitted_blocks(dv: DVState)
     requires ind_inv(dv)    
     ensures non_slashable_submitted_blocks(dv)
-    {   
-        // lem_ind_inv_implies_intermediate_steps(dv);
-    }
+    { }
 
 }
