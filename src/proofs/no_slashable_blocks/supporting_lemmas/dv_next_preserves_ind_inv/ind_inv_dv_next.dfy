@@ -197,108 +197,6 @@ module Ind_Inv_DV_Next
         lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(dv);
     }
    
-    // lemma lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)  
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')       
-    // requires ind_inv(dv)
-    // ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv')
-    // {
-    //     // lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_inv_active_block_consensus_instances_predicate_is_in_block_slashing_db_hist(dv);
-    //     // assert inv_active_block_consensus_instances_predicate_is_in_block_slashing_db_hist(dv);
-
-    //     // lem_inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv);
-    //     // assert inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv);
-
-    //     // lem_ind_inv_implies_intermediate_steps(dv);
-    //     // assert inv_the_same_node_status_in_dv_and_ci(dv);
-
-
-    //     // assert && inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv)
-    //     //        && inv_all_honest_nodes_is_a_quorum(dv)
-    //     //        && inv_the_same_node_status_in_dv_and_ci(dv)
-    //     //        && inv_only_dv_construct_complete_signing_functions(dv)    
-    //     //        && inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv)  
-    //     //        && inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)
-    //     //        && inv_active_block_consensus_instances_predicate_is_in_block_slashing_db_hist(dv)
-    //     //        ;
-
-    //     lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_dv_next(dv, e, dv');    
-    //     assert inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv')
-    // {
-    //     // lem_ind_inv_implies_intermediate_steps(dv);
-    //     // assert construct_signed_block_signature_assumptions_helper(
-    //     //         dv.construct_signed_block_signature,
-    //     //         dv.dv_pubkey,
-    //     //         dv.all_nodes);
-
-    //     // lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv);
-    //     // assert inv_in_transit_messages_are_in_allMessagesSent(dv);
-
-    //     // lem_inv_rcvd_block_shares_are_from_sent_messages_inv_rcvd_block_shares_are_in_all_sent_messages(dv);
-    //     // assert inv_rcvd_block_shares_are_in_all_sent_messages(dv);
-
-    //     // assert  && DV_Block_Proposer_Spec.NextEvent(dv, e, dv')
-    //     //         && inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
-    //     //         && construct_signed_block_signature_assumptions_helper(
-    //     //             dv.construct_signed_block_signature,
-    //     //             dv.dv_pubkey,
-    //     //             dv.all_nodes
-    //     //         )
-    //     //         && inv_only_dv_construct_complete_signing_functions(dv)  
-    //     //         && inv_in_transit_messages_are_in_allMessagesSent(dv)
-    //     //         && inv_all_honest_nodes_is_a_quorum(dv)
-    //     //         && inv_rcvd_block_shares_are_in_all_sent_messages(dv)
-    //     //         ;
-
-        
-    //     lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(dv, e, dv');
-    //     assert inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv')
-    // {
-    //     lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_dv_next(dv, e, dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(dv')
-    // {
-    //     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_dv_next(dv, e, dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv')
-    // {
-    //     lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv, e, dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv')
-    // {
-    //     lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_dv_next(dv, e, dv');
-    // }
-
-    
     lemma lem_ind_inv_dv_next_invs_group_8(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
@@ -308,43 +206,8 @@ module Ind_Inv_DV_Next
         lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(dv, e, dv');
         lem_inv_decided_value_of_consensus_instance_is_decided_by_quorum_dv_next(dv, e, dv');  
         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_dv_next(dv, e, dv');
-        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_dv_next(dv, e, dv');
-        // lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(dv, e, dv');  
-        // lem_ind_inv_dv_next_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv, e, dv');             
-        // lem_ind_inv_dv_next_inv_decided_value_of_consensus_instance_is_decided_by_quorum(dv, e, dv');       
-        // lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(dv, e, dv');  
-        // lem_ind_inv_dv_next_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv, e, dv');   
+        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_dv_next(dv, e, dv');        
     }
-
-    // lemma lem_ind_inv_dv_next_inv_in_transit_messages_are_in_allMessagesSent(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_in_transit_messages_are_in_allMessagesSent(dv')
-    // {
-    //     lem_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');
-    //     lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_38(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_block_shares_to_broadcast_are_sent_messages(dv')
-    // {
-    //     lem_ind_inv_implies_intermediate_steps(dv);
-    //     assert inv_the_same_node_status_in_dv_and_ci(dv);
-    //     lem_inv_block_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(dv')
-    // {
-    //     lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(dv, e, dv');
-    // }
 
     lemma lem_ind_inv_dv_next_invs_group_9(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
@@ -371,27 +234,6 @@ module Ind_Inv_DV_Next
         lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(dv, e, dv');
     }
     
-    // lemma lem_ind_inv_dv_next_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(dv')
-    // {
-    //     lem_ind_inv_implies_intermediate_steps_helper_4(dv);
-    //     assert lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(dv);
-    //     lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(dv, e, dv');
-    // }
-
-    // lemma lem_ind_inv_dv_next_inv_slots_in_future_decided_beacon_blocks_are_correct(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
-    // requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
-    // requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
-    // requires ind_inv(dv)
-    // ensures inv_slots_in_future_decided_beacon_blocks_are_correct(dv')
-    // {
-    //     lem_ind_inv_implies_intermediate_steps_helper_4(dv);
-    //     lem_inv_slots_in_future_decided_beacon_blocks_are_correct_dv_next(dv, e, dv');
-    // }
-
     lemma lem_ind_inv_dv_next_invs_group_11(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  

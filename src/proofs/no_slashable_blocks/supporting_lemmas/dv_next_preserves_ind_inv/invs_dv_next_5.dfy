@@ -648,38 +648,6 @@ module Invs_DV_Next_5
         }  
     } 
 
-    // lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_helper_dv_next_HonestNodeTakingStep(
-    //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     dv': DVState,
-    //     node: BLSPubkey, 
-    //     nodeEvent: Block_Types.Event, 
-    //     nodeOutputs: Outputs
-    // )
-    // requires NextEventPreCond(dv, event)
-    // requires NextEvent(dv, event, dv')  
-    // requires event.HonestNodeTakingStep?
-    // requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
-    // requires && var dvc' := dv'.honest_nodes_states[node];
-    //          && inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(
-    //                 nodeOutputs,
-    //                 dvc'
-    //             )
-    // requires inv_only_dv_construct_complete_signing_functions(dv)
-    // requires ( forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
-    //                     && hn == dv.honest_nodes_states[hn].rs.pubkey
-    //                     && hn == dv'.honest_nodes_states[hn].rs.pubkey
-    //         );
-    // requires inv_rcvd_block_shares_are_in_all_sent_messages(dv')    
-    // requires inv_in_transit_messages_are_in_allMessagesSent(dv)
-    // requires inv_rcvd_block_shares_are_in_all_sent_messages(dv)
-    // requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)   
-    // requires inv_unchanged_dvc_rs_pubkey(dv)
-    // requires inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv)
-    // {
-
-    // }
-
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_HonestNodeTakingStep(
         dv: DVState,
         event: DV_Block_Proposer_Spec.Event,
@@ -863,67 +831,6 @@ module Invs_DV_Next_5
         }  
     }   
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    // lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(
-    //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
-    //     s': DVState
-    // )
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')  
-    // requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
-    // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    // ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');  
-    // {
-    //     assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
-    //     match event 
-    //     {
-            
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             var s_node := s.honest_nodes_states[node];
-    //             var s'_node := s'.honest_nodes_states[node];
-    //             lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(s, event, s');
-                   
-    //             forall hn |
-    //                 && hn in s'.honest_nodes_states.Keys   
-    //             ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_proposer_duty_to_be_served); 
-    //             {
-    //                 if hn != node 
-    //                 {
-    //                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-    //                     lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s.honest_nodes_states[hn], hn);
-    //                 }
-    //             }  
-    //             assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');
-                         
-    //         case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-    //             forall hn |
-    //                 && hn in s'.honest_nodes_states.Keys   
-    //             ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_proposer_duty_to_be_served); 
-    //             {
-    //                 assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-    //                 lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s.honest_nodes_states[hn], hn);
-    //             }  
-    //             assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s');            
-    //     }
-    // }  
-    
-
-
-
-    
-
-     
-
     lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_implies_46_a(dv: DVState)
     requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(dv)
@@ -963,17 +870,6 @@ module Invs_DV_Next_5
         lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s, event, s');
         lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_implies_46_a(s');
     }     
-
-    // lemma lem_add_set_of_validity_predicates<D(!new, 0)>(
-    //     existing_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>,
-    //     honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
-    //     new_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>
-    // )
-    // requires new_honest_nodes_validity_predicates == add_set_of_validity_predicates(existing_honest_nodes_validity_predicates, honest_nodes_validity_predicates)
-    // ensures new_honest_nodes_validity_predicates.Keys == existing_honest_nodes_validity_predicates.Keys + new_honest_nodes_validity_predicates.Keys
-    // {
-
-    // }
 
     lemma lem_add_set_of_validity_predicates2<D(!new, 0)>(
         existing_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>,
@@ -1017,86 +913,6 @@ module Invs_DV_Next_5
                 s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
     }    
 
-    // // lemma lem_block_slashing_db_hist_cid_is_monotonic_f_serve_proposer_duty(
-    // //     process: DVCState,
-    // //     proposer_duty: ProposerDuty,
-    // //     s': DVCState,
-    // //     cid: Slot
-    // // )
-    // // requires f_serve_proposer_duty.requires(process, proposer_duty)
-    // // requires s' == f_serve_proposer_duty(process, proposer_duty).state  
-    // // requires cid in process.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // // ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // // ensures process.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys; 
-    // // {
-
-    // // }           
-
-    // // lemma lem_block_slashing_db_hist_cid_is_monotonic_f_block_consensus_decided(
-    // //     s: DVCState,
-    // //     id: Slot,
-    // //     decided_beacon_block: BeaconBlock,        
-    // //     s': DVCState,
-    // //     cid: Slot
-    // // )
-    // // requires f_block_consensus_decided.requires(s, id, decided_beacon_block)
-    // // requires s' == f_block_consensus_decided(s, id, decided_beacon_block).state
-    // // requires cid in s.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // // ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // // ensures s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys; 
-    // // {
-         
-    // // }         
-
-    // // lemma lem_block_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(
-    // //     s: DVCState,
-    // //     block: BeaconBlock,
-    // //     s': DVCState,
-    // //     cid: Slot
-    // // )
-    // // requires f_listen_for_new_imported_blocks.requires(s, block)
-    // // requires s' == f_listen_for_new_imported_blocks(s, block).state
-    // // requires cid in s.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // // ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // // ensures s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys; 
-    // // {
-    // //     var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(s, block);
-
-    // //     var block_consensus_instances_already_decided := s.future_consensus_instances_on_blocks_already_decided + new_consensus_instances_already_decided;
-
-    // //     var future_consensus_instances_on_blocks_already_decided := 
-    // //         f_listen_for_new_imported_blocks_helper_2(s, block_consensus_instances_already_decided);
-
-    // //     var s := f_stopConsensusInstances_after_receiving_new_imported_blocks(
-    // //                             s,
-    // //                             block
-    // //                         );                    
-
-    // //     if pred_listen_for_new_imported_blocks_checker(s, block_consensus_instances_already_decided)
-    // //     {
-    // //         var decided_beacon_block := block_consensus_instances_already_decided[s.current_proposer_duty.safe_get().slot];
-    // //         var s := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
-    // //                                 s,
-    // //                                 block_consensus_instances_already_decided
-    // //                             );
-    // //     }
-    // // }   
-
-    // lemma lem_block_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(
-    //     s: DVCState,
-    //     proposer_duty: ProposerDuty,
-    //     s': DVCState,
-    //     cid: Slot
-    // )
-    // requires f_check_for_next_duty.requires(s, proposer_duty)
-    // requires s' == f_check_for_next_duty(s, proposer_duty).state
-    // requires cid in s.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
-    // ensures s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys; 
-    // {
-    //     assert s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys; 
-    // }      
-
     lemma lem_block_slashing_db_hist_cid_is_monotonic(
         s: DVCState,
         event: Block_Types.Event,
@@ -1109,29 +925,7 @@ module Invs_DV_Next_5
     requires cid in s.block_consensus_engine_state.block_slashing_db_hist.Keys
     ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
     ensures s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;  
-    {
-        // match event
-        // {
-        //     case ServeProposerDuty(proposer_duty) => 
-        //         lem_block_slashing_db_hist_cid_is_monotonic_f_serve_proposer_duty(s, proposer_duty, s', cid);
-
-        //     case BlockConsensusDecided(id, decided_beacon_block) => 
-        //         lem_block_slashing_db_hist_cid_is_monotonic_f_block_consensus_decided(s, id, decided_beacon_block, s', cid);
-            
-        //     case ReceiveSignedBeaconBlock(block_share) => 
-        //         assert s.block_consensus_engine_state.block_slashing_db_hist.Keys <= s'.block_consensus_engine_state.block_slashing_db_hist.Keys;
-
-        //     case ImportedNewBlock(block) => 
-        //         lem_block_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(s, block, s', cid);
-            
-        //     case ReceiveSignedBeaconBlock => 
-        //         assert s.block_consensus_engine_state.block_slashing_db_hist.Keys <= s'.block_consensus_engine_state.block_slashing_db_hist.Keys;
-        
-        //     case NoEvent => 
-        //         assert s.block_consensus_engine_state.block_slashing_db_hist.Keys <= s'.block_consensus_engine_state.block_slashing_db_hist.Keys;
-
-        // }           
-    } 
+    { } 
 
     lemma lem_block_slashing_db_hist_cid_is_monotonic_corollary(
         s: DVCState,
@@ -1536,149 +1330,6 @@ module Invs_DV_Next_5
         }
     }  
 
-    
-    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper1(
-    // //     s: DVState,
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     s': DVState,
-    // //     s_node: DVCState,
-    // //     n: BLSPubkey
-    // // )
-    // // requires NextEventPreCond(s, event)
-    // // requires NextEvent(s, event, s')      
-    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s, n, s_node)
-    // // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', n, s_node)
-    // // {
-
-    // // }
-
-    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper2(
-    // //     s: DVState,
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     s': DVState,
-    // //     s_node: DVCState,
-    // //     n: BLSPubkey,
-    // //     index_next_proposer_duty_to_be_served: nat
-    // // )
-    // // requires NextEventPreCond(s, event)
-    // // requires NextEvent(s, event, s')      
-    // // requires inv_seq_of_proposer_duties_is_ordered(s);
-    // // ensures inv_seq_of_proposer_duties_is_ordered(s')
-    // // {
-        
-    // // }    
-
-    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
-    // //     s: DVState,
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     s': DVState
-    // // )
-    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)
-    // // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)   
-    // // requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
-    // // requires inv_seq_of_proposer_duties_is_ordered(s)
-    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)
-    // // requires NextEventPreCond(s, event)
-    // // requires NextEvent(s, event, s')  
-    // // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s')
-    // // {
-    // //     match event 
-    // //     {
-    // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(s, event, s');
-                
-    // //         case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                
-    // //     }
-    // // }
-
-    // // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
-    // //     s: DVState,
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     s': DVState
-    // // )
-    // // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)
-    // // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)   
-    // // requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
-    // // requires inv_seq_of_proposer_duties_is_ordered(s);    
-    // // requires NextEventPreCond(s, event)
-    // // requires NextEvent(s, event, s')  
-    // // requires event.HonestNodeTakingStep?
-    // // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', event.node, s'.honest_nodes_states[event.node]); 
-    // // {
-    // //     assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
-    // //     match event 
-    // //     {
-    // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // //             var s_node := s.honest_nodes_states[node];
-    // //             var s'_node := s'.honest_nodes_states[node];
-    // //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper1(s, event, s', s_node, node);
-    // //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper2(s, event, s', s_node, node, s.index_next_proposer_duty_to_be_served);
-
-    // //             match nodeEvent
-    // //             {
-    // //                 case ServeProposerDuty(proposer_duty) => 
-    // //                     assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served - 1;
-    // //                     lem_ServeProposerDuty(s, event, s');
-    // //                     lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_serve_proposer_duty(
-    // //                         s_node,
-    // //                         proposer_duty,
-    // //                         s'_node,
-    // //                         s', 
-    // //                         node,
-    // //                         s'.index_next_proposer_duty_to_be_served
-    // //                     );
-    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                     
-                
-    // //                 case BlockConsensusDecided(id, decided_beacon_block) =>  
-    // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
-    // //                     assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served;    
-    // //                     lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_block_consensus_decided(
-    // //                         s_node,
-    // //                         id,
-    // //                         decided_beacon_block,
-    // //                         s'_node,
-    // //                         s', 
-    // //                         node,
-    // //                         s'.index_next_proposer_duty_to_be_served
-    // //                     ); 
-    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                        
-               
-                   
-    // //                 case ReceiveSignedBeaconBlock(block_share) =>
-    // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s'); 
-    // //                     lem_f_listen_for_block_signature_shares_constants(s_node, block_share, s'_node);
-    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);  
-                        
-
-    // //                 case ImportedNewBlock(block) => 
-    // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
-    // //                     var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-    // //                     lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body_f_listen_for_new_imported_blocks(
-    // //                         s_node2,
-    // //                         block,
-    // //                         s'_node,
-    // //                         s', 
-    // //                         node,
-    // //                         s'.index_next_proposer_duty_to_be_served
-    // //                     );  
-    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                     
-                    
-                 
-    // //                 case ReceiveSignedBeaconBlock => 
-    // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
-    // //                     lem_f_resend_block_share_constants(s_node, s'_node);
-    // //                     // lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_easy(s', event, s_node, s'_node, node );
-    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);  
-
-    // //                 case NoEvent => 
-    // //                     lem_NonServeProposerDuty_unchanged_vars(s, event, s');
-    // //                     assert s_node == s'_node; 
-    // //                     assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s', node, s'_node);                          
-    // //             }                     
-    // //     }
-    // // }           
-
     lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
@@ -1730,18 +1381,6 @@ module Invs_DV_Next_5
                         
                 }
                    
-                // forall hn |
-                //     && hn in s'.honest_nodes_states.Keys   
-                // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body(s'.honest_nodes_states[hn]); 
-                // {
-                //     if hn != node 
-                //     {
-                //         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                //         // lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_helper_honest_helper1(s, event, s', s.honest_nodes_states[hn], hn);
-                //     }
-                // }  
-                // assert inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s');
-                         
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
 
         }
@@ -1957,43 +1596,6 @@ module Invs_DV_Next_5
             }
         }
     }
-
-    // // lemma lem_AdversaryTakingStep_new_block_share_sent_is_not_from_honest_node(
-    // //     dv: DVState,        
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     node: BLSPubkey,
-    // //     new_block_shares_sent: set<MessaageWithRecipient<SignedBeaconBlock>>,
-    // //     messagesReceivedByTheNode: set<SignedBeaconBlock>,
-    // //     dv': DVState,
-    // //     pubkey: BLSPubkey,
-    // //     new_block_share_sent: MessaageWithRecipient<SignedBeaconBlock>
-    // // )
-    // // requires NextEventPreCond(dv, event)
-    // // requires NextEvent(dv, event, dv') 
-    // // requires event.AdversaryTakingStep? 
-    // // requires NextAdversary(dv, node, new_block_shares_sent, messagesReceivedByTheNode, dv')
-    // // requires inv_all_honest_nodes_is_a_quorum(dv)
-    // // requires && new_block_share_sent in new_block_shares_sent
-    // //          && pred_is_the_owner_of_a_block_share(pubkey, new_block_share_sent.message)
-    // // ensures !is_an_honest_node(dv', pubkey)
-    // // {
-    // //     var message := new_block_share_sent.message;
-    // //     var beacon_block := message.data;
-
-    // //     lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv, event, dv');
-    // //     assert inv_all_honest_nodes_is_a_quorum(dv');
-    // //     var dishonest_nodes := dv'.adversary.nodes;
-    // //     var honest_nodes := dv'.honest_nodes_states.Keys;
-    // //     lemmaEmptyIntersectionImpliesDisjointness(dishonest_nodes, honest_nodes);
-    // //     assert dishonest_nodes !! honest_nodes;
-
-    // //     var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(beacon_block.target.epoch));
-    // //     var block_signing_root := compute_block_signing_root(beacon_block, fork_version);
-    // //     assert verify_bls_signature(block_signing_root, message.signature, pubkey);
-
-    // //     assert pubkey in dishonest_nodes;
-    // //     assert !is_an_honest_node(dv, pubkey);
-    // // }
 
     lemma lem_AdversaryTakingStep_block_share_from_honest_node_were_sent_before(
         dv: DVState,        
@@ -3105,204 +2707,6 @@ module Invs_DV_Next_5
         }  
     }    
 
-    
-
-    // // TODO: The following proofs seem unused.
-    // // lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateBlockConsensusInstanceValidityCheck(
-    // //     s: BlockBlockConsensusEngineState,
-    // //     new_block_slashing_db: set<SlashingDBBlock>,
-    // //     s': BlockBlockConsensusEngineState
-    // // )
-    // // requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
-    // // ensures s'.active_consensus_instances_on_beacon_blocks.Keys == s.active_consensus_instances_on_beacon_blocks.Keys
-    // // ensures s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
-    // // {
-    // //     lem_updateBlockConsensusInstanceValidityCheckHelper(s.active_consensus_instances_on_beacon_blocks, new_block_slashing_db, s'.active_consensus_instances_on_beacon_blocks);
-
-    // //     assert s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
-
-    // //     assert forall slot, vp: BeaconBlock -> bool |
-    // //                 && slot in s.block_slashing_db_hist.Keys
-    // //                 && vp in s.block_slashing_db_hist[slot].Keys
-    // //                 ::
-    // //                 && s.block_slashing_db_hist.Keys <= s'.block_slashing_db_hist.Keys
-    // //                 && s.block_slashing_db_hist[slot].Keys <= s'.block_slashing_db_hist[slot].Keys
-    // //                 && s.block_slashing_db_hist[slot][vp] <= s'.block_slashing_db_hist[slot][vp]
-    // //     ;
-
-    // //     assert forall slot |
-    // //                 && slot in s'.active_consensus_instances_on_beacon_blocks.Keys
-    // //                 && slot in s.block_slashing_db_hist.Keys
-    // //                 && var vp := s'.active_consensus_instances_on_beacon_blocks[slot].validityPredicate;
-    // //                 && vp in s.block_slashing_db_hist[slot].Keys
-    // //                 ::
-    // //                 var vp := s'.active_consensus_instances_on_beacon_blocks[slot].validityPredicate;
-    // //                 s.block_slashing_db_hist[slot][vp] + {new_block_slashing_db} == s'.block_slashing_db_hist[slot][vp];
-
-    // //     assert forall slot, vp: BeaconBlock -> bool |
-    // //                 && slot in s'.block_slashing_db_hist.Keys
-    // //                 && slot !in s.block_slashing_db_hist.Keys
-    // //                 && vp in s'.block_slashing_db_hist[slot].Keys
-    // //                 ::
-    // //                 && vp == s'.active_consensus_instances_on_beacon_blocks[slot].validityPredicate
-    // //     ;
-
-    // //     assert forall slot, vp: BeaconBlock -> bool |
-    // //                 && slot in s.block_slashing_db_hist.Keys
-    // //                 && vp in s'.block_slashing_db_hist[slot].Keys
-    // //                 && vp !in s.block_slashing_db_hist[slot].Keys
-    // //                 ::
-    // //                 && s'.block_slashing_db_hist[slot][vp] == {new_block_slashing_db}
-    // //     ;
-
-    // // }
-
-    // // lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateBlockConsensusInstanceValidityCheck2(
-    // //     s: BlockBlockConsensusEngineState,
-    // //     new_block_slashing_db: set<SlashingDBBlock>,
-    // //     s': BlockBlockConsensusEngineState,
-    // //     slot: Slot,
-    // //     vp: BeaconBlock -> bool
-    // // )
-    // // requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
-    // // requires
-    // //                 && slot in s'.active_consensus_instances_on_beacon_blocks.Keys
-    // //                 && slot in s.block_slashing_db_hist.Keys
-    // //                 && vp == s'.active_consensus_instances_on_beacon_blocks[slot].validityPredicate
-    // //                 && vp in s.block_slashing_db_hist[slot].Keys
-    // // ensures s.block_slashing_db_hist[slot][vp] + {new_block_slashing_db} == s'.block_slashing_db_hist[slot][vp];
-    // // {
-    // //     lem_updateBlockConsensusInstanceValidityCheckHelper(s.active_consensus_instances_on_beacon_blocks, new_block_slashing_db, s'.active_consensus_instances_on_beacon_blocks);
-
-    // //     assert s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
-    // // }
-
-    // // lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateBlockConsensusInstanceValidityCheck3(
-    // //     s: BlockBlockConsensusEngineState,
-    // //     new_block_slashing_db: set<SlashingDBBlock>,
-    // //     s': BlockBlockConsensusEngineState,
-    // //     slot: Slot,
-    // //     vp: BeaconBlock -> bool
-    // // )
-    // // requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
-    // // requires
-    // //                 && slot in s'.active_consensus_instances_on_beacon_blocks.Keys
-    // //                 && slot in s.block_slashing_db_hist.Keys
-    // //                 && vp != s'.active_consensus_instances_on_beacon_blocks[slot].validityPredicate
-    // //                 && vp in s.block_slashing_db_hist[slot].Keys
-    // // ensures s.block_slashing_db_hist[slot][vp] == s'.block_slashing_db_hist[slot][vp];
-    // // {
-    // //     lem_updateBlockConsensusInstanceValidityCheckHelper(s.active_consensus_instances_on_beacon_blocks, new_block_slashing_db, s'.active_consensus_instances_on_beacon_blocks);
-
-    // //     assert s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
-    // // }
-
-    // // lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateBlockConsensusInstanceValidityCheck4(
-    // //     s: BlockBlockConsensusEngineState,
-    // //     new_block_slashing_db: set<SlashingDBBlock>,
-    // //     s': BlockBlockConsensusEngineState,
-    // //     slot: Slot,
-    // //     vp: BeaconBlock -> bool
-    // // )
-    // // requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
-    // // requires
-    // //                 && slot !in s'.active_consensus_instances_on_beacon_blocks.Keys
-    // //                 && slot in s.block_slashing_db_hist.Keys
-    // //                 && vp in s.block_slashing_db_hist[slot].Keys
-    // // ensures s.block_slashing_db_hist[slot][vp] == s'.block_slashing_db_hist[slot][vp];
-    // // {
-    // //     lem_updateBlockConsensusInstanceValidityCheckHelper(s.active_consensus_instances_on_beacon_blocks, new_block_slashing_db, s'.active_consensus_instances_on_beacon_blocks);
-
-    // //     assert s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
-    // // }
-
-    // // lemma lem_inv_db_of_validity_predicate_contains_all_previous_decided_values_f_check_for_next_duty_updateBlockConsensusInstanceValidityCheck5(
-    // //     s: BlockBlockConsensusEngineState,
-    // //     new_block_slashing_db: set<SlashingDBBlock>,
-    // //     s': BlockBlockConsensusEngineState,
-    // //     slot: Slot
-    // // )
-    // // requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
-    // // requires slot in s.block_slashing_db_hist.Keys
-    // // ensures slot in s'.block_slashing_db_hist.Keys
-    // // ensures s.block_slashing_db_hist[slot].Keys <= s'.block_slashing_db_hist[slot].Keys;
-    // // {
-    // //     lem_updateBlockConsensusInstanceValidityCheckHelper(
-    // //         s.active_consensus_instances_on_beacon_blocks, 
-    // //         new_block_slashing_db, 
-    // //         s'.active_consensus_instances_on_beacon_blocks
-    // //     );
-
-    // //     assert s'.block_slashing_db_hist.Keys == s.block_slashing_db_hist.Keys + s'.active_consensus_instances_on_beacon_blocks.Keys;
-    // // }
-
-    // // lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_dv_next(
-    // //     s: DVState,
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     s': DVState
-    // // )
-    // // requires NextEventPreCond(s, event)
-    // // requires NextEvent(s, event, s')
-    // // requires inv_in_transit_messages_are_in_allMessagesSent(s)
-    // // requires inv_rcvd_block_shares_are_in_all_sent_messages(s)
-    // // ensures inv_rcvd_block_shares_are_in_all_sent_messages(s')
-    // // {
-    // //     match event
-    // //     {
-    // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    // //             var s_node := s.honest_nodes_states[node];
-    // //             var s'_node := s'.honest_nodes_states[node];
-    // //             match nodeEvent
-    // //             {
-    // //                 case ServeProposerDuty(proposer_duty) =>
-    // //                     lem_f_serve_proposer_duty_unchanged_vars(s_node, proposer_duty, s'_node);
-
-    // //                 case BlockConsensusDecided(id, decided_beacon_block) =>
-    // //                     lem_f_block_consensus_decided_unchanged_dvc_vars(s_node, id, decided_beacon_block, s'_node);
-
-    // //                 case ReceiveSignedBeaconBlock(block_share) =>
-    // //                     assert multiset(addReceipientToMessages<SignedBeaconBlock>({block_share}, node)) <= s.block_share_network.messagesInTransit;
-    // //                     assert MessaageWithRecipient(message := block_share, receipient := node) in s.block_share_network.messagesInTransit;
-    // //                     assert block_share in s.block_share_network.allMessagesSent;
-    // //                     lem_inv_rcvd_block_shares_are_in_all_sent_messages_dv_next_f_listen_for_block_signature_shares(
-    // //                         s_node,
-    // //                         block_share,
-    // //                         s'_node,
-    // //                         s
-    // //                     );
-
-    // //                 case ImportedNewBlock(block) =>
-    // //                     var s_node := f_add_block_to_bn(s_node, nodeEvent.block);
-    // //                     lem_f_listen_for_new_imported_blocks_unchanged_dvc_vars(s_node, block, s'_node);
-    // //                     assert inv_rcvd_block_shares_are_in_all_sent_messages(s');
-
-    // //                 case ResendBlockShare =>
-    // //                     assert inv_rcvd_block_shares_are_in_all_sent_messages(s');
-    // //                 case NoEvent =>
-
-    // //             }
-
-    // //         case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-
-    // //     }
-    // // }
-    
-
-    //     // lemma lem_inv_construct_signed_proposer_signature_assumptions_helper_dv_next(
-    // //     dv: DVState,
-    // //     event: DV_Block_Proposer_Spec.Event,
-    // //     dv': DVState
-    // // )    
-    // // requires NextEventPreCond(dv, event)
-    // // requires NextEvent(dv, event, dv')    
-    // // requires inv_construct_signed_proposer_signature_assumptions_helper(dv)
-    // // ensures inv_construct_signed_proposer_signature_assumptions_helper(dv')    
-    // // {
-    // //     assert dv.construct_signed_proposer_signature == dv'.construct_signed_proposer_signature;
-    // // }
-    
-
-     // Move to intermediate steps
     lemma lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(
         dv: DVState
     )    
@@ -3557,7 +2961,6 @@ module Invs_DV_Next_5
         }        
     }     
 
-    // TODO: Improve
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
