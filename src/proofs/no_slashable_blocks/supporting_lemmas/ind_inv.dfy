@@ -101,7 +101,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
 
     predicate invs_group_9(dv: DVState)       
     {                    
-        && inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv) 
+        && inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv) 
         && inv_in_transit_messages_are_in_allMessagesSent(dv)
         && inv_block_shares_to_broadcast_are_sent_messages(dv)
 

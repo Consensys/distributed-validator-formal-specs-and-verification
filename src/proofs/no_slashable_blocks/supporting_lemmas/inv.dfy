@@ -545,7 +545,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             is_a_valid_decided_value(dv.consensus_instances_on_beacon_block[cid])
     }  
 
-    predicate inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(dv: DVState)
+    predicate inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv: DVState)
     {
         forall cid |
             && cid in dv.consensus_instances_on_beacon_block.Keys
@@ -1060,7 +1060,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     requires && is_an_honest_node(dv, hn)
              && var hn_state := dv.honest_nodes_states[hn];
              && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
-             && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
+             && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s].Keys
     {
         && var hn_state := dv.honest_nodes_states[hn];
         && duty.slot == s
@@ -1074,7 +1074,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && is_an_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
             && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
-            && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
+            && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s].Keys
             ::
             exists duty, db, randao_reveal ::
                 && var hn_state := dv.honest_nodes_states[hn];

@@ -361,7 +361,7 @@ module CommonFunctions{
     requires att_slashing_db != {}
     ensures target_epochs != {}
     {
-        var target_epochs := set attn | attn in att_slashing_db :: attn.target_epoch;
+        var target_epochs := set att | att in att_slashing_db :: att.target_epoch;
         assert var e :| e in att_slashing_db; e.target_epoch in target_epochs;
         target_epochs
     }
@@ -370,7 +370,7 @@ module CommonFunctions{
     requires att_slashing_db != {}
     ensures source_epochs != {}
     {
-        var source_epochs := set attn | attn in att_slashing_db :: attn.source_epoch;
+        var source_epochs := set att | att in att_slashing_db :: att.source_epoch;
         assert var e :| e in att_slashing_db; e.source_epoch in source_epochs;
         source_epochs
     }    
@@ -403,9 +403,9 @@ module CommonFunctions{
                         target_epoch := attestation_data.target.epoch,
                         signing_root := None
                     );            
-                exists past_attn | past_attn in att_slashing_db ::
-                        || is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
-                        || is_slashable_attestation_pair(slashing_db_att_for_att_data, past_attn)
+                exists past_att | past_att in att_slashing_db ::
+                        || is_slashable_attestation_pair(past_att, slashing_db_att_for_att_data)
+                        || is_slashable_attestation_pair(slashing_db_att_for_att_data, past_att)
         else
             false        
     } by method 
@@ -428,28 +428,28 @@ module CommonFunctions{
             }
             else 
             {
-                var attns_to_check := att_slashing_db;
+                var atts_to_check := att_slashing_db;
                 var slashing_db_att_for_att_data := 
                     SlashingDBAttestation(
                         source_epoch := attestation_data.source.epoch,
                         target_epoch := attestation_data.target.epoch,
                         signing_root := None
                     );
-                while attns_to_check != {}
-                invariant var checked := att_slashing_db - attns_to_check;
+                while atts_to_check != {}
+                invariant var checked := att_slashing_db - atts_to_check;
                         forall a | a in checked :: 
                             && !is_slashable_attestation_pair(a, slashing_db_att_for_att_data)
                             && !is_slashable_attestation_pair(slashing_db_att_for_att_data, a)
                 {
-                        var past_attn :| past_attn in attns_to_check;
-                        if || is_slashable_attestation_pair(past_attn, slashing_db_att_for_att_data)
-                           || is_slashable_attestation_pair(slashing_db_att_for_att_data, past_attn)
+                        var past_att :| past_att in atts_to_check;
+                        if || is_slashable_attestation_pair(past_att, slashing_db_att_for_att_data)
+                           || is_slashable_attestation_pair(slashing_db_att_for_att_data, past_att)
                         {
                             assert is_slashable_attestation_data(att_slashing_db, attestation_data);
                             return true;
                         }
 
-                        attns_to_check := attns_to_check - {past_attn};
+                        atts_to_check := atts_to_check - {past_att};
                 }
                 assert !is_slashable_attestation_data(att_slashing_db, attestation_data);
                 return false;

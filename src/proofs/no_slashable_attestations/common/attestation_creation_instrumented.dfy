@@ -153,6 +153,11 @@ module DVC_Spec {
         s: ConsensusEngineState,
         new_attestation_slashing_db: set<SlashingDBAttestation>
     ): (r: ConsensusEngineState)
+    ensures && var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
+                    s.active_attestation_consensus_instances,
+                    new_attestation_slashing_db
+                );
+            && s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys == r.att_slashing_db_hist.Keys
     {
         var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
                     s.active_attestation_consensus_instances,

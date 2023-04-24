@@ -1069,7 +1069,7 @@ module Invs_DV_Next_4
         && inv_available_current_proposer_duty_is_latest_proposer_duty(s)
         && inv_only_dv_construct_complete_signing_functions(s)
         && inv_rcvd_block_shares_are_in_all_sent_messages(s) 
-        && inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
+        && inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(s)
         && inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)      
         && inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)    
         && inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)    

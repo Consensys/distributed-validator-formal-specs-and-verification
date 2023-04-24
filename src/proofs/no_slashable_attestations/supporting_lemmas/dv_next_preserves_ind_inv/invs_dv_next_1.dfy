@@ -12,8 +12,6 @@ include "../inv.dfy"
 
 include "invs_fnc_1.dfy"
 
-
-
 module Invs_DV_Next_1
 {
     import opened Types 
@@ -26,11 +24,11 @@ module Invs_DV_Next_1
     import opened Fnc_Invs_1
     import opened Helper_Sets_Lemmas
 
-    lemma lem_inv_quorum_constraints_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
+    lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_quorum_constraints(dv)
-    ensures inv_quorum_constraints(dv')
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    ensures inv_all_honest_nodes_is_a_quorum(dv')
     { }    
 
     lemma lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv: DVState, event: DV.Event, dv': DVState)       
@@ -93,15 +91,15 @@ module Invs_DV_Next_1
         }   
     } 
 
-    lemma lem_inv_latest_served_duty_is_rcvd_duty_dv_next(
+    lemma lem_inv_latest_att_duty_is_rcvd_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
-    requires inv_latest_served_duty_is_rcvd_duty(dv)
-    ensures inv_latest_served_duty_is_rcvd_duty(dv')
+    requires inv_latest_att_duty_is_rcvd_duty(dv)
+    ensures inv_latest_att_duty_is_rcvd_duty(dv')
     {        
         match event 
         {
@@ -111,20 +109,20 @@ module Invs_DV_Next_1
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>     
-                        lem_inv_latest_served_duty_is_rcvd_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_latest_att_duty_is_rcvd_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_latest_served_duty_is_rcvd_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
+                            lem_inv_latest_att_duty_is_rcvd_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                        
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_latest_served_duty_is_rcvd_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_latest_att_duty_is_rcvd_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_latest_served_duty_is_rcvd_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
+                        lem_inv_latest_att_duty_is_rcvd_duty_f_listen_for_new_imported_blocks(dvc, block, dvc');                        
                                                 
                     case ResendAttestationShares =>                         
                         
@@ -137,42 +135,42 @@ module Invs_DV_Next_1
         }   
     }  
 
-    lemma lem_inv_none_latest_served_duty_implies_none_current_att_duty_dv_next(
+    lemma lem_inv_none_latest_att_duty_implies_none_current_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    requires inv_none_latest_served_duty_implies_none_current_att_duty(dv)
-    ensures inv_none_latest_served_duty_implies_none_current_att_duty(dv')
+    requires inv_none_latest_att_duty_implies_none_current_att_duty(dv)
+    ensures inv_none_latest_att_duty_implies_none_current_att_duty(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];
-                assert inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc);
+                assert inv_none_latest_att_duty_implies_none_current_att_duty_body(dvc);
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>                             
-                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_none_latest_att_duty_implies_none_current_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                            lem_inv_none_latest_att_duty_implies_none_current_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_none_latest_att_duty_implies_none_current_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-                        assert inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc_mod);
-                        lem_inv_none_latest_served_duty_implies_none_current_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_none_latest_served_duty_implies_none_current_att_duty_body(dvc');
+                        lem_inv_none_latest_att_duty_implies_none_current_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        assert inv_none_latest_att_duty_implies_none_current_att_duty_body(dvc_mod);
+                        lem_inv_none_latest_att_duty_implies_none_current_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_none_latest_att_duty_implies_none_current_att_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
 
@@ -185,42 +183,42 @@ module Invs_DV_Next_1
         }   
     }  
 
-    lemma lem_inv_current_att_duty_is_either_none_or_latest_served_duty_dv_next(
+    lemma lem_inv_current_att_duty_is_either_none_or_latest_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    requires inv_current_att_duty_is_either_none_or_latest_served_duty(dv)
-    ensures inv_current_att_duty_is_either_none_or_latest_served_duty(dv')
+    requires inv_current_att_duty_is_either_none_or_latest_att_duty(dv)
+    ensures inv_current_att_duty_is_either_none_or_latest_att_duty(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];
-                assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc);
+                assert inv_current_att_duty_is_either_none_or_latest_att_duty_body(dvc);
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>                             
-                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_current_att_duty_is_either_none_or_latest_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                            lem_inv_current_att_duty_is_either_none_or_latest_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_current_att_duty_is_either_none_or_latest_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-                        assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc_mod);
-                        lem_inv_current_att_duty_is_either_none_or_latest_served_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_current_att_duty_is_either_none_or_latest_served_duty_body(dvc');
+                        lem_inv_current_att_duty_is_either_none_or_latest_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        assert inv_current_att_duty_is_either_none_or_latest_att_duty_body(dvc_mod);
+                        lem_inv_current_att_duty_is_either_none_or_latest_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_current_att_duty_is_either_none_or_latest_att_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
 
@@ -233,42 +231,42 @@ module Invs_DV_Next_1
         }   
     }  
 
-    lemma lem_inv_available_current_att_duty_is_latest_served_att_duty_dv_next(
+    lemma lem_inv_available_current_att_duty_is_latest_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')          
-    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)
-    ensures inv_available_current_att_duty_is_latest_served_att_duty(dv')
+    requires inv_available_current_att_duty_is_latest_att_duty(dv)
+    ensures inv_available_current_att_duty_is_latest_att_duty(dv')
     {        
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var dvc := dv.honest_nodes_states[node];
                 var dvc' := dv'.honest_nodes_states[node];
-                assert inv_available_current_att_duty_is_latest_served_att_duty_body(dvc);
+                assert inv_available_current_att_duty_is_latest_att_duty_body(dvc);
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>                             
-                        lem_inv_available_current_att_duty_is_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        lem_inv_available_current_att_duty_is_latest_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_available_current_att_duty_is_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                            lem_inv_available_current_att_duty_is_latest_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_available_current_att_duty_is_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_available_current_att_duty_is_latest_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-                        lem_inv_available_current_att_duty_is_latest_served_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-                        assert inv_available_current_att_duty_is_latest_served_att_duty_body(dvc_mod);
-                        lem_inv_available_current_att_duty_is_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_available_current_att_duty_is_latest_served_att_duty_body(dvc');
+                        lem_inv_available_current_att_duty_is_latest_att_duty_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+                        assert inv_available_current_att_duty_is_latest_att_duty_body(dvc_mod);
+                        lem_inv_available_current_att_duty_is_latest_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_available_current_att_duty_is_latest_att_duty_body(dvc');
                         
                     case ResendAttestationShares =>                                                                      
 
@@ -282,55 +280,55 @@ module Invs_DV_Next_1
     }  
 
     
-    lemma lem_inv_is_sequence_attestation_duties_to_be_serves_orders_dv_next(
+    lemma lem_inv_the_sequence_of_att_duties_is_in_order_of_slots_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    ensures inv_is_sequence_attestation_duties_to_be_serves_orders(dv')
+    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
+    ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(dv')
     { 
         assert dv.sequence_attestation_duties_to_be_served == dv'.sequence_attestation_duties_to_be_served;
     }
     
 
-    // // It takes more than 60 seconds to prove lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next.
-    // // lemma lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_dv_next(
+    // // It takes more than 60 seconds to prove lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_dv_next.
+    // // lemma lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_dv_next(
     // //     dv: DVState,
     // //     event: DV.Event,
     // //     dv': DVState
     // // )    
     // // requires NextEventPreCond(dv, event)
     // // requires NextEvent(dv, event, dv')      
-    // // requires inv_none_latest_served_duty_implies_none_current_att_duty(dv)
-    // // requires inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv)
-    // // ensures inv_no_queued_att_duty_if_latest_served_att_duty_is_none(dv')
+    // // requires inv_none_latest_att_duty_implies_none_current_att_duty(dv)
+    // // requires inv_no_queued_att_duty_if_latest_att_duty_is_none(dv)
+    // // ensures inv_no_queued_att_duty_if_latest_att_duty_is_none(dv')
     // // {        
     // //     match event 
     // //     {
     // //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
     // //             var dvc := dv.honest_nodes_states[node];
     // //             var dvc' := dv'.honest_nodes_states[node];
-    // //             assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc);
+    // //             assert inv_no_queued_att_duty_if_latest_att_duty_is_none_body(dvc);
     // //             match nodeEvent
     // //             {
     // //                 case ServeAttestationDuty(attestation_duty) =>                             
-    // //                     lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+    // //                     lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_f_serve_attestation_duty(dvc, attestation_duty, dvc');
                         
     // //                 case AttConsensusDecided(id, decided_attestation_data) => 
-    // //                     lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+    // //                     lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
     // //                 case ReceivedAttestationShare(attestation_share) =>                         
-    // //                     lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+    // //                     lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
    
     // //                 case ImportedNewBlock(block) => 
     // //                     var dvc_mod := f_add_block_to_bn(dvc, nodeEvent.block);
-    // //                     lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
-    // //                     assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc_mod);
-    // //                     lem_inv_no_queued_att_duty_if_latest_served_att_duty_is_none_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    // //                     assert inv_no_queued_att_duty_if_latest_served_att_duty_is_none_body(dvc');
+    // //                     lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_add_block_to_bn(dvc, nodeEvent.block, dvc_mod);
+    // //                     assert inv_no_queued_att_duty_if_latest_att_duty_is_none_body(dvc_mod);
+    // //                     lem_inv_no_queued_att_duty_if_latest_att_duty_is_none_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+    // //                     assert inv_no_queued_att_duty_if_latest_att_duty_is_none_body(dvc');
                         
     // //                 case ResendAttestationShares =>                                                                      
 
@@ -350,11 +348,11 @@ module Invs_DV_Next_1
     // // )    
     // // requires NextEventPreCond(dv, event)
     // // requires NextEvent(dv, event, dv')    
-    // // requires inv_quorum_constraints(dv)  
+    // // requires inv_all_honest_nodes_is_a_quorum(dv)  
     // // requires inv_unchanged_paras_of_consensus_instances(dv)
     // // requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
     // // 
-    // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
+    // // requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     // // requires concl_future_att_duty_is_higher_than_queued_att_duty(dv)
     // // requires inv_strictly_increasing_queue_of_att_duties(dv)
     // // ensures inv_strictly_increasing_queue_of_att_duties(dv')
@@ -406,22 +404,22 @@ module Invs_DV_Next_1
     // //     }   
     // // }  
 
-    // // lemma lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_dv_next(
+    // // lemma lem_inv_queued_att_duty_is_higher_than_latest_att_duty_dv_next(
     // //     dv: DVState,
     // //     event: DV.Event,
     // //     dv': DVState
     // // )    
     // // requires NextEventPreCond(dv, event)
     // // requires NextEvent(dv, event, dv')    
-    // // requires inv_quorum_constraints(dv)  
+    // // requires inv_all_honest_nodes_is_a_quorum(dv)  
     // // requires inv_unchanged_paras_of_consensus_instances(dv)  
     // // requires inv_queued_att_duty_is_dvn_seq_of_att_duty(dv)
     // // 
-    // // requires inv_latest_served_duty_is_rcvd_duty(dv)
-    // // requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)  
+    // // requires inv_latest_att_duty_is_rcvd_duty(dv)
+    // // requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)  
     // // requires inv_strictly_increasing_queue_of_att_duties(dv)
-    // // requires inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv)
-    // // ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty(dv')
+    // // requires inv_queued_att_duty_is_higher_than_latest_att_duty(dv)
+    // // ensures inv_queued_att_duty_is_higher_than_latest_att_duty(dv')
     // // {        
     // //     match event 
     // //     {
@@ -433,15 +431,15 @@ module Invs_DV_Next_1
     // //             {
     // //                 case ServeAttestationDuty(attestation_duty) =>                                                                     
                         
-    // //                     assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty); 
+    // //                     assert inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty); 
     // //                     assert concl_future_att_duty_is_higher_than_queued_att_duty_body(dvc, attestation_duty);                                             
-    // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
+    // //                     lem_inv_queued_att_duty_is_higher_than_latest_att_duty_f_serve_attestation_duty(dvc, attestation_duty, dvc');    
                         
     // //                 case AttConsensusDecided(id, decided_attestation_data) => 
-    // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+    // //                     lem_inv_queued_att_duty_is_higher_than_latest_att_duty_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         
     // //                 case ReceivedAttestationShare(attestation_share) =>                         
-    // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+    // //                     lem_inv_queued_att_duty_is_higher_than_latest_att_duty_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
     // //                 case ImportedNewBlock(block) =>                     
     // //                     var dvc_mod := f_add_block_to_bn(dvc, block);
@@ -449,35 +447,35 @@ module Invs_DV_Next_1
     // //                     
     // //                     lem_inv_strictly_increasing_queue_of_att_duties_add_block_to_bn(dvc, block, dvc_mod);
     // //                     assert inv_strictly_increasing_queue_of_att_duties_body(dvc_mod);
-    // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_add_block_to_bn(dvc, block, dvc_mod);
-    // //                     assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc_mod);
+    // //                     lem_inv_queued_att_duty_is_higher_than_latest_att_duty_add_block_to_bn(dvc, block, dvc_mod);
+    // //                     assert inv_queued_att_duty_is_higher_than_latest_att_duty_body(dvc_mod);
 
-    // //                     lem_inv_queued_att_duty_is_higher_than_latest_served_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-    // //                     assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc');
+    // //                     lem_inv_queued_att_duty_is_higher_than_latest_att_duty_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+    // //                     assert inv_queued_att_duty_is_higher_than_latest_att_duty_body(dvc');
                     
     // //                 case ResendAttestationShares =>                                                                                      
 
     // //                 case NoEvent => 
                         
     // //             }
-    // //             assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dvc');
+    // //             assert inv_queued_att_duty_is_higher_than_latest_att_duty_body(dvc');
 
     // //             forall n | n in dv'.honest_nodes_states.Keys 
-    // //             ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dv'.honest_nodes_states[n]);
+    // //             ensures inv_queued_att_duty_is_higher_than_latest_att_duty_body(dv'.honest_nodes_states[n]);
     // //             {
     // //                 if n != node 
     // //                 {
     // //                     assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
-    // //                     assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dv'.honest_nodes_states[n]);
+    // //                     assert inv_queued_att_duty_is_higher_than_latest_att_duty_body(dv'.honest_nodes_states[n]);
     // //                 }
     // //             }                
                 
     // //         case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
     // //             forall n | n in dv'.honest_nodes_states.Keys 
-    // //             ensures inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dv'.honest_nodes_states[n]);
+    // //             ensures inv_queued_att_duty_is_higher_than_latest_att_duty_body(dv'.honest_nodes_states[n]);
     // //             {
     // //                 assert dv.honest_nodes_states[n] == dv'.honest_nodes_states[n];
-    // //                 assert inv_queued_att_duty_is_higher_than_latest_served_att_duty_body(dv'.honest_nodes_states[n]);
+    // //                 assert inv_queued_att_duty_is_higher_than_latest_att_duty_body(dv'.honest_nodes_states[n]);
     // //             }   
                 
     // //     }   
@@ -505,13 +503,13 @@ module Invs_DV_Next_1
     { }
 
     // TODO
-    // IMPORTANT: update by using patterns in lem_ServeAttestationDuty2_helper
+    // IMPORTANT: update by using patterns in lem_ServeAttestationDuty_constraints2_helper
     lemma lem_inv_every_att_duty_before_dvn_att_index_was_delivered_f_serve_attestation_duty(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )  
-    requires inv_quorum_constraints(dv)    
+    requires inv_all_honest_nodes_is_a_quorum(dv)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
@@ -598,7 +596,7 @@ module Invs_DV_Next_1
         event: DV.Event,
         dv': DVState
     )
-    requires inv_quorum_constraints(dv)    
+    requires inv_all_honest_nodes_is_a_quorum(dv)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires pred_unchanged_dvn_seq_of_att_duties(dv, dv')
@@ -641,15 +639,15 @@ module Invs_DV_Next_1
         }        
     }   
     
-    lemma lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_dv_next(
+    lemma lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)  
-    ensures inv_no_active_consensus_instance_before_receiving_an_att_duty(dv')
+    requires inv_no_active_consensus_instances_before_the_first_att_duty_was_received(dv)  
+    ensures inv_no_active_consensus_instances_before_the_first_att_duty_was_received(dv')
     {        
         match event 
         {
@@ -660,23 +658,23 @@ module Invs_DV_Next_1
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>                                                                     
-                        lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
+                        lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');                                                
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
+                            lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');                                                
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
+                        lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');                        
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc_mod);
-                        lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc');
+                        lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body(dvc_mod);
+                        lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body(dvc');
                     
                     case ResendAttestationShares =>                                                                      
 
@@ -689,19 +687,19 @@ module Invs_DV_Next_1
         }   
     } 
 
-    lemma lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_dv_next(
+    lemma lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_latest_served_duty_is_rcvd_duty(dv)
-    requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
-    requires inv_no_active_consensus_instance_before_receiving_an_att_duty(dv)
-    requires inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv)  
-    ensures inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty(dv')
+    requires inv_latest_att_duty_is_rcvd_duty(dv)
+    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
+    requires inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
+    requires inv_no_active_consensus_instances_before_the_first_att_duty_was_received(dv)
+    requires inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty(dv)  
+    ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty(dv')
     {        
         match event 
         {
@@ -712,35 +710,35 @@ module Invs_DV_Next_1
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>   
-                        assert inv_latest_served_duty_is_rcvd_duty_body(dvc);                
-                        assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty);
-                        assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc);
-                        assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc);                                           
-                        lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc');
+                        assert inv_latest_att_duty_is_rcvd_duty_body(dvc);                
+                        assert inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, attestation_duty);
+                        assert inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body(dvc);
+                        assert inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc);                                           
+                        lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc);
-                            lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                            assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc');
+                            assert inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body(dvc);
+                            lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                            assert inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc');
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc');
+                        lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc');
                        
                     case ImportedNewBlock(block) => 
-                        assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc);
+                        assert inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body(dvc);
                         
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_no_active_consensus_instance_before_receiving_an_att_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_no_active_consensus_instance_before_receiving_an_att_duty_body(dvc_mod);
-                        lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc_mod);
-                        lem_inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_slot_of_active_consensus_instance_is_not_higher_than_slot_of_latest_served_att_duty_body(dvc');
+                        lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_no_active_consensus_instances_before_the_first_att_duty_was_received_body(dvc_mod);
+                        lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc_mod);
+                        lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 
@@ -753,15 +751,15 @@ module Invs_DV_Next_1
         }   
     } 
     
-    lemma lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_dv_next(
+    lemma lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv)  
-    ensures inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty(dv')
+    requires inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance(dv)  
+    ensures inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance(dv')
     {        
         match event 
         {
@@ -772,27 +770,27 @@ module Invs_DV_Next_1
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>   
-                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc);                                           
-                        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc');
+                        assert inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc);                                           
+                        lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                            assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc');
+                            lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                            assert inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc');
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc');
+                        lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc_mod);
-                        lem_inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_consensus_instance_only_for_slot_in_which_dvc_has_rcvd_att_duty_body(dvc');
+                        lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc_mod);
+                        lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 
@@ -805,15 +803,15 @@ module Invs_DV_Next_1
         }   
     } 
 
-    lemma lem_inv_consensus_instances_only_for_rcvd_duties_dv_next(
+    lemma lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_dv_next(
         dv: DVState,
         event: DV.Event,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_consensus_instances_only_for_rcvd_duties(dv)  
-    ensures inv_consensus_instances_only_for_rcvd_duties(dv')
+    requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k(dv)  
+    ensures inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k(dv')
     {        
         match event 
         {
@@ -824,27 +822,27 @@ module Invs_DV_Next_1
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) =>   
-                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc);                                           
-                        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
-                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
+                        assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc);                                           
+                        lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body_f_serve_attestation_duty(dvc, attestation_duty, dvc');
+                        assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc');
                         
                     case AttConsensusDecided(id, decided_attestation_data) => 
                         if f_att_consensus_decided.requires(dvc, id, decided_attestation_data)
                         {
-                            lem_inv_consensus_instances_only_for_rcvd_duties_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
-                            assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
+                            lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body_f_att_consensus_decided(dvc, id, decided_attestation_data, dvc');
+                            assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc');
                         }
 
                     case ReceivedAttestationShare(attestation_share) =>                         
-                        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
-                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
+                        lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body_f_listen_for_attestation_shares(dvc, attestation_share, dvc');
+                        assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc');
                        
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
-                        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_add_block_to_bn(dvc, block, dvc_mod);
-                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc_mod);
-                        lem_inv_consensus_instances_only_for_rcvd_duties_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
-                        assert inv_consensus_instances_only_for_rcvd_duties_body(dvc');
+                        lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body_f_add_block_to_bn(dvc, block, dvc_mod);
+                        assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc_mod);
+                        lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                        
+                        assert inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc');
 
                     case ResendAttestationShares =>                                                                      
 

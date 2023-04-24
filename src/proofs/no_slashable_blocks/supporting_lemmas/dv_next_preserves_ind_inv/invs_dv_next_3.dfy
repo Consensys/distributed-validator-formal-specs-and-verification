@@ -396,7 +396,7 @@ module Invs_DV_Next_3
     requires nodeEvent.BlockConsensusDecided?
     requires nodeEvent == BlockConsensusDecided(id, decided_beacon_block)
     requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)
-    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
+    requires inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
@@ -456,7 +456,7 @@ module Invs_DV_Next_3
                 assert s'.consensus_instances_on_beacon_block[id].decided_value.safe_get() == decided_beacon_block;
                 assert s'.consensus_instances_on_beacon_block[id].decided_value.safe_get() == block_share.block;
 
-                lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_dv_next(s, event, s');
+                lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_dv_next(s, event, s');
             }
         }
 
@@ -597,7 +597,7 @@ module Invs_DV_Next_3
     requires event.HonestNodeTakingStep?
     requires event.event.BlockConsensusDecided?
     requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)
-    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
+    requires inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_nodes_in_consensus_instances_are_in_dv(s)
@@ -825,7 +825,7 @@ module Invs_DV_Next_3
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)
     requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)
-    requires inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
+    requires inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(s)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(s)
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
@@ -873,7 +873,7 @@ module Invs_DV_Next_3
         }
     }
 
-    lemma lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_dv_next(
+    lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.Event,
         s': DVState
@@ -886,7 +886,7 @@ module Invs_DV_Next_3
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(s)
-    ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s')
+    ensures inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(s')
     {
         lem_inv_all_honest_nodes_is_a_quorum_dv_next(s, event, s');
         lem_inv_nodes_in_consensus_instances_are_in_dv_dv_next(s, event, s');
@@ -894,7 +894,7 @@ module Invs_DV_Next_3
         assert inv_only_dv_construct_complete_signed_block(s');
         lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_dv_next(s, event, s');
         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_dv_next(s, event, s');
-        lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(s');
+        lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k2(s');
     }
 
     lemma lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_dv_next(

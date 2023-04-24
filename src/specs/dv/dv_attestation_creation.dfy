@@ -188,7 +188,7 @@ module DV
         && (forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
         )        
-        && inv_sequence_attestation_duties_to_be_served_ordered(s)
+        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s)
         && s.index_next_attestation_duty_to_be_served == 0   
         // //
         && ( forall n | n in s.honest_nodes_states.Keys ::
@@ -197,7 +197,7 @@ module DV
     }
 
     // IMPORTANT
-    predicate inv_sequence_attestation_duties_to_be_served_ordered(s: DVState)
+    predicate inv_the_sequence_of_att_duties_is_in_order_of_slots(s: DVState)
     {
         && (forall i, j | 
                     && 0 <= i < j

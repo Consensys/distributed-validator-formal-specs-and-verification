@@ -24,13 +24,13 @@ module Proofs_Intermediate_Steps
     ensures same_honest_nodes_in_dv_and_ci(dv)
     { }
         
-    lemma lem_inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty_ind_inv(
+    lemma lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_current_att_duty_ind_inv(
         dv: DVState
     )         
-    requires inv_quorum_constraints(dv)      
+    requires inv_all_honest_nodes_is_a_quorum(dv)      
     requires inv_current_att_duty_is_rcvd_duty(dv)    
-    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
-    ensures inv_att_duty_in_next_delivery_is_not_lower_than_current_att_duty(dv)
+    requires inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
+    ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_current_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -49,13 +49,13 @@ module Proofs_Intermediate_Steps
         }
     } 
     
-    lemma lem_inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty_ind_inv(
+    lemma lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_latest_att_duty_ind_inv(
         dv: DVState
     )         
-    requires inv_quorum_constraints(dv)      
-    requires inv_latest_served_duty_is_rcvd_duty(dv)    
-    requires inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
-    ensures inv_att_duty_in_next_delivery_is_not_lower_than_latest_served_att_duty(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)      
+    requires inv_latest_att_duty_is_rcvd_duty(dv)    
+    requires inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
+    ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_latest_att_duty(dv)
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -74,13 +74,13 @@ module Proofs_Intermediate_Steps
         }
     } 
       
-    lemma lem_inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(
+    lemma lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(
         dv: DVState
     )    
-    requires inv_quorum_constraints(dv)  
-    requires inv_is_sequence_attestation_duties_to_be_serves_orders(dv)
-    requires inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty(dv)
-    ensures inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties(dv)    
+    requires inv_all_honest_nodes_is_a_quorum(dv)  
+    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
+    requires inv_rcvd_att_duties_are_from_dv_seq_of_att_duties(dv)
+    ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties(dv)    
     {   
         var queue := dv.sequence_attestation_duties_to_be_served;
         var index := dv.index_next_attestation_duty_to_be_served;        
@@ -94,7 +94,7 @@ module Proofs_Intermediate_Steps
             forall rcvd_duty: AttestationDuty | rcvd_duty in dvc.all_rcvd_duties
             ensures rcvd_duty.slot <= next_duty.slot
             {
-                assert inv_rcvd_att_duty_is_from_dv_seq_for_rcvd_att_duty_body_body(
+                assert inv_exists_an_att_duty_in_dv_seq_of_att_duties_for_a_given_att_duty(
                             rcvd_duty, 
                             hn, 
                             dv.sequence_attestation_duties_to_be_served,
@@ -109,29 +109,29 @@ module Proofs_Intermediate_Steps
                 assert rcvd_duty.slot <= next_duty.slot;
             }
 
-            assert inv_att_duty_in_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, next_duty);
+            assert inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties_body(dvc, next_duty);
         }        
     }
 
-    lemma lem_inv_active_consensus_instances_implied_the_delivery_of_att_duties_ind_inv(
+    lemma lem_inv_active_consensus_instances_imply_the_delivery_of_att_duties_ind_inv(
         dv: DVState
     )    
-    requires inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties(dv)
-    ensures inv_active_consensus_instances_implied_the_delivery_of_att_duties(dv)    
+    requires inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv)
+    ensures inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
-        ensures ( ( && is_honest_node(dv, hn) 
+        ensures ( ( && is_an_honest_node(dv, hn) 
                     && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
                   )
-                  ==> inv_active_consensus_instances_implied_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)
+                  ==> inv_active_consensus_instances_imply_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
-            if && is_honest_node(dv, hn) 
+            if && is_an_honest_node(dv, hn) 
                && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
             {
                 var hn_state := dv.honest_nodes_states[hn];
-                assert inv_att_slashing_db_hist_keeps_track_of_only_rcvd_att_duties_body(hn_state);
-                assert inv_active_consensus_instances_implied_the_delivery_of_att_duties_body(hn_state, s);
+                assert inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state);
+                assert inv_active_consensus_instances_imply_the_delivery_of_att_duties_body(hn_state, s);
             }
             else
             {}
@@ -139,24 +139,24 @@ module Proofs_Intermediate_Steps
             
     } 
 
-    lemma lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_ind_inv(
+    lemma lem_inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_ind_inv(
         dv: DVState
     )    
-    requires inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate(dv)
-    ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)    
+    requires inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
+    ensures inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
-            && is_honest_node(dv, hn)
+            && is_an_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
             && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
             && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s]            
         ensures ( exists duty, db ::
                     && var hn_state := dv.honest_nodes_states[hn];
-                    && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, hn, s, db, duty, vp) 
+                    && inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_body(dv, hn, s, db, duty, vp) 
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
-            assert inv_exists_db_in_att_slashing_db_hist_and_duty_for_every_validity_predicate_body(hn_state);
+            assert inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(hn_state);
             assert s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
             assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s];
 
@@ -172,15 +172,15 @@ module Proofs_Intermediate_Steps
                         && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                     ;
 
-            assert inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_att_duty_body(dv, hn, s, db, duty, vp);
+            assert inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_body(dv, hn, s, db, duty, vp);
         }
     }   
 
-    lemma lem_inv_current_latest_attestation_duty_match(
+    lemma lem_inv_available_current_att_duty_is_latest_att_duty(
         dv: DVState
     )    
-    requires inv_available_current_att_duty_is_latest_served_att_duty(dv)    
-    ensures inv_current_latest_attestation_duty_match(dv)    
+    requires inv_available_current_att_duty_is_latest_att_duty(dv)    
+    ensures inv_available_current_att_duty_is_latest_att_duty(dv)    
     {}
 
     lemma lem_construct_signed_attestation_signature_assumptions_helper(
@@ -193,18 +193,18 @@ module Proofs_Intermediate_Steps
                 dv.all_nodes)    
     {}
 
-    lemma lem_inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(
+    lemma lem_inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(
         dv: DVState
     )    
-    requires inv_active_attn_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)    
-    ensures  inv_active_attestation_consensus_instances_keys_is_subset_of_att_slashing_db_hist(dv)
+    requires inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)    
+    ensures  inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
     {}
 
-    lemma lem_inv_rcvd_attn_shares_are_from_sent_messages_inv_rcvd_attestation_shares_is_in_all_messages_sent(
+    lemma lem_inv_rcvd_att_shares_are_from_sent_messages_inv_rcvd_attestation_shares_are_sent_messages(
         dv: DVState
     )    
-    requires inv_rcvd_attn_shares_are_from_sent_messages(dv)    
-    ensures  inv_rcvd_attestation_shares_is_in_all_messages_sent(dv)
+    requires inv_rcvd_att_shares_are_from_sent_messages(dv)    
+    ensures  inv_rcvd_attestation_shares_are_sent_messages(dv)
     {}
 
     lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(

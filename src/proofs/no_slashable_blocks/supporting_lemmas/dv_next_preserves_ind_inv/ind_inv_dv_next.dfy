@@ -215,7 +215,7 @@ module Ind_Inv_DV_Next
     requires ind_inv(dv)
     ensures invs_group_9(dv')
     {
-        lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_dv_next(dv, e, dv');
+        lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_dv_next(dv, e, dv');
         lem_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');
         lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv');
         lem_inv_block_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');        

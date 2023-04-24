@@ -279,7 +279,7 @@ module Invs_DV_Next_2
     {        
     }
 
-    lemma lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_helper(
+    lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_helper(
         s: DVState,
         cid: Slot
     )
@@ -320,19 +320,19 @@ module Invs_DV_Next_2
         assert s_consensus.decided_value.safe_get().slot == cid;
     }
 
-    lemma lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k2(
+    lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k2(
         s: DVState
     )
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_nodes_in_consensus_instances_are_in_dv(s)    
-    ensures inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k(s)
+    ensures inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(s)
     {
         forall cid | && cid in s.consensus_instances_on_beacon_block.Keys
                      && s.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
         {
-           lem_inv_decided_value_of_consensus_instance_of_slot_k_is_for_slot_k_helper(s, cid);
+           lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_helper(s, cid);
         }
     }
 
