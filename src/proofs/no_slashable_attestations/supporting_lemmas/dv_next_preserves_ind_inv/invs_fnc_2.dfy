@@ -475,16 +475,6 @@ module Fnc_Invs_2
     ensures inv_monotonic_att_slashing_db_body(process, process')
     { } 
 
-    // lemma lem_inv_monotonic_att_slashing_db_dv_next(
-    //     dv: DVState,
-    //     event: DV.Event,
-    //     dv': DVState
-    // ) 
-    // requires NextEvent.requires(dv, event, dv')    
-    // requires NextEvent(dv, event, dv')  
-    // ensures inv_monotonic_att_slashing_db(dv, event, dv')
-    // { }
-
     lemma lem_inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db_body_f_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
@@ -1344,7 +1334,6 @@ module Fnc_Invs_2
         }
     }
 
-    // TODO: Simplify
     lemma lem_inv_rcvd_att_shares_are_from_sent_messages_f_listen_for_attestation_shares_domain(
         process: DVCState,
         attestation_share: AttestationShare,
@@ -1969,7 +1958,6 @@ module Fnc_Invs_2
 
         if !dvc.latest_attestation_duty.isPresent()
         {
-            // assert inv_no_rcvd_att_duties_are_higher_than_latest_att_duty_body(dvc');
             assert  dvc.all_rcvd_duties == {};
             assert  process_rcvd_duty.all_rcvd_duties 
                     ==
@@ -1985,39 +1973,6 @@ module Fnc_Invs_2
             assert dvc.latest_attestation_duty.safe_get().slot < attestation_duty.slot;
         }
     }
-
-    lemma lem_inv_one_honest_dvc_is_required_to_pass_signer_threshold(
-        dv: DVState,
-        att_shares: set<AttestationShare>,
-        signing_root: Root
-    )
-    requires signer_threshold(dv.all_nodes, att_shares, signing_root)
-    requires inv_all_honest_nodes_is_a_quorum(dv)
-    ensures && var signers := 
-                    set signer, att_share | 
-                        && att_share in att_shares
-                        && signer in dv.all_nodes
-                        && verify_bls_signature(signing_root, att_share.signature, signer)
-                    ::
-                        signer;
-            && exists hn :: hn in signers && is_an_honest_node(dv, hn)
-    {   
-        var all_nodes := dv.all_nodes;
-        var byz := dv.adversary.nodes;
-        var signers := 
-                    set signer, att_share | 
-                        && att_share in att_shares
-                        && signer in all_nodes
-                        && verify_bls_signature(signing_root, att_share.signature, signer)
-                    ::
-                        signer;
-
-        assert |signers| >= quorum(|all_nodes|);
-        assert signers <= all_nodes;
-        assert |byz| <= f(|all_nodes|);
-
-        lemmaThereExistsAnHonestInQuorum(all_nodes, byz, signers);
-    }  
 
     lemma lem_f_construct_aggregated_attestation_for_new_attestation_share_construct_valid_attestations(
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,

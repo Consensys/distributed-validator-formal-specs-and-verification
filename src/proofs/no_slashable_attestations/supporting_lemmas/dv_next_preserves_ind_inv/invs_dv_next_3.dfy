@@ -580,16 +580,7 @@ module Invs_DV_Next_3
         }        
     }  
 
-    // TODO: Rename
-    lemma lem_inv_monotonic_allMessagesSent(
-        dv: DVState,
-        event: DV.Event,
-        dv': DVState
-    )       
-    requires NextEventPreCond(dv, event)
-    requires NextEvent(dv, event, dv')  
-    ensures dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent
-    {}
+    
 
     lemma lem_inv_rcvd_att_shares_are_from_sent_messages_ReceivedAttestationShare(
         dv: DVState,

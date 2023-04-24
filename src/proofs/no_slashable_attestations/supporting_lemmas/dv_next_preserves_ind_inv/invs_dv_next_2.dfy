@@ -825,15 +825,29 @@ module Invs_DV_Next_2
         }            
     }
 
+    lemma lem_inv_monotonic_allMessagesSent(
+        dv: DVState,
+        event: DV.Event,
+        dv': DVState
+    )       
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    ensures dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent
+    {}
+
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_helper(
         s: DVState,
         event: DV.Event,
         cid: Slot,
-        s': DVState
+        s': DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.Event, 
+        nodeOutputs: Outputs
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
+    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires cid in s'.consensus_on_attestation_data.Keys
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires same_honest_nodes_in_dv_and_ci(s)
@@ -842,88 +856,88 @@ module Invs_DV_Next_2
     requires s.consensus_on_attestation_data[cid].decided_value.isPresent()
     ensures is_a_valid_decided_value(s'.consensus_on_attestation_data[cid]); 
     {
+        lem_inv_monotonic_allMessagesSent(s, event, s');
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
 
-                var s_w_honest_node_states_updated :=
-                    if nodeEvent.ImportedNewBlock? then 
-                        s.(
-                            honest_nodes_states := s.honest_nodes_states[node := f_add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
-                        )
-                    else 
-                        s 
-                    ;                
+        
+        var s_node := s.honest_nodes_states[node];
+        var s'_node := s'.honest_nodes_states[node];
 
-                assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
+        var s_w_honest_node_states_updated :=
+            if nodeEvent.ImportedNewBlock? then 
+                s.(
+                    honest_nodes_states := s.honest_nodes_states[node := f_add_block_to_bn(s.honest_nodes_states[node], nodeEvent.block)]
+                )
+            else 
+                s 
+            ;                
+
+        assert s_w_honest_node_states_updated.consensus_on_attestation_data == s.consensus_on_attestation_data;
 
 
-                var output := 
-                    if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
-                        Some(Decided(node, nodeEvent.decided_attestation_data))
-                    else
-                        None
-                    ;
+        var output := 
+            if nodeEvent.AttConsensusDecided? && nodeEvent.id == cid then 
+                Some(Decided(node, nodeEvent.decided_attestation_data))
+            else
+                None
+            ;
 
-                var validityPredicates := 
-                    map n |
-                            && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
-                        ::
-                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
-                    ;
+        var validityPredicates := 
+            map n |
+                    && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
+                    && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                ::
+                    s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+            ;
 
-                var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
-                var s'_consensus := s'.consensus_on_attestation_data[cid];                
+        var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
+        var s'_consensus := s'.consensus_on_attestation_data[cid];                
 
-                assert  ConsensusSpec.Next(
-                            s_consensus,
-                            validityPredicates,
-                            s'_consensus,
-                            output
-                        );
-
-                assert isConditionForSafetyTrue(s_consensus);
-                assert && s'_consensus.decided_value.isPresent()
-                       && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
-                       ;
-
-                var h_nodes :| is_a_valid_decided_value_according_to_set_of_nodes(s_consensus, h_nodes); 
-
-                assert  s_consensus.honest_nodes_validity_functions.Keys <= s'_consensus.honest_nodes_validity_functions.Keys;
-                assert  && var byz := s'.all_nodes - s'_consensus.honest_nodes_status.Keys;
-                        && |h_nodes| >= quorum(|s.all_nodes|) - |byz|;
-
-                lemmaNextConsensus(
+        assert  ConsensusSpec.Next(
                     s_consensus,
                     validityPredicates,
                     s'_consensus,
-                    output                        
+                    output
                 );
 
-                forall n | n in h_nodes 
-                ensures exists vp: AttestationData -> bool :: vp in s'_consensus.honest_nodes_validity_functions[n] && vp(s'_consensus.decided_value.safe_get());
-                {
-                    assert is_a_valid_decided_value(s_consensus); 
-                    var vp: AttestationData -> bool :| vp in s_consensus.honest_nodes_validity_functions[n] && vp(s_consensus.decided_value.safe_get()); 
-                    lemmaNextConsensus2(
-                        s_consensus,
-                        validityPredicates,
-                        s'_consensus,
-                        output,
-                        n                       
-                    );                        
-                    assert vp in  s'_consensus.honest_nodes_validity_functions[n]; 
-                    assert vp(s'_consensus.decided_value.safe_get());
-                    assert exists vp: AttestationData -> bool :: vp in s'_consensus.honest_nodes_validity_functions[n] && vp(s'_consensus.decided_value.safe_get());
-                }
+        assert isConditionForSafetyTrue(s_consensus);
+        assert && s'_consensus.decided_value.isPresent()
+                && s_consensus.decided_value.safe_get() == s'_consensus.decided_value.safe_get()
+                ;
 
-                assert is_a_valid_decided_value_according_to_set_of_nodes(s'_consensus, h_nodes); 
-                assert is_a_valid_decided_value(s'_consensus); 
+        var h_nodes :| is_a_valid_decided_value_according_to_set_of_nodes(s_consensus, h_nodes); 
+
+        assert  s_consensus.honest_nodes_validity_functions.Keys <= s'_consensus.honest_nodes_validity_functions.Keys;
+        assert  && var byz := s'.all_nodes - s'_consensus.honest_nodes_status.Keys;
+                && |h_nodes| >= quorum(|s.all_nodes|) - |byz|;
+
+        lemmaNextConsensus(
+            s_consensus,
+            validityPredicates,
+            s'_consensus,
+            output                        
+        );
+
+        forall n | n in h_nodes 
+        ensures exists vp: AttestationData -> bool :: vp in s'_consensus.honest_nodes_validity_functions[n] && vp(s'_consensus.decided_value.safe_get());
+        {
+            assert is_a_valid_decided_value(s_consensus); 
+            var vp: AttestationData -> bool :| vp in s_consensus.honest_nodes_validity_functions[n] && vp(s_consensus.decided_value.safe_get()); 
+            lemmaNextConsensus2(
+                s_consensus,
+                validityPredicates,
+                s'_consensus,
+                output,
+                n                       
+            );                        
+            assert vp in  s'_consensus.honest_nodes_validity_functions[n]; 
+            assert vp(s'_consensus.decided_value.safe_get());
+            assert exists vp: AttestationData -> bool :: vp in s'_consensus.honest_nodes_validity_functions[n] && vp(s'_consensus.decided_value.safe_get());
         }
+
+        assert is_a_valid_decided_value_according_to_set_of_nodes(s'_consensus, h_nodes); 
+        assert is_a_valid_decided_value(s'_consensus); 
+        
     }   
 
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(
@@ -961,7 +975,7 @@ module Invs_DV_Next_2
                 {
                     if s.consensus_on_attestation_data[cid].decided_value.isPresent()
                     {
-                        lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_helper(s, event, cid, s');
+                        lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_helper(s, event, cid, s', node, nodeEvent, nodeOutputs);
                     }
                     else
                     {
@@ -2028,29 +2042,6 @@ module Invs_DV_Next_2
         }
     }  
 
-    lemma lem_inv_the_sequence_of_att_duties_is_in_order_of_slots_dv_next(
-        s: DVState,
-        event: DV.Event,
-        s': DVState
-    )
-    requires NextEventPreCond(s, event)
-    requires NextEvent(s, event, s')  
-    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(s)
-    ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(s')
-    {
-        match event 
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
-            
-            case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
-        }
-        assert s'.sequence_attestation_duties_to_be_served == s.sequence_attestation_duties_to_be_served;
-
-    }
-
-    // TODO: Simplify
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided_helper_1(
         s: DVState,
         event: DV.Event,

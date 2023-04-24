@@ -53,10 +53,10 @@ module Invs_DV_Next_4
         && inv_only_dv_construct_signed_attestation_signature(s)
         && same_honest_nodes_in_dv_and_ci(s)    
         && inv_in_transit_messages_are_in_allMessagesSent(s)
-        && inv_future_decisions_known_by_dvc_are_decisions_of_quorums(s) //
-        && inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(s) //
-        && inv_data_of_att_shares_are_decided_values(s) //  
-        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s) //
+        && inv_future_decisions_known_by_dvc_are_decisions_of_quorums(s)
+        && inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(s) 
+        && inv_data_of_att_shares_are_decided_values(s) 
+        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s) 
         && inv_available_current_att_duty_is_latest_att_duty(s)
         && construct_signed_attestation_signature_assumptions_helper(
             s.construct_signed_attestation_signature,
@@ -305,7 +305,6 @@ module Invs_DV_Next_4
         
     }
 
-    // TODO
     lemma lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums_helper_honest(
         s: DVState,
         event: DV.Event,
@@ -635,7 +634,6 @@ module Invs_DV_Next_4
                     case ReceivedAttestationShare(attestation_share) =>
                         lem_NonServeAttestationDuty_unchanged_vars(s, event, s'); 
                         lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
-                        // lem_inv_slots_in_future_decided_data_are_correct_helper_easy(s', event, s_node, s'_node, node );
                         assert inv_slots_in_future_decided_data_are_correct_body(s', node, s'_node);  
                         
 

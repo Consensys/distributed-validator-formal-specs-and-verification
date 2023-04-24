@@ -1130,30 +1130,6 @@ module Invs_DV_Next_5
 
    
 
-    // lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_dv_next(
-    //     s: DVState,
-    //     event: DV.Event,
-    //     s': DVState
-    // )
-    // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s)
-    // requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)   
-    // requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(s)
-    // requires inv_the_sequence_of_att_duties_is_in_order_of_slots(s)
-    // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s)
-    // requires NextEventPreCond(s, event)
-    // requires NextEvent(s, event, s')  
-    // ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s')
-    // {
-    //     match event 
-    //     {
-    //         case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-    //             lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_HonestNodeTakingStep(s, event, s', node, nodeEvent, nodeOutputs);
-                
-    //         case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
-                
-    //     }
-    // }
-
     lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_HonestNodeTakingStep(
         s: DVState,
         event: DV.Event,
