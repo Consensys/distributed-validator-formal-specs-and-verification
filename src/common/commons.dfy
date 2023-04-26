@@ -20,7 +20,16 @@ module Types
     )
 
     type {:extern "Domain"} Domain(==)
-    // type AttestationDuty 
+
+    datatype AttestationDuty = AttestationDuty(
+        pubkey: BLSPubkey,
+        validator_index: ValidatorIndex,
+        committee_index: CommitteeIndex,
+        committee_length: nat,
+        committees_at_slot: Slot,
+        validator_committee_index: ValidatorIndex,
+        slot: Slot        
+    ) 
     datatype AttestationData = AttestationData(
         slot: Slot,
         index: CommitteeIndex,
@@ -30,7 +39,38 @@ module Types
         source: Checkpoint,
         target: Checkpoint
     )
-    
+
+    datatype Attestation = Attestation(
+        aggregation_bits: seq<bool>,
+        data: AttestationData,
+        signature: BLSSignature
+    )
+
+    datatype AttestationShare = AttestationShare(
+        aggregation_bits: seq<bool>,
+        data: AttestationData,
+        signature: BLSSignature
+    )
+
+    datatype  SlashingDBAttestation = SlashingDBAttestation(
+        source_epoch: Epoch,
+        target_epoch: Epoch,
+        signing_root: Optional<Root>
+    )
+
+    datatype ProposerDuty = ProposerDuty(
+        pubkey: BLSPubkey,
+        validator_index: ValidatorIndex,
+        slot: Slot        
+    )
+
+    datatype RandaoShare = RandaoShare(
+        proposer_duty: ProposerDuty,
+        slot: Slot,
+        signing_root: Root,
+        signature: BLSSignature
+    )
+
     datatype BeaconBlock = BeaconBlock(
         slot: Slot,
         proposer_index: ValidatorIndex,
@@ -47,47 +87,16 @@ module Types
         // ... Other fields irrelevant to this spec
     )
 
-    datatype Attestation = Attestation(
-        aggregation_bits: seq<bool>,
-        data: AttestationData,
-        signature: BLSSignature
-    )
-
-    datatype AttestationShare = AttestationShare(
-        aggregation_bits: seq<bool>,
-        data: AttestationData,
-        signature: BLSSignature
-    )
-
-    datatype AttestationDuty = AttestationDuty(
-        pubkey: BLSPubkey,
-        validator_index: ValidatorIndex,
-        committee_index: CommitteeIndex,
-        committee_length: nat,
-        committees_at_slot: Slot,
-        validator_committee_index: ValidatorIndex,
-        slot: Slot        
-    )
-
-    datatype ProposerDuty = ProposerDuty(
-        pubkey: BLSPubkey,
-        validator_index: ValidatorIndex,
-        slot: Slot        
-    )
-
     datatype SignedBeaconBlock = SignedBeaconBlock(
-        message: BeaconBlock,
+        block: BeaconBlock,
         signature: BLSSignature
     )
 
-    datatype BlockSlashingDB = BlockSlashingDB
-    type {:extern "SlashingDBBlock"} SlashingDBBlock(==, !new)
-
-    datatype  SlashingDBAttestation = SlashingDBAttestation(
-        source_epoch: Epoch,
-        target_epoch: Epoch,
+    datatype SlashingDBBlock = SlashingDBBlock(        
+        slot: Slot,
         signing_root: Optional<Root>
     )
+    
 
     datatype Status =
     | Success
@@ -102,13 +111,24 @@ module Types
         }
     }   
 
-    datatype Event = 
-    | ServeAttestationDuty(attestation_duty: AttestationDuty)
-    | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
-    | ReceivedAttestationShare(attestation_share: AttestationShare)
-    | ImportedNewBlock(block: BeaconBlock)
-    | ResendAttestationShares
-    | NoEvent    
+    datatype AttestationEvent = 
+        | ServeAttestationDuty(attestation_duty: AttestationDuty)
+        | AttConsensusDecided(id: Slot, decided_attestation_data: AttestationData)
+        | ReceivedAttestationShare(attestation_share: AttestationShare)
+        | ImportedNewBlock(block: BeaconBlock)
+        | ResendAttestationShares
+        | NoEvent    
+
+
+    datatype BlockEvent = 
+        | ServeProposerDuty(proposer_duty: ProposerDuty)
+        | BlockConsensusDecided(id: Slot, decided_beacon_block: BeaconBlock)
+        | ReceiveRandaoShare(randao_share: RandaoShare)
+        | ReceiveSignedBeaconBlock(block_share: SignedBeaconBlock)
+        | ImportedNewBlock(block: BeaconBlock)       
+        | ResendRandaoRevealSignatureShare
+        | ResendBlockShare
+        | NoEvent      
 
     type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
     type iseq<T> = imaptotal<nat, T>
@@ -170,6 +190,17 @@ module Types
         attestation_duty: AttestationDuty,
         validityPredicate: AttestationData -> bool
     ) 
+
+    datatype BlockConsensusValidityCheckState = BlockConsensusValidityCheckState(
+        proposer_duty: ProposerDuty,
+        randao_reveal: BLSSignature,
+        validityPredicate: BeaconBlock -> bool
+    )
+
+    datatype DomainTypes = 
+        | DOMAIN_BEACON_ATTESTER
+        | DOMAIN_RANDAO
+        | DOMAIN_BEACON_PROPOSER
 }
 
 module CommonFunctions{
@@ -188,8 +219,7 @@ module CommonFunctions{
         epoch * SLOTS_PER_EPOCH
     }   
 
-    datatype DomainTypes = 
-        | DOMAIN_BEACON_ATTESTER
+    
 
 
     // TODO: What about the genesis_validator_root parameter?
