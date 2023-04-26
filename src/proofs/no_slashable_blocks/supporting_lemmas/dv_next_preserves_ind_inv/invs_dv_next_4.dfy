@@ -47,7 +47,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_monotonic_block_share_network_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )       
     requires NextEventPreCond(dv, event)
@@ -57,7 +57,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_rcvd_block_shares_are_from_sent_messages_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )       
     requires NextEventPreCond(dv, event)
@@ -232,7 +232,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -302,7 +302,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -405,7 +405,7 @@ module Invs_DV_Next_4
     
     lemma lem_inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -454,7 +454,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_unchanged_dvc_rs_pubkey_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -506,7 +506,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -555,7 +555,7 @@ module Invs_DV_Next_4
 
     lemma lem_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVC_Spec_Next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -569,7 +569,7 @@ module Invs_DV_Next_4
 
     lemma inv_inv_block_slashing_db_hist_is_monotonic_body(
         process: DVCState,
-        nodeEvent: Block_Types.Event,
+        nodeEvent: Block_Types.BlockEvent,
         process': DVCState,
         outputs: Outputs        
     )
@@ -610,7 +610,7 @@ module Invs_DV_Next_4
     
     lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         cid: Slot,
         hn: BLSPubkey,
         s': DVState
@@ -713,7 +713,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -726,7 +726,7 @@ module Invs_DV_Next_4
     ensures inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey, slot: Slot |
-            hn in s'.honest_nodes_states
+            hn in s'.honest_nodes_states.Keys
         ensures inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot)    
         {
             lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, event, slot, hn, s');
@@ -735,7 +735,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_none_latest_proposer_duty_and_empty_set_of_rcvd_proposer_duties_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -802,7 +802,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -870,10 +870,10 @@ module Invs_DV_Next_4
 
     lemma lem_validNodeEvent_ServeProposerDuty(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.Event, 
+        nodeEvent: Block_Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -897,10 +897,10 @@ module Invs_DV_Next_4
 
     lemma lem_inv_unique_rcvd_proposer_duty_per_slot_ServeProposerDuty(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.Event, 
+        nodeEvent: Block_Types.BlockEvent, 
         nodeOutputs: Outputs,
         proposer_duty: ProposerDuty
     )    
@@ -993,7 +993,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_unique_rcvd_proposer_duty_per_slot_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1078,7 +1078,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_consensus_instance_isConditionForSafetyTrue_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
@@ -1119,7 +1119,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_unchanged_decision_dv(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState,
         slot: Slot
     )
@@ -1136,7 +1136,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_decisions_of_consensus_instances_are_unchanged(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )
     requires NextEventPreCond(dv, event)

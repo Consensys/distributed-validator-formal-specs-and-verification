@@ -3218,6 +3218,17 @@ module Fnc_Invs_1
 
     }
 
+    lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_listen_for_block_signature_shares(
+        process: DVCState,
+        block_share: SignedBeaconBlock,
+        process': DVCState
+    )
+    requires f_listen_for_block_signature_shares.requires(process, block_share)
+    requires process' == f_listen_for_block_signature_shares(process, block_share).state 
+    requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process)
+    ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process')
+    { } 
+
     lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_block_consensus_decided(
         process: DVCState,
         id: Slot,
@@ -3286,7 +3297,7 @@ module Fnc_Invs_1
             {
                 if  s in process.block_consensus_engine_state.block_slashing_db_hist.Keys                    
                 {
-                    if  vp in process.block_consensus_engine_state.block_slashing_db_hist[s]
+                    if  vp in process.block_consensus_engine_state.block_slashing_db_hist[s].Keys
                     {
                         assert  ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
                                     && duty.slot == s
@@ -3345,17 +3356,8 @@ module Fnc_Invs_1
         }            
     }  
 
-    lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_listen_for_block_signature_shares(
-        process: DVCState,
-        block_share: SignedBeaconBlock,
-        process': DVCState
-    )
-    requires f_listen_for_block_signature_shares.requires(process, block_share)
-    requires process' == f_listen_for_block_signature_shares(process, block_share).state
-    requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process)
-    ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process')
-    { }
-
+    
+    // TODO: Investigate effects of .Keys on block_slashing_db_hist
     lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
@@ -3366,7 +3368,147 @@ module Fnc_Invs_1
     requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process)
     requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process)
     ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process')
-    { }  
+    { 
+        var new_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock> := 
+            map[ block.slot := block ];
+
+        var consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided + new_consensus_instances_on_blocks_already_decided;
+
+        var future_consensus_instances_on_blocks_already_decided := 
+            f_listen_for_new_imported_blocks_helper(process, consensus_instances_on_blocks_already_decided);
+
+        var process_after_stopping_consensus_instance :=
+            process.(
+                future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
+                block_consensus_engine_state := stopBlockConsensusInstances(
+                                process.block_consensus_engine_state,
+                                consensus_instances_on_blocks_already_decided.Keys
+                ),
+                block_shares_to_broadcast := process.block_shares_to_broadcast - consensus_instances_on_blocks_already_decided.Keys,
+                rcvd_block_shares := process.rcvd_block_shares - consensus_instances_on_blocks_already_decided.Keys                    
+            );  
+        assert  process.block_consensus_engine_state.block_slashing_db_hist
+                ==
+                process_after_stopping_consensus_instance.block_consensus_engine_state.block_slashing_db_hist
+                ; 
+
+        if  && process_after_stopping_consensus_instance.current_proposer_duty.isPresent() 
+            && process_after_stopping_consensus_instance.current_proposer_duty.safe_get().slot in consensus_instances_on_blocks_already_decided 
+        {
+            var decided_beacon_blocks := consensus_instances_on_blocks_already_decided[process.current_proposer_duty.safe_get().slot];
+            var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(decided_beacon_blocks);
+            var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, decided_beacon_blocks);
+            var new_active_consensus_instances_on_beacon_blocks := 
+                updateBlockConsensusInstanceValidityCheckHelper(
+                    process_after_stopping_consensus_instance.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
+                    new_block_slashing_db
+                );
+            var process_after_updating_validity_check := 
+                process_after_stopping_consensus_instance.(
+                    current_proposer_duty := None,
+                    block_slashing_db := new_block_slashing_db,
+                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                        process_after_stopping_consensus_instance.block_consensus_engine_state,
+                        new_block_slashing_db
+                    ),
+                    latest_slashing_db_block := Some(new_slashingDB_block)          
+                );
+
+            assert  process' == process_after_updating_validity_check;
+
+            var hist := process_after_stopping_consensus_instance.block_consensus_engine_state.block_slashing_db_hist;
+            var hist' := process'.block_consensus_engine_state.block_slashing_db_hist;
+            assert  hist == process.block_consensus_engine_state.block_slashing_db_hist;
+
+            forall s: Slot, vp: BeaconBlock -> bool | 
+                            && s in hist'.Keys
+                            && vp in hist'[s].Keys
+            ensures ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
+                        && duty.slot == s
+                        && db in process'.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+                        && vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(db, block, duty, randao_reveal)
+                    )
+            {
+
+                var hist_s := getOrDefault(hist, s, map[]);
+                var hist_s_vp := getOrDefault(hist_s, vp, {});
+                
+
+                var hist_s' := getOrDefault(hist', s, map[]);
+                var hist_s_vp' := getOrDefault(hist_s', vp, {});
+                var new_set := {new_block_slashing_db};
+
+                if  s in hist.Keys 
+                {
+                    if  vp in hist[s].Keys
+                    {
+                        var db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature :|
+                                    && duty.slot == s
+                                    && db in process.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+                                    && vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(db, block, duty, randao_reveal)
+                            ;   
+
+                        lem_member_of_subset_is_member_of_superset(
+                            db, 
+                            process.block_consensus_engine_state.block_slashing_db_hist[s][vp],
+                            process'.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+                        );
+                        assert db in process'.block_consensus_engine_state.block_slashing_db_hist[s][vp];
+
+                        assert ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
+                                    && duty.slot == s
+                                    && db in process'.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+                                    && vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(db, block, duty, randao_reveal)
+                                ); 
+                    }
+                    else
+                    {
+                        assert  hist_s_vp == {};
+
+                        lem_union_with_empty_set_is_unchanged(hist_s_vp, new_set, hist_s_vp');
+                        assert  hist_s_vp' == {new_block_slashing_db};
+
+                        lemmaSingletonSetToMembership(new_block_slashing_db, hist_s_vp');
+                        assert  new_block_slashing_db in hist_s_vp';
+
+                        var proposer_duty := new_active_consensus_instances_on_beacon_blocks[s].proposer_duty;
+                        var randao_reveal := new_active_consensus_instances_on_beacon_blocks[s].randao_reveal;
+                        assert  vp == new_active_consensus_instances_on_beacon_blocks[s].validityPredicate;
+                        assert  vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
+                                                        new_block_slashing_db, 
+                                                        block, 
+                                                        proposer_duty,
+                                                        randao_reveal 
+                                                    );
+                    }
+                }
+                else
+                {
+                    assert  hist_s_vp == {};
+
+                    lem_union_with_empty_set_is_unchanged(hist_s_vp, new_set, hist_s_vp');
+                    assert  hist_s_vp' == {new_block_slashing_db};
+
+                    lemmaSingletonSetToMembership(new_block_slashing_db, hist_s_vp');
+                    assert  new_block_slashing_db in hist_s_vp';
+
+                    var proposer_duty := new_active_consensus_instances_on_beacon_blocks[s].proposer_duty;
+                    var randao_reveal := new_active_consensus_instances_on_beacon_blocks[s].randao_reveal;
+                    assert  vp == new_active_consensus_instances_on_beacon_blocks[s].validityPredicate;
+                    assert  vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
+                                                    new_block_slashing_db, 
+                                                    block, 
+                                                    proposer_duty,
+                                                    randao_reveal 
+                                                );                                                                    
+                }
+            }
+        }
+        else
+        {
+            assert inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process');
+        }
+    }  
 
     lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_resend_randao_share(
         process: DVCState, 

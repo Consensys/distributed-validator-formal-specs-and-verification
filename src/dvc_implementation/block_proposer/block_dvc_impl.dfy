@@ -89,7 +89,7 @@ abstract module Block_DVC_Impl
 
         // The only public method
         method process_event(
-            event: Event
+            event: BlockEvent
         ) 
         requires ValidRepr()
         modifies getRepr()

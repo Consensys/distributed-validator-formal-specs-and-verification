@@ -496,7 +496,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         cid: Slot
     )
     requires n in dv.honest_nodes_states.Keys 
-    requires cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
+    requires cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
     {
         && var dvc := dv.honest_nodes_states[n];
         && var bci := dvc.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid];
@@ -513,7 +513,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     )
     {
         forall n, cid | 
-            && n in dv.honest_nodes_states 
+            && n in dv.honest_nodes_states.Keys
             && cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
             ::
             inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(dv, n, cid)
@@ -610,7 +610,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     {
         forall s: Slot, vp: BeaconBlock -> bool |
                 ( && s in ces.block_slashing_db_hist.Keys
-                  && vp in ces.block_slashing_db_hist[s]
+                  && vp in ces.block_slashing_db_hist[s].Keys
                 )
                 :: 
                 ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
@@ -624,7 +624,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     {
         forall s: Slot, vp: BeaconBlock -> bool |
                 ( && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
-                  && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]
+                  && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s].Keys
                 )
                 :: 
                 ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
@@ -665,7 +665,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         dvc'.block_consensus_engine_state.block_slashing_db_hist.Keys
     }
 
-    predicate inv_block_slashing_db_hist_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)    
+    predicate inv_block_slashing_db_hist_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states
@@ -674,7 +674,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && inv_block_slashing_db_hist_is_monotonic_body(dvc, dvc')
     }
 
-    predicate inv_all_blocks_created_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)    
+    predicate inv_all_blocks_created_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
     {
         dv.all_blocks_created <= dv'.all_blocks_created
     }
@@ -683,7 +683,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     {
         forall s: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> |
                 ( && s in ces.block_slashing_db_hist.Keys
-                  && vp in ces.block_slashing_db_hist[s]
+                  && vp in ces.block_slashing_db_hist[s].Keys
                   && db in ces.block_slashing_db_hist[s][vp]
                 )
                 :: 
@@ -744,7 +744,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         dv: DVState    
     )
     {
-        forall n | n in dv.honest_nodes_states ::
+        forall n | n in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[n];
             && inv_rcvd_block_shares_are_from_sent_messages_body(dv, dvc)
     } 
@@ -803,8 +803,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         index_next_proposer_duty_to_be_served: nat
     )
     {
-        forall slot  |
-            && slot in n_state.block_consensus_engine_state.block_slashing_db_hist
+        forall slot | slot in n_state.block_consensus_engine_state.block_slashing_db_hist.Keys
             ::
             exists i: Slot :: 
                 && i < index_next_proposer_duty_to_be_served
@@ -840,8 +839,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         dvc: DVCState       
     )
     {
-        forall slot: Slot |
-            && slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
+        forall slot: Slot | slot in dvc.block_consensus_engine_state.block_slashing_db_hist.Keys
             ::
             slot < get_upperlimit_active_instances(dvc)
     }     
@@ -854,6 +852,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body(dv.honest_nodes_states[hn])        
     }     
 
+    // TODO: Investigate
     predicate inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(
         dv: DVState, 
         n: BLSPubkey,
@@ -966,7 +965,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
              && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
              && vp in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions[hn]
     {        
-        vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]   
+        vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s].Keys
     }
 
     predicate inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(
@@ -1135,18 +1134,18 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)                
     }
 
-    predicate inv__block_slashing_db_is_monotonic_body(dvc: DVCState, dvc': DVCState)
+    predicate inv_block_slashing_db_is_monotonic_body(dvc: DVCState, dvc': DVCState)
     {
         dvc.block_slashing_db <= dvc'.block_slashing_db
     }
 
-    predicate inv__block_slashing_db_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.Event, dv': DVState)    
+    predicate inv_block_slashing_db_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
-            && hn in dv'.honest_nodes_states
+            && hn in dv'.honest_nodes_states.Keys
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
-            && inv__block_slashing_db_is_monotonic_body(dvc, dvc')
+            && inv_block_slashing_db_is_monotonic_body(dvc, dvc')
     }
 
     
@@ -1174,7 +1173,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         ==>
         (
             && cid in n_state.block_consensus_engine_state.block_slashing_db_hist.Keys  
-            && n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate in n_state.block_consensus_engine_state.block_slashing_db_hist[cid] 
+            && n_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate in n_state.block_consensus_engine_state.block_slashing_db_hist[cid].Keys
         )
     }  
    
@@ -1207,7 +1206,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     predicate inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv: DVState)
     {
         forall hn: BLSPubkey, s: Slot |
-            hn in dv.honest_nodes_states
+            hn in dv.honest_nodes_states.Keys
             :: 
             inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
     } 
@@ -1261,6 +1260,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             &&  var dvc := dv.honest_nodes_states[hn];
             &&  inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc)
     }
+    
     predicate inv_block_of_all_created_blocks_is_set_of_decided_values(dv: DVState)
     {
         forall complete_block | complete_block in dv.all_blocks_created ::
@@ -1532,7 +1532,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && var dvc := dv.honest_nodes_states[hn];
         && forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
                 && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
-                && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot]
+                && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
                 && db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
                 :: 
                 inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
@@ -1594,7 +1594,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     {
         forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
             && slot in dvc.block_consensus_engine_state.block_slashing_db_hist
-            && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot]
+            && vp in dvc.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
             && db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
             :: 
             inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(

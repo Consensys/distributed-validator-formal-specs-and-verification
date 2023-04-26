@@ -43,7 +43,7 @@ module Ind_Inv_DV_Next
     import opened Proofs_Intermediate_Steps
     
 
-    lemma lem_ind_inv_dv_next_invs_group_1(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_1(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -56,7 +56,7 @@ module Ind_Inv_DV_Next
         lem_inv_latest_served_duty_is_a_rcvd_duty_dv_next(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_2(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_2(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -67,7 +67,7 @@ module Ind_Inv_DV_Next
         lem_inv_available_current_proposer_duty_is_latest_proposer_duty_dv_next(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_3(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_3(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -78,7 +78,7 @@ module Ind_Inv_DV_Next
         lem_inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_dv_next(dv, e, dv');                        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_4(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_4(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -90,7 +90,7 @@ module Ind_Inv_DV_Next
         lem_inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_dv_next(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_5(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_5(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -101,7 +101,7 @@ module Ind_Inv_DV_Next
         lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_dv_next(dv, e, dv');          
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_6(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_6(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -111,7 +111,7 @@ module Ind_Inv_DV_Next
         lem_inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_dv_next(dv, e, dv');  
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_7(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_7(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -197,7 +197,7 @@ module Ind_Inv_DV_Next
         lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(dv);
     }
    
-    lemma lem_ind_inv_dv_next_invs_group_8(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_8(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -209,7 +209,7 @@ module Ind_Inv_DV_Next
         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_dv_next(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_9(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_9(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -221,7 +221,7 @@ module Ind_Inv_DV_Next
         lem_inv_block_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_10(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_10(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -234,7 +234,7 @@ module Ind_Inv_DV_Next
         lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(dv, e, dv');
     }
     
-    lemma lem_ind_inv_dv_next_invs_group_11(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_11(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -247,7 +247,7 @@ module Ind_Inv_DV_Next
         lem_inv_unique_rcvd_proposer_duty_per_slot_dv_next(dv, e, dv');     
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_12(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_12(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -260,7 +260,7 @@ module Ind_Inv_DV_Next
         lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_13(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_13(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -272,7 +272,7 @@ module Ind_Inv_DV_Next
         lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_14(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_14(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -285,7 +285,7 @@ module Ind_Inv_DV_Next
         lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_15(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_invs_group_15(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -306,7 +306,7 @@ module Ind_Inv_DV_Next
         lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_dv_next(dv, e, dv');
     }
     
-    lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -319,7 +319,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_3(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_2(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_2(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)  
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)    
@@ -336,7 +336,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_8(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_3(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_3(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -349,7 +349,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_11(dv, e, dv');                                     
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_4(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_4(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
@@ -360,7 +360,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_13(dv, e, dv');             
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_5(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_5(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)    
@@ -371,7 +371,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_15(dv, e, dv');                              
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_a(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_a(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv) 
@@ -388,7 +388,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_2(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_b(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_b(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv) 
@@ -405,7 +405,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_5(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv) 
@@ -429,7 +429,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_b(dv, e, dv');                
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv(dv: DVState, e: DV_Block_Proposer_Spec.Event, dv': DVState)       
+    lemma lem_ind_inv_dv_next_ind_inv(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires DV_Block_Proposer_Spec.NextEventPreCond(dv, e)
     requires DV_Block_Proposer_Spec.NextEvent(dv, e, dv')  
     requires ind_inv(dv)    

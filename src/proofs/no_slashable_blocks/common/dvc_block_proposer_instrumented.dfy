@@ -119,6 +119,11 @@ module DVC_Block_Proposer_Spec_Instr {
         new_block_slashing_db: set<SlashingDBBlock>
     ): (new_hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>)
     ensures hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys == new_hist.Keys
+    ensures ( forall s, vp | s in hist.Keys && vp in hist[s].Keys ::
+                && s in new_hist.Keys 
+                && vp in new_hist[s].Keys
+                && hist[s][vp] <= new_hist[s][vp]
+            )
     {
             var ret 
                 := 
@@ -273,7 +278,7 @@ module DVC_Block_Proposer_Spec_Instr {
 
     predicate Next(
         s: DVCState,
-        event: Event,
+        event: BlockEvent,
         s': DVCState,
         outputs: Outputs
     )
@@ -289,7 +294,7 @@ module DVC_Block_Proposer_Spec_Instr {
 
     function f_process_event(
         s: DVCState,
-        event: Event        
+        event: BlockEvent        
     ): DVCStateAndOuputs
     requires match event         
                 case ServeProposerDuty(proposer_duty) => 

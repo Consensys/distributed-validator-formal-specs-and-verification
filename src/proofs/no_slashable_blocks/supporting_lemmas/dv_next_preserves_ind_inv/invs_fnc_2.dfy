@@ -1058,48 +1058,48 @@ module Fnc_Invs_2
     // { }  
 
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_add_block_to_bn(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_add_block_to_bn(
         s: DVCState,
         block: BeaconBlock,
         s': DVCState 
     )
     requires f_add_block_to_bn.requires(s, block)
     requires s' == f_add_block_to_bn(s, block)    
-    ensures inv__block_slashing_db_is_monotonic_body(s, s') 
+    ensures inv_block_slashing_db_is_monotonic_body(s, s') 
     { }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_terminate_current_proposer_duty(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_terminate_current_proposer_duty(
         s: DVCState,
         s': DVCState 
     )
     requires f_terminate_current_proposer_duty.requires(s)
     requires s' == f_terminate_current_proposer_duty(s)    
-    ensures inv__block_slashing_db_is_monotonic_body(s, s') 
+    ensures inv_block_slashing_db_is_monotonic_body(s, s') 
     { }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_listen_for_block_signature_shares(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_listen_for_block_signature_shares(
         process: DVCState,
         block_share: SignedBeaconBlock,
         process': DVCState
     )
     requires f_listen_for_block_signature_shares.requires(process, block_share)
     requires process' == f_listen_for_block_signature_shares(process, block_share).state        
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_start_consensus_if_can_construct_randao_share(process: DVCState, process': DVCState)
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_start_consensus_if_can_construct_randao_share(process: DVCState, process': DVCState)
     requires f_start_consensus_if_can_construct_randao_share.requires(process)
     requires process' == f_start_consensus_if_can_construct_randao_share(process).state       
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { } 
 
-    lemma lem_inv__block_slashing_db_is_monotonic_f_listen_for_randao_shares(
+    lemma lem_inv_block_slashing_db_is_monotonic_f_listen_for_randao_shares(
         process: DVCState, 
         randao_share: RandaoShare,
         process': DVCState)
     requires f_listen_for_randao_shares.requires(process, randao_share)
     requires process' == f_listen_for_randao_shares(process, randao_share).state   
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { 
         var slot := randao_share.slot;
         var active_consensus_instances_on_beacon_blocks := process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
@@ -1111,7 +1111,7 @@ module Fnc_Invs_2
                     rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
                                                                                     {randao_share} ]
                 );   
-            lem_inv__block_slashing_db_is_monotonic_body_f_start_consensus_if_can_construct_randao_share(
+            lem_inv_block_slashing_db_is_monotonic_body_f_start_consensus_if_can_construct_randao_share(
                 process_with_new_randao_share,
                 process'
             );
@@ -1120,25 +1120,25 @@ module Fnc_Invs_2
         { }
     } 
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_resend_block_share(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_resend_block_share(
         process: DVCState,
         process': DVCState)
     requires f_resend_block_share.requires(process)
     requires process' == f_resend_block_share(process).state        
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')    
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')    
     { } 
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_check_for_next_duty(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_check_for_next_duty(
         process: DVCState,
         proposer_duty: ProposerDuty,
         process': DVCState
     )
     requires f_check_for_next_duty.requires(process, proposer_duty)
     requires process' == f_check_for_next_duty(process, proposer_duty).state        
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_f_broadcast_randao_share(
+    lemma lem_inv_block_slashing_db_is_monotonic_f_broadcast_randao_share(
         process: DVCState,
         proposer_duty: ProposerDuty, 
         process': DVCState
@@ -1146,7 +1146,7 @@ module Fnc_Invs_2
     requires f_broadcast_randao_share.requires(process, proposer_duty)
     requires process' == f_broadcast_randao_share(process, proposer_duty).state
     requires process.latest_proposer_duty.isPresent()
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { 
         var slot := proposer_duty.slot;
         var fork_version := bn_get_fork_version(slot);    
@@ -1165,14 +1165,14 @@ module Fnc_Invs_2
                 randao_shares_to_broadcast := process.randao_shares_to_broadcast[proposer_duty.slot := randao_share]
             );
 
-        lem_inv__block_slashing_db_is_monotonic_body_f_check_for_next_duty(
+        lem_inv_block_slashing_db_is_monotonic_body_f_check_for_next_duty(
             process_after_adding_randao_share,
             proposer_duty,
             process'
         );
     }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_block_consensus_decided(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_block_consensus_decided(
         process: DVCState,
         id: Slot,
         decided_beacon_block: BeaconBlock, 
@@ -1180,21 +1180,21 @@ module Fnc_Invs_2
     )
     requires f_block_consensus_decided.requires(process, id, decided_beacon_block)
     requires process' == f_block_consensus_decided(process, id, decided_beacon_block).state         
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_serve_proposer_duty(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_serve_proposer_duty(
         process: DVCState,
         proposer_duty: ProposerDuty,
         process': DVCState
     )  
     requires f_serve_proposer_duty.requires(process, proposer_duty)
     requires process' == f_serve_proposer_duty(process, proposer_duty).state
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     {
         var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
 
-        lem_inv__block_slashing_db_is_monotonic_body_f_terminate_current_proposer_duty(
+        lem_inv_block_slashing_db_is_monotonic_body_f_terminate_current_proposer_duty(
             process,
             process_after_stopping_current_duty
         );
@@ -1202,39 +1202,39 @@ module Fnc_Invs_2
         var process_after_receiving_duty := 
             f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
 
-        lem_inv__block_slashing_db_is_monotonic_f_broadcast_randao_share(
+        lem_inv_block_slashing_db_is_monotonic_f_broadcast_randao_share(
             process_after_receiving_duty,
             proposer_duty,
             process'
         );        
     }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_f_listen_for_block_signature_shares(
+    lemma lem_inv_block_slashing_db_is_monotonic_f_listen_for_block_signature_shares(
         process: DVCState,
         block_share: SignedBeaconBlock,
         process': DVCState
     )
     requires f_listen_for_block_signature_shares.requires(process, block_share)
     requires process' == f_listen_for_block_signature_shares(process, block_share).state
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { }
 
-    lemma lem_inv__block_slashing_db_is_monotonic_body_f_listen_for_new_imported_blocks(
+    lemma lem_inv_block_slashing_db_is_monotonic_body_f_listen_for_new_imported_blocks(
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires process' == f_listen_for_new_imported_blocks(process, block).state   
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { } 
 
-    lemma lem_inv__block_slashing_db_is_monotonic_f_resend_randao_share(
+    lemma lem_inv_block_slashing_db_is_monotonic_f_resend_randao_share(
         process: DVCState, 
         process': DVCState)
     requires f_resend_randao_share.requires(process)
     requires process' == f_resend_randao_share(process).state    
-    ensures inv__block_slashing_db_is_monotonic_body(process, process')
+    ensures inv_block_slashing_db_is_monotonic_body(process, process')
     { }  
 
     
@@ -1952,7 +1952,7 @@ module Fnc_Invs_2
 
     // lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_transpose(
     //     s: DVState,
-    //     event: DV_Block_Proposer_Spec.Event,
+    //     event: DV_Block_Proposer_Spec.BlockEvent,
     //     s': DVState,
     //     s_node: DVCState,
     //     n: BLSPubkey
@@ -3998,8 +3998,8 @@ module Fnc_Invs_2
                         );
 
                 forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                    && slot in block_slashing_db_hist'
-                    && vp in block_slashing_db_hist'[slot]
+                    && slot in block_slashing_db_hist'.Keys
+                    && vp in block_slashing_db_hist'[slot].Keys
                     && db in block_slashing_db_hist'[slot][vp]
                 ensures inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(            
                                 allMessagesSent,
@@ -4590,7 +4590,7 @@ module Fnc_Invs_2
              && id == decided_beacon_block.slot
     requires inv_available_current_proposer_duty_is_latest_proposer_duty_body(process)
     requires ( forall slot  |
-                        slot in process'.block_consensus_engine_state.block_slashing_db_hist
+                        slot in process'.block_consensus_engine_state.block_slashing_db_hist.Keys
                         ::
                         slot <= process'.latest_proposer_duty.safe_get().slot
              )
@@ -4606,7 +4606,7 @@ module Fnc_Invs_2
             && var block_signature := rs_sign_block(decided_beacon_block, fork_version, block_signing_root, process.rs);
             && var block_share := SignedBeaconBlock(decided_beacon_block, block_signature); 
             && pred_is_the_owner_of_a_block_share(process'.rs.pubkey, block_share)
-            && ( forall slot: Slot | slot in process'.block_consensus_engine_state.block_slashing_db_hist ::
+            && ( forall slot: Slot | slot in process'.block_consensus_engine_state.block_slashing_db_hist.Keys ::
                     block_share.block.slot >= slot
             )
     {
@@ -4658,8 +4658,8 @@ module Fnc_Invs_2
         var allMessagesSent' := allMessagesSent + {block_share};
 
         forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                    && slot in process'.block_consensus_engine_state.block_slashing_db_hist
-                    && vp in process'.block_consensus_engine_state.block_slashing_db_hist[slot]
+                    && slot in process'.block_consensus_engine_state.block_slashing_db_hist.Keys
+                    && vp in process'.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
                     && db in process'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
         ensures inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(
                     allMessagesSent',
@@ -5344,7 +5344,7 @@ module Fnc_Invs_2
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState,
         s_node: DVCState,
         n: BLSPubkey

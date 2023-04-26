@@ -42,7 +42,7 @@ module DV_Block_Proposer_Spec
         index_next_proposer_duty_to_be_served: nat
     )
 
-    datatype Event = 
+    datatype BlockEvent = 
         | AdversaryTakingStep(
                 node: BLSPubkey, 
                 new_sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,
@@ -52,7 +52,7 @@ module DV_Block_Proposer_Spec
             )
         | HonestNodeTakingStep(
                 node: BLSPubkey, 
-                event: Block_Types.Event, 
+                event: Block_Types.BlockEvent, 
                 nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs
             )
 
@@ -451,7 +451,7 @@ module DV_Block_Proposer_Spec
     predicate validNodeEvent(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.Event
+        nodeEvent: Block_Types.BlockEvent
     )
     requires node in s.honest_nodes_states.Keys
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
@@ -481,9 +481,9 @@ module DV_Block_Proposer_Spec
     function add_block_to_bn_with_event(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.Event
+        nodeEvent: Block_Types.BlockEvent
     ): DVState
-    requires node in s.honest_nodes_states
+    requires node in s.honest_nodes_states.Keys
     {
         if nodeEvent.ImportedNewBlock? then 
             s.(
@@ -496,7 +496,7 @@ module DV_Block_Proposer_Spec
 
     predicate validEvent(
         s: DVState,
-        event: Event
+        event: BlockEvent
     )
     {
         event.HonestNodeTakingStep? ==>
@@ -513,7 +513,7 @@ module DV_Block_Proposer_Spec
 
     predicate NextHonestNodePrecond(
         dvc: DVCState,
-        event: Block_Types.Event
+        event: Block_Types.BlockEvent
     )
     {
             match event 
@@ -537,7 +537,7 @@ module DV_Block_Proposer_Spec
 
     predicate NextEventPreCond(
         dv: DVState,
-        event: Event
+        event: BlockEvent
     )
     {
         && validEvent(dv, event)         
@@ -572,7 +572,7 @@ module DV_Block_Proposer_Spec
 
     predicate NextEvent(
         s: DVState,
-        event: Event,
+        event: BlockEvent,
         s': DVState
     )
     requires validEvent(s, event)
@@ -612,7 +612,7 @@ module DV_Block_Proposer_Spec
     predicate NextHonestNode(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.Event,
+        nodeEvent: Block_Types.BlockEvent,
         nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs,
         s': DVState        
     ) 
@@ -629,7 +629,7 @@ module DV_Block_Proposer_Spec
     predicate BlockConsensusInstanceStep(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.Event,
+        nodeEvent: Block_Types.BlockEvent,
         nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs,
         s': DVState
     )
@@ -659,7 +659,7 @@ module DV_Block_Proposer_Spec
     predicate NextHonestAfterAddingBlockToBn(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.Event,
+        nodeEvent: Block_Types.BlockEvent,
         nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs,
         s': DVState
     )

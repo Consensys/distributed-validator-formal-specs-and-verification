@@ -56,7 +56,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_all_in_transit_messages_were_sent_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )
     requires NextEventPreCond(dv, event)
@@ -120,7 +120,7 @@ module Invs_DV_Next_2
     // TODO: Split this lemma into smaller pieces
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_HonestNodeTakingStep(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         cid: Slot,
         s': DVState
     )
@@ -225,7 +225,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -340,7 +340,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState
     )
     requires NextEventPreCond(dv, event)
@@ -477,7 +477,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_when_no_new_blocks_are_added(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -497,7 +497,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next_ReceiveSignedBeaconBlock(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -562,7 +562,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next_AdversaryTakingStep(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -638,7 +638,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.Event,
+        event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)

@@ -110,8 +110,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     datatype DVCState = DVCState(
         current_proposer_duty: Optional<ProposerDuty>,
         latest_proposer_duty: Optional<ProposerDuty>,
-        block_slashing_db: set<SlashingDBBlock>,
-        block_share_db: BlockSignatureShareDB,        
+        block_slashing_db: set<SlashingDBBlock>,             
         rcvd_randao_shares: map<Slot, set<RandaoShare>>,
         rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
@@ -175,8 +174,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
             future_consensus_instances_on_blocks_already_decided := map[],
             block_shares_to_broadcast := map[],
             randao_shares_to_broadcast := map[],
-            block_slashing_db := initial_block_slashing_db,
-            block_share_db := map[],
+            block_slashing_db := initial_block_slashing_db,            
             rcvd_randao_shares := map[],
             rcvd_block_shares := map[],
             current_proposer_duty := None,
@@ -193,7 +191,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
 
     predicate Next(
         s: DVCState,
-        event: Event,
+        event: BlockEvent,
         s': DVCState,
         outputs: Outputs
     )
@@ -209,7 +207,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
 
     function f_process_event(
         s: DVCState,
-        event: Event        
+        event: BlockEvent        
     ): DVCStateAndOuputs
     requires match event         
                 case ServeProposerDuty(proposer_duty) => 

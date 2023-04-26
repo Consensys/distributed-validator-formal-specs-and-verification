@@ -152,7 +152,7 @@ module Proofs_Intermediate_Steps
             var hn_state := dv.honest_nodes_states[hn];            
             assert inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(hn_state);
             assert s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys;
-            assert vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s];
+            assert vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s].Keys;
 
             assert ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
                         && duty.slot == s
