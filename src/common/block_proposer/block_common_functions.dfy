@@ -144,7 +144,7 @@ module Block_Common_Functions{
     }
 
     // 
-    function method get_slashing_slots(slashing_db: BlockSlashingDB): (slots_in_db: set<int>)    
+    function method get_slashing_slots(slashing_db: set<SlashingDBBlock>): (slots_in_db: set<int>)    
     requires slashing_db != {}
     ensures slots_in_db != {}    
     {
@@ -155,7 +155,7 @@ module Block_Common_Functions{
 
     // NOTE: Left this method here just in case, but it is currently not being used anywhere.
     // function method get_slashing_blocks_with_slot(
-    //     slashing_db: BlockSlashingDB, 
+    //     slashing_db: set<SlashingDBBlock>, 
     //     slot: Slot
     // ): (slashing_blocks: set<SlashingDBBlock>)    
     // requires slashing_db != {}        

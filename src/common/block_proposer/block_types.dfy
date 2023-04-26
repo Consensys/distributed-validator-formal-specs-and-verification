@@ -57,7 +57,7 @@ module Block_Types
         source_epoch: Epoch,
         target_epoch: Epoch,
         signing_root: Root
-    )    
+    )
 
     type AttestationSlashingDB = set<SlashingDBAttestation>
          
@@ -96,7 +96,7 @@ module Block_Types
         block: BeaconBlock,
         signature: BLSSignature
     )
- 
+
     datatype SlashingDBBlock = SlashingDBBlock(        
         slot: Slot,
         signing_root: Optional<Root>
@@ -123,11 +123,6 @@ module Block_Types
 
     type imaptotal<!T1(!new), T2> = x: imap<T1,T2> | forall e: T1 :: e in x.Keys witness *
     type iseq<T> = imaptotal<nat, T>
-
-    datatype ConsensusCommand = 
-        | StartConsensusOnBlock(id: Slot)
-        | StopConsensusOnBlock(id: Slot)    
-              
 
     datatype Optional<T(0)> = Some(v: T) | None
     {
@@ -197,7 +192,7 @@ module Block_Types
     //     signature: BLSSignature
     // )
 
-    datatype Event = 
+    datatype BlockEvent = 
         | ServeProposerDuty(proposer_duty: ProposerDuty)
         | BlockConsensusDecided(id: Slot, decided_beacon_block: BeaconBlock)
         | ReceiveRandaoShare(randao_share: RandaoShare)
