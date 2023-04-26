@@ -73,7 +73,7 @@ module Invs_DV_Next_4
 
     lemma lem_NonServeAttestationDuty_unchanged_vars(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -228,7 +228,7 @@ module Invs_DV_Next_4
     lemma lem_inv_unchanged_decision_ConsensusInstanceStep<D(!new, 0)>(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event,
+        nodeEvent: Types.AttestationEvent,
         nodeOutputs: DVC_Spec.Outputs,
         s': DVState
     )
@@ -251,7 +251,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_every_consensus_instance_isConditionForSafetyTrue_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
@@ -288,7 +288,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_unchanged_decision_dv(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         slot: Slot
     )
@@ -307,7 +307,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums_helper_honest(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -412,7 +412,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -561,7 +561,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_slots_in_future_decided_data_are_correct_transpose(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         s_node: DVCState,
         n: BLSPubkey
@@ -576,7 +576,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_slots_in_future_decided_data_are_correct_helper_honest(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -666,7 +666,7 @@ module Invs_DV_Next_4
 
     lemma lem_inv_slots_in_future_decided_data_are_correct(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)

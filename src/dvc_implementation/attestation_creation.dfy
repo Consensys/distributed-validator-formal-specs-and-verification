@@ -69,7 +69,7 @@ abstract module DVC_Implementation
          * ===============================================================================*/
 
         method process_event(
-            event: Event
+            event: AttestationEvent
         ) returns (s: Status)
         requires ValidRepr()
         modifies getRepr()

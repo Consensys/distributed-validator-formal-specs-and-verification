@@ -306,7 +306,7 @@ module Spec_Spec_NonInstr_Refinement
     lemma refine_f_process_event(
         dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
         dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
-        event: Event
+        event: BlockEvent
     )
     requires DVC_Block_Proposer_Spec_Instr.f_process_event.requires(dvci, event)
     requires DVCStateRel(dvci, dvcni)

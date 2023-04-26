@@ -1015,7 +1015,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc.attestation_slashing_db <= dvc'.attestation_slashing_db
     }
 
-    predicate inv_monotonic_att_slashing_db(dv: DVState, event: DV.Event, dv': DVState)    
+    predicate inv_monotonic_att_slashing_db(dv: DVState, event: DV.AttestationEvent, dv': DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys
@@ -1060,7 +1060,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
     }
 
-    predicate inv_monotonic_att_slashing_db_hist(dv: DVState, event: DV.Event, dv': DVState)    
+    predicate inv_monotonic_att_slashing_db_hist(dv: DVState, event: DV.AttestationEvent, dv': DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys

@@ -37,7 +37,7 @@ module DV
         index_next_attestation_duty_to_be_served: nat
     )
 
-    datatype Event = 
+    datatype AttestationEvent = 
         | AdversaryTakingStep(
                 node: BLSPubkey, 
                 new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
@@ -45,7 +45,7 @@ module DV
             )
         | HonestNodeTakingStep(
                 node: BLSPubkey, 
-                event: Types.Event, 
+                event: Types.AttestationEvent, 
                 nodeOutputs: DVC_Spec.Outputs
             )
 
@@ -310,7 +310,7 @@ module DV
     predicate validNodeEvent(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event
+        nodeEvent: Types.AttestationEvent
     )
     requires node in s.honest_nodes_states.Keys
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
@@ -327,7 +327,7 @@ module DV
 
     predicate validEvent(
         s: DVState,
-        event: Event
+        event: AttestationEvent
     )
     {
         event.HonestNodeTakingStep? ==>
@@ -344,7 +344,7 @@ module DV
 
     predicate NextEventPreCond(
         s: DVState,
-        event: Event
+        event: AttestationEvent
     )
     {
         && validEvent(s, event)         
@@ -353,7 +353,7 @@ module DV
     
     predicate NextHonestNodePrecond(
         s: DVCState,
-        event: Types.Event
+        event: Types.AttestationEvent
     )
     {
             match event 
@@ -373,7 +373,7 @@ module DV
 
     predicate NextEvent(
         s: DVState,
-        event: Event,
+        event: AttestationEvent,
         s': DVState
     )
     requires validEvent(s, event)
@@ -393,9 +393,9 @@ module DV
     function add_block_to_bn_with_event(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event
+        nodeEvent: Types.AttestationEvent
     ): DVState
-    requires node in s.honest_nodes_states
+    requires node in s.honest_nodes_states.Keys
     {
         if nodeEvent.ImportedNewBlock? then 
             s.(
@@ -421,7 +421,7 @@ module DV
     predicate NextHonestNode(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event,
+        nodeEvent: Types.AttestationEvent,
         nodeOutputs: DVC_Spec.Outputs,
         s': DVState        
     ) 
@@ -439,7 +439,7 @@ module DV
     predicate ConsensusInstanceStep(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event,
+        nodeEvent: Types.AttestationEvent,
         nodeOutputs: DVC_Spec.Outputs,
         s': DVState
     )
@@ -473,7 +473,7 @@ module DV
     predicate NextHonestAfterAddingBlockToBn(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event,
+        nodeEvent: Types.AttestationEvent,
         nodeOutputs: DVC_Spec.Outputs,
         s': DVState
     )

@@ -46,7 +46,7 @@ module Invs_DV_Next_2
     lemma lem_ServeAttestationDuty_constraints2_helper(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event,
+        nodeEvent: Types.AttestationEvent,
         nodeOutputs: DVC_Spec.Outputs,
         s': DVState
     )
@@ -78,7 +78,7 @@ module Invs_DV_Next_2
 
     lemma lem_ServeAttestationDuty_constraints(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -296,7 +296,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_ex_helper(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -320,7 +320,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_dv_next_ReceivedAttestationShare(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -390,7 +390,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_dv_next_AdversaryTakingStep(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -504,7 +504,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_dv_next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -574,7 +574,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_rcvd_attestation_shares_are_sent_messages(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -631,7 +631,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_helper(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -718,7 +718,7 @@ module Invs_DV_Next_2
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_get_s_w_honest_node_states_updated(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event
+        nodeEvent: Types.AttestationEvent
     ) returns (s_w_honest_node_states_updated: DVState)
     requires node in s.honest_nodes_states
     ensures s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
@@ -772,7 +772,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided_helper_2(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -827,7 +827,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_monotonic_allMessagesSent(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )       
     requires NextEventPreCond(dv, event)
@@ -837,11 +837,11 @@ module Invs_DV_Next_2
 
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_helper(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         cid: Slot,
         s': DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs
     )
     requires NextEventPreCond(s, event)
@@ -942,7 +942,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1030,12 +1030,12 @@ module Invs_DV_Next_2
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_get_s_w_honest_node_states_updated_2(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Types.Event,
+        nodeEvent: Types.AttestationEvent,
         node': BLSPubkey,
         s_w_honest_node_states_updated: DVState
     ) 
-    requires node in s.honest_nodes_states
-    requires node' in s.honest_nodes_states
+    requires node in s.honest_nodes_states.Keys
+    requires node' in s.honest_nodes_states.Keys
     requires s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
     ensures s_w_honest_node_states_updated.honest_nodes_states[node'].attestation_consensus_engine_state == s.honest_nodes_states[node'].attestation_consensus_engine_state
     {      
@@ -1043,7 +1043,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_helper(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         cid: Slot,
         hn: BLSPubkey,
@@ -1132,7 +1132,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )   
     requires NextEventPreCond(s, event)
@@ -1163,7 +1163,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1204,10 +1204,10 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided_with_decided_data_for_current_slot(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
         id: Slot, 
         decided_attestation_data: AttestationData
@@ -1289,10 +1289,10 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided_without_decided_data_for_current_slot(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
         id: Slot, 
         decided_attestation_data: AttestationData
@@ -1336,7 +1336,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1398,7 +1398,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_adversary(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1783,7 +1783,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv_next_ServeAttestationDuty(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )   
     requires NextEventPreCond(s, event)
@@ -1820,7 +1820,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv_next_AttConsensusDecided(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )   
     requires NextEventPreCond(s, event)
@@ -1857,7 +1857,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv_next_ReceivedAttestationShare(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )   
     requires NextEventPreCond(s, event)
@@ -1893,7 +1893,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv_next_ImportedNewBlock(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )   
     requires NextEventPreCond(s, event)
@@ -1931,7 +1931,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv_next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )   
     requires NextEventPreCond(s, event)
@@ -2044,7 +2044,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided_helper_1(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         hn: BLSPubkey,
         att_share: AttestationShare
@@ -2130,7 +2130,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_dv_next_ServeAttestationDuty(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -2172,7 +2172,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_dv_next_ReceivedAttestationShare(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -2213,7 +2213,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_dv_next_ImportedNewBlock(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -2256,7 +2256,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_dv_next_ResendAttestationShares(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -2303,7 +2303,7 @@ module Invs_DV_Next_2
 
     lemma lem_inv_data_of_att_shares_are_decided_values_dv_next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)

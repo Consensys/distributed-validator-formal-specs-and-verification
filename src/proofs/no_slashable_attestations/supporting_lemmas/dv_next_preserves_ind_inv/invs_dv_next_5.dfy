@@ -118,7 +118,7 @@ module Invs_DV_Next_5
 
     lemma lem_att_slashing_db_hist_is_monotonic(
         s: DVCState,
-        event: Types.Event,
+        event: Types.AttestationEvent,
         s': DVCState,
         outputs: Outputs        
     )
@@ -151,7 +151,7 @@ module Invs_DV_Next_5
 
     lemma lem_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_DVC_Spec_Next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -167,7 +167,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next_helper(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         cid: Slot,
         hn: BLSPubkey,
         s': DVState
@@ -270,7 +270,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -283,7 +283,7 @@ module Invs_DV_Next_5
     ensures inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey, slot: Slot |
-            hn in s'.honest_nodes_states
+            hn in s'.honest_nodes_states.Keys
         ensures inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot)    
         {
             lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next_helper(s, event, slot, hn, s');
@@ -313,7 +313,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -469,7 +469,7 @@ module Invs_DV_Next_5
 
     lemma lem_att_slashing_db_hist_cid_is_monotonic(
         s: DVCState,
-        event: Types.Event,
+        event: Types.AttestationEvent,
         s': DVCState,
         outputs: Outputs,
         cid: Slot       
@@ -505,7 +505,7 @@ module Invs_DV_Next_5
 
     lemma lem_att_slashing_db_hist_cid_is_monotonic_corollary(
         s: DVCState,
-        event: Types.Event,
+        event: Types.AttestationEvent,
         s': DVCState,
         outputs: Outputs,
         cid: Slot,
@@ -523,7 +523,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_HonestNodeTakingStep(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         cid: Slot,
         vp: AttestationData -> bool,
         hn: BLSPubkey,
@@ -638,7 +638,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdversaryTakingStep(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         cid: Slot,
         vp: AttestationData -> bool,
         hn: BLSPubkey,
@@ -673,7 +673,7 @@ module Invs_DV_Next_5
                     assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
                     assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                    assert vp in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist[cid];                 
+                    assert vp in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys;                 
                 } 
 
         }
@@ -681,7 +681,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         cid: Slot,
         vp: AttestationData -> bool,
         hn: BLSPubkey,
@@ -727,7 +727,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -974,7 +974,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest_helper4(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         s_node: DVCState,
         n: BLSPubkey
@@ -989,7 +989,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_unchanged_dv_seq_of_att_duties_dv_next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1001,7 +1001,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1086,7 +1086,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1132,10 +1132,10 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_HonestNodeTakingStep(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs
     )
     requires NextEventPreCond(s, event)
@@ -1202,7 +1202,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_dv_next(
         s: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1234,7 +1234,7 @@ module Invs_DV_Next_5
     lemma lem_inv_every_decided_data_has_an_honest_witness_add_block_to_bn_with_event(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         dv': DVState
     )    
     requires add_block_to_bn_with_event.requires(dv, node, nodeEvent)
@@ -1277,7 +1277,7 @@ module Invs_DV_Next_5
     lemma lem_inv_every_decided_data_has_an_honest_witness_ConsensusInstanceStep(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
         dv': DVState
     )    
@@ -1327,7 +1327,7 @@ module Invs_DV_Next_5
     lemma lem_inv_every_decided_data_has_an_honest_witness_NextHonestAfterAddingBlockToBn(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
         dv': DVState
     )    
@@ -1344,7 +1344,7 @@ module Invs_DV_Next_5
     lemma lem_inv_every_decided_data_has_an_honest_witness_NextHonestNode(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
         dv': DVState
     )    
@@ -1375,7 +1375,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_every_decided_data_has_an_honest_witness_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1427,7 +1427,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_created_attestations_are_valid_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1494,7 +1494,7 @@ module Invs_DV_Next_5
 
     lemma lem_pred_unchanged_rs_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1528,7 +1528,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_unchanged_dvc_rs_pubkey_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1587,7 +1587,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_att_shares_have_corresponding_slashing_db_attestations_dv_next_AdversaryTakingStep(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1627,10 +1627,10 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_att_shares_have_corresponding_slashing_db_attestations_dv_next_HonestNodeTakingStep(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -1711,7 +1711,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_att_shares_have_corresponding_slashing_db_attestations_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1779,7 +1779,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_att_shares_to_broadcast_are_tracked_in_attestation_slashing_db_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1822,7 +1822,7 @@ module Invs_DV_Next_5
 
     lemma lem_AdversaryTakingStep_new_att_share_sent_is_not_from_honest_node(
         dv: DVState,        
-        event: DV.Event,
+        event: DV.AttestationEvent,
         node: BLSPubkey,
         new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>,
@@ -1859,7 +1859,7 @@ module Invs_DV_Next_5
 
     lemma lem_AdversaryTakingStep_att_share_from_honest_node_were_sent_before(
         dv: DVState,        
-        event: DV.Event,
+        event: DV.AttestationEvent,
         node: BLSPubkey,
         new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>,
@@ -1915,7 +1915,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next_AdversaryTakingStep(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2014,7 +2014,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next_AttConsensusDecided(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2189,7 +2189,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next_ServeAttestationDuty(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2231,7 +2231,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next_ImportedNewBlock(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2274,7 +2274,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next_ResendAttestationShares(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2320,7 +2320,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2392,7 +2392,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_an_attestation_is_created_based_on_shares_of_a_quorum_dv_next_AdversaryTakingStep(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2442,10 +2442,10 @@ module Invs_DV_Next_5
 
     lemma lem_inv_an_attestation_is_created_based_on_shares_of_a_quorum_dv_next_HonestNodeTakingStep(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Types.Event, 
+        nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -2546,7 +2546,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_an_attestation_is_created_based_on_shares_of_a_quorum_dv_next(
         dv: DVState,
-        event: DV.Event,
+        event: DV.AttestationEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)

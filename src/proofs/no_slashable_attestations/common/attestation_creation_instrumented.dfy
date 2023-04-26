@@ -247,7 +247,7 @@ module DVC_Spec {
 
     predicate Next(
         s: DVCState,
-        event: Event,
+        event: AttestationEvent,
         s': DVCState,
         outputs: Outputs
     )
@@ -263,7 +263,7 @@ module DVC_Spec {
 
     function f_process_event(
         s: DVCState,
-        event: Event
+        event: AttestationEvent
     ): DVCStateAndOuputs
     requires
             match event 

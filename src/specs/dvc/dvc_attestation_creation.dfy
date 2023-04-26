@@ -208,7 +208,7 @@ module DVC_Spec_NonInstr {
 
     predicate Next(
         s: DVCState,
-        event: Event,
+        event: AttestationEvent,
         s': DVCState,
         outputs: Outputs
     )
@@ -225,7 +225,7 @@ module DVC_Spec_NonInstr {
     // Processes an input event
     function f_process_event(
         s: DVCState,
-        event: Event
+        event: AttestationEvent
     ): DVCStateAndOuputs
     requires
             match event 
