@@ -380,16 +380,6 @@ module Helper_Sets_Lemmas {
             |Q1| + |nodes| - |byz| - |Q1 + hon|;
             >= 
             {SubsetCardinality(Q1 + hon, nodes);}
-            // calc {
-            //     |Q1|;
-            //     |Q1| + |Q2| - |Q1 + Q2|;
-            //     >= calc {
-            //             |Q1 + Q2|; 
-            //             <= {SubsetCardinality(Q1 + Q2, nodes);}
-            //             |nodes|; 
-            //         }
-            //     |Q1| + |Q2| - |nodes|;
-            // }
             |Q1|  - |byz|;
             >=
             quorum(|nodes|) - f(|nodes|);
@@ -531,5 +521,16 @@ module Helper_Sets_Lemmas {
     lemma lem_union_with_subset_is_unchanged<T>(S1: set<T>, S2: set<T>)
     requires S1 <= S2 
     ensures  S1 + S2 == S2
+    {}
+
+    lemma lem_union_with_empty_set_is_unchanged<T>(S1: set<T>, S2: set<T>, S: set<T>)
+    requires && S1 == {}
+             && S1 + S2 == S   
+    ensures  S == S2
+    {}
+
+    lemma lemmaSingletonSetToMembership<T>(e: T, S: set<T>)
+    requires {e} == S
+    ensures e in S
     {}
 }
