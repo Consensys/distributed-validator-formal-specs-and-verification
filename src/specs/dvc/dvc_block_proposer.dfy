@@ -1,4 +1,4 @@
-include "../../common/block_proposer/block_types.dfy"
+include "../../common/commons.dfy"
 include "../../common/block_proposer/block_common_functions.dfy"
 include "../../common/block_proposer/block_signing_functions.dfy"
 include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
@@ -6,7 +6,7 @@ include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
 module DVC_Block_Proposer_Spec_NonInstr {
-    import opened Block_Types 
+    import opened Types 
     import opened Block_Common_Functions
     import opened Block_Signing_Functions    
     import opened DVC_Block_Proposer_Spec_Axioms
