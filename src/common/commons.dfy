@@ -117,8 +117,7 @@ module Types
         | ReceivedAttestationShare(attestation_share: AttestationShare)
         | ImportedNewBlock(block: BeaconBlock)
         | ResendAttestationShares
-        | NoEvent    
-
+        | NoEvent
 
     datatype BlockEvent = 
         | ServeProposerDuty(proposer_duty: ProposerDuty)
