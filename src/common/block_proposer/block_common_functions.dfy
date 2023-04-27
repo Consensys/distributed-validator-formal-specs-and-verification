@@ -1,7 +1,7 @@
-include "./block_types.dfy"
+include "../commons.dfy"
 
 module Block_Common_Functions{
-    import opened Block_Types
+    import opened Types
 
     function method getOrDefault<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
     {

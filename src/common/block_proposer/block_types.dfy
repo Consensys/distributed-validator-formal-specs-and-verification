@@ -1,4 +1,4 @@
-module Block_Types 
+module Types 
 {
     type ValidatorIndex = nat
     type Epoch = nat 

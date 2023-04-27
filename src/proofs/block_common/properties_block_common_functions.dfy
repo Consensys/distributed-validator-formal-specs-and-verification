@@ -1,7 +1,7 @@
-include "../../common/block_proposer/block_types.dfy"
+include "../../common/commons.dfy"
 include "../../common/block_proposer/block_common_functions.dfy"
 
-import opened Block_Types
+import opened Types
 import opened Block_Common_Functions
 
 lemma {:axiom} compute_domain_properties(dom1 : DomainTypes, ep1: Epoch, dom2: DomainTypes, ep2: Epoch)

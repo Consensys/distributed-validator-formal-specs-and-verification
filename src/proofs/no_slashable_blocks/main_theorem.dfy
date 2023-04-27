@@ -9,7 +9,7 @@ include "supporting_lemmas/ind_inv_implies_safety/ind_inv_implies_safety.dfy"
 
 module No_Slashable_Attestations_Main_Theorem
 {
-    import opened Block_Types
+    import opened Types
     import opened DV_Block_Proposer_Spec    
     import opened Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Ind_Inv_DV_Init
