@@ -1,6 +1,6 @@
 include "../../common/block_proposer/block_common_functions.dfy"
 include "../../common/block_proposer/block_signing_functions.dfy"
-include "../../common/block_proposer/block_types.dfy"
+include "../../common/commons.dfy"
 include "../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../consensus/block_consensus.dfy"
 include "../network/block_network.dfy"
@@ -9,7 +9,7 @@ include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 module DV_Block_Proposer_Spec 
 {
-    import opened Block_Types
+    import opened Types
     import opened Block_Common_Functions
     import opened Block_Signing_Functions
     import opened Block_Network_Spec
@@ -52,7 +52,7 @@ module DV_Block_Proposer_Spec
             )
         | HonestNodeTakingStep(
                 node: BLSPubkey, 
-                event: Block_Types.BlockEvent, 
+                event: Types.BlockEvent, 
                 nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs
             )
 
@@ -451,7 +451,7 @@ module DV_Block_Proposer_Spec
     predicate validNodeEvent(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent
+        nodeEvent: Types.BlockEvent
     )
     requires node in s.honest_nodes_states.Keys
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
@@ -481,7 +481,7 @@ module DV_Block_Proposer_Spec
     function add_block_to_bn_with_event(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent
+        nodeEvent: Types.BlockEvent
     ): DVState
     requires node in s.honest_nodes_states.Keys
     {
@@ -513,7 +513,7 @@ module DV_Block_Proposer_Spec
 
     predicate NextHonestNodePrecond(
         dvc: DVCState,
-        event: Block_Types.BlockEvent
+        event: Types.BlockEvent
     )
     {
             match event 
@@ -612,7 +612,7 @@ module DV_Block_Proposer_Spec
     predicate NextHonestNode(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs,
         s': DVState        
     ) 
@@ -629,7 +629,7 @@ module DV_Block_Proposer_Spec
     predicate BlockConsensusInstanceStep(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs,
         s': DVState
     )
@@ -659,7 +659,7 @@ module DV_Block_Proposer_Spec
     predicate NextHonestAfterAddingBlockToBn(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         nodeOutputs: DVC_Block_Proposer_Spec_Instr.Outputs,
         s': DVState
     )

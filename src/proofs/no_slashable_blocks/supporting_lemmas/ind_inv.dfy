@@ -1,4 +1,4 @@
-include "../../../common/block_proposer/block_types.dfy"
+include "../../../common/commons.dfy"
 include "../../../common/block_proposer/block_common_functions.dfy"
 include "../../../common/block_proposer/block_signing_functions.dfy"
 include "../../../specs/consensus/block_consensus.dfy"
@@ -12,7 +12,7 @@ include "inv.dfy"
 
 module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
 {
-    import opened Block_Types 
+    import opened Types 
     import opened Block_Common_Functions
     import opened Block_Signing_Functions
     import opened Block_Consensus_Spec
@@ -86,6 +86,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
 
     predicate invs_group_7(dv: DVState)       
     {                
+        // &&  inv_the_same_node_status_in_dv_and_ci(dv)
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_block_shares_are_from_sent_messages(dv)
         &&  inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv)

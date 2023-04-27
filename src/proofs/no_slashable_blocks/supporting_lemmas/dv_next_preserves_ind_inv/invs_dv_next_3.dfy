@@ -1,7 +1,7 @@
 include "invs_fnc_1.dfy"
 include "invs_fnc_2.dfy"
 
-include "../../../../common/block_proposer/block_types.dfy"
+include "../../../../common/commons.dfy"
 include "../../../../common/block_proposer/block_common_functions.dfy"
 include "../../../../common/block_proposer/block_signing_functions.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
@@ -25,7 +25,7 @@ include "invs_dv_next_2.dfy"
 
 module Invs_DV_Next_3
 {
-    import opened Block_Types
+    import opened Types
     import opened Block_Signing_Functions
     import opened Block_Common_Functions
     import opened Block_Consensus_Spec
@@ -44,7 +44,7 @@ module Invs_DV_Next_3
     lemma f_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent
+        nodeEvent: Types.BlockEvent
     ) returns (s_w_honest_node_states_updated: DVState)
     requires node in s.honest_nodes_states.Keys
     ensures s_w_honest_node_states_updated == add_block_to_bn_with_event(s, node, nodeEvent)
@@ -66,7 +66,7 @@ module Invs_DV_Next_3
     lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated_2(
         s: DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         node': BLSPubkey,
         s_w_honest_node_states_updated: DVState
     )
@@ -384,7 +384,7 @@ module Invs_DV_Next_3
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         nodeOutputs: Outputs,
         id: Slot,
         decided_beacon_block: BeaconBlock

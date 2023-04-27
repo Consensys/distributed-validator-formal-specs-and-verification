@@ -1,10 +1,10 @@
-include "../../common/block_proposer/block_types.dfy"
+include "../../common/commons.dfy"
 include "../../common/block_proposer/block_common_functions.dfy"
 
 // Note: Only safety properties are expressed at the moment.
 module Block_Consensus_Spec
 {
-    import opened Block_Types 
+    import opened Types 
     import opened Block_Common_Functions 
 
     datatype InCommand<!D> = 

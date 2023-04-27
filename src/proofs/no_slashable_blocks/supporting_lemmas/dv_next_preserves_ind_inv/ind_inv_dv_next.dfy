@@ -1,4 +1,4 @@
-include "../../../../common/block_proposer/block_types.dfy"
+include "../../../../common/commons.dfy"
 include "../../../../common/block_proposer/block_common_functions.dfy"
 include "../../../../common/block_proposer/block_signing_functions.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
@@ -23,7 +23,7 @@ include "proofs_intermediate_steps.dfy"
 
 module Ind_Inv_DV_Next
 {
-    import opened Block_Types
+    import opened Types
     import opened Block_Signing_Functions
     import opened Block_Common_Functions
     import opened Block_Consensus_Spec
@@ -119,6 +119,8 @@ module Ind_Inv_DV_Next
     {               
         lem_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         lem_inv_rcvd_block_shares_are_from_sent_messages_dv_next(dv, e, dv');  
+        lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv);
+        assert  inv_the_same_node_status_in_dv_and_ci(dv);
         lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv, e, dv');
     }
 

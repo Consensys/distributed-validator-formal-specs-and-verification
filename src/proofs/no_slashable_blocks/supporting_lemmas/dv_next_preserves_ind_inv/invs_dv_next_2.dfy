@@ -1,6 +1,6 @@
 include "invs_fnc_1.dfy"
 
-include "../../../../common/block_proposer/block_types.dfy"
+include "../../../../common/commons.dfy"
 include "../../../../common/block_proposer/block_common_functions.dfy"
 include "../../../../common/block_proposer/block_signing_functions.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
@@ -24,7 +24,7 @@ include "invs_dv_next_1.dfy"
 
 module Invs_DV_Next_2
 {
-    import opened Block_Types
+    import opened Types
     import opened Block_Signing_Functions
     import opened Block_Common_Functions
     import opened Block_Consensus_Spec

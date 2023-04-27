@@ -1,4 +1,4 @@
-include "../../../common/block_proposer/block_types.dfy"
+include "../../../common/commons.dfy"
 include "../../../common/block_proposer/block_common_functions.dfy"
 include "../../../common/block_proposer/block_signing_functions.dfy"
 include "../../../specs/consensus/block_consensus.dfy"
@@ -12,7 +12,7 @@ include "../common/block_dvc_spec_axioms.dfy"
 
 module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 {
-    import opened Block_Types 
+    import opened Types 
     import opened Block_Common_Functions
     import opened Block_Signing_Functions
     import opened Block_Consensus_Spec
@@ -1260,7 +1260,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             &&  var dvc := dv.honest_nodes_states[hn];
             &&  inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc)
     }
-    
+
     predicate inv_block_of_all_created_blocks_is_set_of_decided_values(dv: DVState)
     {
         forall complete_block | complete_block in dv.all_blocks_created ::

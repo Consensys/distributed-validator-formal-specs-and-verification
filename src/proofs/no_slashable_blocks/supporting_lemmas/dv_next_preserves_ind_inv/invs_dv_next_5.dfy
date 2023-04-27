@@ -2,7 +2,6 @@ include "../../../../common/commons.dfy"
 include "invs_fnc_1.dfy"
 include "invs_fnc_2.dfy"
 
-include "../../../../common/block_proposer/block_types.dfy"
 include "../../../../common/block_proposer/block_common_functions.dfy"
 include "../../../../common/block_proposer/block_signing_functions.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
@@ -27,7 +26,7 @@ include "invs_dv_next_4.dfy"
 
 module Invs_DV_Next_5
 {
-    import opened Block_Types
+    import opened Types
     import opened Block_Signing_Functions
     import opened Block_Common_Functions
     import opened Block_Consensus_Spec
@@ -314,7 +313,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -653,7 +652,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -915,7 +914,7 @@ module Invs_DV_Next_5
 
     lemma lem_block_slashing_db_hist_cid_is_monotonic(
         s: DVCState,
-        event: Block_Types.BlockEvent,
+        event: Types.BlockEvent,
         s': DVCState,
         outputs: Outputs,
         cid: Slot       
@@ -929,7 +928,7 @@ module Invs_DV_Next_5
 
     lemma lem_block_slashing_db_hist_cid_is_monotonic_corollary(
         s: DVCState,
-        event: Block_Types.BlockEvent,
+        event: Types.BlockEvent,
         s': DVCState,
         outputs: Outputs,
         cid: Slot,
@@ -1015,7 +1014,7 @@ module Invs_DV_Next_5
         s': DVState,
         hn: BLSPubkey,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         cid: Slot, 
         vp : BeaconBlock -> bool
@@ -1168,7 +1167,7 @@ module Invs_DV_Next_5
         s': DVState,
         hn: BLSPubkey,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(s, event)
@@ -1389,7 +1388,7 @@ module Invs_DV_Next_5
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_f_add_block_to_bn_with_event(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         dv': DVState
     )    
     requires add_block_to_bn_with_event.requires(dv, node, nodeEvent)
@@ -1428,7 +1427,7 @@ module Invs_DV_Next_5
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusInstanceStep(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         dv': DVState
     )    
@@ -1478,7 +1477,7 @@ module Invs_DV_Next_5
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_NextHonestAfterAddingBlockToBn(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         dv': DVState
     )    
@@ -1495,7 +1494,7 @@ module Invs_DV_Next_5
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_NextHonestNode(
         dv: DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         dv': DVState
     )    
@@ -1807,7 +1806,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         proposer_duty: ProposerDuty
     )    
@@ -1902,7 +1901,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         id: Slot,
         decided_beacon_block: BeaconBlock
@@ -2091,7 +2090,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -2164,14 +2163,80 @@ module Invs_DV_Next_5
         }
     }
 
+    // lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
+    //     dv: DVState,
+    //     event: DV_Block_Proposer_Spec.BlockEvent,
+    //     dv': DVState,
+    //     node: BLSPubkey, 
+    //     nodeEvent: Types.BlockEvent, 
+    //     nodeOutputs: Outputs,
+    //     block: BeaconBlock
+    // )    
+    // requires NextEventPreCond(dv, event)
+    // requires NextEvent(dv, event, dv')  
+    // requires event.HonestNodeTakingStep?
+    // requires event.event.ImportedNewBlock?
+    // requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    // requires nodeEvent.ImportedNewBlock?
+    // requires nodeEvent == ImportedNewBlock(block)  // Error as duplicated names
+    // requires inv_unchanged_dvc_rs_pubkey(dv)
+    // requires inv_all_honest_nodes_is_a_quorum(dv)
+    // requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
+    // requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    // requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    // requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    // requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
+    // requires inv_seq_of_proposer_duties_is_ordered(dv)
+    // ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
+    // {        
+    //     var allMessagesSent := dv.block_share_network.allMessagesSent;
+    //     var dvc := dv.honest_nodes_states[node];
+    //     var dvc' := dv'.honest_nodes_states[node];
+    //     var dvc_after_adding_block := f_add_block_to_bn(dvc, nodeEvent.block);
+
+    //     lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
+    //                 dv,
+    //                 node
+    //             );
+
+    //     assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
+    //                         allMessagesSent,
+    //                         dvc
+    //                     );
+    //     assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
+    //                         allMessagesSent,
+    //                         dvc_after_adding_block
+    //                     );
+
+    //     lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_listen_for_new_imported_blocks(            
+    //         dvc_after_adding_block,
+    //         block,
+    //         dvc',
+    //         dv.block_share_network.allMessagesSent
+    //     );
+
+    //     lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
+    //         dv,
+    //         event,
+    //         dv',
+    //         node,
+    //         nodeEvent,
+    //         nodeOutputs
+    //     );
+
+    //     assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');                
+    // }
+
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
         dv: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
-        nodeOutputs: Outputs,
-        block: BeaconBlock
+        nodeEvent: Types.BlockEvent, 
+        nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -2179,7 +2244,6 @@ module Invs_DV_Next_5
     requires event.event.ImportedNewBlock?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
-    requires nodeEvent == ImportedNewBlock(block)
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
@@ -2212,23 +2276,31 @@ module Invs_DV_Next_5
                             dvc_after_adding_block
                         );
 
-        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_listen_for_new_imported_blocks(            
-            dvc_after_adding_block,
-            block,
-            dvc',
-            dv.block_share_network.allMessagesSent
-        );
+        match nodeEvent
+        {
+            case ImportedNewBlock(block) =>
+                lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_listen_for_new_imported_blocks(            
+                    dvc_after_adding_block,
+                    block,
+                    dvc',
+                    dv.block_share_network.allMessagesSent
+                );
 
-        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
-            dv,
-            event,
-            dv',
-            node,
-            nodeEvent,
-            nodeOutputs
-        );
+                lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
+                    dv,
+                    event,
+                    dv',
+                    node,
+                    nodeEvent,
+                    nodeOutputs
+                );
 
-        assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');                
+                assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv');                
+        }
+
+        
+
+        
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveSignedBeaconBlock(
@@ -2236,7 +2308,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         block_share: SignedBeaconBlock
     )    
@@ -2306,7 +2378,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -2373,7 +2445,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -2440,7 +2512,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         randao_share: RandaoShare
     )    
@@ -2520,7 +2592,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -2662,8 +2734,7 @@ module Invs_DV_Next_5
                             dv',
                             node,
                             nodeEvent,
-                            nodeOutputs,
-                            block
+                            nodeOutputs
                         );
                                                 
                     case ResendRandaoRevealSignatureShare =>
@@ -2775,31 +2846,60 @@ module Invs_DV_Next_5
         lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(dv');
     }
 
+    // lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_checking_processes(
+    //     dv: DVState,
+    //     event: DV_Block_Proposer_Spec.BlockEvent,
+    //     dv': DVState,
+    //     node: BLSPubkey,
+    //     nodeEvent: Types.BlockEvent,
+    //     nodeOutputs: Outputs,
+    //     block: BeaconBlock
+    // )
+    // requires NextEventPreCond(dv, event)
+    // requires NextEvent(dv, event, dv')    
+    // requires event.HonestNodeTakingStep?
+    // requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    // requires nodeEvent.ImportedNewBlock?
+    // requires nodeEvent == ImportedNewBlock(block)
+    // ensures && var process := dv.honest_nodes_states[node];
+    //         && var process' := dv'.honest_nodes_states[node];
+    //         &&  var process_after_adding_block := f_add_block_to_bn(process, nodeEvent.block);
+    //         && process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ; 
+    // {
+    //     var process := dv.honest_nodes_states[node];
+    //     var process' := dv'.honest_nodes_states[node];
+    //     var process_after_adding_block := f_add_block_to_bn(process, nodeEvent.block);
+
+    //     assert process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ;
+    // }
+
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_checking_processes(
         dv: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
-        nodeOutputs: Outputs,
-        block: BeaconBlock
+        nodeEvent: Types.BlockEvent,
+        nodeOutputs: Outputs
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
-    requires nodeEvent == ImportedNewBlock(block)
     ensures && var process := dv.honest_nodes_states[node];
             && var process' := dv'.honest_nodes_states[node];
-            &&  var process_after_adding_block := f_add_block_to_bn(process, nodeEvent.block);
-            && process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ; 
+            && var process_after_adding_block := f_add_block_to_bn(process, nodeEvent.block);
+            && process' == f_listen_for_new_imported_blocks(process_after_adding_block, nodeEvent.block).state ; 
     {
         var process := dv.honest_nodes_states[node];
         var process' := dv'.honest_nodes_states[node];
         var process_after_adding_block := f_add_block_to_bn(process, nodeEvent.block);
 
-        assert process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ;
+        match nodeEvent
+        {
+            case ImportedNewBlock(block) =>
+                assert process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ;
+        }
     }
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock(
@@ -2807,16 +2907,15 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
-        nodeOutputs: Outputs,
-        block: BeaconBlock
+        nodeEvent: Types.BlockEvent,
+        nodeOutputs: Outputs
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')     
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
-    requires nodeEvent == ImportedNewBlock(block)
+    // requires nodeEvent == ImportedNewBlock(block)
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
     requires construct_complete_signed_block_assumptions_helper(
@@ -2839,7 +2938,6 @@ module Invs_DV_Next_5
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(dv)
     requires inv_all_created_signed_beacon_blocks_are_valid(dv)
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(dv)
-    
     requires inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(dv, event.node, dv.honest_nodes_states[event.node])
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(dv)
     ensures inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(dv', event.node, dv'.honest_nodes_states[event.node]); 
@@ -2854,60 +2952,64 @@ module Invs_DV_Next_5
             dv',
             node,
             nodeEvent,
-            nodeOutputs,
-            block
+            nodeOutputs
         );
-        assert process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ;
 
-        lem_inv_decisions_of_consensus_instances_are_unchanged(dv, event, dv');
-        assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(dv', node, process);
-        
-        var complete_signed_block: SignedBeaconBlock :|
-                    && complete_signed_block in dv.all_blocks_created
-                    && complete_signed_block.block == block
-                    ;
+        match nodeEvent
+        {
+            case ImportedNewBlock(block) =>
+                assert process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ;
 
-        lem_inv_all_blocks_created_is_monotonic_dv_next(dv, event, dv');
-        assert  complete_signed_block in dv'.all_blocks_created;
+                lem_inv_decisions_of_consensus_instances_are_unchanged(dv, event, dv');
+                assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(dv', node, process);
+                
+                var complete_signed_block: SignedBeaconBlock :|
+                            && complete_signed_block in dv.all_blocks_created
+                            && complete_signed_block.block == block
+                            ;
 
-        lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock_helper(dv, event, dv');
-        assert  inv_block_of_all_created_blocks_is_set_of_decided_values(dv');
+                lem_inv_all_blocks_created_is_monotonic_dv_next(dv, event, dv');
+                assert  complete_signed_block in dv'.all_blocks_created;
 
-        var consa' := dv'.consensus_instances_on_beacon_block[complete_signed_block.block.slot];
-        assert  && consa'.decided_value.isPresent() 
-                && complete_signed_block.block == consa'.decided_value.safe_get() 
-                ;
-        
-        var slot: Slot := block.slot;
-        assert  block
-                ==
-                dv'.consensus_instances_on_beacon_block[slot].decided_value.safe_get()
-                ;
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock_helper(dv, event, dv');
+                assert  inv_block_of_all_created_blocks_is_set_of_decided_values(dv');
 
-        lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_add_block_to_bn(
-            process,
-            block,
-            process_after_adding_block,
-            dv', 
-            node
-        );
-        
-        // assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s_node2);                     
-        // assert  && s'.consensus_instances_on_beacon_block[block.slot].decided_value.isPresent()
-        //         && block == s'.consensus_instances_on_beacon_block[block.slot].decided_value.safe_get()
-        //         ;
+                var consa' := dv'.consensus_instances_on_beacon_block[complete_signed_block.block.slot];
+                assert  && consa'.decided_value.isPresent() 
+                        && complete_signed_block.block == consa'.decided_value.safe_get() 
+                        ;
+                
+                var slot: Slot := block.slot;
+                assert  block
+                        ==
+                        dv'.consensus_instances_on_beacon_block[slot].decided_value.safe_get()
+                        ;
 
-        lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_listen_for_new_imported_blocks(
-            process_after_adding_block,
-            block,
-            process',
-            dv', 
-            node
-        );  
-        // assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, process');          
-        // assert  node == event.node;
-        // assert  process' == s'.honest_nodes_states[event.node];
-        assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(dv', event.node, dv'.honest_nodes_states[event.node]);                                    
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_add_block_to_bn(
+                    process,
+                    block,
+                    process_after_adding_block,
+                    dv', 
+                    node
+                );
+                
+                // assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s_node2);                     
+                // assert  && s'.consensus_instances_on_beacon_block[block.slot].decided_value.isPresent()
+                //         && block == s'.consensus_instances_on_beacon_block[block.slot].decided_value.safe_get()
+                //         ;
+
+                lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body_f_listen_for_new_imported_blocks(
+                    process_after_adding_block,
+                    block,
+                    process',
+                    dv', 
+                    node
+                );  
+                // assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, process');          
+                // assert  node == event.node;
+                // assert  process' == s'.honest_nodes_states[event.node];
+                assert  inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(dv', event.node, dv'.honest_nodes_states[event.node]);         
+        }                           
     }     
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_HonestNodeTakingStep_helper(
@@ -2915,7 +3017,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         nodeOutputs: Outputs
     )
     requires NextEventPreCond(s, event)
@@ -3005,8 +3107,7 @@ module Invs_DV_Next_5
                     s',
                     node,
                     nodeEvent,
-                    nodeOutputs,
-                    block
+                    nodeOutputs
                 );
                 assert inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(s', node, s'_node);                     
             
@@ -3243,7 +3344,7 @@ module Invs_DV_Next_5
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         nodeOutputs: Outputs
     )       
     requires NextEventPreCond(dv, event)

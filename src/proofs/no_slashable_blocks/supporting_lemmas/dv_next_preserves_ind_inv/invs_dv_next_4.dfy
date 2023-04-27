@@ -2,7 +2,6 @@ include "../../../../common/commons.dfy"
 include "invs_fnc_1.dfy"
 include "invs_fnc_2.dfy"
 
-include "../../../../common/block_proposer/block_types.dfy"
 include "../../../../common/block_proposer/block_common_functions.dfy"
 include "../../../../common/block_proposer/block_signing_functions.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
@@ -28,7 +27,7 @@ include "invs_dv_next_3.dfy"
 
 module Invs_DV_Next_4
 {
-    import opened Block_Types
+    import opened Types
     import opened Block_Signing_Functions
     import opened Block_Common_Functions
     import opened Block_Consensus_Spec
@@ -55,6 +54,179 @@ module Invs_DV_Next_4
     ensures dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent
     {}
 
+    lemma lem_inv_rcvd_block_shares_are_from_sent_messages_ReceiveSignedBeaconBlock_helper1<T>(
+        S1: set<T>,
+        S2: set<T>,
+        S3: set<T>, 
+        S4: set<T>
+    )
+    requires S1 <= S2
+    requires S2 <= S3
+    requires S3 <= S4
+    ensures S1 <= S4
+    {}
+
+     lemma lem_inv_rcvd_block_shares_are_from_sent_messages_ReceiveSignedBeaconBlock_helper2<T>(
+        S1: set<T>,
+        t: T,
+        S3: set<T>
+    )
+    requires S1 <= { t }
+    requires t in S3
+    ensures S1 <= S3
+    {
+        lemmaFromMemberToSingletonSet(t, S3);
+        assert { t } <= S3;
+
+        lemmaSubsetOfSubset(S1, { t }, S3);        
+    }
+
+    lemma lem_inv_rcvd_block_shares_are_from_sent_messages_dv_next_helper3<T>(
+        S1: set<T>,
+        S2: set<T>,
+        t: T, 
+        S4: set<T>,
+        S5: set<T>
+    )
+    requires S1 <= S2 + { t }
+    requires S2 <= S4
+    requires t in S5
+    requires S4 <= S5
+    ensures S1 <= S5
+    {
+        lemmaSubsetOfSubset(S2, S4, S5);
+        assert  S2 <= S5;
+
+        lemmaFromMemberToSingletonSet(t, S5);
+        assert { t } <= S5;
+
+        lemmaUnionOfSubsets(S2, { t }, S5);
+        assert  S2 + { t } <= S5;
+        
+        lemmaSubsetOfSubset(S1, S2 + { t }, S5);
+    }
+
+    lemma lem_inv_rcvd_block_shares_are_from_sent_messages_ReceiveSignedBeaconBlock(
+        dv: DVState,
+        event: DV_Block_Proposer_Spec.BlockEvent,
+        dv': DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.BlockEvent, 
+        nodeOutputs: Outputs,
+        block_share: SignedBeaconBlock
+    )       
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires nodeEvent.ReceiveSignedBeaconBlock?
+    requires nodeEvent == ReceiveSignedBeaconBlock(block_share)
+    requires inv_all_in_transit_messages_were_sent(dv)
+    requires inv_rcvd_block_shares_are_from_sent_messages(dv)
+    ensures inv_rcvd_block_shares_are_from_sent_messages(dv')
+    {        
+        var dvc := dv.honest_nodes_states[node];
+        var dvc' := dv'.honest_nodes_states[node];
+                
+        assert Block_Network_Spec.Next(dv.block_share_network, dv'.block_share_network, node, nodeOutputs.sent_block_shares, {block_share});
+        assert multiset(addReceipientToMessages<SignedBeaconBlock>({block_share}, node)) <= dv.block_share_network.messagesInTransit;
+        assert MessaageWithRecipient(message := block_share, receipient := node) in dv.block_share_network.messagesInTransit;        
+        assert block_share in dv.block_share_network.allMessagesSent;
+        assert block_share in dv'.block_share_network.allMessagesSent;
+        
+        lem_inv_monotonic_block_share_network_dv_next(dv, event, dv');
+        assert dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent;
+        
+        lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');  
+
+        assert dvc' == f_listen_for_block_signature_shares(dvc, block_share).state;
+
+        var slot := block_share.block.slot;
+        var data := block_share.block;
+        forall i, j | && i in dvc'.rcvd_block_shares.Keys 
+                        && j in dvc'.rcvd_block_shares[i].Keys
+        ensures dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;
+        {
+            if ( || i != slot
+                    || j != data
+                )
+            {             
+                lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_listen_for_block_signature_shares_domain(
+                    dvc,
+                    block_share,
+                    dvc'
+                );
+                assert && i in dvc.rcvd_block_shares.Keys 
+                       && j in dvc.rcvd_block_shares[i].Keys;
+                assert dvc'.rcvd_block_shares[i][j] <= dvc.rcvd_block_shares[i][j];                                
+                assert dvc.rcvd_block_shares[i][j] <= dv.block_share_network.allMessagesSent;
+                assert dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent;
+
+                lem_inv_rcvd_block_shares_are_from_sent_messages_ReceiveSignedBeaconBlock_helper1(
+                    dvc'.rcvd_block_shares[i][j],
+                    dvc.rcvd_block_shares[i][j],
+                    dv.block_share_network.allMessagesSent,
+                    dv'.block_share_network.allMessagesSent
+                );
+
+                assert dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;
+            }
+            else
+            {
+                if  && i == block_share.block.slot
+                    && j == data
+                    && ( || i !in dvc.rcvd_block_shares.Keys
+                            || j !in dvc.rcvd_block_shares[i].Keys
+                        )                                       
+                {
+                    assert dvc'.rcvd_block_shares[i][j] <= { block_share };
+                    assert block_share in dv'.block_share_network.allMessagesSent;
+
+                    lem_inv_rcvd_block_shares_are_from_sent_messages_ReceiveSignedBeaconBlock_helper2(
+                        dvc'.rcvd_block_shares[i][j],
+                        block_share,
+                        dv'.block_share_network.allMessagesSent
+                    );
+
+                    assert dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;                                    
+                }
+                else
+                {
+                    assert  && i == block_share.block.slot
+                            && j == data
+                            && i in dvc.rcvd_block_shares.Keys 
+                            && j in dvc.rcvd_block_shares[i].Keys
+                            ;
+
+                    assert  dvc'.rcvd_block_shares[i][j] 
+                            <= 
+                            dvc.rcvd_block_shares[i][j] + {block_share}
+                            ; 
+
+                    assert  dvc.rcvd_block_shares[i][j]
+                            <= 
+                            dv.block_share_network.allMessagesSent
+                            ; 
+
+                    assert dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent;
+
+                    assert block_share in dv'.block_share_network.allMessagesSent;       
+
+                    lem_inv_rcvd_block_shares_are_from_sent_messages_dv_next_helper3(
+                        dvc'.rcvd_block_shares[i][j],
+                        dvc.rcvd_block_shares[i][j],
+                        block_share,
+                        dv.block_share_network.allMessagesSent,
+                        dv'.block_share_network.allMessagesSent
+                    );                             
+
+                    assert dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;                                                                         
+                }
+            }
+        }
+        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
+    }  
+
     lemma lem_inv_rcvd_block_shares_are_from_sent_messages_dv_next(
         dv: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
@@ -75,157 +247,39 @@ module Invs_DV_Next_4
                 {
                     case ServeProposerDuty(proposer_duty) =>     
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_serve_proposer_duty(dvc, proposer_duty, dvc');                        
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
                     
                     case ReceiveRandaoShare(randao_share) =>                         
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_listen_for_randao_shares(dvc, randao_share, dvc');    
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
                         
                     case BlockConsensusDecided(id, decided_beacon_block) => 
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_block_consensus_decided(dvc, id, decided_beacon_block, dvc');                        
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
 
                     case ReceiveSignedBeaconBlock(block_share) =>    
-                        assert Block_Network_Spec.Next(dv.block_share_network, dv'.block_share_network, node, nodeOutputs.sent_block_shares, {block_share});
-                        assert multiset(addReceipientToMessages<SignedBeaconBlock>({block_share}, node)) <= dv.block_share_network.messagesInTransit;
-                        assert MessaageWithRecipient(message := block_share, receipient := node) in dv.block_share_network.messagesInTransit;        
-                        assert block_share in dv.block_share_network.allMessagesSent;
-                        assert block_share in dv'.block_share_network.allMessagesSent;
-                        
-                        lem_inv_monotonic_block_share_network_dv_next(dv, event, dv');
-                        assert dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent;
-                        
-                        lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_listen_for_block_signature_shares(dvc, block_share, dvc');  
-
-                        assert dvc' == f_listen_for_block_signature_shares(dvc, block_share).state;
-
-                        var slot := block_share.block.slot;
-                        var data := block_share.block;
-                        forall i, j | && i in dvc'.rcvd_block_shares.Keys 
-                                      && j in dvc'.rcvd_block_shares[i].Keys
-                        ensures dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;
-                        {
-                            if ( || i != slot
-                                 || j != data
-                               )
-                            {             
-                                lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_listen_for_block_signature_shares_domain(
-                                    dvc,
-                                    block_share,
-                                    dvc'
-                                );
-                                assert && i in dvc.rcvd_block_shares.Keys 
-                                       && j in dvc.rcvd_block_shares[i].Keys;
-                                assert dvc'.rcvd_block_shares[i][j] <= dvc.rcvd_block_shares[i][j];                                
-                                assert dvc.rcvd_block_shares[i][j] <= dv.block_share_network.allMessagesSent;
-                                lemmaSubsetOfSubset(
-                                    dvc'.rcvd_block_shares[i][j],
-                                    dvc.rcvd_block_shares[i][j],
-                                    dv.block_share_network.allMessagesSent
-                                );
-                                assert dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent;
-                                lemmaSubsetOfSubset(
-                                    dvc'.rcvd_block_shares[i][j],                                    
-                                    dv.block_share_network.allMessagesSent,
-                                    dv'.block_share_network.allMessagesSent
-                                );
-                                assert dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;
-                            }
-                            else
-                            {
-                                if  && i == block_share.block.slot
-                                    && j == data
-                                    && ( || i !in dvc.rcvd_block_shares.Keys
-                                         || j !in dvc.rcvd_block_shares[i].Keys
-                                       )                                       
-                                {
-                                    assert dvc'.rcvd_block_shares[i][j] <= { block_share };
-                                    assert block_share in dv'.block_share_network.allMessagesSent;
-
-                                    lemmaFromMemberToSingletonSet(block_share, dv'.block_share_network.allMessagesSent);
-                                    assert {block_share} <= dv'.block_share_network.allMessagesSent;
-
-                                    lemmaSubsetOfSubset(
-                                            dvc'.rcvd_block_shares[i][j],
-                                            {block_share},
-                                            dv'.block_share_network.allMessagesSent
-                                        );
-                                    assert dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;                                    
-                                }
-                                else
-                                {
-                                    assert  && i == block_share.block.slot
-                                            && j == data
-                                            && i in dvc.rcvd_block_shares.Keys 
-                                            && j in dvc.rcvd_block_shares[i].Keys
-                                            ;
-
-                                    assert  dvc'.rcvd_block_shares[i][j] 
-                                            <= 
-                                            dvc.rcvd_block_shares[i][j] + {block_share}
-                                            ; 
-
-                                    assert  dvc.rcvd_block_shares[i][j]
-                                            <= 
-                                            dv.block_share_network.allMessagesSent
-                                            ; 
-
-                                    assert dv.block_share_network.allMessagesSent <= dv'.block_share_network.allMessagesSent;
-
-                                    lemmaSubsetOfSubset(
-                                        dvc.rcvd_block_shares[i][j],
-                                        dv.block_share_network.allMessagesSent,
-                                        dv'.block_share_network.allMessagesSent
-                                    );
-
-                                    assert  dvc.rcvd_block_shares[i][j] 
-                                            <= 
-                                            dv'.block_share_network.allMessagesSent
-                                            ;
-                                    
-                                    assert block_share in dv'.block_share_network.allMessagesSent;                                    
-
-                                    lemmaFromMemberToSingletonSet(block_share, dv'.block_share_network.allMessagesSent);
-                                    assert {block_share} <= dv'.block_share_network.allMessagesSent;
-
-                                    lemmaUnionOfSubsets(dvc.rcvd_block_shares[i][j], {block_share}, dv'.block_share_network.allMessagesSent);                                    
-                                    assert  dvc.rcvd_block_shares[i][j] + {block_share}
-                                            <= 
-                                            dv'.block_share_network.allMessagesSent
-                                            ;
-
-                                    lemmaSubsetOfSubset(
-                                        dvc'.rcvd_block_shares[i][j],
-                                        dvc.rcvd_block_shares[i][j] + {block_share},
-                                        dv'.block_share_network.allMessagesSent
-                                    );
-                                    
-                                    assert dvc'.rcvd_block_shares[i][j] <= dv'.block_share_network.allMessagesSent;                                                                         
-                                }
-                            }
-                        }
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
+                        lem_inv_rcvd_block_shares_are_from_sent_messages_ReceiveSignedBeaconBlock(
+                            dv,
+                            event,
+                            dv',
+                            node,
+                            nodeEvent,
+                            nodeOutputs,
+                            block_share
+                        );
 
                     case ImportedNewBlock(block) => 
                         var dvc_mod := f_add_block_to_bn(dvc, block);
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_add_block_to_bn(dvc, block, dvc_mod);
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_listen_for_new_imported_blocks(dvc_mod, block, dvc');                                                
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
                                                 
                     case ResendRandaoRevealSignatureShare =>
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_resend_randao_share(dvc, dvc');
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
                     
                     case ResendBlockShare =>                  
                         lem_inv_rcvd_block_shares_are_from_sent_messages_body_f_resend_block_share(dvc, dvc');
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
 
                     case NoEvent => 
-                        assert inv_rcvd_block_shares_are_from_sent_messages(dv');
                 }
 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) =>
-                assert inv_rcvd_block_shares_are_from_sent_messages(dv');
                 
         }        
     }  
@@ -569,7 +623,7 @@ module Invs_DV_Next_4
 
     lemma inv_inv_block_slashing_db_hist_is_monotonic_body(
         process: DVCState,
-        nodeEvent: Block_Types.BlockEvent,
+        nodeEvent: Types.BlockEvent,
         process': DVCState,
         outputs: Outputs        
     )
@@ -873,7 +927,7 @@ module Invs_DV_Next_4
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs
     )    
     requires NextEventPreCond(dv, event)
@@ -900,7 +954,7 @@ module Invs_DV_Next_4
         event: DV_Block_Proposer_Spec.BlockEvent,
         dv': DVState,
         node: BLSPubkey, 
-        nodeEvent: Block_Types.BlockEvent, 
+        nodeEvent: Types.BlockEvent, 
         nodeOutputs: Outputs,
         proposer_duty: ProposerDuty
     )    
