@@ -1,9 +1,7 @@
 include "../../common/commons.dfy"
-include "../../common/block_proposer/block_signing_functions.dfy"
-include "../../common/commons.dfy"
 include "../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../consensus/block_consensus.dfy"
-include "../network/block_network.dfy"
+include "../network/network.dfy"
 include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
@@ -12,7 +10,7 @@ module DV_Block_Proposer_Spec
     import opened Types
     import opened CommonFunctions
     
-    import opened Block_Network_Spec
+    import opened NetworkSpec
     import opened Block_Consensus_Spec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
@@ -33,8 +31,8 @@ module DV_Block_Proposer_Spec
         adversary: Adversary,
         dv_pubkey: BLSPubkey,
         consensus_instances_on_beacon_block: imaptotal<Slot, BlockConsensusInstance<BeaconBlock>>,
-        randao_share_network: Block_Network_Spec.Network<RandaoShare>,
-        block_share_network: Block_Network_Spec.Network<SignedBeaconBlock>,
+        randao_share_network: NetworkSpec.Network<RandaoShare>,
+        block_share_network: NetworkSpec.Network<SignedBeaconBlock>,
         all_blocks_created: set<SignedBeaconBlock>,
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
@@ -343,7 +341,7 @@ module DV_Block_Proposer_Spec
                         pubkey
                     )
             )    
-        &&  Block_Network_Spec.Init(s.block_share_network, s.all_nodes)
+        &&  NetworkSpec.Init(s.block_share_network, s.all_nodes)
         &&  ( forall bci | bci in  s.consensus_instances_on_beacon_block.Values ::
                 Block_Consensus_Spec.Init(
                     bci, 
@@ -695,8 +693,8 @@ module DV_Block_Proposer_Spec
                 case ReceiveSignedBeaconBlock(block_share) => {block_share}
                 case _ => {}
             ;
-        && Block_Network_Spec.Next(s.randao_share_network, s'.randao_share_network, node, nodeOutputs.sent_randao_shares, randaoShareReceivedByTheNode)
-        && Block_Network_Spec.Next(s.block_share_network, s'.block_share_network, node, nodeOutputs.sent_block_shares, blockShareReceivedByTheNode)
+        && NetworkSpec.Next(s.randao_share_network, s'.randao_share_network, node, nodeOutputs.sent_randao_shares, randaoShareReceivedByTheNode)
+        && NetworkSpec.Next(s.block_share_network, s'.block_share_network, node, nodeOutputs.sent_block_shares, blockShareReceivedByTheNode)
         && BlockConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
         && s'.dv_pubkey == s.dv_pubkey      
@@ -730,8 +728,8 @@ module DV_Block_Proposer_Spec
                 var block_signing_root := compute_block_signing_root(new_sent_block_share.message.block);
                 verify_bls_signature(block_signing_root, new_sent_block_share.message.signature, signer) ==> signer in s.adversary.nodes
         )
-        && Block_Network_Spec.Next(s.randao_share_network, s'.randao_share_network, node, new_sent_randao_shares, randaoShareReceivedByTheNode)
-        && Block_Network_Spec.Next(s.block_share_network, s'.block_share_network, node, new_sent_block_shares, blockShareReceivedByTheNode)        
+        && NetworkSpec.Next(s.randao_share_network, s'.randao_share_network, node, new_sent_randao_shares, randaoShareReceivedByTheNode)
+        && NetworkSpec.Next(s.block_share_network, s'.block_share_network, node, new_sent_block_shares, blockShareReceivedByTheNode)        
         && s.all_blocks_created <= s'.all_blocks_created
         && var new_blocks_created := s'.all_blocks_created - s.all_blocks_created;
         && (forall new_signed_block_created | new_signed_block_created in new_blocks_created ::

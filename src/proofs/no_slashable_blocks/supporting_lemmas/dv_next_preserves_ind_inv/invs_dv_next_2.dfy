@@ -1,13 +1,12 @@
 include "invs_fnc_1.dfy"
 
 include "../../../../common/commons.dfy"
-include "../../../../common/commons.dfy"
-include "../../../../common/block_proposer/block_signing_functions.dfy"
+
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../../../../specs/consensus/block_consensus.dfy"
-include "../../../../specs/network/block_network.dfy"
+include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
 
@@ -28,7 +27,7 @@ module Invs_DV_Next_2
     
     import opened CommonFunctions
     import opened Block_Consensus_Spec
-    import opened Block_Network_Spec
+    import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
@@ -47,7 +46,7 @@ module Invs_DV_Next_2
         messagesToBeSent: set<MessaageWithRecipient<M>>,
         messagesReceived: set<M>
     )
-    requires Block_Network_Spec.Next(e, e', n, messagesToBeSent, messagesReceived)
+    requires NetworkSpec.Next(e, e', n, messagesToBeSent, messagesReceived)
     requires inv_all_in_transit_messages_were_sent_body(e)
     ensures inv_all_in_transit_messages_were_sent_body(e')
     {
@@ -68,7 +67,7 @@ module Invs_DV_Next_2
             messagesToBeSent: set<MessaageWithRecipient<SignedBeaconBlock>>,
             messagesReceived: set<SignedBeaconBlock>
             :|
-            Block_Network_Spec.Next<SignedBeaconBlock>(
+            NetworkSpec.Next<SignedBeaconBlock>(
                 dv.block_share_network,
                 dv'.block_share_network,
                 n,

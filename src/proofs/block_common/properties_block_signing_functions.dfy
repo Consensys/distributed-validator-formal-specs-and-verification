@@ -1,6 +1,5 @@
 include "../../common/commons.dfy"
-include "../../common/commons.dfy"
-include "../../common/block_proposer/block_signing_functions.dfy"
+
 include "./properties_block_common_functions.dfy"
 
 import opened Types

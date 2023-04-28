@@ -1,5 +1,4 @@
 include "../../common/commons.dfy"
-include "../../common/commons.dfy"
 
 import opened Types
 import opened CommonFunctions

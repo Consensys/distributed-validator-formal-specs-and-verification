@@ -1,5 +1,4 @@
 include "../../../common/commons.dfy"
-include "../../../common/commons.dfy"
 
 include "../../../specs/dvc/dvc_block_proposer.dfy"
 include "block_dvc_spec_axioms.dfy"

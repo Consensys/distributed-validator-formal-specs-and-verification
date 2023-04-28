@@ -1,5 +1,4 @@
 include "../../common/commons.dfy"
-include "../../common/commons.dfy"
 
 // Note: Only safety properties are expressed at the moment.
 module Block_Consensus_Spec

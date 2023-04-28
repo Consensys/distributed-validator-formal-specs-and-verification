@@ -1,10 +1,9 @@
 include "../../../../common/commons.dfy"
-include "../../../../common/commons.dfy"
-include "../../../../common/block_proposer/block_signing_functions.dfy"
+
 include "../../common/dvc_block_proposer_instrumented.dfy"
 
 include "../../../../specs/consensus/block_consensus.dfy"
-include "../../../../specs/network/block_network.dfy"
+include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 
 include "../inv.dfy"
@@ -17,7 +16,7 @@ module Ind_Inv_Implies_Safety
     
     import opened CommonFunctions
     import opened Block_Consensus_Spec
-    import opened Block_Network_Spec
+    import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DV_Block_Proposer_Spec 
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB

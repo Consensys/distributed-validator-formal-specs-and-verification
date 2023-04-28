@@ -1,6 +1,3 @@
-include "../../../common/commons.dfy"
-include "../../../common/commons.dfy"
-
 include "../../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 include "../../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../../../specs/dvc/dvc_block_proposer.dfy"

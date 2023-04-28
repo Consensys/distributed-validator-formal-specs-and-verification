@@ -7,11 +7,10 @@ include "../../common/common_proofs.dfy"
 include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../../../../common/commons.dfy"
-include "../../../../common/commons.dfy"
-include "../../../../common/block_proposer/block_signing_functions.dfy"
+
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../../../specs/consensus/block_consensus.dfy"
-include "../../../../specs/network/block_network.dfy"
+include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 
@@ -24,7 +23,7 @@ module Fnc_Invs_1
     
     import opened CommonFunctions
     import opened Block_Consensus_Spec
-    import opened Block_Network_Spec
+    import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB

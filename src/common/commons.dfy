@@ -218,9 +218,6 @@ module CommonFunctions{
         epoch * SLOTS_PER_EPOCH
     }   
 
-    
-
-
     // TODO: What about the genesis_validator_root parameter?
     function method {:extern} compute_domain(
         domain_type: DomainTypes,
@@ -320,6 +317,28 @@ module CommonFunctions{
     function seqToSet<T>(s: seq<T>): (r: set<T>)
     {
         set e | e in s
+    }
+
+    lemma minOfSetOfSlotExists(s: set<int>)
+    requires s != {}
+    ensures exists min :: 
+                        && min in s 
+                        && forall e | e in s :: min <= e 
+    {
+        if |s| == 1 {
+            var e :| e in s;
+            assert |s - {e}| == 0;
+        } 
+        else
+        {
+            var e :| e in s;
+            var sMinusE := s - {e};
+            assert |s| > 1;
+            assert s == sMinusE + {e};
+            assert |sMinusE| > 0;
+            minOfSetOfSlotExists(sMinusE);
+            var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' >= mMinusE;
+        }    
     }
 
     lemma existsMinOfNonemptySetOfInt(s: set<int>)
@@ -725,4 +744,143 @@ module CommonFunctions{
             signature := construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
         )
     }
+
+    function method {:opaque} get_min(s: set<int>): (min: int)    
+    requires s != {}
+    ensures min in s
+    ensures forall e | e in s :: min <= e
+    {        
+        minOfSetOfSlotExists(s);
+        var e: int :| e in s && forall e' | e' in s :: e' >= e;
+        e        
+    }
+
+    // is_slashable_block is for line 153 in helpers.py
+    predicate is_slashable_block(
+        block_slashing_db: set<SlashingDBBlock>,
+        block: BeaconBlock
+    ) 
+    {
+        if block_slashing_db != {} then
+        
+            var slots := get_slashing_slots(block_slashing_db);
+            var min_slot := get_min(slots);
+
+            if block.slot < min_slot then
+                true
+            else 
+                if exists db_block :: 
+                        && db_block in block_slashing_db
+                        && block.slot == db_block.slot 
+                        && db_block.signing_root.isPresent()
+                        && hash_tree_root(block) != db_block.signing_root.safe_get()
+                then 
+                    true
+                else
+                    false
+        else 
+            false
+    } by method
+    {            
+        
+        if block_slashing_db != {}
+        {
+            var slots := get_slashing_slots(block_slashing_db);
+            var min_slot := get_min(slots);
+
+            if block.slot < min_slot 
+            {
+                return true;
+            }
+            
+            if exists db_block ::   && db_block in block_slashing_db  
+                                    && block.slot == db_block.slot
+                                    && db_block.signing_root.isPresent()
+                                    && hash_tree_root(block) != db_block.signing_root.safe_get()
+            {
+                return true;
+            }
+        }
+        
+        return false;            
+    }    
+    
+    predicate method ci_decision_is_valid_beacon_block(
+        block_slashing_db: set<SlashingDBBlock>,
+        block: BeaconBlock,
+        proposer_duty: ProposerDuty,
+        complete_signed_randao_reveal: BLSSignature
+    )    
+    {
+        && block.slot == proposer_duty.slot 
+        && block.body.randao_reveal == complete_signed_randao_reveal
+        && !is_slashable_block(block_slashing_db, block)
+    }
+
+    // 
+    function method get_slashing_slots(slashing_db: set<SlashingDBBlock>): (slots_in_db: set<int>)    
+    requires slashing_db != {}
+    ensures slots_in_db != {}    
+    {
+        var slots_in_db := set block | block in slashing_db :: block.slot;
+        assert var e :| e in slashing_db; e.slot in slots_in_db;
+        slots_in_db
+    }
+    
+    predicate method is_slashable_pair_of_beacon_blocks(
+        block_1: SlashingDBBlock, 
+        block_2: SlashingDBBlock)
+    {
+        && block_1.slot == block_2.slot
+        && block_1.signing_root.isPresent()
+        && block_2.signing_root.isPresent()
+        && block_1.signing_root.safe_get() != block_2.signing_root.safe_get()
+    }  
+
+    function method construct_SlashingDBBlock_from_beacon_block(block: BeaconBlock
+    ): (slashing_db_block: SlashingDBBlock)
+    ensures slashing_db_block == SlashingDBBlock(block.slot, Some(hash_tree_root(block)))
+    ensures slashing_db_block.slot == block.slot
+    ensures && slashing_db_block.signing_root.isPresent()
+            && slashing_db_block.signing_root.safe_get() == hash_tree_root(block)
+    {   
+        var slot := block.slot;
+        var signing_root := hash_tree_root(block);
+        var slashing_db_block := SlashingDBBlock(
+                                            slot := slot,                                            
+                                            signing_root := Some(signing_root)
+                                );
+
+        slashing_db_block
+    }  
+
+    function method compute_epoch_at_slot(slot: Slot): Epoch
+    {
+        slot / SLOTS_PER_EPOCH
+    }   
+
+    function method {:extern} compute_domain_with_epoch(
+        domain_type: DomainTypes,
+        epoch: Epoch
+    ): (domain: Domain)
+
+    // TODO: What about the genesis_validator_root parameter?
+    function method {:extern} compute_domain_with_fork_version(
+        domain_type: DomainTypes,
+        fork_version: Version
+    ): (domain: Domain)
+
+    function method compute_randao_reveal_signing_root(slot: Slot): Root
+    {   
+        var epoch := compute_epoch_at_slot(slot);
+        var domain := compute_domain_with_epoch(DOMAIN_RANDAO, epoch);
+        compute_signing_root(epoch, domain)
+    }
+    
+    function method compute_block_signing_root(block: BeaconBlock): Root
+    {
+        var epoch := compute_epoch_at_slot(block.slot);
+        var domain := compute_domain_with_epoch(DOMAIN_BEACON_PROPOSER, epoch);
+        compute_signing_root(block, domain)
+    }  
 }
