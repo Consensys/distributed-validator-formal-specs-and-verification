@@ -9,3 +9,10 @@ src/dvspec/dafny-block-dv/.DS_Store
 *.dll
 src/proofs/verification_log.txt
 src/proofs/verify.sh
+dafny.txt
+debug.txt
+verification.log
+src/proofs/att_ver_log.txt
+src/proofs/att_ver.sh
+src/proofs/block_ver_log.txt
+src/proofs/block_ver.sh
