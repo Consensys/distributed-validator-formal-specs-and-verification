@@ -4,15 +4,15 @@ include "../consensus/consensus.dfy"
 include "../network/network.dfy"
 include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
-module DV 
+module Att_DV 
 {
     import opened Types
     import opened CommonFunctions
     import opened NetworkSpec
     import opened ConsensusSpec
-    import opened DVC_Spec
-    import opened DVC_Externs_Proofs
-    import opened DVC_Spec_Axioms
+    import opened Att_DVC_Spec
+    import opened Att_DVC_Externs_Proofs
+    import opened Att_DVC_Spec_Axioms
     
 
     datatype Adversary = Adversary(
@@ -24,9 +24,9 @@ module DV
         node: BLSPubkey
     )
 
-    datatype DVState = DVState(
+    datatype Att_DVState = Att_DVState(
         all_nodes: set<BLSPubkey>,
-        honest_nodes_states: map<BLSPubkey, DVCState>,
+        honest_nodes_states: map<BLSPubkey, Att_DVCState>,
         adversary: Adversary,
         dv_pubkey: BLSPubkey,
         consensus_on_attestation_data: imaptotal<Slot, ConsensusInstance<AttestationData>>,
@@ -46,7 +46,7 @@ module DV
         | HonestNodeTakingStep(
                 node: BLSPubkey, 
                 event: Types.AttestationEvent, 
-                nodeOutputs: DVC_Spec.Outputs
+                nodeOutputs: Att_DVC_Spec.Outputs
             )
 
     predicate all_att_shares_have_the_same_data(
@@ -155,7 +155,7 @@ module DV
     }
 
     predicate construct_signed_attestation_signature_assumptions(
-        s: DVState
+        s: Att_DVState
     )
     {
         construct_signed_attestation_signature_assumptions_helper(
@@ -166,7 +166,7 @@ module DV
     }
     
     predicate Init(
-        s: DVState,
+        s: Att_DVState,
         initial_attestation_slashing_db: set<SlashingDBAttestation>
     )
     {
@@ -178,7 +178,7 @@ module DV
         && s.all_attestations_created == {}
         && (
             forall n | n in s.honest_nodes_states.Keys ::
-                DVC_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature, initial_attestation_slashing_db, n)
+                Att_DVC_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature, initial_attestation_slashing_db, n)
         )      
         &&  NetworkSpec.Init(s.att_network, s.all_nodes)
         &&  (
@@ -197,7 +197,7 @@ module DV
     }
 
     // IMPORTANT
-    predicate inv_the_sequence_of_att_duties_is_in_order_of_slots(s: DVState)
+    predicate inv_the_sequence_of_att_duties_is_in_order_of_slots(s: Att_DVState)
     {
         && (forall i, j | 
                     && 0 <= i < j
@@ -208,15 +208,15 @@ module DV
     }
 
     predicate NextPreCond(
-        s: DVState
+        s: Att_DVState
     )
     {
         forall e |  validEvent(s, e) :: NextEventPreCond(s, e)
     }
  
     predicate Next(
-        s: DVState,
-        s': DVState 
+        s: Att_DVState,
+        s': Att_DVState 
     )
     requires NextPreCond(s)
     {
@@ -225,7 +225,7 @@ module DV
             && NextEvent(s, e, s')
     }
 
-    predicate unchanged_fixed_paras(dv: DVState, dv': DVState)
+    predicate unchanged_fixed_paras(dv: Att_DVState, dv': Att_DVState)
     {
         && dv.all_nodes == dv'.all_nodes
         && dv.adversary == dv'.adversary
@@ -244,8 +244,8 @@ module DV
     }
 
     predicate blockIsValid(
-        dv: DVState,
-        process: DVCState,
+        dv: Att_DVState,
+        process: Att_DVCState,
         block: BeaconBlock
     )
     {
@@ -265,8 +265,8 @@ module DV
 
       // TODO: Modify isMyAttestation to include the entirety the forall premise 
     predicate pred_axiom_is_my_attestation_2(
-        dv: DVState,
-        new_p: DVCState,
+        dv: Att_DVState,
+        new_p: Att_DVCState,
         block: BeaconBlock
     )
     requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
@@ -274,7 +274,7 @@ module DV
         var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
         forall a | 
             && a in block.body.attestations 
-            && DVC_Spec_NonInstr.isMyAttestation(
+            && Att_DVC_Spec_NonInstr.isMyAttestation(
             a,
             new_p.bn,
             block,
@@ -288,8 +288,8 @@ module DV
     }  
 
     predicate blockIsValidAfterAdd(
-        dv: DVState,
-        process: DVCState,
+        dv: Att_DVState,
+        process: Att_DVCState,
         block: BeaconBlock
     )
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
@@ -297,9 +297,9 @@ module DV
         var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
         && (forall a1, a2 | 
                 && a1 in block.body.attestations
-                && DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                && Att_DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
                 && a2 in block.body.attestations
-                && DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                && Att_DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
             ::
                 a1.data.slot == a2.data.slot ==> a1 == a2  
         )      
@@ -308,7 +308,7 @@ module DV
 
 
     predicate validNodeEvent(
-        s: DVState,
+        s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent
     )
@@ -326,7 +326,7 @@ module DV
     }
 
     predicate validEvent(
-        s: DVState,
+        s: Att_DVState,
         event: AttestationEvent
     )
     {
@@ -343,7 +343,7 @@ module DV
     }    
 
     predicate NextEventPreCond(
-        s: DVState,
+        s: Att_DVState,
         event: AttestationEvent
     )
     {
@@ -352,7 +352,7 @@ module DV
     }
     
     predicate NextHonestNodePrecond(
-        s: DVCState,
+        s: Att_DVCState,
         event: Types.AttestationEvent
     )
     {
@@ -372,9 +372,9 @@ module DV
     }
 
     predicate NextEvent(
-        s: DVState,
+        s: Att_DVState,
         event: AttestationEvent,
-        s': DVState
+        s': Att_DVState
     )
     requires validEvent(s, event)
     requires NextEventPreCond(s, event)  
@@ -391,10 +391,10 @@ module DV
     }
 
     function add_block_to_bn_with_event(
-        s: DVState,
+        s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent
-    ): DVState
+    ): Att_DVState
     requires node in s.honest_nodes_states.Keys
     {
         if nodeEvent.ImportedNewBlock? then 
@@ -407,9 +407,9 @@ module DV
     }
 
     function f_add_block_to_bn(
-        s: DVCState,
+        s: Att_DVCState,
         block: BeaconBlock
-    ): DVCState
+    ): Att_DVCState
     { 
         s.(
             bn := s.bn.(
@@ -419,11 +419,11 @@ module DV
     }
 
     predicate NextHonestNode(
-        s: DVState,
+        s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: DVC_Spec.Outputs,
-        s': DVState        
+        nodeOutputs: Att_DVC_Spec.Outputs,
+        s': Att_DVState        
     ) 
     requires unchanged_fixed_paras(s, s')
     requires 
@@ -437,11 +437,11 @@ module DV
     }
 
     predicate ConsensusInstanceStep(
-        s: DVState,
+        s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: DVC_Spec.Outputs,
-        s': DVState
+        nodeOutputs: Att_DVC_Spec.Outputs,
+        s': Att_DVState
     )
     {
         &&  (
@@ -471,11 +471,11 @@ module DV
     }
 
     predicate NextHonestAfterAddingBlockToBn(
-        s: DVState,
+        s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: DVC_Spec.Outputs,
-        s': DVState
+        nodeOutputs: Att_DVC_Spec.Outputs,
+        s': Att_DVState
     )
     requires unchanged_fixed_paras(s, s')
     requires node in s.honest_nodes_states.Keys 
@@ -494,7 +494,7 @@ module DV
             else 
                 s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served
         )
-        && DVC_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
+        && Att_DVC_Spec.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
         && s'.honest_nodes_states == s.honest_nodes_states[
             node := new_node_state
         ]
@@ -513,11 +513,11 @@ module DV
     
 
     predicate NextAdversary(
-        s: DVState,
+        s: Att_DVState,
         node: BLSPubkey,
         new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
         messagesReceivedByTheNode: set<AttestationShare>,
-        s': DVState
+        s': Att_DVState
     )
     {
         && node in (s.all_nodes - s.honest_nodes_states.Keys)

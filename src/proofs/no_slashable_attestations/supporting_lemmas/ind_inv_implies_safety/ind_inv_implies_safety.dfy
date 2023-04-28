@@ -24,17 +24,17 @@ module Ind_Inv_Implies_Safety
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
     import opened Core_Proofs
-    import opened Ind_Inv_DV_Next
+    import opened Ind_Inv_Att_DV_Next
     import opened Proofs_Intermediate_Steps 
 
     predicate non_slashable_attestations(
-        dv: DVState
+        dv: Att_DVState
     )
     {
         forall a: Attestation, a': Attestation
@@ -48,7 +48,7 @@ module Ind_Inv_Implies_Safety
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     }
 
-    lemma lem_ind_inv_no_slashable_submitted_attestations(dv: DVState)
+    lemma lem_ind_inv_no_slashable_submitted_attestations(dv: Att_DVState)
     requires ind_inv(dv)    
     ensures non_slashable_attestations(dv)
     {   

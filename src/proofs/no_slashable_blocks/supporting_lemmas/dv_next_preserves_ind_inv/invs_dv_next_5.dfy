@@ -5,7 +5,7 @@ include "invs_fnc_2.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/block_dvc_spec_axioms.dfy"
 
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
@@ -14,7 +14,7 @@ include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
-include "../../../common/helper_pred_fcn.dfy"
+include "../../../common/att_helper_pred_fcn.dfy"
 include "../../common/common_proofs.dfy"
 
 include "invs_dv_next_1.dfy"
@@ -27,7 +27,7 @@ module Invs_DV_Next_5
     import opened Types
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
@@ -35,7 +35,7 @@ module Invs_DV_Next_5
     import opened DV_Block_Proposer_Spec    
     import opened Fnc_Invs_1
     import opened Fnc_Invs_2
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened Invs_DV_Next_1
     import opened Invs_DV_Next_2
@@ -1064,7 +1064,7 @@ module Invs_DV_Next_5
         var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
         var s'_consensus := s'.consensus_instances_on_beacon_block[cid];                
 
-        assert  Block_Consensus_Spec.Next(
+        assert  ConsensusSpec.Next(
                     s_consensus,
                     validityPredicates,
                     s'_consensus,
@@ -1218,7 +1218,7 @@ module Invs_DV_Next_5
             var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
             var s'_consensus := s'.consensus_instances_on_beacon_block[cid];                
 
-            assert  Block_Consensus_Spec.Next(
+            assert  ConsensusSpec.Next(
                         s_consensus,
                         validityPredicates,
                         s'_consensus,
@@ -1395,31 +1395,31 @@ module Invs_DV_Next_5
     ensures  inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block(dv')
     { }   
 
-    lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_Block_Consensus_Spec_NextConsensusDecides<D(!new, 0)>(
-        s: BlockConsensusInstance,
+    lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusSpec_NextConsensusDecides<D(!new, 0)>(
+        s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
-        s': BlockConsensusInstance
+        s': ConsensusInstance
     )    
-    requires && Block_Consensus_Spec.NextConsensusDecides.requires(s, honest_nodes_validity_predicates, s')
-             && Block_Consensus_Spec.NextConsensusDecides(s, honest_nodes_validity_predicates, s')
+    requires && ConsensusSpec.NextConsensusDecides.requires(s, honest_nodes_validity_predicates, s')
+             && ConsensusSpec.NextConsensusDecides(s, honest_nodes_validity_predicates, s')
     requires inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body(s)
     requires isConditionForSafetyTrue(s)
     ensures  inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body(s')
     { }
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusSpec_Next<D(!new, 0)>(
-        s: BlockConsensusInstance,
+        s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
-        s': BlockConsensusInstance,
+        s': ConsensusInstance,
         output: Optional<OutCommand>
     )    
-    requires && Block_Consensus_Spec.Next.requires(s, honest_nodes_validity_predicates, s', output)
-             && Block_Consensus_Spec.Next(s, honest_nodes_validity_predicates, s', output)
+    requires && ConsensusSpec.Next.requires(s, honest_nodes_validity_predicates, s', output)
+             && ConsensusSpec.Next(s, honest_nodes_validity_predicates, s', output)
     requires inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body(s)
     requires isConditionForSafetyTrue(s)
     ensures  inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body(s')
     {
-        lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_Block_Consensus_Spec_NextConsensusDecides(s, honest_nodes_validity_predicates, s');
+        lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusSpec_NextConsensusDecides(s, honest_nodes_validity_predicates, s');
     }
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusInstanceStep(
@@ -1429,8 +1429,8 @@ module Invs_DV_Next_5
         nodeOutputs: Outputs,
         dv': DVState
     )    
-    requires && DV_Block_Proposer_Spec.BlockConsensusInstanceStep.requires(dv, node, nodeEvent, nodeOutputs, dv')
-             && DV_Block_Proposer_Spec.BlockConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv')
+    requires && DV_Block_Proposer_Spec.ConsensusInstanceStep.requires(dv, node, nodeEvent, nodeOutputs, dv')
+             && DV_Block_Proposer_Spec.ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv')
     requires inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block(dv)
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     ensures  inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block(dv')
@@ -1455,7 +1455,7 @@ module Invs_DV_Next_5
                         dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
                 ;
 
-            assert  Block_Consensus_Spec.Next(
+            assert  ConsensusSpec.Next(
                         dv.consensus_instances_on_beacon_block[cid],
                         validityPredicates,
                         dv'.consensus_instances_on_beacon_block[cid],
@@ -1485,7 +1485,7 @@ module Invs_DV_Next_5
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     ensures  inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block(dv')
     {        
-        assert BlockConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv');
+        assert ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv');
         lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv');
     } 
 

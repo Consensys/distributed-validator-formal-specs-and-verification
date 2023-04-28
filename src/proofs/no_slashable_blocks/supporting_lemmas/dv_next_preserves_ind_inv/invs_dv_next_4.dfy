@@ -6,7 +6,7 @@ include "invs_fnc_2.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/block_dvc_spec_axioms.dfy"
 
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
@@ -16,7 +16,7 @@ include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
-include "../../../common/helper_pred_fcn.dfy"
+include "../../../common/att_helper_pred_fcn.dfy"
 include "../../common/common_proofs.dfy"
 
 include "invs_dv_next_1.dfy"
@@ -29,7 +29,7 @@ module Invs_DV_Next_4
     import opened Types
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
@@ -37,7 +37,7 @@ module Invs_DV_Next_4
     import opened DV_Block_Proposer_Spec    
     import opened Fnc_Invs_1
     import opened Fnc_Invs_2
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened Invs_DV_Next_1
     import opened Invs_DV_Next_2
@@ -708,7 +708,7 @@ module Invs_DV_Next_4
                 var s'_consensus := s'.consensus_instances_on_beacon_block[cid];                
 
                 assert
-                    Block_Consensus_Spec.Next(
+                    ConsensusSpec.Next(
                         s_consensus,
                         validityPredicates,
                         s'_consensus,

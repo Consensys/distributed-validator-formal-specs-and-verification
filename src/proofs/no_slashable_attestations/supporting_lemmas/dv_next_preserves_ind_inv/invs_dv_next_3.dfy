@@ -15,26 +15,26 @@ include "invs_fnc_2.dfy"
 include "invs_dv_next_1.dfy"
 include "invs_dv_next_2.dfy"
 
-module Invs_DV_Next_3
+module Invs_Att_DV_Next_3
 {
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Fnc_Invs_1
-    import opened Helper_Sets_Lemmas
-    import opened Invs_DV_Next_1
+    import opened Att_Helper_Sets_Lemmas
+    import opened Invs_Att_DV_Next_1
     import opened Fnc_Invs_2
-    import opened DVC_Spec_Axioms
-    import opened Invs_DV_Next_2
+    import opened Att_DVC_Spec_Axioms
+    import opened Invs_Att_DV_Next_2
 
     lemma lem_inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -83,9 +83,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -135,9 +135,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -187,9 +187,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_monotonic_att_slashing_db_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -234,9 +234,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -286,9 +286,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_monotonic_att_slashing_db_hist_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -333,9 +333,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -381,9 +381,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -407,9 +407,9 @@ module Invs_DV_Next_3
 
     
     lemma lem_inv_all_in_transit_messages_were_sent_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
@@ -435,15 +435,15 @@ module Invs_DV_Next_3
                 messagesReceived);  
     }
 
-    lemma lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv: DVState)
+    lemma lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv: Att_DVState)
     requires inv_all_in_transit_messages_were_sent(dv)
     ensures inv_in_transit_messages_are_in_allMessagesSent(dv)
     {}
 
     lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_HonestNodeTakingStep(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState,
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs
@@ -552,9 +552,9 @@ module Invs_DV_Next_3
     }  
 
     lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -583,9 +583,9 @@ module Invs_DV_Next_3
     
 
     lemma lem_inv_rcvd_att_shares_are_from_sent_messages_ReceivedAttestationShare(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState,
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
@@ -713,9 +713,9 @@ module Invs_DV_Next_3
     } 
 
     lemma lem_inv_rcvd_att_shares_are_from_sent_messages_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -765,9 +765,9 @@ module Invs_DV_Next_3
     }  
 
     lemma lem_inv_available_latest_att_duty_is_from_dv_seq_of_att_duties_new_body_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
@@ -782,9 +782,9 @@ module Invs_DV_Next_3
     }      
 
     lemma lem_inv_rcvd_att_duties_are_from_dv_seq_of_att_duties_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -870,9 +870,9 @@ module Invs_DV_Next_3
     }  
 
     lemma lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -921,9 +921,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_no_rcvd_att_duties_are_higher_than_latest_att_duty_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -973,9 +973,9 @@ module Invs_DV_Next_3
     }
 
     lemma lem_inv_unique_rcvd_att_duty_per_slot_dv_next_HonestNodeTakingStep(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState,
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.AttestationEvent, 
         nodeOutputs: Outputs,
@@ -1018,9 +1018,9 @@ module Invs_DV_Next_3
 
 
     lemma lem_inv_unique_rcvd_att_duty_per_slot_dv_next(
-        dv: DVState,
-        event: DV.AttestationEvent,
-        dv': DVState
+        dv: Att_DVState,
+        event: Att_DV.AttestationEvent,
+        dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  

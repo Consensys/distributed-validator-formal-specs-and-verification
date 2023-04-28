@@ -6,28 +6,28 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../inv.dfy"
 include "../ind_inv.dfy"
 
-module Ind_Inv_DV_Init
+module Ind_Inv_Att_DV_Init
 {
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     
-    lemma lem_ind_inv_dv_init(dv: DVState)       
-    requires DV.Init(dv, {})    
+    lemma lem_ind_inv_dv_init(dv: Att_DVState)       
+    requires Att_DV.Init(dv, {})    
     ensures ind_inv(dv)
     ensures NextPreCond(dv)
     {
-        assert  DV.Init(dv, {})  
+        assert  Att_DV.Init(dv, {})  
                 ==>                 
                 && invs_group_1(dv)
                 && invs_group_2(dv)
         ;
-        assert  DV.Init(dv, {})  
+        assert  Att_DV.Init(dv, {})  
                 ==>                 
                 && invs_group_3(dv)                         
                 && invs_group_4(dv)
@@ -35,7 +35,7 @@ module Ind_Inv_DV_Init
                 && invs_group_6(dv)                     
         ;
 
-        assert  DV.Init(dv, {})    
+        assert  Att_DV.Init(dv, {})    
                 ==>
                 && invs_group_7(dv)
                 && invs_group_8(dv)           

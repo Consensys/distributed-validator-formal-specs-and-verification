@@ -3,7 +3,7 @@ include "../../../../common/commons.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/block_dvc_spec_axioms.dfy"
 
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 
@@ -25,7 +25,7 @@ module Ind_Inv_DV_Next
     import opened Types
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms

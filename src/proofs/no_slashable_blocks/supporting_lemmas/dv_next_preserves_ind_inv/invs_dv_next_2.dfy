@@ -5,7 +5,7 @@ include "../../../../common/commons.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/block_dvc_spec_axioms.dfy"
 
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
@@ -15,7 +15,7 @@ include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
-include "../../../common/helper_pred_fcn.dfy"
+include "../../../common/att_helper_pred_fcn.dfy"
 include "../../common/common_proofs.dfy"
 
 include "invs_dv_next_1.dfy"
@@ -26,14 +26,14 @@ module Invs_DV_Next_2
     import opened Types
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec    
     import opened Fnc_Invs_1
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened Invs_DV_Next_1
 
@@ -83,12 +83,12 @@ module Invs_DV_Next_2
     }
 
     lemma  lem_NextConsensus_monotonic_set_of_validity_functions<D(!new, 0)>(
-        s: BlockConsensusInstance,
+        s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
-        s': BlockConsensusInstance,
+        s': ConsensusInstance,
         output: Optional<OutCommand>
     )
-    requires Block_Consensus_Spec.Next(
+    requires ConsensusSpec.Next(
                         s,
                         honest_nodes_validity_predicates,
                         s',
@@ -99,13 +99,13 @@ module Invs_DV_Next_2
     }
 
     lemma  lem_NextConsensus_monotonic_set_of_validity_functions_2<D(!new, 0)>(
-        s: BlockConsensusInstance,
+        s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
-        s': BlockConsensusInstance,
+        s': ConsensusInstance,
         output: Optional<OutCommand>,
         n: BLSPubkey
     )
-    requires Block_Consensus_Spec.Next(
+    requires ConsensusSpec.Next(
                         s,
                         honest_nodes_validity_predicates,
                         s',
@@ -170,7 +170,7 @@ module Invs_DV_Next_2
                 var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
                 var s'_consensus := s'.consensus_instances_on_beacon_block[cid];
 
-                assert  Block_Consensus_Spec.Next(
+                assert  ConsensusSpec.Next(
                             s_consensus,
                             validityPredicates,
                             s'_consensus,

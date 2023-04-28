@@ -1,6 +1,6 @@
 include "../../common/commons.dfy"
 include "../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
-include "../consensus/block_consensus.dfy"
+include "../consensus/consensus.dfy"
 include "../network/network.dfy"
 include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
@@ -11,7 +11,7 @@ module DV_Block_Proposer_Spec
     import opened CommonFunctions
     
     import opened NetworkSpec
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
     
@@ -30,7 +30,7 @@ module DV_Block_Proposer_Spec
         honest_nodes_states: map<BLSPubkey, DVCState>,
         adversary: Adversary,
         dv_pubkey: BLSPubkey,
-        consensus_instances_on_beacon_block: imaptotal<Slot, BlockConsensusInstance<BeaconBlock>>,
+        consensus_instances_on_beacon_block: imaptotal<Slot, ConsensusInstance<BeaconBlock>>,
         randao_share_network: NetworkSpec.Network<RandaoShare>,
         block_share_network: NetworkSpec.Network<SignedBeaconBlock>,
         all_blocks_created: set<SignedBeaconBlock>,
@@ -343,7 +343,7 @@ module DV_Block_Proposer_Spec
             )    
         &&  NetworkSpec.Init(s.block_share_network, s.all_nodes)
         &&  ( forall bci | bci in  s.consensus_instances_on_beacon_block.Values ::
-                Block_Consensus_Spec.Init(
+                ConsensusSpec.Init(
                     bci, 
                     s.all_nodes, 
                     s.honest_nodes_states.Keys
@@ -624,7 +624,7 @@ module DV_Block_Proposer_Spec
         && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
     }
 
-    predicate BlockConsensusInstanceStep(
+    predicate ConsensusInstanceStep(
         s: DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
@@ -646,7 +646,7 @@ module DV_Block_Proposer_Spec
                         ::
                             s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
                     ;
-            &&  Block_Consensus_Spec.Next(
+            &&  ConsensusSpec.Next(
                     s.consensus_instances_on_beacon_block[cid],
                     validityPredicates,
                     s'.consensus_instances_on_beacon_block[cid],
@@ -695,7 +695,7 @@ module DV_Block_Proposer_Spec
             ;
         && NetworkSpec.Next(s.randao_share_network, s'.randao_share_network, node, nodeOutputs.sent_randao_shares, randaoShareReceivedByTheNode)
         && NetworkSpec.Next(s.block_share_network, s'.block_share_network, node, nodeOutputs.sent_block_shares, blockShareReceivedByTheNode)
-        && BlockConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
+        && ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
         && s'.dv_pubkey == s.dv_pubkey      
         && s'.construct_complete_signed_randao_reveal == s.construct_complete_signed_randao_reveal

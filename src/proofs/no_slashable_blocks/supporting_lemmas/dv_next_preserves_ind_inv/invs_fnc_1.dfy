@@ -9,12 +9,12 @@ include "../../common/block_dvc_spec_axioms.dfy"
 include "../../../../common/commons.dfy"
 
 include "../../common/dvc_block_proposer_instrumented.dfy"
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 
-include "../../../common/helper_pred_fcn.dfy"
+include "../../../common/att_helper_pred_fcn.dfy"
 
 
 module Fnc_Invs_1
@@ -22,12 +22,12 @@ module Fnc_Invs_1
     import opened Types 
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Helper_Pred_Fcn
@@ -2344,7 +2344,7 @@ module Fnc_Invs_1
                                             )); 
 
                         assert  process'.block_consensus_engine_state ==
-                                startBlockConsensusInstance(
+                                startConsensusInstance(
                                     process.block_consensus_engine_state,
                                     proposer_duty.slot,
                                     proposer_duty,
@@ -2408,12 +2408,12 @@ module Fnc_Invs_1
         { }
     }
 
-    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
+    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>,
         m': map<Slot, BlockConsensusValidityCheckState>
     )
-    requires m' == updateBlockConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
+    requires m' == updateConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
     requires forall k | k in m :: inv_existing_block_slashing_db_for_sent_vp(k, m[k].proposer_duty, m[k].randao_reveal, m[k].validityPredicate)
     ensures forall k | k in m' :: inv_existing_block_slashing_db_for_sent_vp(k, m'[k].proposer_duty, m'[k].randao_reveal, m'[k].validityPredicate)
     {
@@ -2480,13 +2480,13 @@ module Fnc_Invs_1
                     latest_proposer_duty := Some(proposer_duty),
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
                     )     
                 );
 
-            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
+            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_process.block_slashing_db,
                     new_process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
@@ -2582,12 +2582,12 @@ module Fnc_Invs_1
         {
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);
             var new_block_consensus_engine_state := 
-                updateBlockConsensusInstanceValidityCheck(
+                updateConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                 );
             var new_active_consensus_instances_on_beacon_blocks := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+                updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -2670,7 +2670,7 @@ module Fnc_Invs_1
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopBlockConsensusInstances(
+                block_consensus_engine_state := stopConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
@@ -2688,13 +2688,13 @@ module Fnc_Invs_1
                     process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
                     )                
             );
 
-            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateBlockConsensusInstanceValidityCheckHelper(
+            lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_updateConsensusInstanceValidityCheckHelper(
                     process_after_stopping_consensus_instance.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     process_after_updating_validity_check.block_slashing_db,
                     process_after_updating_validity_check.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks
@@ -2804,7 +2804,7 @@ module Fnc_Invs_1
             var new_block_slashing_db := 
                 f_update_block_slashing_db(process.block_slashing_db, block);      
             var new_active_consensus_instances_on_beacon_blocks := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+                updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );      
@@ -2961,7 +2961,7 @@ module Fnc_Invs_1
             var new_block_slashing_db := 
                 f_update_block_slashing_db(process.block_slashing_db, block);      
             var new_active_consensus_instances_on_beacon_blocks := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+                updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );      
@@ -3205,12 +3205,12 @@ module Fnc_Invs_1
         );   
     } 
 
-    lemma lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_updateBlockConsensusInstanceValidityCheckHelper(
+    lemma lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>,
         r: map<Slot, BlockConsensusValidityCheckState>
     )
-    requires r == updateBlockConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
+    requires r == updateConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
     requires (  forall k: Slot | k in m.Keys :: m[k].proposer_duty.slot == k );
     ensures  (  forall k: Slot | k in r.Keys :: r[k].proposer_duty.slot == k );
     {
@@ -3246,17 +3246,17 @@ module Fnc_Invs_1
         {
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);
             var new_block_consensus_engine_state := 
-                updateBlockConsensusInstanceValidityCheck(
+                updateConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                 );
             var new_active_consensus_instances_on_beacon_blocks := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+                updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
 
-            lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_updateBlockConsensusInstanceValidityCheckHelper(
+            lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_updateConsensusInstanceValidityCheckHelper(
                 process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                 new_block_slashing_db,
                 new_active_consensus_instances_on_beacon_blocks
@@ -3379,7 +3379,7 @@ module Fnc_Invs_1
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopBlockConsensusInstances(
+                block_consensus_engine_state := stopConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
@@ -3398,7 +3398,7 @@ module Fnc_Invs_1
             var new_slashingDB_block := construct_SlashingDBBlock_from_beacon_block(decided_beacon_blocks);
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, decided_beacon_blocks);
             var new_active_consensus_instances_on_beacon_blocks := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+                updateConsensusInstanceValidityCheckHelper(
                     process_after_stopping_consensus_instance.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -3406,7 +3406,7 @@ module Fnc_Invs_1
                 process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
                     ),
@@ -3933,7 +3933,7 @@ module Fnc_Invs_1
                                                 process.current_proposer_duty.safe_get(),
                                                 constructed_randao_reveal.safe_get()));      
                 var new_block_consensus_engine_state := 
-                    startBlockConsensusInstance(
+                    startConsensusInstance(
                             process.block_consensus_engine_state,
                             proposer_duty.slot,
                             proposer_duty,
@@ -4048,7 +4048,7 @@ module Fnc_Invs_1
                     latest_proposer_duty := Some(proposer_duty),
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
                     

@@ -25,7 +25,7 @@ module DVC_Block_Proposer_Spec_Instr {
         )
     }
 
-    function startBlockConsensusInstance(
+    function startConsensusInstance(
         s: BlockConsensusEngineState,
         slot: Slot,
         proposer_duty: ProposerDuty,
@@ -102,7 +102,7 @@ module DVC_Block_Proposer_Spec_Instr {
     }  
 
 
-    function stopBlockConsensusInstances(
+    function stopConsensusInstances(
         s: BlockConsensusEngineState,
         ids: set<Slot>
     ): BlockConsensusEngineState
@@ -140,7 +140,7 @@ module DVC_Block_Proposer_Spec_Instr {
             ret
     }
 
-    function updateBlockConsensusInstanceValidityCheckHelper(
+    function updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>
     ): (r: map<Slot, BlockConsensusValidityCheckState>)
@@ -169,17 +169,17 @@ module DVC_Block_Proposer_Spec_Instr {
                 )        
     } 
 
-    function updateBlockConsensusInstanceValidityCheck(
+    function updateConsensusInstanceValidityCheck(
         s: BlockConsensusEngineState,
         new_block_slashing_db: set<SlashingDBBlock>
     ): (r: BlockConsensusEngineState)
-    ensures && var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+    ensures && var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     s.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
             && s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys == r.block_slashing_db_hist.Keys
     {
-        var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     s.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -472,7 +472,7 @@ module DVC_Block_Proposer_Spec_Instr {
                     current_proposer_duty := None,                    
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
                     ),
@@ -514,7 +514,7 @@ module DVC_Block_Proposer_Spec_Instr {
                                                 constructed_randao_reveal.safe_get()));        
                 DVCStateAndOuputs(
                     state :=  process.(
-                        block_consensus_engine_state := startBlockConsensusInstance(
+                        block_consensus_engine_state := startConsensusInstance(
                             process.block_consensus_engine_state,
                             proposer_duty.slot,
                             proposer_duty,
@@ -572,7 +572,7 @@ module DVC_Block_Proposer_Spec_Instr {
                 process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                     ), 
@@ -746,7 +746,7 @@ module DVC_Block_Proposer_Spec_Instr {
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopBlockConsensusInstances(
+                block_consensus_engine_state := stopConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
@@ -764,7 +764,7 @@ module DVC_Block_Proposer_Spec_Instr {
                 process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
                     ),

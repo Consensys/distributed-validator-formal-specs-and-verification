@@ -22,13 +22,13 @@ module Core_Proofs
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Invs_DV_Next_3
-    import opened Invs_DV_Next_5
-    import opened Helper_Sets_Lemmas
-    import opened DVC_Spec_Axioms
+    import opened Invs_Att_DV_Next_3
+    import opened Invs_Att_DV_Next_5
+    import opened Att_Helper_Sets_Lemmas
+    import opened Att_DVC_Spec_Axioms
 
 
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)
@@ -54,7 +54,7 @@ module Core_Proofs
 
     }
 
-    lemma lem_no_slashable_submitted_attestations_with_different_slots(dv: DVState, a: Attestation, a': Attestation)
+    lemma lem_no_slashable_submitted_attestations_with_different_slots(dv: Att_DVState, a: Attestation, a': Attestation)
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
     requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
@@ -202,7 +202,7 @@ module Core_Proofs
                 ;
     } 
 
-    lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: DVState, a: Attestation, a': Attestation)
+    lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: Att_DVState, a: Attestation, a': Attestation)
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
     requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
@@ -243,7 +243,7 @@ module Core_Proofs
         assert !is_slashable_attestation_data_eth_spec(a'.data, a.data);        
     }      
 
-    lemma lem_no_slashable_submitted_attestations(dv: DVState, a: Attestation, a': Attestation)    
+    lemma lem_no_slashable_submitted_attestations(dv: Att_DVState, a: Attestation, a': Attestation)    
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
     requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)

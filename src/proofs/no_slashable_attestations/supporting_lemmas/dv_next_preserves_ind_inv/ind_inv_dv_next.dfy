@@ -22,28 +22,28 @@ include "../ind_inv.dfy"
 
 include "proofs_intermediate_steps.dfy"
 
-module Ind_Inv_DV_Next
+module Ind_Inv_Att_DV_Next
 {
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Helper_Sets_Lemmas
-    import opened Invs_DV_Next_1
-    import opened Invs_DV_Next_2
-    import opened Invs_DV_Next_3
-    import opened Invs_DV_Next_4
-    import opened Invs_DV_Next_5
+    import opened Att_Helper_Sets_Lemmas
+    import opened Invs_Att_DV_Next_1
+    import opened Invs_Att_DV_Next_2
+    import opened Invs_Att_DV_Next_3
+    import opened Invs_Att_DV_Next_4
+    import opened Invs_Att_DV_Next_5
     import opened Proofs_Intermediate_Steps
     
 
-    lemma lem_ind_inv_dv_next_invs_group_1(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_1(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_1(dv')
     {    
@@ -54,9 +54,9 @@ module Ind_Inv_DV_Next
         lem_inv_latest_att_duty_is_rcvd_duty_dv_next(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_2(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_2(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_2(dv')
     {
@@ -66,9 +66,9 @@ module Ind_Inv_DV_Next
         lem_inv_the_sequence_of_att_duties_is_in_order_of_slots_dv_next(dv, e, dv');                
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_3(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_3(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_3(dv')
     {
@@ -77,9 +77,9 @@ module Ind_Inv_DV_Next
         lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_dv_next(dv, e, dv');                        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_4(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_4(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_4(dv')
     {
@@ -90,9 +90,9 @@ module Ind_Inv_DV_Next
         lem_inv_rcvd_att_duties_are_from_dv_seq_of_att_duties_dv_next(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_5(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_5(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_5(dv')
     {
@@ -101,9 +101,9 @@ module Ind_Inv_DV_Next
         lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_dv_next(dv, e, dv');          
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_6(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_6(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_6(dv')
     {       
@@ -112,18 +112,18 @@ module Ind_Inv_DV_Next
         lem_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_7(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_7(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_7(dv')
     {               
         lem_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         lem_inv_rcvd_att_shares_are_from_sent_messages_dv_next(dv, e, dv');  
-        Invs_DV_Next_5.lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next(dv, e, dv');
+        Invs_Att_DV_Next_5.lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_implies_intermediate_steps_helper_1(dv: DVState)
+    lemma lem_ind_inv_implies_intermediate_steps_helper_1(dv: Att_DVState)
     requires ind_inv(dv)
     ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_current_att_duty(dv)
     ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_latest_att_duty(dv)
@@ -134,7 +134,7 @@ module Ind_Inv_DV_Next
         lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(dv);
     }
 
-    lemma lem_ind_inv_implies_intermediate_steps_helper_2(dv: DVState)
+    lemma lem_ind_inv_implies_intermediate_steps_helper_2(dv: Att_DVState)
     requires ind_inv(dv)  
     ensures inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
     ensures inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)   
@@ -150,7 +150,7 @@ module Ind_Inv_DV_Next
         lem_construct_signed_attestation_signature_assumptions_helper(dv);       
     }
 
-    lemma lem_ind_inv_implies_intermediate_steps_helper_3(dv: DVState)
+    lemma lem_ind_inv_implies_intermediate_steps_helper_3(dv: Att_DVState)
     requires ind_inv(dv)  
     ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
@@ -162,7 +162,7 @@ module Ind_Inv_DV_Next
         lem_inv_rcvd_att_shares_are_from_sent_messages_inv_rcvd_attestation_shares_are_sent_messages(dv);
     }
 
-    lemma lem_ind_inv_implies_intermediate_steps_helper_4(dv: DVState)
+    lemma lem_ind_inv_implies_intermediate_steps_helper_4(dv: Att_DVState)
     requires ind_inv(dv)  
     ensures lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_new_precond(dv)    
     ensures inv_data_of_all_created_attestations_is_a_set_of_decided_values(dv)
@@ -173,7 +173,7 @@ module Ind_Inv_DV_Next
         lem_inv_data_of_all_created_attestations_is_a_set_of_decided_values_dv_next(dv);
     }
 
-    lemma lem_ind_inv_implies_intermediate_steps(dv: DVState)
+    lemma lem_ind_inv_implies_intermediate_steps(dv: Att_DVState)
     requires ind_inv(dv)
     ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_current_att_duty(dv)
     ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_latest_att_duty(dv)
@@ -200,9 +200,9 @@ module Ind_Inv_DV_Next
         lem_inv_data_of_all_created_attestations_is_a_set_of_decided_values_dv_next(dv);
     }
    
-    lemma lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: DVState, e: DV.AttestationEvent, dv': DVState)  
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')       
+    lemma lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)  
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')       
     requires ind_inv(dv)
     ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv')
     {
@@ -229,9 +229,9 @@ module Ind_Inv_DV_Next
         assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv')
     {
@@ -247,7 +247,7 @@ module Ind_Inv_DV_Next
         lem_inv_rcvd_att_shares_are_from_sent_messages_inv_rcvd_attestation_shares_are_sent_messages(dv);
         assert inv_rcvd_attestation_shares_are_sent_messages(dv);
 
-        assert  && DV.NextEvent(dv, e, dv')
+        assert  && Att_DV.NextEvent(dv, e, dv')
                 && inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
                 && construct_signed_attestation_signature_assumptions_helper(
                     dv.construct_signed_attestation_signature,
@@ -265,36 +265,36 @@ module Ind_Inv_DV_Next
         assert inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv')
     {
         lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv(dv')
     {
         lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv')
     {
         lem_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv')
     {
@@ -302,9 +302,9 @@ module Ind_Inv_DV_Next
     }
 
     
-    lemma lem_ind_inv_dv_next_invs_group_8(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_8(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_8(dv')
     {
@@ -315,9 +315,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv, e, dv');   
     }
 
-    lemma lem_ind_inv_dv_next_inv_in_transit_messages_are_in_allMessagesSent(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_in_transit_messages_are_in_allMessagesSent(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_in_transit_messages_are_in_allMessagesSent(dv')
     {
@@ -325,9 +325,9 @@ module Ind_Inv_DV_Next
         lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_38(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_38(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_attestation_shares_to_broadcast_are_sent_messages(dv')
     {
@@ -336,18 +336,18 @@ module Ind_Inv_DV_Next
         lem_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv')
     {
         lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_9(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_9(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_9(dv')
     {
@@ -357,9 +357,9 @@ module Ind_Inv_DV_Next
         lem_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_10(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_10(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_10(dv')
     {        
@@ -370,9 +370,9 @@ module Ind_Inv_DV_Next
         lem_inv_data_of_att_shares_are_decided_values_dv_next(dv, e, dv');
     }
     
-    lemma lem_ind_inv_dv_next_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv')
     {
@@ -381,9 +381,9 @@ module Ind_Inv_DV_Next
         lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_slots_in_future_decided_data_are_correct(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_inv_slots_in_future_decided_data_are_correct(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures inv_slots_in_future_decided_data_are_correct(dv')
     {
@@ -391,9 +391,9 @@ module Ind_Inv_DV_Next
         lem_inv_slots_in_future_decided_data_are_correct(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_11(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_11(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_11(dv')
     {
@@ -402,9 +402,9 @@ module Ind_Inv_DV_Next
         lem_inv_slots_in_future_decided_data_are_correct(dv, e, dv');        
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_12(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_12(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_12(dv')
     {
@@ -417,9 +417,9 @@ module Ind_Inv_DV_Next
         lem_inv_no_rcvd_att_duties_are_higher_than_latest_att_duty_dv_next(dv, e, dv');  
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_13(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_13(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_13(dv')
     {
@@ -429,9 +429,9 @@ module Ind_Inv_DV_Next
         lem_inv_unchanged_dvc_rs_pubkey_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_14(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_invs_group_14(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_14(dv')
     {   
@@ -444,9 +444,9 @@ module Ind_Inv_DV_Next
         lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next(dv, e, dv');        
     }
     
-    lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_1(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_1(dv')
     ensures invs_group_2(dv')
@@ -457,9 +457,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_3(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_2(dv: DVState, e: DV.AttestationEvent, dv': DVState)  
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_2(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)  
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)    
     ensures invs_group_4(dv')
     ensures invs_group_5(dv')
@@ -474,9 +474,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_8(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_3(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_3(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_9(dv')
     ensures invs_group_10(dv')
@@ -487,9 +487,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_11(dv, e, dv');                                     
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_4(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_4(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
     ensures invs_group_12(dv')   
     ensures invs_group_13(dv')    
@@ -500,9 +500,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_invs_group_14(dv, e, dv');                              
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_a(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_a(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv) 
     ensures invs_group_1(dv')
     ensures invs_group_2(dv')
@@ -517,9 +517,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_2(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_b(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper_b(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv) 
     ensures invs_group_9(dv')    
     ensures invs_group_10(dv')    
@@ -532,9 +532,9 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_4(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv_helper(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv) 
     ensures invs_group_1(dv')
     ensures invs_group_2(dv')   
@@ -555,21 +555,21 @@ module Ind_Inv_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_b(dv, e, dv');                
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv(dv: DVState, e: DV.AttestationEvent, dv': DVState)       
-    requires DV.NextEventPreCond(dv, e)
-    requires DV.NextEvent(dv, e, dv')  
+    lemma lem_ind_inv_dv_next_ind_inv(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    requires Att_DV.NextEventPreCond(dv, e)
+    requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)    
     ensures ind_inv(dv')    
     {   
         lem_ind_inv_dv_next_ind_inv_helper(dv, e, dv');                                  
     }
 
-    lemma lem_ind_inv_dv_ind_inv_NextPreCond(dv: DVState, dv': DVState)       
-    requires DV.NextPreCond(dv)
-    requires DV.Next(dv, dv')  
+    lemma lem_ind_inv_dv_ind_inv_NextPreCond(dv: Att_DVState, dv': Att_DVState)       
+    requires Att_DV.NextPreCond(dv)
+    requires Att_DV.Next(dv, dv')  
     requires ind_inv(dv)    
     ensures ind_inv(dv')  
-    ensures DV.NextPreCond(dv')
+    ensures Att_DV.NextPreCond(dv')
     {
         var e :|
             && validEvent(dv, e)
@@ -580,7 +580,7 @@ module Ind_Inv_DV_Next
     } 
 
     lemma lem_NextPreCond(
-        s: DVState
+        s: Att_DVState
     )
     requires ind_inv(s)
     ensures  NextPreCond(s)                

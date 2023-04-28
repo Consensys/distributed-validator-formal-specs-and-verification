@@ -14,18 +14,18 @@ module Proofs_Intermediate_Steps
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
-    import opened Helper_Sets_Lemmas    
+    import opened Att_Helper_Sets_Lemmas    
     
-    lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: DVState)
+    lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: Att_DVState)
     requires inv_unchanged_paras_of_consensus_instances(dv)
     ensures same_honest_nodes_in_dv_and_ci(dv)
     { }
         
     lemma lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_current_att_duty_ind_inv(
-        dv: DVState
+        dv: Att_DVState
     )         
     requires inv_all_honest_nodes_is_a_quorum(dv)      
     requires inv_current_att_duty_is_rcvd_duty(dv)    
@@ -50,7 +50,7 @@ module Proofs_Intermediate_Steps
     } 
     
     lemma lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_latest_att_duty_ind_inv(
-        dv: DVState
+        dv: Att_DVState
     )         
     requires inv_all_honest_nodes_is_a_quorum(dv)      
     requires inv_latest_att_duty_is_rcvd_duty(dv)    
@@ -75,7 +75,7 @@ module Proofs_Intermediate_Steps
     } 
       
     lemma lem_inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties_ind_inv(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_all_honest_nodes_is_a_quorum(dv)  
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
@@ -114,7 +114,7 @@ module Proofs_Intermediate_Steps
     }
 
     lemma lem_inv_active_consensus_instances_imply_the_delivery_of_att_duties_ind_inv(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv)
     ensures inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)    
@@ -140,7 +140,7 @@ module Proofs_Intermediate_Steps
     } 
 
     lemma lem_inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_ind_inv(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
     ensures inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)    
@@ -177,14 +177,14 @@ module Proofs_Intermediate_Steps
     }   
 
     lemma lem_inv_available_current_att_duty_is_latest_att_duty(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_available_current_att_duty_is_latest_att_duty(dv)    
     ensures inv_available_current_att_duty_is_latest_att_duty(dv)    
     {}
 
     lemma lem_construct_signed_attestation_signature_assumptions_helper(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_construct_signed_attestation_signature_assumptions_helper(dv)    
     ensures construct_signed_attestation_signature_assumptions_helper(
@@ -194,27 +194,27 @@ module Proofs_Intermediate_Steps
     {}
 
     lemma lem_inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)    
     ensures  inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
     {}
 
     lemma lem_inv_rcvd_att_shares_are_from_sent_messages_inv_rcvd_attestation_shares_are_sent_messages(
-        dv: DVState
+        dv: Att_DVState
     )    
     requires inv_rcvd_att_shares_are_from_sent_messages(dv)    
     ensures  inv_rcvd_attestation_shares_are_sent_messages(dv)
     {}
 
     lemma lem_inv_attestation_shares_to_broadcast_are_sent_messages_inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(
-        dv: DVState
+        dv: Att_DVState
     )
     requires inv_attestation_shares_to_broadcast_are_sent_messages(dv)
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 
-    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: DVState)    
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: Att_DVState)    
     requires inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
     ensures inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
     {}  

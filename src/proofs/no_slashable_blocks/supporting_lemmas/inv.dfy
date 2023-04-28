@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
 
-include "../../../specs/consensus/block_consensus.dfy"
+include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_block_proposer.dfy"
 include "../common/dvc_block_proposer_instrumented.dfy"
@@ -14,11 +14,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Types 
     import opened CommonFunctions
     
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DV_Block_Proposer_Spec
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened DVC_Block_Proposer_Spec_Axioms
 
 
@@ -1079,7 +1079,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_body(dv, hn, s, db, duty, vp, randao_reveal)
     }
     
-    predicate inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body<D(!new, 0)>(ci: BlockConsensusInstance) 
+    predicate inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body<D(!new, 0)>(ci: ConsensusInstance) 
     {
         ci.decided_value.isPresent()
         ==> 

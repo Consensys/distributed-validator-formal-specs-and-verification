@@ -2,11 +2,11 @@ include "../../../common/commons.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
 include "../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
 
-module DVC_Implementation_Proofs refines DVC_Implementation
+module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
 {
-    import opened DVC_Spec_NonInstr
-    import opened DVC_Externs = DVC_Externs_Proofs
-    import opened DVC_Spec_Axioms
+    import opened Att_DVC_Spec_NonInstr
+    import opened Att_DVC_Externs = Att_DVC_Externs_Proofs
+    import opened Att_DVC_Spec_Axioms
 
     function toAttestationConsensusValidityCheckState(
         acvc: ConsensusValidityCheck<AttestationData>
@@ -135,12 +135,12 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             {}
     }
 
-    class DVC...
+    class Att_DVC...
     {
-        function toDVCState(): DVCState
+        function toAtt_DVCState(): Att_DVCState
         reads this, bn, rs, att_consensus, slashing_db, att_consensus.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in att_consensus.consensus_instances_started.Values  :: v.slashing_db
         {
-            DVCState(
+            Att_DVCState(
                 current_attestation_duty := current_attestation_duty,
                 latest_attestation_duty := latest_attestation_duty,
                 attestation_duties_queue := attestation_duties_queue,
@@ -166,11 +166,11 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             )
         }              
 
-        twostate function toDVCStateAndOuputs(): DVCStateAndOuputs
+        twostate function toAtt_DVCStateAndOuputs(): Att_DVCStateAndOuputs
         reads this, network, att_consensus, bn, rs, slashing_db, att_consensus.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in att_consensus.consensus_instances_started.Values :: v.slashing_db
         {
-            DVCStateAndOuputs(
-                state := toDVCState(),
+            Att_DVCStateAndOuputs(
+                state := toAtt_DVCState(),
                 outputs := getOutputs()
             )
         }        
@@ -189,15 +189,15 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         constructor...
         ensures 
                 && isValidReprExtended()
-                && Init(toDVCState(), dv_pubkey, peers, construct_signed_attestation_signature, initial_slashing_db.attestations[dv_pubkey], rs.pubkey)
+                && Init(toAtt_DVCState(), dv_pubkey, peers, construct_signed_attestation_signature, initial_slashing_db.attestations[dv_pubkey], rs.pubkey)
         {
             ...;
         }
 
         method process_event...
-        ensures (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==>    
+        ensures (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==>    
                 && isValidReprExtended()
-                && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                 && s.Success?        
         {
             ...; 
@@ -205,37 +205,37 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             {
                 if event.ServeAttestationDuty?
                 {    
-                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
-                        && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==> 
+                        && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                         && isValidReprExtended();
                 }
                 else if event.AttConsensusDecided?
                 {
-                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
-                        && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==> 
+                        && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                         && isValidReprExtended();       
                 }         
                 else if event.ReceivedAttestationShare?
                 {    
-                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
-                        && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==> 
+                        && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                         && isValidReprExtended();  
                 }              
                 else if event.ImportedNewBlock? 
-                {    assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
-                        && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                {    assert (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==> 
+                        && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                         && isValidReprExtended();  
                 }              
                 else if event.ResendAttestationShares?
                 {    
-                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
-                        && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==> 
+                        && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                         && isValidReprExtended(); 
                 }               
                 else
                 {    
-                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toDVCState()), event)) ==> 
-                        && f_process_event(old(toDVCState()), event) == toDVCStateAndOuputs()
+                    assert (old(isValidReprExtended()) && f_process_event.requires(old(toAtt_DVCState()), event)) ==> 
+                        && f_process_event(old(toAtt_DVCState()), event) == toAtt_DVCStateAndOuputs()
                         && isValidReprExtended(); 
                 }                   
                 ...;
@@ -243,8 +243,8 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }
 
         method serve_attestation_duty...
-        ensures (old(isValidReprExtended()) && f_serve_attestation_duty.requires(old(toDVCState()), attestation_duty)) ==> 
-                && f_serve_attestation_duty(old(toDVCState()), attestation_duty) == toDVCStateAndOuputs()
+        ensures (old(isValidReprExtended()) && f_serve_attestation_duty.requires(old(toAtt_DVCState()), attestation_duty)) ==> 
+                && f_serve_attestation_duty(old(toAtt_DVCState()), attestation_duty) == toAtt_DVCStateAndOuputs()
                 && isValidReprExtended()
                 && s.Success?
                 && unchanged(network)
@@ -253,17 +253,17 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         {
             ...;
             {
-                var o := toDVCState();
+                var o := toAtt_DVCState();
                 ...;
-                assert o == old(toDVCState()).(
-                            attestation_duties_queue := old(toDVCState()).attestation_duties_queue + [attestation_duty]
+                assert o == old(toAtt_DVCState()).(
+                            attestation_duties_queue := old(toAtt_DVCState()).attestation_duties_queue + [attestation_duty]
                         );
-                assert (old(isValidReprExtended()) && f_serve_attestation_duty.requires(old(toDVCState()), attestation_duty)) ==> f_serve_attestation_duty(old(toDVCState()), attestation_duty) == toDVCStateAndOuputs();
+                assert (old(isValidReprExtended()) && f_serve_attestation_duty.requires(old(toAtt_DVCState()), attestation_duty)) ==> f_serve_attestation_duty(old(toAtt_DVCState()), attestation_duty) == toAtt_DVCStateAndOuputs();
             }
 
         }
 
-        function  f_check_for_next_duty_helper(process: DVCState): DVCState
+        function  f_check_for_next_duty_helper(process: Att_DVCState): Att_DVCState
         requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
         requires process.attestation_duties_queue != []
         requires process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
@@ -283,8 +283,8 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }          
 
         method check_for_next_queued_duty...
-        ensures (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState())))==> 
-                && f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs()
+        ensures (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toAtt_DVCState())))==> 
+                && f_check_for_next_duty(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs()
                 && isValidReprExtended()
                 && s.Success?
                 && unchanged(network)
@@ -304,41 +304,41 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 {
                     ...;
                     {                      
-                        if (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) 
+                        if (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toAtt_DVCState()))) 
                         {
-                            var rs := f_check_for_next_duty_helper(old(toDVCState()));                              
+                            var rs := f_check_for_next_duty_helper(old(toAtt_DVCState()));                              
 
-                            forall e | e in old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                            forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                             ensures e in rs.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                             {
-                                lemmaMapKeysHasOneEntryInItems(old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                                lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
                             }   
 
                             lemmaAttestationHasBeenAddedToSlashingDb(old(future_att_consensus_instances_already_decided)[queue_head.slot], rs);                       
                                                     
-                            assert f_check_for_next_duty_helper(old(toDVCState())) == toDVCState(); 
+                            assert f_check_for_next_duty_helper(old(toAtt_DVCState())) == toAtt_DVCState(); 
 
                         }
                        
                         ...;
 
-                        assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();       
+                        assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toAtt_DVCState()))) ==> f_check_for_next_duty(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs();       
                     }
 
                 }
                 else if...
                 {
                     ...;
-                    assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();
+                    assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toAtt_DVCState()))) ==> f_check_for_next_duty(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs();
                 }
                 else
                 {
-                    assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();
+                    assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toAtt_DVCState()))) ==> f_check_for_next_duty(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs();
                 }
             }
             else
             {
-                assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toDVCState()))) ==> f_check_for_next_duty(old(toDVCState())) == toDVCStateAndOuputs();
+                assert (old(isValidReprExtended()) && f_check_for_next_duty.requires(old(toAtt_DVCState()))) ==> f_check_for_next_duty(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs();
             }
         }     
 
@@ -347,8 +347,8 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 old(isValidReprExtended()) ==>
                 (
                     && isValidReprExtended()
-                    && (f_start_next_duty.requires(old(toDVCState()), attestation_duty) ==> 
-                        && (f_start_next_duty(old(toDVCState()), attestation_duty) == toDVCStateAndOuputs())
+                    && (f_start_next_duty.requires(old(toAtt_DVCState()), attestation_duty) ==> 
+                        && (f_start_next_duty(old(toAtt_DVCState()), attestation_duty) == toAtt_DVCStateAndOuputs())
                         && s.Success?
                         && unchanged(network)
                         && unchanged(bn)
@@ -384,12 +384,12 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             {
                 lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, attestation_duty.slot);
                                                                                      
-                assert f_start_next_duty(old(toDVCState()), attestation_duty) == toDVCStateAndOuputs();
+                assert f_start_next_duty(old(toAtt_DVCState()), attestation_duty) == toAtt_DVCStateAndOuputs();
             }
         }
 
         method update_attestation_slashing_db...
-        ensures f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data) == this.slashing_db.attestations[this.dv_pubkey] == toDVCState().attestation_slashing_db
+        ensures f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data) == this.slashing_db.attestations[this.dv_pubkey] == toAtt_DVCState().attestation_slashing_db
         ensures  var slashing_db_attestation := SlashingDBAttestation(
                                                 source_epoch := attestation_data.source.epoch,
                                                 target_epoch := attestation_data.target.epoch,
@@ -409,10 +409,10 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         
 
         function f_att_consensus_decided_helper(
-            process: DVCState,
+            process: Att_DVCState,
             id: Slot,
             decided_attestation_data: AttestationData
-        ): DVCStateAndOuputs
+        ): Att_DVCStateAndOuputs
         requires process.current_attestation_duty.isPresent()
         requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys    
         {
@@ -440,7 +440,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 )
                 ;
 
-            DVCStateAndOuputs(
+            Att_DVCStateAndOuputs(
                 newProcess,
                 outputs := getEmptyOuputs().(
                     att_shares_sent := multicast(attestation_with_signature_share, process.peers)
@@ -460,38 +460,38 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                                                 signing_root := Some(hash_tree_root(attestation_data)));        
                 && slashing_db.attestations == old(slashing_db.attestations)[dv_pubkey := old(slashing_db.attestations)[dv_pubkey] + {slashing_db_attestation}]
         ensures
-                forall p: DVCState |
+                forall p: Att_DVCState |
                         && p.dv_pubkey == dv_pubkey  
-                        && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data);
-                        && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data)
+                        && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data);
+                        && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data)
                         && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
-                            old(toDVCState()).attestation_consensus_engine_state,
+                            old(toAtt_DVCState()).attestation_consensus_engine_state,
                             new_attestation_slashing_db
                         )
                     ::  
-                        p.attestation_consensus_engine_state ==  toDVCState().attestation_consensus_engine_state
+                        p.attestation_consensus_engine_state ==  toAtt_DVCState().attestation_consensus_engine_state
         {
-            forall p: DVCState |
+            forall p: Att_DVCState |
                 && p.dv_pubkey == dv_pubkey  
-                && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data);
-                && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data)
+                && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data);
+                && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data)
                 && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
-                    old(toDVCState()).attestation_consensus_engine_state,
+                    old(toAtt_DVCState()).attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )
-            ensures  p.attestation_consensus_engine_state ==  toDVCState().attestation_consensus_engine_state
+            ensures  p.attestation_consensus_engine_state ==  toAtt_DVCState().attestation_consensus_engine_state
             {
-                forall e | e in old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                 ensures e in p.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                 {
-                    lemmaMapKeysHasOneEntryInItems(old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                    lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
                 } 
             }                  
         }
 
         twostate lemma lemmaAttestationHasBeenAddedToSlashingDb(
             attestation_data: AttestationData,
-            p: DVCState
+            p: Att_DVCState
         )
         requires old(isValidReprExtended())
         requires isValidReprExtended()
@@ -504,25 +504,25 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         requires
 
                         && p.dv_pubkey == dv_pubkey  
-                        && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data);
-                        && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, attestation_data)
+                        && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data);
+                        && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data)
                         && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
-                            old(toDVCState()).attestation_consensus_engine_state,
+                            old(toAtt_DVCState()).attestation_consensus_engine_state,
                             new_attestation_slashing_db
                         )
         ensures
-                        p.attestation_consensus_engine_state ==  toDVCState().attestation_consensus_engine_state
+                        p.attestation_consensus_engine_state ==  toAtt_DVCState().attestation_consensus_engine_state
         {
-            forall e | e in old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+            forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
             ensures e in p.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
             {
-                lemmaMapKeysHasOneEntryInItems(old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
             }           
         }                        
 
         method att_consensus_decided...
-        ensures (old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCState()), id, decided_attestation_data)) ==> 
-                && f_att_consensus_decided(old(toDVCState()), id, decided_attestation_data) == toDVCStateAndOuputs()
+        ensures (old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toAtt_DVCState()), id, decided_attestation_data)) ==> 
+                && f_att_consensus_decided(old(toAtt_DVCState()), id, decided_attestation_data) == toAtt_DVCStateAndOuputs()
                 && isValidReprExtended()
                 && r.Success?
         {
@@ -530,23 +530,23 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             {
                 ...;
                 {
-                    if old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCState()), id, decided_attestation_data)
+                    if old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toAtt_DVCState()), id, decided_attestation_data)
                     {
-                        var r := f_att_consensus_decided_helper(old(toDVCState()), id, decided_attestation_data);
+                        var r := f_att_consensus_decided_helper(old(toAtt_DVCState()), id, decided_attestation_data);
                         var s := old(current_attestation_duty).safe_get().slot;
                         var rs := r.state;
 
                         lemmaAttestationHasBeenAddedToSlashingDb(decided_attestation_data, rs); 
 
-                        assert f_att_consensus_decided_helper(old(toDVCState()), id, decided_attestation_data).state == toDVCStateAndOuputs().state; 
+                        assert f_att_consensus_decided_helper(old(toAtt_DVCState()), id, decided_attestation_data).state == toAtt_DVCStateAndOuputs().state; 
                     }                
                     ...;
                 }
             }
             else 
             {
-                assert (old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toDVCState()), id, decided_attestation_data)) ==>
-                    f_att_consensus_decided(old(toDVCState()), id, decided_attestation_data) == toDVCStateAndOuputs();
+                assert (old(isValidReprExtended()) && f_att_consensus_decided.requires(old(toAtt_DVCState()), id, decided_attestation_data)) ==>
+                    f_att_consensus_decided(old(toAtt_DVCState()), id, decided_attestation_data) == toAtt_DVCStateAndOuputs();
             }
         }
 
@@ -558,7 +558,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
         // Helper functions/lemmas used when proving the postcondition of method listen_for_attestation_shares below
         predicate f_listen_for_attestation_shares_helper_2(
-            process: DVCState,
+            process: Att_DVCState,
             attestation_share: AttestationShare
         )
         {
@@ -571,9 +571,9 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         } 
 
         function f_listen_for_attestation_shares_helper(
-            process: DVCState,
+            process: Att_DVCState,
             attestation_share: AttestationShare
-        ): DVCState
+        ): Att_DVCState
         {
             var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
@@ -598,49 +598,49 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         method listen_for_attestation_shares...
         ensures old(isValidReprExtended()) ==> 
                         && isValidReprExtended()
-                        && f_listen_for_attestation_shares(old(toDVCState()), attestation_share) == toDVCStateAndOuputs();
+                        && f_listen_for_attestation_shares(old(toAtt_DVCState()), attestation_share) == toAtt_DVCStateAndOuputs();
         {
             ...;
             if...
             {
                 if  old(isValidReprExtended())
                 {
-                    forall e | e in old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                    forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
                     ensures e in att_consensus.consensus_instances_started.Keys
                     {
-                        lemmaMapKeysHasOneEntryInItems(old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                        lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
                     }                 
                     forall e | e in att_consensus.consensus_instances_started.Keys
-                    ensures e in old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+                    ensures e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
                     {
                         lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
                     }                  
-                    assert att_consensus.consensus_instances_started.Keys <= old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
-                    assert old(isValidReprExtended()) ==>  f_listen_for_attestation_shares_helper_2(old(toDVCState()), attestation_share);
+                    assert att_consensus.consensus_instances_started.Keys <= old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+                    assert old(isValidReprExtended()) ==>  f_listen_for_attestation_shares_helper_2(old(toAtt_DVCState()), attestation_share);
                 }
                 ...;
                 if...
                 {
                 assert old(isValidReprExtended()) ==> 
                         && isValidReprExtended()
-                        && f_listen_for_attestation_shares_helper(old(toDVCState()), attestation_share) == toDVCState();                      
+                        && f_listen_for_attestation_shares_helper(old(toAtt_DVCState()), attestation_share) == toAtt_DVCState();                      
                     ...;
                 }
                 assert old(isValidReprExtended()) ==> 
                         && isValidReprExtended()
-                        && f_listen_for_attestation_shares(old(toDVCState()), attestation_share).state == toDVCState();                          
+                        && f_listen_for_attestation_shares(old(toAtt_DVCState()), attestation_share).state == toAtt_DVCState();                          
             }
             else
             {
                 assert old(isValidReprExtended()) ==> 
                             && isValidReprExtended()
-                            && f_listen_for_attestation_shares(old(toDVCState()), attestation_share) == toDVCStateAndOuputs();
+                            && f_listen_for_attestation_shares(old(toAtt_DVCState()), attestation_share) == toAtt_DVCStateAndOuputs();
             }
         }
 
         // Helper function/lemmas used when proving the postcondition of method listen_for_new_imported_blocks below
         function f_listen_for_new_imported_blocks_part_1_for_loop_inv(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock,
             i: Slot
         ) : (new_att: map<Slot, AttestationData>)
@@ -655,7 +655,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }  
 
         predicate p_listen_for_new_imported_blocks_part_2_for_loop_inv(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock,
             i: Slot,
             a2: map<Slot, AttestationData>
@@ -667,7 +667,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }        
 
         lemma lem_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock,
             i: Slot,
             a1: map<Slot, AttestationData>,
@@ -692,7 +692,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }
 
         predicate p_listen_for_new_imported_blocks_part_2(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock,
             a1: map<Slot, AttestationData>
         ) 
@@ -703,7 +703,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
 
         lemma lem_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock,
             a1: map<Slot, AttestationData>
         ) 
@@ -718,7 +718,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }        
 
         function f_listen_for_new_imported_blocks_part_1(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock
         ): map<Slot, AttestationData>
        requires f_listen_for_new_imported_blocks.requires(process, block)       
@@ -734,9 +734,9 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }         
 
         function f_listen_for_new_imported_blocks_part_2(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock
-        ): DVCState
+        ): Att_DVCState
         requires f_listen_for_new_imported_blocks.requires(process, block)        
         {
             var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
@@ -761,9 +761,9 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }   
 
         function f_listen_for_new_imported_blocks_part_3(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock
-        ): DVCState
+        ): Att_DVCState
         requires f_listen_for_new_imported_blocks.requires(process, block)        
         {
             var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
@@ -800,9 +800,9 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         }    
 
         function f_listen_for_new_imported_blocks_part_4(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock
-        ): DVCState
+        ): Att_DVCState
         requires f_listen_for_new_imported_blocks.requires(process, block)        
         requires 
             var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(process, block);
@@ -856,71 +856,71 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         function f_listen_for_new_imported_blocks_part_3_calc_old_instances(
             att_consensus_instances_already_decided: map<Slot, AttestationData>
         ): set<Slot>
-        requires toDVCState().latest_attestation_duty.isPresent()
-        reads toDVCState.reads
+        requires toAtt_DVCState().latest_attestation_duty.isPresent()
+        reads toAtt_DVCState.reads
         {
             set i | 
                 && i in att_consensus_instances_already_decided.Keys
-                && i <= toDVCState().latest_attestation_duty.safe_get().slot
+                && i <= toAtt_DVCState().latest_attestation_duty.safe_get().slot
                               
         }        
 
         twostate lemma lem_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_present(
-            p0: DVCState,
+            p0: Att_DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             old_instances: set<Slot>,
             block: BeaconBlock
         )      
-        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) 
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) 
                 && old(latest_attestation_duty).isPresent()
                 && latest_attestation_duty.isPresent()
-                && p0 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block) 
+                && p0 == f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block) 
             
-                && att_consensus_instances_already_decided == old(toDVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toDVCState()), block)
+                && att_consensus_instances_already_decided == old(toAtt_DVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toAtt_DVCState()), block)
 
                 && old_instances == f_listen_for_new_imported_blocks_part_3_calc_old_instances(att_consensus_instances_already_decided)
-                && toDVCState() == p0.(
+                && toAtt_DVCState() == p0.(
                         future_att_consensus_instances_already_decided := att_consensus_instances_already_decided - old_instances
                     )
         ensures
-                toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block);  
+                toAtt_DVCState() == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block);  
         {
             
         }    
 
         twostate lemma lem_listen_for_new_imported_blocks_from_part_2_to_3_latest_attestation_duty_not_present(
-            p0: DVCState,
+            p0: Att_DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             block: BeaconBlock
         )      
-        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) 
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) 
                 && !old(latest_attestation_duty).isPresent()
-                && p0 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block) 
+                && p0 == f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block) 
             
-                && att_consensus_instances_already_decided == old(toDVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toDVCState()), block)
+                && att_consensus_instances_already_decided == old(toAtt_DVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toAtt_DVCState()), block)
 
-                && toDVCState() == p0.(
+                && toAtt_DVCState() == p0.(
                         future_att_consensus_instances_already_decided := att_consensus_instances_already_decided 
                     )
         ensures
-                toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block);  
+                toAtt_DVCState() == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block);  
         {
             
         }         
 
         twostate lemma lem_listen_for_new_imported_blocks_from_part_3_to_4(
-            p0: DVCState,
+            p0: Att_DVCState,
             block: BeaconBlock
         )      
-        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) 
-                && p0 == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block) 
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) 
+                && p0 == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block) 
                 && 
-                    var att_consensus_instances_already_decided := old(toDVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toDVCState()), block);
-                &&         old(toDVCState()).current_attestation_duty.isPresent() && old(toDVCState()).current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided 
+                    var att_consensus_instances_already_decided := old(toAtt_DVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toAtt_DVCState()), block);
+                &&         old(toAtt_DVCState()).current_attestation_duty.isPresent() && old(toAtt_DVCState()).current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided 
                 &&
-                    var decided_attestation_data := att_consensus_instances_already_decided[old(toDVCState()).current_attestation_duty.safe_get().slot];
-                    var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toDVCState()).attestation_slashing_db, decided_attestation_data); 
-                && toDVCState() == p0.(
+                    var decided_attestation_data := att_consensus_instances_already_decided[old(toAtt_DVCState()).current_attestation_duty.safe_get().slot];
+                    var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, decided_attestation_data); 
+                && toAtt_DVCState() == p0.(
                         current_attestation_duty := None,
                         attestation_slashing_db := new_attestation_slashing_db,
                         attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
@@ -929,38 +929,38 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                         )                             
                     )
         ensures
-                toDVCState() == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block);  
+                toAtt_DVCState() == f_listen_for_new_imported_blocks_part_4(old(toAtt_DVCState()), block);  
         {
             
         }      
 
         twostate predicate lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(
-            p0: DVCState,
+            p0: Att_DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             block: BeaconBlock
         )      
-        reads toDVCState.reads
+        reads toAtt_DVCState.reads
         { 
-            && (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) 
+            && (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) 
             && old(current_attestation_duty).isPresent()
-            && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+            && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
             && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
-            && p0 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block) 
+            && p0 == f_listen_for_new_imported_blocks_part_4(old(toAtt_DVCState()), block) 
             && f_check_for_next_duty.requires(p0)
 
-            && toDVCState() == f_check_for_next_duty(p0).state
+            && toAtt_DVCState() == f_check_for_next_duty(p0).state
         }
 
         twostate lemma lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided(
-            p0: DVCState,
+            p0: Att_DVCState,
             att_consensus_instances_already_decided: map<Slot, AttestationData>,
             block: BeaconBlock
         )      
         requires lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(p0, att_consensus_instances_already_decided, block)
         ensures
-                toDVCState()  == f_listen_for_new_imported_blocks(old(toDVCState()), block).state;
+                toAtt_DVCState()  == f_listen_for_new_imported_blocks(old(toAtt_DVCState()), block).state;
         {
-            var process := old(toDVCState());
+            var process := old(toAtt_DVCState());
             var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
             
             var s := map a |
@@ -971,7 +971,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
             var att_consensus_instances_already_decided_let := process.future_att_consensus_instances_already_decided + s;
 
-            assert att_consensus_instances_already_decided_let == old(toDVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toDVCState()), block);
+            assert att_consensus_instances_already_decided_let == old(toAtt_DVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toAtt_DVCState()), block);
 
             var future_att_consensus_instances_already_decided := 
                     if process.latest_attestation_duty.isPresent() then
@@ -1026,22 +1026,22 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             block: BeaconBlock,
             att_consensus_instances_already_decided: map<Slot, AttestationData>
         )      
-        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) 
-                && att_consensus_instances_already_decided == old(toDVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toDVCState()), block)
+        requires&& (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) 
+                && att_consensus_instances_already_decided == old(toAtt_DVCState()).future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(old(toAtt_DVCState()), block)
                 && 
                     (
                         || !old(current_attestation_duty).isPresent()
                         || old(current_attestation_duty).safe_get().slot !in att_consensus_instances_already_decided
                     )
-                && toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block) 
+                && toAtt_DVCState() == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block) 
         ensures
-                toDVCState()  == f_listen_for_new_imported_blocks(old(toDVCState()), block).state;
+                toAtt_DVCState()  == f_listen_for_new_imported_blocks(old(toAtt_DVCState()), block).state;
         {
                               
         }                 
 
         lemma f_listen_for_new_imported_blocks_empty_outputs(
-            process: DVCState,
+            process: Att_DVCState,
             block: BeaconBlock
         )
         requires f_listen_for_new_imported_blocks.requires(process, block)
@@ -1056,7 +1056,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
 
         // TODO: Type issues
         lemma f_check_for_next_duty_empty_outputs(
-            process: DVCState
+            process: Att_DVCState
         )
         requires f_check_for_next_duty.requires(process, attestation_duty)
         
@@ -1103,7 +1103,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         requires
             && unchanged(network`att_shares_sent)
             && unchanged(bn`attestations_submitted)
-        ensures toDVCStateAndOuputs().outputs == getEmptyOuputs()
+        ensures toAtt_DVCStateAndOuputs().outputs == getEmptyOuputs()
         {
 
         }        
@@ -1114,7 +1114,7 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         // surprisingly, causes the verification time of the method listen_for_new_imported_blocks to increase to more
         // than 30 min. lemma
         // unused_lem_that_if_commented_out_gets_the_verification_time_of_the_following_method_to_increase_to_30_plus_min(
-        // process: DVCState, block: BeaconBlock
+        // process: Att_DVCState, block: BeaconBlock
         // )
         // requires f_listen_for_new_imported_blocks.requires(process, block)  
         // requires process.latest_attestation_duty.isPresent()                   
@@ -1137,12 +1137,12 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         {:fuel f_listen_for_new_imported_blocks_part_4, 0, 0}
         {:fuel f_listen_for_new_imported_blocks, 0, 0}
         listen_for_new_imported_blocks...
-        ensures (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> 
+        ensures (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==> 
                     && isValidReprExtended()
                     && s.Success?
-                    && f_listen_for_new_imported_blocks(old(toDVCState()), block) == toDVCStateAndOuputs()
+                    && f_listen_for_new_imported_blocks(old(toAtt_DVCState()), block) == toAtt_DVCStateAndOuputs()
         {
-            assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> block.body.state_root in bn.state_roots_of_imported_blocks;
+            assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==> block.body.state_root in bn.state_roots_of_imported_blocks;
             ...;
             while...
                 invariant 0 <= i <= |block.body.attestations|
@@ -1157,12 +1157,12 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             && unchanged(bn`attestations_submitted)
                 invariant  old(isValidReprExtended()) ==> isValidReprExtended();       
                 invariant old(isValidReprExtended()) ==> lemmaConsensusInstancesAreTheSamePrecond(att_consensus)       
-                invariant old(isValidReprExtended() )==> toDVCState() == old(toDVCState()) 
+                invariant old(isValidReprExtended() )==> toAtt_DVCState() == old(toAtt_DVCState()) 
                 invariant unchanged(bn`attestations_submitted)
                 invariant this as object != att_consensus
                 invariant this !in att_consensus.Repr
 
-                invariant (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> p_listen_for_new_imported_blocks_part_2_for_loop_inv(old(toDVCState()), block, i, att_consensus_instances_already_decided)                
+                invariant (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==> p_listen_for_new_imported_blocks_part_2_for_loop_inv(old(toAtt_DVCState()), block, i, att_consensus_instances_already_decided)                
             {
                 var ax := att_consensus_instances_already_decided;
                 ...;
@@ -1173,20 +1173,20 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                
 
                 }
-                if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)){
-                    lem_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(old(toDVCState()), block, i, ax, att_consensus_instances_already_decided);
+                if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)){
+                    lem_f_listen_for_new_imported_blocks_part_1_to_2_for_loop_inv(old(toAtt_DVCState()), block, i, ax, att_consensus_instances_already_decided);
                 }
 
                 ...;    
             }
-            assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>
-                && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+            assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>
+                && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                 by
             {
-                if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)){
+                if (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)){
                         assert isValidReprExtended();   
                         assert lemmaConsensusInstancesAreTheSamePrecond(att_consensus);                
-                        lem_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(old(toDVCState()), block, att_consensus_instances_already_decided);
+                        lem_p_listen_for_new_imported_blocks_part_2_for_loop_inv_to_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided);
                 }   
             }       
  
@@ -1196,32 +1196,32 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             {
 
                 
-                var o1 := toDVCState();
+                var o1 := toAtt_DVCState();
                 label L2:
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> 
-                    && o1 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block) 
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==> 
+                    && o1 == f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block) 
                     && isValidReprExtended()
-                    && f_check_for_next_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toAtt_DVCState())
                     && unchanged(`current_attestation_duty)
-                    && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                    && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                 by
                 {
-                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                     {
                         assert isValidReprExtended();
                         assert lemmaConsensusInstancesHaveBeenRemovedPrecond(att_consensus, att_consensus_instances_already_decided.Keys);
                         lemmaConsensusInstancesHaveBeenRemoved(att_consensus, att_consensus_instances_already_decided.Keys);
 
-                        assert f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block).attestation_consensus_engine_state.active_attestation_consensus_instances == old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances - att_consensus_instances_already_decided.Keys;
+                        assert f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block).attestation_consensus_engine_state.active_attestation_consensus_instances == old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances - att_consensus_instances_already_decided.Keys;
 
                         calc {
                             o1;
                             { lemmaConsensusInstancesAreTheSame@L2(att_consensus);}
-                            toDVCState();
-                            f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block);        
+                            toAtt_DVCState();
+                            f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block);        
                         }
 
-                        assert o1 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block);   
+                        assert o1 == f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block);   
 
                         assert unchanged(`current_attestation_duty);                                                
                     }
@@ -1229,16 +1229,16 @@ module DVC_Implementation_Proofs refines DVC_Implementation
                 
                 
                 ...;
-                var o2 := toDVCState();        
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
-                    && o2 == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)
+                var o2 := toAtt_DVCState();        
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>  
+                    && o2 == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block)
                     && isValidReprExtended()  
-                    && f_check_for_next_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toAtt_DVCState())
                     && unchanged(`current_attestation_duty)
-                    && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                    && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                 by
                 {
-                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                     {
                         lemmaConsensusInstancesAreTheSame@L2(att_consensus);
                         assert o2 == o1.(
@@ -1251,51 +1251,51 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             }
             else
             {
-                var o1 := toDVCState();
+                var o1 := toAtt_DVCState();
                 label L2:
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==> 
-                        && o1 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block) 
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==> 
+                        && o1 == f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block) 
                         && isValidReprExtended()
-                        && f_check_for_next_duty.requires(toDVCState())
+                        && f_check_for_next_duty.requires(toAtt_DVCState())
                         && unchanged(`current_attestation_duty)
-                        && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                        && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                 by
                 {
-                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                     {
                         assert isValidReprExtended();
                         assert lemmaConsensusInstancesHaveBeenRemovedPrecond(att_consensus, att_consensus_instances_already_decided.Keys);
                         lemmaConsensusInstancesHaveBeenRemoved(att_consensus, att_consensus_instances_already_decided.Keys);
 
-                        assert f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block).attestation_consensus_engine_state.active_attestation_consensus_instances == old(toDVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances - att_consensus_instances_already_decided.Keys;
+                        assert f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block).attestation_consensus_engine_state.active_attestation_consensus_instances == old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances - att_consensus_instances_already_decided.Keys;
 
                         calc {
                             o1;
                             { lemmaConsensusInstancesAreTheSame@L2(att_consensus);}
-                            toDVCState();
-                            f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block);        
+                            toAtt_DVCState();
+                            f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block);        
                         }
 
-                        assert o1 == f_listen_for_new_imported_blocks_part_2(old(toDVCState()), block);            
+                        assert o1 == f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block);            
                         assert unchanged(`current_attestation_duty);                                        
                     }
                 }
                 ...;
 
-                var o2 := toDVCState();        
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
-                    && o2 == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)  
+                var o2 := toAtt_DVCState();        
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>  
+                    && o2 == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block)  
                     && isValidReprExtended()
-                    && f_check_for_next_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toAtt_DVCState())
                     && unchanged(`current_attestation_duty)
-                    && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                    && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                 by
                 {
-                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                    if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                     {
                         assert isValidReprExtended();   
 
-                        var o2 := toDVCState();
+                        var o2 := toAtt_DVCState();
                         lemmaConsensusInstancesAreTheSame@L2(att_consensus);
                         assert o2 == o1.(
                             future_att_consensus_instances_already_decided := att_consensus_instances_already_decided 
@@ -1309,48 +1309,48 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             if...
             {
                 label L3:
-                var o3 := toDVCState();
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
-                    && toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)
+                var o3 := toAtt_DVCState();
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>  
+                    && toAtt_DVCState() == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block)
                     && isValidReprExtended()
-                    && f_check_for_next_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toAtt_DVCState())
                     && unchanged(`current_attestation_duty)
-                    && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                    && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                     && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
                     ;
                 
                 ...;
                 {
-                    var o4 := toDVCState();
-                    assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
-                        && o4 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block)
+                    var o4 := toAtt_DVCState();
+                    assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>  
+                        && o4 == f_listen_for_new_imported_blocks_part_4(old(toAtt_DVCState()), block)
                         && isValidReprExtended()
-                        && f_check_for_next_duty.requires(toDVCState())
+                        && f_check_for_next_duty.requires(toAtt_DVCState())
                         && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
-                        && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                        && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                     by 
                     {
-                        if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                        if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                         {
                             lemmaAttestationHasBeenAddedToSlashingDbForall@L3(att_consensus_instances_already_decided[old@L3(current_attestation_duty).safe_get().slot]);
                             lem_listen_for_new_imported_blocks_from_part_3_to_4(o3, block);
-                            assert o4 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block);  
+                            assert o4 == f_listen_for_new_imported_blocks_part_4(old(toAtt_DVCState()), block);  
                         }
                     } 
                     
                     ...;
-                    assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  toDVCState() == f_listen_for_new_imported_blocks(old(toDVCState()), block).state by       
+                    assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>  toAtt_DVCState() == f_listen_for_new_imported_blocks(old(toAtt_DVCState()), block).state by       
                     {
-                        if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                        if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                         {
                             assert lem_listen_for_new_imported_blocks_from_part_4_to_full_current_attestation_duty_has_already_been_decided_precondition(o4, att_consensus_instances_already_decided, block) by 
                             {
                                 assert 
-                                && p_listen_for_new_imported_blocks_part_2(old(toDVCState()), block, att_consensus_instances_already_decided)
+                                && p_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block, att_consensus_instances_already_decided)
                                 && old(current_attestation_duty).safe_get().slot in att_consensus_instances_already_decided
-                                && o4 == f_listen_for_new_imported_blocks_part_4(old(toDVCState()), block) 
+                                && o4 == f_listen_for_new_imported_blocks_part_4(old(toAtt_DVCState()), block) 
                                 && f_check_for_next_duty.requires(o4)
-                                && toDVCState() == f_check_for_next_duty(o4).state
+                                && toAtt_DVCState() == f_check_for_next_duty(o4).state
                                 ;                                
                             }    
 
@@ -1362,26 +1362,26 @@ module DVC_Implementation_Proofs refines DVC_Implementation
             }
             else
             {
-                var o3 := toDVCState();
-                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block)) ==>  
-                    && toDVCState() == f_listen_for_new_imported_blocks_part_3(old(toDVCState()), block)
+                var o3 := toAtt_DVCState();
+                assert (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block)) ==>  
+                    && toAtt_DVCState() == f_listen_for_new_imported_blocks_part_3(old(toAtt_DVCState()), block)
                     && isValidReprExtended()
-                    && f_check_for_next_duty.requires(toDVCState())
+                    && f_check_for_next_duty.requires(toAtt_DVCState())
                     && unchanged(`current_attestation_duty)
                     ;
-                if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+                if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
                 {
                     // assert !old(current_attestation_duty).isPresent();
                     lem_listen_for_new_imported_blocks_from_part_3_to_full_current_attestation_duty_has_not_already_been_decided(block, att_consensus_instances_already_decided);
                 }
             }
-            if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toDVCState()), block))
+            if  (old(isValidReprExtended()) && f_listen_for_new_imported_blocks.requires(old(toAtt_DVCState()), block))
             {
-                assert toDVCState() == f_listen_for_new_imported_blocks(old(toDVCState()), block).state;  
+                assert toAtt_DVCState() == f_listen_for_new_imported_blocks(old(toAtt_DVCState()), block).state;  
                 assert unchanged(network);
                 assert unchanged(bn`attestations_submitted);
                 lemaUnchangedThatImpliesEmptyOutputs();
-                f_listen_for_new_imported_blocks_empty_outputs(old(toDVCState()), block);               
+                f_listen_for_new_imported_blocks_empty_outputs(old(toAtt_DVCState()), block);               
             }            
             ...;
         }
@@ -1389,22 +1389,22 @@ module DVC_Implementation_Proofs refines DVC_Implementation
         method resend_attestation_share...
         ensures old(isValidReprExtended()) ==>
                                 && isValidReprExtended()
-                                && f_resend_attestation_share(old(toDVCState())) == toDVCStateAndOuputs()
+                                && f_resend_attestation_share(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs()
         {
             ...;
-            assert  old(isValidReprExtended()) ==> f_resend_attestation_share(old(toDVCState())).state == toDVCStateAndOuputs().state;
+            assert  old(isValidReprExtended()) ==> f_resend_attestation_share(old(toAtt_DVCState())).state == toAtt_DVCStateAndOuputs().state;
             var setWithRecipient := set att_share | att_share in attestation_shares_to_broadcast.Values :: addRecepientsToMessage(att_share, peers);
             var setWithRecipientFlattened := setUnion(setWithRecipient);
             assert old(isValidReprExtended()) ==>network.att_shares_sent == old(network.att_shares_sent) +[setWithRecipientFlattened];                
             assert old(isValidReprExtended()) ==>seqMinusToSet(network.att_shares_sent, old(network.att_shares_sent)) == {setWithRecipientFlattened};
-            assert  old(isValidReprExtended()) ==>toDVCStateAndOuputs().outputs.att_shares_sent == setWithRecipientFlattened;
-            assert  old(isValidReprExtended()) ==>f_resend_attestation_share(old(toDVCState())) == toDVCStateAndOuputs();                  
+            assert  old(isValidReprExtended()) ==>toAtt_DVCStateAndOuputs().outputs.att_shares_sent == setWithRecipientFlattened;
+            assert  old(isValidReprExtended()) ==>f_resend_attestation_share(old(toAtt_DVCState())) == toAtt_DVCStateAndOuputs();                  
         }
     }
 }
 
 // Keep this here as it does come handy from time to time
-// var o := toDVCState();
+// var o := toAtt_DVCState();
 // var rs := r.state;
 
 // assert rs.attestation_consensus_engine_state == o.attestation_consensus_engine_state;

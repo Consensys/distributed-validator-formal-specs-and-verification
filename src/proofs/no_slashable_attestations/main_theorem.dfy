@@ -10,26 +10,26 @@ include "supporting_lemmas/ind_inv_implies_safety/ind_inv_implies_safety.dfy"
 module No_Slashable_Attestations_Main_Theorem
 {
     import opened Types 
-    import opened DV    
+    import opened Att_DV    
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
-    import opened Ind_Inv_DV_Init
-    import opened Ind_Inv_DV_Next
+    import opened Ind_Inv_Att_DV_Init
+    import opened Ind_Inv_Att_DV_Next
     import opened Ind_Inv_Implies_Safety
 
 
     predicate isValidTrace(
-        trace: iseq<DVState>
+        trace: iseq<Att_DVState>
     )  
     {
-        && DV.Init(trace[0], {})
+        && Att_DV.Init(trace[0], {})
         && (
             forall i: Slot ::
-                DV.NextPreCond(trace[i]) ==> DV.Next(trace[i], trace[i+1])
+                Att_DV.NextPreCond(trace[i]) ==> Att_DV.Next(trace[i], trace[i+1])
         )
     }  
 
     lemma lem_non_slashable_attestations_rec(
-        trace: iseq<DVState>,
+        trace: iseq<Att_DVState>,
         i: Slot
     )
     requires isValidTrace(trace)
@@ -49,7 +49,7 @@ module No_Slashable_Attestations_Main_Theorem
     }
 
     lemma lem_non_slashable_attestations(
-        trace: iseq<DVState>
+        trace: iseq<Att_DVState>
     )
     requires isValidTrace(trace)
     ensures forall i:nat :: non_slashable_attestations(trace[i])

@@ -3,23 +3,13 @@ include "../../../specs/dvc/dvc_attestation_creation.dfy"
 include "dvc_spec_axioms.dfy"
 
 
-module DVC_Spec {
+module Att_DVC_Spec {
     import opened Types 
     import opened CommonFunctions
-    import opened DVC_Externs
-    import DVC_Spec_NonInstr
-    import opened DVC_Spec_Axioms
+    import opened Att_DVC_Externs
+    import Att_DVC_Spec_NonInstr
+    import opened Att_DVC_Spec_Axioms
     
-
-
-    // function getInitialBN(): BNState
-    // {
-    //     BNState(
-    //         state_roots_of_imported_blocks := {}
-    //     )
-    // }    
-
-
 
     datatype ConsensusEngineState = ConsensusEngineState(
         active_attestation_consensus_instances: map<Slot, AttestationConsensusValidityCheckState>,
@@ -174,7 +164,7 @@ module DVC_Spec {
     }
 
 
-    datatype DVCState = DVCState(
+    datatype Att_DVCState = Att_DVCState(
         current_attestation_duty: Optional<AttestationDuty>,
         latest_attestation_duty: Optional<AttestationDuty>,
         attestation_slashing_db: set<SlashingDBAttestation>,
@@ -192,11 +182,11 @@ module DVC_Spec {
         ghost all_rcvd_duties: set<AttestationDuty>
     )
 
-    type Outputs = DVC_Spec_NonInstr.Outputs
+    type Outputs = Att_DVC_Spec_NonInstr.Outputs
 
     function getEmptyOuputs(): Outputs
     {
-        DVC_Spec_NonInstr.Outputs(
+        Att_DVC_Spec_NonInstr.Outputs(
             {},
             {}
         )
@@ -214,13 +204,13 @@ module DVC_Spec {
         setUnion(setWithRecipient)
     }    
 
-    datatype DVCStateAndOuputs = DVCStateAndOuputs(
-        state: DVCState,
+    datatype Att_DVCStateAndOuputs = Att_DVCStateAndOuputs(
+        state: Att_DVCState,
         outputs: Outputs
     )
 
     predicate Init(
-        s: DVCState,
+        s: Att_DVCState,
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
@@ -228,7 +218,7 @@ module DVC_Spec {
         rs_pubkey: BLSPubkey
     )
     {
-        s == DVCState(
+        s == Att_DVCState(
             current_attestation_duty := None,
             latest_attestation_duty := None,
             attestation_slashing_db := initial_attestation_slashing_db,
@@ -240,20 +230,20 @@ module DVC_Spec {
             dv_pubkey := dv_pubkey,
             future_att_consensus_instances_already_decided := map[],
             bn := s.bn,
-            rs := DVC_Spec_NonInstr.getInitialRS(rs_pubkey),
+            rs := Att_DVC_Spec_NonInstr.getInitialRS(rs_pubkey),
             all_rcvd_duties := {}
         )
     }
 
     predicate Next(
-        s: DVCState,
+        s: Att_DVCState,
         event: AttestationEvent,
-        s': DVCState,
+        s': Att_DVCState,
         outputs: Outputs
     )
     requires f_process_event.requires(s, event)
     {
-        var newNodeStateAndOutputs := DVCStateAndOuputs(
+        var newNodeStateAndOutputs := Att_DVCStateAndOuputs(
             state := s',
             outputs := outputs
         );
@@ -262,9 +252,9 @@ module DVC_Spec {
     }
 
     function f_process_event(
-        s: DVCState,
+        s: Att_DVCState,
         event: AttestationEvent
-    ): DVCStateAndOuputs
+    ): Att_DVCStateAndOuputs
     requires
             match event 
             case ServeAttestationDuty(attestation_duty) => 
@@ -292,26 +282,26 @@ module DVC_Spec {
             case ResendAttestationShares => 
                 f_resend_attestation_share(s)
             case NoEvent => 
-                DVCStateAndOuputs(state := s, outputs := getEmptyOuputs() )
+                Att_DVCStateAndOuputs(state := s, outputs := getEmptyOuputs() )
     }    
 
-    // Wraps a DVC state with outputs to construct a state with type DVCStateAndOutputs
-    function f_wrap_DVCState_with_Outputs(
-        dvc: DVCState,
+    // Wraps a Att_DVC state with outputs to construct a state with type Att_DVCStateAndOutputs
+    function f_wrap_Att_DVCState_with_Outputs(
+        dvc: Att_DVCState,
         outputs: Outputs
-    ): (ret: DVCStateAndOuputs)
+    ): (ret: Att_DVCStateAndOuputs)
     ensures ret.state == dvc
     {
-        DVCStateAndOuputs(
+        Att_DVCStateAndOuputs(
                 state := dvc,
                 outputs := outputs
             )
     }  
 
     function f_serve_attestation_duty(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_duty: AttestationDuty
-    ): DVCStateAndOuputs    
+    ): Att_DVCStateAndOuputs    
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
@@ -327,8 +317,8 @@ module DVC_Spec {
     }    
 
     function f_terminate_current_attestation_duty(
-        process: DVCState
-    ): (ret_process: DVCState)
+        process: Att_DVCState
+    ): (ret_process: Att_DVCState)
     ensures !ret_process.current_attestation_duty.isPresent()
     {
         // There exists an active consensus instance for the current attestation duty.
@@ -347,9 +337,9 @@ module DVC_Spec {
     } 
 
     function f_check_for_next_duty(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_duty: AttestationDuty
-    ): DVCStateAndOuputs
+    ): Att_DVCStateAndOuputs
     requires !process.current_attestation_duty.isPresent()
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
@@ -373,12 +363,12 @@ module DVC_Spec {
                             new_attestation_slashing_db
                         )                        
                     );
-            f_wrap_DVCState_with_Outputs(new_process, getEmptyOuputs())
+            f_wrap_Att_DVCState_with_Outputs(new_process, getEmptyOuputs())
         else
             f_start_next_duty(process, attestation_duty)
     }         
 
-    function f_start_next_duty(process: DVCState, attestation_duty: AttestationDuty): DVCStateAndOuputs
+    function f_start_next_duty(process: Att_DVCState, attestation_duty: AttestationDuty): Att_DVCStateAndOuputs
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
@@ -394,7 +384,7 @@ module DVC_Spec {
                                 process.attestation_slashing_db
                             )
                 );
-        f_wrap_DVCState_with_Outputs(new_process, getEmptyOuputs())     
+        f_wrap_Att_DVCState_with_Outputs(new_process, getEmptyOuputs())     
     }      
 
     function get_aggregation_bits(
@@ -423,7 +413,7 @@ module DVC_Spec {
     }    
 
     function f_calc_att_with_sign_share_from_decided_att_data(
-        process: DVCState,
+        process: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData
     ): (att_share: AttestationShare)
@@ -443,12 +433,12 @@ module DVC_Spec {
     }  
 
     function f_update_att_slashing_db_and_consensus_engine_after_att_consensus_decided(
-        process: DVCState,
+        process: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,
         attestation_with_signature_share: AttestationShare,
         new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (process': DVCState)
+    ): (process': Att_DVCState)
     requires process.current_attestation_duty.isPresent()
     requires id == process.current_attestation_duty.safe_get().slot
     ensures process'.attestation_slashing_db == new_attestation_slashing_db
@@ -470,10 +460,10 @@ module DVC_Spec {
     }
 
     function f_att_consensus_decided(
-        process: DVCState,
+        process: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData
-    ): DVCStateAndOuputs
+    ): Att_DVCStateAndOuputs
     {
         if  && process.current_attestation_duty.isPresent()
             && id == process.current_attestation_duty.safe_get().slot
@@ -500,15 +490,15 @@ module DVC_Spec {
                                     att_shares_sent := multicast(attestation_with_signature_share, process.peers)
                                 );
              
-            f_wrap_DVCState_with_Outputs(process_mod, outputs)     
+            f_wrap_Att_DVCState_with_Outputs(process_mod, outputs)     
         else 
-            f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())               
+            f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())               
     }    
 
     function f_listen_for_attestation_shares(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_share: AttestationShare
-    ): DVCStateAndOuputs
+    ): Att_DVCStateAndOuputs
     {
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
 
@@ -557,31 +547,31 @@ module DVC_Spec {
                             )
                         );
 
-                    f_wrap_DVCState_with_Outputs(process_after_submitting_attestations, new_outputs)
+                    f_wrap_Att_DVCState_with_Outputs(process_after_submitting_attestations, new_outputs)
                 else 
-                    f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())  
+                    f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())  
         else
-            f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())          
+            f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())          
     }
 
     function f_listen_for_new_imported_blocks_helper_1(
-        process: DVCState,
+        process: Att_DVCState,
         block: BeaconBlock
     ): map<Slot, AttestationData>
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && Att_DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && Att_DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2    
     {
         var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
         map a |
                 && a in block.body.attestations
-                && DVC_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex)
+                && Att_DVC_Spec_NonInstr.isMyAttestation(a, process.bn, block, valIndex)
                 && ( || !process.latest_attestation_duty.isPresent()
                      || ( && process.latest_attestation_duty.isPresent() 
                           && process.latest_attestation_duty.safe_get().slot < a.data.slot ) )
@@ -590,7 +580,7 @@ module DVC_Spec {
     }
 
     function f_listen_for_new_imported_blocks_helper_2(
-        process: DVCState,
+        process: Att_DVCState,
         att_consensus_instances_already_decided: map<Slot, AttestationData>
     ): map<int, AttestationData>
     {
@@ -606,16 +596,16 @@ module DVC_Spec {
     }
 
     function f_listen_for_new_imported_blocks(
-        process: DVCState,
+        process: Att_DVCState,
         block: BeaconBlock
-    ): DVCStateAndOuputs
+    ): Att_DVCStateAndOuputs
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && Att_DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && Att_DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2
     {
@@ -648,24 +638,24 @@ module DVC_Spec {
                     new_attestation_slashing_db
                 )
             );
-            f_wrap_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyOuputs()) 
+            f_wrap_Att_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyOuputs()) 
         else
-            f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())   
+            f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())   
     }    
   
     function f_resend_attestation_share(
-        process: DVCState
-    ): DVCStateAndOuputs
+        process: Att_DVCState
+    ): Att_DVCStateAndOuputs
     {
         var new_outputs := getEmptyOuputs().(
                                     att_shares_sent :=
                                         multicast_multiple(process.attestation_shares_to_broadcast.Values, process.peers)
                                 );
-        f_wrap_DVCState_with_Outputs(process, new_outputs) 
+        f_wrap_Att_DVCState_with_Outputs(process, new_outputs) 
     }        
 
     // Is node n the owner of a given attestation share att
-    predicate is_owner_of_att_share(att_share: AttestationShare, dvc: DVCState)
+    predicate is_owner_of_att_share(att_share: AttestationShare, dvc: Att_DVCState)
     {
         && var data := att_share.data;
         && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));

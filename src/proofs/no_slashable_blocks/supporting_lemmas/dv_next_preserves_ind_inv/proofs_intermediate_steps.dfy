@@ -9,23 +9,23 @@ include "../../common/block_dvc_spec_axioms.dfy"
 include "../../../../common/commons.dfy"
 
 include "../../common/dvc_block_proposer_instrumented.dfy"
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 
-include "../../../common/helper_pred_fcn.dfy"
+include "../../../common/att_helper_pred_fcn.dfy"
 module Proofs_Intermediate_Steps
 {
     import opened Types 
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Helper_Pred_Fcn

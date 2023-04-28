@@ -12,16 +12,16 @@ module Helper_Pred_Fcn
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
-    import opened Helper_Sets_Lemmas
-    import opened DVC_Spec_Axioms
-    import DVC_Spec_NonInstr
+    import opened Att_DVC_Spec
+    import opened Att_DV
+    import opened Att_Helper_Sets_Lemmas
+    import opened Att_DVC_Spec_Axioms
+    import Att_DVC_Spec_NonInstr
 
     function f_new_process_after_updateConsensusInstanceValidityCheck(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_duty: AttestationDuty
-    ): DVCState
+    ): Att_DVCState
     requires attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
     {
         var new_attestation_slashing_db := 
@@ -44,9 +44,9 @@ module Helper_Pred_Fcn
     }
 
     function f_new_process_after_starting_new_att_duty(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_duty: AttestationDuty
-    ): DVCState
+    ): Att_DVCState
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
@@ -63,7 +63,7 @@ module Helper_Pred_Fcn
     }
 
     predicate is_correct_att_share(
-        s: DVState,
+        s: Att_DVState,
         hn: BLSPubkey,
         att_share: AttestationShare
     )
@@ -76,7 +76,7 @@ module Helper_Pred_Fcn
     }
     
     predicate is_decided_data_for_current_slot(
-        process: DVCState,
+        process: Att_DVCState,
         decided_attestation_data: AttestationData,
         id: Slot
     )
@@ -87,7 +87,7 @@ module Helper_Pred_Fcn
     }
 
     predicate pred_att_duty_was_already_decided(
-        process: DVCState,
+        process: Att_DVCState,
         id: Slot
     ) 
     {
@@ -96,7 +96,7 @@ module Helper_Pred_Fcn
     }
 
     predicate pred_decision_of_att_duty_was_known(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_duty: AttestationDuty
     ) 
     {
@@ -104,10 +104,10 @@ module Helper_Pred_Fcn
     }
 
     function f_update_process_after_att_duty_decided(
-        process: DVCState,
+        process: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData
-    ) : (ret_process: DVCState)
+    ) : (ret_process: Att_DVCState)
     requires && process.current_attestation_duty.isPresent()
              && id == process.current_attestation_duty.safe_get().slot
     {
@@ -137,7 +137,7 @@ module Helper_Pred_Fcn
         ret_process
     }
 
-    predicate no_curr_duty(s_mod: DVCState) 
+    predicate no_curr_duty(s_mod: Att_DVCState) 
     {
         && !s_mod.current_attestation_duty.isPresent()   
     }
@@ -145,7 +145,7 @@ module Helper_Pred_Fcn
     
     
     predicate pred_listen_for_attestation_shares_checker(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_share: AttestationShare
     ) 
     {
@@ -158,9 +158,9 @@ module Helper_Pred_Fcn
     }
 
     function f_add_new_attestation_share(
-        process: DVCState,
+        process: Att_DVCState,
         attestation_share: AttestationShare
-    ): DVCState
+    ): Att_DVCState
     requires pred_listen_for_attestation_shares_checker(
                 process,
                 attestation_share) 
@@ -188,9 +188,9 @@ module Helper_Pred_Fcn
     }
 
     function f_add_new_submitted_attestation(
-        process: DVCState,
+        process: Att_DVCState,
         aggregated_attestation: Attestation
-    ): DVCState
+    ): Att_DVCState
 
     {
         process.(
@@ -201,16 +201,16 @@ module Helper_Pred_Fcn
     }
 
     function f_stopConsensusInstances_after_receiving_new_imported_blocks(
-        process: DVCState,
+        process: Att_DVCState,
         block: BeaconBlock
-    ): DVCState
+    ): Att_DVCState
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && Att_DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && Att_DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2  
     {
@@ -236,7 +236,7 @@ module Helper_Pred_Fcn
     }
 
     predicate pred_listen_for_new_imported_blocks_checker(
-        process: DVCState,
+        process: Att_DVCState,
         att_consensus_instances_already_decided: map<Slot, AttestationData>
     )
     {
@@ -245,9 +245,9 @@ module Helper_Pred_Fcn
     } 
 
     function f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
-        process: DVCState,
+        process: Att_DVCState,
         att_consensus_instances_already_decided: map<Slot, AttestationData>
-    ): DVCState
+    ): Att_DVCState
     requires pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
     {
         var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
@@ -263,7 +263,7 @@ module Helper_Pred_Fcn
         ret_process
     }   
 
-    predicate nonempty_latest_att_duty(s: DVCState) 
+    predicate nonempty_latest_att_duty(s: Att_DVCState) 
     {
         && s.latest_attestation_duty.isPresent()  
     }

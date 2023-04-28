@@ -9,12 +9,12 @@ include "../../common/block_dvc_spec_axioms.dfy"
 include "../../../../common/commons.dfy"
 
 include "../../common/dvc_block_proposer_instrumented.dfy"
-include "../../../../specs/consensus/block_consensus.dfy"
+include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 
-include "../../../common/helper_pred_fcn.dfy"
+include "../../../common/att_helper_pred_fcn.dfy"
 
 include "invs_fnc_1.dfy"
 
@@ -25,12 +25,12 @@ module Fnc_Invs_2
     import opened Types 
     
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Helper_Pred_Fcn
@@ -328,7 +328,7 @@ module Fnc_Invs_2
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopBlockConsensusInstances(
+                block_consensus_engine_state := stopConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
@@ -1382,7 +1382,7 @@ module Fnc_Invs_2
     //                                                     decided_beacon_block
     //                                                 );    
 
-    //         var new_block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+    //         var new_block_consensus_engine_state := updateConsensusInstanceValidityCheck(
     //                                                             process.block_consensus_engine_state,
     //                                                             new_block_slashing_db
     //                                                     );
@@ -1393,7 +1393,7 @@ module Fnc_Invs_2
     //                 decided_beacon_block
     //             );
 
-    //         lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_updateBlockConsensusInstanceValidityCheck(
+    //         lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_updateConsensusInstanceValidityCheck(
     //                                 process.block_consensus_engine_state,
     //                                 new_block_slashing_db,
     //                                 new_block_consensus_engine_state
@@ -1460,7 +1460,7 @@ module Fnc_Invs_2
     //     var process_after_stopping_consensus_instance :=
     //             process.(
     //                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-    //                 block_consensus_engine_state := stopBlockConsensusInstances(
+    //                 block_consensus_engine_state := stopConsensusInstances(
     //                                 process.block_consensus_engine_state,
     //                                 block_consensus_instances_already_decided.Keys
     //                 ),
@@ -1904,7 +1904,7 @@ module Fnc_Invs_2
 
     //     var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-    //     var new_process := f_stopBlockConsensusInstances_after_receiving_new_imported_blocks(
+    //     var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
     //                             process,
     //                             block
     //                         );   
@@ -4233,15 +4233,15 @@ module Fnc_Invs_2
 
     
 
-    lemma lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_updateBlockConsensusInstanceValidityCheck(
+    lemma lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_updateConsensusInstanceValidityCheck(
         s: BlockConsensusEngineState,
         new_block_slashing_db: set<SlashingDBBlock>,
         s': BlockConsensusEngineState,
         allMessagesSent: set<SignedBeaconBlock>
     )
-    requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
+    requires s' == updateConsensusInstanceValidityCheck(s, new_block_slashing_db)
     {
-        var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     s.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -4316,7 +4316,7 @@ module Fnc_Invs_2
                 );
             assert process.block_slashing_db <= new_block_slashing_db;
 
-            var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+            var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -4326,7 +4326,7 @@ module Fnc_Invs_2
                     current_proposer_duty := None,                          
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {proposer_duty.slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                     )                        
@@ -4505,7 +4505,7 @@ module Fnc_Invs_2
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                    block_consensus_engine_state := stopBlockConsensusInstances(
+                    block_consensus_engine_state := stopConsensusInstances(
                                     process.block_consensus_engine_state,
                                     consensus_instances_on_blocks_already_decided.Keys
                     ),
@@ -4533,7 +4533,7 @@ module Fnc_Invs_2
             
             assert process_after_stopping_consensus_instance.block_slashing_db <= new_block_slashing_db;
 
-            var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+            var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     process_after_stopping_consensus_instance.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -4634,7 +4634,7 @@ module Fnc_Invs_2
                   ==
                   process.latest_proposer_duty.safe_get()  ;
 
-        var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                 process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                 new_block_slashing_db
             );        
@@ -4997,7 +4997,7 @@ module Fnc_Invs_2
     ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, n, process', index_next_proposer_duty_to_be_served)
     { }
 
-    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_startBlockConsensusInstance_helper(
+    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_startConsensusInstance_helper(
         s: BlockConsensusEngineState,
         id: Slot,
         proposer_duty: ProposerDuty,
@@ -5005,8 +5005,8 @@ module Fnc_Invs_2
         complete_signed_randao_reveal: BLSSignature,
         s': BlockConsensusEngineState
     )
-    requires startBlockConsensusInstance.requires(s, id, proposer_duty, block_slashing_db, complete_signed_randao_reveal)
-    requires s' == startBlockConsensusInstance(s, id, proposer_duty, block_slashing_db, complete_signed_randao_reveal)
+    requires startConsensusInstance.requires(s, id, proposer_duty, block_slashing_db, complete_signed_randao_reveal)
+    requires s' == startConsensusInstance(s, id, proposer_duty, block_slashing_db, complete_signed_randao_reveal)
     ensures s.block_slashing_db_hist.Keys + { proposer_duty.slot } == s'.block_slashing_db_hist.Keys
     {  }
 
@@ -5039,7 +5039,7 @@ module Fnc_Invs_2
             if && constructed_randao_reveal.isPresent()  
                && proposer_duty.slot !in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
             {
-                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_startBlockConsensusInstance_helper(
+                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_startConsensusInstance_helper(
                     process.block_consensus_engine_state,
                     proposer_duty.slot,
                     proposer_duty,
@@ -5091,15 +5091,15 @@ module Fnc_Invs_2
         { }
     } 
 
-    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_updateBlockConsensusInstanceValidityCheck_helper(
+    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_updateConsensusInstanceValidityCheck_helper(
         s: BlockConsensusEngineState,
         new_block_slashing_db: set<SlashingDBBlock>,
         s': BlockConsensusEngineState
     )
-    requires updateBlockConsensusInstanceValidityCheck.requires(s, new_block_slashing_db)
-    requires s' == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)
+    requires updateConsensusInstanceValidityCheck.requires(s, new_block_slashing_db)
+    requires s' == updateConsensusInstanceValidityCheck(s, new_block_slashing_db)
     ensures && var new_active_block_consensus_instances := 
-                        updateBlockConsensusInstanceValidityCheckHelper(
+                        updateConsensusInstanceValidityCheckHelper(
                             s.active_consensus_instances_on_beacon_blocks,
                             new_block_slashing_db
                         );
@@ -5130,7 +5130,7 @@ module Fnc_Invs_2
                         process.block_slashing_db, 
                         process.future_consensus_instances_on_blocks_already_decided[proposer_duty.slot]
                     );
-            lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_updateBlockConsensusInstanceValidityCheck_helper(
+            lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_updateConsensusInstanceValidityCheck_helper(
                     process.block_consensus_engine_state,
                     new_block_slashing_db,
                     process'.block_consensus_engine_state
@@ -5554,8 +5554,8 @@ module Fnc_Invs_2
         complete_randao_reveal: BLSSignature,
         s': BlockConsensusEngineState
     )
-    requires startBlockConsensusInstance.requires(s, id, proposer_duty, block_slashing_db, complete_randao_reveal)
-    requires s' == startBlockConsensusInstance(s, id, proposer_duty, block_slashing_db, complete_randao_reveal)
+    requires startConsensusInstance.requires(s, id, proposer_duty, block_slashing_db, complete_randao_reveal)
+    requires s' == startConsensusInstance(s, id, proposer_duty, block_slashing_db, complete_randao_reveal)
     ensures s.active_consensus_instances_on_beacon_blocks.Keys + { id } == s'.active_consensus_instances_on_beacon_blocks.Keys
     { }  
 
@@ -5786,7 +5786,7 @@ module Fnc_Invs_2
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopBlockConsensusInstances(
+                block_consensus_engine_state := stopConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
@@ -5821,7 +5821,7 @@ module Fnc_Invs_2
             var new_block_slashing_db := 
                 f_update_block_slashing_db(process.block_slashing_db, block);      
             var new_active_consensus_instances_on_beacon_blocks := 
-                updateBlockConsensusInstanceValidityCheckHelper(
+                updateConsensusInstanceValidityCheckHelper(
                     process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );      
@@ -6353,7 +6353,7 @@ module Fnc_Invs_2
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                    block_consensus_engine_state := stopBlockConsensusInstances(
+                    block_consensus_engine_state := stopConsensusInstances(
                                     process.block_consensus_engine_state,
                                     consensus_instances_on_blocks_already_decided.Keys
                     ),
@@ -6636,7 +6636,7 @@ module Fnc_Invs_2
                 process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                                                         process.block_consensus_engine_state,
                                                         new_block_slashing_db
                                                     ),
@@ -6682,7 +6682,7 @@ module Fnc_Invs_2
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                    block_consensus_engine_state := stopBlockConsensusInstances(
+                    block_consensus_engine_state := stopConsensusInstances(
                                     process.block_consensus_engine_state,
                                     consensus_instances_on_blocks_already_decided.Keys
                     ),
@@ -7193,7 +7193,7 @@ module Fnc_Invs_2
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopBlockConsensusInstances(
+                block_consensus_engine_state := stopConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),

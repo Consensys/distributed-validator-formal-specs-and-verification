@@ -30,7 +30,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         )
     }
 
-    function startBlockConsensusInstance(
+    function startConsensusInstance(
         s: BlockConsensusEngineState,
         slot: Slot,
         proposer_duty: ProposerDuty,
@@ -63,7 +63,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         )
     }
 
-    function stopBlockConsensusInstances(
+    function stopConsensusInstances(
         s: BlockConsensusEngineState,
         ids: set<Slot>
     ): BlockConsensusEngineState
@@ -73,7 +73,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         )
     }   
 
-    function updateBlockConsensusInstanceValidityCheckHelper(
+    function updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>
     ): (r: map<Slot, BlockConsensusValidityCheckState>)
@@ -91,13 +91,13 @@ module DVC_Block_Proposer_Spec_NonInstr {
                 )        
     } 
 
-    function updateBlockConsensusInstanceValidityCheck(
+    function updateConsensusInstanceValidityCheck(
         s: BlockConsensusEngineState,
         new_block_slashing_db: set<SlashingDBBlock>
     ): (r: BlockConsensusEngineState)
     ensures r.active_consensus_instances_on_beacon_blocks.Keys <= s.active_consensus_instances_on_beacon_blocks.Keys
     {
-        var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     s.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
@@ -276,6 +276,8 @@ module DVC_Block_Proposer_Spec_NonInstr {
     {
         // There exists an active consensus instance for the current proposer duty.
         // In other words, a process has not know a decision for the current proposer duty.
+        // While the current proposer duty is reset to None, its corresponding consensus instance is still running.
+        // Consensus instances are only terminated when a DVC imports a new blocks.
         if process.current_proposer_duty.isPresent()
         then 
             var process_after_terminating_current_duty :=
@@ -303,7 +305,8 @@ module DVC_Block_Proposer_Spec_NonInstr {
                 latest_proposer_duty := Some(proposer_duty)
             );
 
-
+        // It seems that we can optimize the protocol by checking whether the decision for a corresponding consensus instance
+        // has been made before a node broadcasts randao shares.
         f_broadcast_randao_share(
             process_after_receiving_duty,
             proposer_duty
@@ -367,7 +370,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                     current_proposer_duty := None,                    
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
                     )     
@@ -407,7 +410,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                                                 constructed_randao_reveal.safe_get()));        
                 DVCStateAndOuputs(
                     state :=  process.(
-                        block_consensus_engine_state := startBlockConsensusInstance(
+                        block_consensus_engine_state := startConsensusInstance(
                             process.block_consensus_engine_state,
                             proposer_duty.slot,
                             proposer_duty,
@@ -460,7 +463,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
             var process_after_updating_block_shares_to_broadcast := process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                     )
@@ -623,7 +626,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                    block_consensus_engine_state := stopBlockConsensusInstances(
+                    block_consensus_engine_state := stopConsensusInstances(
                                     process.block_consensus_engine_state,
                                     consensus_instances_on_blocks_already_decided.Keys
                     ),
@@ -640,7 +643,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                     process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
                     )                

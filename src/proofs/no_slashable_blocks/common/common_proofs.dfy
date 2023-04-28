@@ -1,7 +1,7 @@
 include "../../../common/commons.dfy"
 
 include "dvc_block_proposer_instrumented.dfy"
-include "../../../specs/consensus/block_consensus.dfy"
+include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../supporting_lemmas/inv.dfy"
 include "../../common/helper_sets_lemmas.dfy"
@@ -12,29 +12,29 @@ module Common_Proofs_For_Block_Proposer
 {
     import opened Types 
     import opened CommonFunctions
-    import opened Block_Consensus_Spec
+    import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened DV_Block_Proposer_Spec
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Helper_Sets_Lemmas
+    import opened Att_Helper_Sets_Lemmas
     import opened DVC_Block_Proposer_Spec_Axioms
 
-    lemma lem_updateBlockConsensusInstanceValidityCheck(
+    lemma lem_updateConsensusInstanceValidityCheck(
         s: BlockConsensusEngineState,
         new_block_slashing_db: set<SlashingDBBlock>,        
         r: BlockConsensusEngineState
     )
-    requires r == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)        
+    requires r == updateConsensusInstanceValidityCheck(s, new_block_slashing_db)        
     ensures r.block_slashing_db_hist.Keys
                 == s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys
     {
-        var new_active_consensus_instances_on_beacon_blocks := updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
                     s.active_consensus_instances_on_beacon_blocks,
                     new_block_slashing_db
                 );
 
-        lem_updateBlockConsensusInstanceValidityCheckHelper(
+        lem_updateConsensusInstanceValidityCheckHelper(
                 s.active_consensus_instances_on_beacon_blocks,
                 new_block_slashing_db,
                 new_active_consensus_instances_on_beacon_blocks);
@@ -70,12 +70,12 @@ module Common_Proofs_For_Block_Proposer
         }
     }
 
-    lemma lem_updateBlockConsensusInstanceValidityCheckHelper(
+    lemma lem_updateConsensusInstanceValidityCheckHelper(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>,
         m': map<Slot, BlockConsensusValidityCheckState>
     )    
-    requires m' == updateBlockConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
+    requires m' == updateConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
     ensures m.Keys == m'.Keys
     ensures forall slot |
                 && slot in m'.Keys 

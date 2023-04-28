@@ -1,21 +1,21 @@
 include "../common/commons.dfy"
 
-abstract module DVC_Implementation
+abstract module Att_DVC_Implementation
 {
     import opened Types
     import opened CommonFunctions
-    import opened DVC_Externs : DVC_Externs
+    import opened Att_DVC_Externs : Att_DVC_Externs
 
     export PublicInterface
-        reveals DVC        
+        reveals Att_DVC        
         provides
-                DVC.process_event,
-                DVC.getRepr,
-                DVC.ValidConstructorRepr,
-                DVC.ValidRepr
-        provides Types, DVC_Externs
+                Att_DVC.process_event,
+                Att_DVC.getRepr,
+                Att_DVC.ValidConstructorRepr,
+                Att_DVC.ValidRepr
+        provides Types, Att_DVC_Externs
 
-    class DVC {
+    class Att_DVC {
 
         var current_attestation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
@@ -416,7 +416,7 @@ abstract module DVC_Implementation
     }      
 }
 
-module DVC_Externs
+module Att_DVC_Externs
 {
     import opened Types
     import opened CommonFunctions

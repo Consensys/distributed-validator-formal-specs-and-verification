@@ -21,15 +21,15 @@ More specifically, the objectives of this project are to provide:
 
 ### Specification
 
-Currently, the specification is limited to attestation creation.
+Currently, the specifications are for attestation creation and block signing.
 
 ### Reference Implementation
 
-Currently, the reference implementation is limited to attestation creation.
+Currently, the reference implementations for attestation creation and block signing.
 
 ### Proofs
 
-1. Under the following assumptions, slashable attestations signed by the Distributed Validator singing key can never be created.
+1. Under the following assumptions, slashable attestations and slashable blocks signed by the Distributed Validator singing key can never be created.
     - Signature unforgeability and uniqueness.
     - Sound `ceil(2N/3)`-of-`N` threshold signature scheme.
     - Correct BFT protocol: DVCs make decisions on attestations by running instances of a BFT consensus protocol. We assume that the implementation and execution of the BFT consensus instances are correct. That is, any of the BFT consensus instances executed ensure agreement, termination, and validity.
@@ -61,8 +61,8 @@ The user can check our specifications by executing the following steps.
 
 Future work includes:
 
-- Extending the formal specification and reference implementation to block signing and sync committees.
-- Extending the proof of no slashability to block signing and sync committees.
+- Extending the formal specification and reference implementation to sync committees.
+- Extending the proof of no slashability to sync committees.
 - Proving that under partial synchrony Distributed Validators always eventually produce valid attestations and blocks.
 
 ## Our approach

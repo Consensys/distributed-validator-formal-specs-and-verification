@@ -5,7 +5,7 @@ include "../../../common/commons.dfy"
 include "../../no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
-include "../../common/helper_pred_fcn.dfy"
+include "../../common/att_helper_pred_fcn.dfy"
 
 module Spec_Spec_NonInstr_Refinement
 {
@@ -133,7 +133,7 @@ module Spec_Spec_NonInstr_Refinement
             var dvci_new :=
                     dvci.(
                         current_proposer_duty := None,
-                        block_consensus_engine_state := DVC_Block_Proposer_Spec_Instr.stopBlockConsensusInstances(
+                        block_consensus_engine_state := DVC_Block_Proposer_Spec_Instr.stopConsensusInstances(
                                         dvci.block_consensus_engine_state,
                                         {dvci.current_proposer_duty.safe_get().slot}
                         )               
@@ -144,7 +144,7 @@ module Spec_Spec_NonInstr_Refinement
             var dvcni_new :=
                     dvcni.(
                         current_proposer_duty := None,
-                        block_consensus_engine_state := DVC_Block_Proposer_Spec_NonInstr.stopBlockConsensusInstances(
+                        block_consensus_engine_state := DVC_Block_Proposer_Spec_NonInstr.stopConsensusInstances(
                                         dvcni.block_consensus_engine_state,
                                         {dvcni.current_proposer_duty.safe_get().slot}
                         )               

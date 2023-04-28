@@ -1,6 +1,7 @@
 include "../../common/commons.dfy"
 
-// This module currently specifies an asynchronous network
+// This module currently specifies an asynchronous network.
+// Currently, there are three separated networks for attestation shares, randao shares, and block shares.
 module NetworkSpec
 {
     import opened Types

@@ -15,12 +15,12 @@ module Common_Proofs
     import opened CommonFunctions
     import opened ConsensusSpec
     import opened NetworkSpec
-    import opened DVC_Spec
-    import opened DV
+    import opened Att_DVC_Spec
+    import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Helper_Sets_Lemmas
-    import opened DVC_Spec_Axioms
-    import DVC_Spec_NonInstr
+    import opened Att_Helper_Sets_Lemmas
+    import opened Att_DVC_Spec_Axioms
+    import Att_DVC_Spec_NonInstr
 
     lemma lem_updateConsensusInstanceValidityCheck(
         s: ConsensusEngineState,
