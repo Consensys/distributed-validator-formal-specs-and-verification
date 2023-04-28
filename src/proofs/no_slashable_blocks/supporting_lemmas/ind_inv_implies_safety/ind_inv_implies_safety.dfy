@@ -1,5 +1,5 @@
 include "../../../../common/commons.dfy"
-include "../../../../common/block_proposer/block_common_functions.dfy"
+include "../../../../common/commons.dfy"
 include "../../../../common/block_proposer/block_signing_functions.dfy"
 include "../../common/dvc_block_proposer_instrumented.dfy"
 
@@ -14,8 +14,8 @@ include "../ind_inv.dfy"
 module Ind_Inv_Implies_Safety
 {
     import opened Types
-    import opened Block_Signing_Functions
-    import opened Block_Common_Functions
+    
+    import opened CommonFunctions
     import opened Block_Consensus_Spec
     import opened Block_Network_Spec
     import opened DVC_Block_Proposer_Spec_Instr

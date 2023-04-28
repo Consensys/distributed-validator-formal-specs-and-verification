@@ -1,12 +1,12 @@
 include "../../common/commons.dfy"
-include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/commons.dfy"
 include "../../common/block_proposer/block_signing_functions.dfy"
 
 module Block_DVC_Externs
 {
     import opened Types
-    import opened Block_Common_Functions
-    import opened Block_Signing_Functions
+    import opened CommonFunctions
+    
 
     trait 
     // See https://github.com/dafny-lang/dafny/issues/1588 for why {:termination false} is needed

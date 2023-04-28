@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
-include "../../../common/block_proposer/block_common_functions.dfy"
-include "../../../common/block_proposer/block_signing_functions.dfy"
+include "../../../common/commons.dfy"
+
 include "../../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 include "../../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../../../specs/dvc/dvc_block_proposer.dfy"
@@ -13,8 +13,8 @@ include "../../common/helper_pred_fcn.dfy"
 module Spec_Spec_NonInstr_Refinement
 {
     import opened Types 
-    import opened Block_Common_Functions
-    import opened Block_Signing_Functions    
+    import opened CommonFunctions
+        
     import opened DVC_Block_Proposer_Spec_Axioms
     import DVC_Block_Proposer_Spec_NonInstr
     import DVC_Block_Proposer_Spec_Instr

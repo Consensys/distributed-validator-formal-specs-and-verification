@@ -1,11 +1,11 @@
-include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/commons.dfy"
 include "../../common/commons.dfy"
 
 // This module currently specifies an asynchronous network
 module Block_Network_Spec
 {
     import opened Types
-    import opened Block_Common_Functions
+    import opened CommonFunctions
     datatype Network<M> = Network(
         messagesInTransit: multiset<MessaageWithRecipient>,
         allMessagesSent: set<M>

@@ -1,12 +1,11 @@
 include "../../../common/commons.dfy"
-include "../../../common/block_proposer/block_common_functions.dfy"
-include "../../../common/block_proposer/block_signing_functions.dfy"
+
 
 module DVC_Block_Proposer_Spec_Axioms
 {
     import opened Types 
-    import opened Block_Common_Functions
-    import opened Block_Signing_Functions
+    import opened CommonFunctions
+    
 
     datatype BNState = BNState(
         state_roots_of_imported_blocks: set<Root>,

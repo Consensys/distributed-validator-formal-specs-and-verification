@@ -1,11 +1,11 @@
 include "../../common/commons.dfy"
-include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/commons.dfy"
 include "../../common/block_proposer/block_signing_functions.dfy"
 include "./properties_block_common_functions.dfy"
 
 import opened Types
-import opened Block_Common_Functions
-import opened Block_Signing_Functions 
+import opened CommonFunctions
+ 
 
 
 lemma {:axiom} compute_signing_root_properties<T>(da1: T, do1: Domain, da2: T, do2: Domain)

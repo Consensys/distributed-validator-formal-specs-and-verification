@@ -1,13 +1,13 @@
 include "../../common/commons.dfy"
-include "../../common/block_proposer/block_common_functions.dfy"
+include "../../common/commons.dfy"
 include "../../common/block_proposer/block_signing_functions.dfy"
 include "./block_dvc_externs.dfy"
 
 abstract module Block_DVC_Impl
 {
     import opened Types
-    import opened Block_Common_Functions
-    import opened Block_Signing_Functions
+    import opened CommonFunctions
+    
     import opened Block_DVC_Externs
 
     export PublicInterface
@@ -17,7 +17,7 @@ abstract module Block_DVC_Impl
                  Block_DVC.ValidRepr,
                  Block_DVC.ValidConstructorRepr                                   
         provides Types, 
-                 Block_Common_Functions,
+                 CommonFunctions,
                  Block_Signing_Functions,
                  Block_DVC_Externs
 
