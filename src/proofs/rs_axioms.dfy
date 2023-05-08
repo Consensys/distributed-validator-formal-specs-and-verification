@@ -36,4 +36,44 @@ module RS_Axioms
             && sr1 == sr2 
             && pk1 == pk2         
 
+
+    function {:axiom} rs_sign_block(        
+        block: BeaconBlock,
+        fork_version: Version,
+        signing_root: Root,
+        rs: RSState
+    ): BLSSignature
+    requires signing_root == compute_block_signing_root(block)
+
+    lemma {:axiom} rs_block_sign_and_verification_propeties()
+    ensures forall beacon_block, fork_version, signing_root, rs |
+                    rs_sign_block.requires(beacon_block, fork_version, signing_root, rs) ::
+                    verify_bls_signature(
+                        signing_root,
+                        rs_sign_block(beacon_block, fork_version, signing_root, rs),
+                        rs.pubkey
+                    )
+    ensures forall signing_root, signature, pubkey ::
+        verify_bls_signature(signing_root, signature, pubkey) <==>
+            exists beacon_block, fork_version ::
+            var rs := RSState(pubkey);
+            && rs_sign_block.requires(beacon_block, fork_version, signing_root, rs)
+            && signature == rs_sign_block(beacon_block, fork_version, signing_root, rs)
+
+    ensures forall ad1, fv1, sr1, pk1, ad2, fv2, sr2, pk2 ::
+            && rs_sign_block.requires(ad1, fv1, sr1, pk1)
+            && rs_sign_block.requires(ad2, fv2, sr2, pk2)
+            && rs_sign_block(ad1, fv1, sr1, pk1) == rs_sign_block(ad2, fv2, sr2, pk2) 
+            ==>
+            && sr1 == sr2 
+            && pk1 == pk2  
+
+    // Don't need to use fork_version
+    function {:axiom} rs_sign_randao_reveal(        
+        epoch: Epoch,
+        fork_version: Version,
+        signing_root: Root,
+        rs: RSState
+    ): BLSSignature
+    requires signing_root == compute_randao_reveal_signing_root(epoch * SLOTS_PER_EPOCH)
 }
