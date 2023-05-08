@@ -31,7 +31,7 @@ module Fnc_Invs_1
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     
 
@@ -2140,7 +2140,7 @@ module Fnc_Invs_1
     )
     requires f_terminate_current_proposer_duty.requires(process)
     requires process' == f_terminate_current_proposer_duty(process)
-    ensures process'.bn.submitted_blocks == process.bn.submitted_blocks      
+    ensures process'.bn.submitted_data == process.bn.submitted_data      
     ensures process'.rcvd_block_shares == process.rcvd_block_shares
     { } 
 
@@ -2150,7 +2150,7 @@ module Fnc_Invs_1
     )
     requires f_terminate_current_proposer_duty.requires(s)
     requires s' == f_terminate_current_proposer_duty(s)
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
     { }
 
@@ -2161,9 +2161,9 @@ module Fnc_Invs_1
     )  
     requires f_broadcast_randao_share.requires(s, proposer_duty)
     requires s' == f_broadcast_randao_share(s, proposer_duty).state
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks      
+    ensures s'.bn.submitted_data == s.bn.submitted_data      
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
-    ensures f_broadcast_randao_share(s, proposer_duty).outputs.submitted_blocks == {}
+    ensures f_broadcast_randao_share(s, proposer_duty).outputs.submitted_data == {}
     ensures f_serve_proposer_duty(s, proposer_duty).outputs.sent_block_shares == {}
     { }
 
@@ -2174,9 +2174,9 @@ module Fnc_Invs_1
     )  
     requires f_serve_proposer_duty.requires(s, proposer_duty)
     requires s' == f_serve_proposer_duty(s, proposer_duty).state
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks      
+    ensures s'.bn.submitted_data == s.bn.submitted_data      
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
-    ensures f_serve_proposer_duty(s, proposer_duty).outputs.submitted_blocks == {}
+    ensures f_serve_proposer_duty(s, proposer_duty).outputs.submitted_data == {}
     ensures f_serve_proposer_duty(s, proposer_duty).outputs.sent_block_shares == {}
     { 
         var process_after_stopping_current_duty := f_terminate_current_proposer_duty(s);
@@ -2202,9 +2202,9 @@ module Fnc_Invs_1
     )  
     requires f_listen_for_randao_shares.requires(s, randao_share)
     requires s' == f_listen_for_randao_shares(s, randao_share).state
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks      
+    ensures s'.bn.submitted_data == s.bn.submitted_data      
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
-    ensures f_listen_for_randao_shares(s, randao_share).outputs.submitted_blocks == {}
+    ensures f_listen_for_randao_shares(s, randao_share).outputs.submitted_data == {}
     ensures f_listen_for_randao_shares(s, randao_share).outputs.sent_block_shares == {}
     { }
 
@@ -2225,7 +2225,7 @@ module Fnc_Invs_1
     )
     requires f_check_for_next_duty.requires(s, proposer_duty)
     requires s' == f_check_for_next_duty(s, proposer_duty).state
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
     ensures f_check_for_next_duty(s, proposer_duty).outputs == getEmptyOuputs()
     { }
@@ -2238,7 +2238,7 @@ module Fnc_Invs_1
     )
     requires f_block_consensus_decided.requires(s, id, decided_beacon_block)
     requires s' == f_block_consensus_decided(s, id, decided_beacon_block).state
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
     { } 
 
@@ -2249,7 +2249,7 @@ module Fnc_Invs_1
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
     requires s' == f_listen_for_new_imported_blocks(s, block).state
-    ensures s'.bn.submitted_blocks == s.bn.submitted_blocks
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_block_shares.Keys <= s.rcvd_block_shares.Keys
     ensures forall k | k in s'.rcvd_block_shares.Keys :: s'.rcvd_block_shares[k] == s.rcvd_block_shares[k]
     ensures f_listen_for_new_imported_blocks(s, block).outputs == getEmptyOuputs()

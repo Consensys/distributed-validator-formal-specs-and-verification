@@ -4,9 +4,8 @@ include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "../../common/helper_sets_lemmas.dfy"
-include "../common/att_dvc_spec_axioms.dfy"
-
-
+include "../../bn_axioms.dfy"
+include "../../rs_axioms.dfy"
 
 module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -17,7 +16,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Att_DVC_Spec
     import opened Att_DV
     import opened Helper_Sets_Lemmas
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
 
 
     predicate is_an_honest_node(s: Att_DVState, n: BLSPubkey)
@@ -1262,7 +1262,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         outputs: Outputs,
         dv_pubkey: BLSPubkey)
     {
-        forall submitted_attestation | submitted_attestation in outputs.attestations_submitted ::
+        forall submitted_attestation | submitted_attestation in outputs.submitted_data ::
             is_valid_attestation(submitted_attestation, dv_pubkey)
     }
 
@@ -1488,7 +1488,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         outputs: Outputs,
         dvc: Att_DVCState)
     {
-        forall submitted_attestation | submitted_attestation in outputs.attestations_submitted ::
+        forall submitted_attestation | submitted_attestation in outputs.submitted_data ::
             inv_outputs_attestations_submited_are_created_based_on_shares_of_a_quorum_body(dvc, submitted_attestation)
     } 
 

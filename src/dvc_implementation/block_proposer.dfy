@@ -115,6 +115,7 @@ abstract module Block_DVC_Implementation
         ) returns (s: Status)
         requires ValidRepr()
         modifies getRepr()
+        ensures ValidRepr()
         {
             terminate_current_proposer_duty();
             current_proposer_duty := Some(proposer_duty);
@@ -127,6 +128,7 @@ abstract module Block_DVC_Implementation
         method terminate_current_proposer_duty() 
         requires ValidRepr()
         modifies getRepr()
+        ensures ValidRepr()
         {
             current_proposer_duty := None;
         }
@@ -135,9 +137,10 @@ abstract module Block_DVC_Implementation
         method broadcast_randao_share(
             proposer_duty: ProposerDuty
         ) returns (s: Status)
-        requires this.latest_proposer_duty.isPresent()
+        // requires this.latest_proposer_duty.isPresent()
         requires ValidRepr()
         modifies getRepr()
+        ensures ValidRepr()
         {            
             var slot := proposer_duty.slot;
             var fork_version := bn.get_fork_version(slot);
@@ -165,6 +168,7 @@ abstract module Block_DVC_Implementation
         requires this.latest_proposer_duty.isPresent()
         requires ValidRepr()
         modifies getRepr()
+        ensures ValidRepr()
         {            
             var slot := proposer_duty.slot;
             if slot in future_consensus_instances_on_blocks_already_decided
@@ -186,7 +190,8 @@ abstract module Block_DVC_Implementation
         // validityCheck is to ensure the desired properties of a consensus instance.
         method start_consensus_if_can_construct_randao_share() returns (s: Status)
         requires ValidRepr()
-        modifies getRepr()        
+        modifies getRepr()      
+        ensures ValidRepr()  
         {
             if  && current_proposer_duty.isPresent()
                 && current_proposer_duty.safe_get().slot in rcvd_randao_shares
@@ -335,7 +340,7 @@ abstract module Block_DVC_Implementation
         method listen_for_new_imported_blocks(
             block: BeaconBlock
         ) returns (r: Status)
-        requires block.body.state_root in this.bn.state_roots_of_imported_blocks
+        // requires block.body.state_root in this.bn.state_roots_of_imported_blocks
         requires ValidRepr()
         modifies getRepr()
         {

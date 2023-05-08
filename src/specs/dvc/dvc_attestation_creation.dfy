@@ -1,11 +1,13 @@
 include "../../common/commons.dfy"
 include "../../dvc_implementation/attestation_creation.dfy"
-include "../../proofs/no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
+include "../../proofs/bn_axioms.dfy"
+include "../../proofs/rs_axioms.dfy"
 
 module Att_DVC_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
 
     datatype ConsensusEngineState = ConsensusEngineState(
         active_attestation_consensus_instances: map<Slot, AttestationConsensusValidityCheckState>
@@ -133,13 +135,13 @@ module Att_DVC_Spec_NonInstr {
         // TODO: Note difference with spec.py
         dv_pubkey: BLSPubkey,
         future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
-        bn: BNState,
+        bn: BNState<Attestation>,
         rs: RSState
     )
 
     datatype Outputs = Outputs(
         att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
-        attestations_submitted: set<Attestation>
+        submitted_data: set<Attestation>
     )    
 
     function getEmptyOuputs(): Outputs
@@ -499,13 +501,13 @@ module Att_DVC_Spec_NonInstr {
                         );
 
                     var new_outputs := getEmptyOuputs().(
-                                                attestations_submitted := {aggregated_attestation} 
+                                                submitted_data := {aggregated_attestation} 
                                             );
 
                     var process_after_submitting_attestations := 
                         process_with_new_att_shares_db.(
                             bn := process_with_new_att_shares_db.bn.(
-                                attestations_submitted := process_with_new_att_shares_db.bn.attestations_submitted + [aggregated_attestation]
+                                submitted_data := process_with_new_att_shares_db.bn.submitted_data + [aggregated_attestation]
                             )
                         );
 
@@ -518,13 +520,13 @@ module Att_DVC_Spec_NonInstr {
  
     predicate isMyAttestation(
         a: Attestation,
-        bn: BNState,
+        bn: BNState<Attestation>,
         block: BeaconBlock,
         valIndex: Optional<ValidatorIndex>
     )
     requires block.body.state_root in bn.state_roots_of_imported_blocks
     {
-            && var committee := bn_get_epoch_committees(bn, block.body.state_root, a.data.index);
+            && var committee := bn_get_epoch_committees<Attestation>(bn, block.body.state_root, a.data.index);
             && valIndex.Some?
             && valIndex.v in committee
             && var i:nat :| i < |committee| && committee[i] == valIndex.v;
@@ -661,14 +663,15 @@ module Att_DVC_Spec_NonInstr {
 // module Att_DVC_Externs_Proofs refines DVC_Externs
 // {
 //     import opened Att_DVC_Spec_NonInstr
-//     import opened Att_DVC_Spec_Axioms
+//     import opened BN_Axioms
+    // import opened RS_Axioms
 
 //     function toBNState(bn: BeaconNode): BNState
 //     reads bn
 //     {
 //         BNState(
 //             state_roots_of_imported_blocks := bn.state_roots_of_imported_blocks,
-//             attestations_submitted := bn.attestations_submitted
+//             submitted_data := bn.submitted_data
 //         )
 //     }
 

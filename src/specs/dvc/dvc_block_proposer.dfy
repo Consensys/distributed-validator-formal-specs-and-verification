@@ -99,7 +99,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
     import opened Block_Consensus_Engine_NonInstr
-    import opened Block_BN_Axioms    
+    import opened BN_Axioms    
     import opened RS_Axioms
 
     datatype DVCState = DVCState(
@@ -116,7 +116,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         // TODO: Note difference with spec.py
         dv_pubkey: BLSPubkey,
         future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>,
-        bn: BNState,
+        bn: BNState<SignedBeaconBlock>,
         rs: RSState,
         block_consensus_engine_state: BlockConsensusEngineState
     )
@@ -124,7 +124,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     datatype Outputs = Outputs(
         sent_block_shares: set<MessaageWithRecipient<SignedBeaconBlock>>,
         sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,        
-        submitted_blocks: set<SignedBeaconBlock>
+        submitted_data: set<SignedBeaconBlock>
     )
 
     function getEmptyOuputs(): Outputs
@@ -162,7 +162,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         rs_pubkey: BLSPubkey
     )
     requires && s.bn.state_roots_of_imported_blocks == {}
-             && s.bn.submitted_blocks == []
+             && s.bn.submitted_data == []
     {
         s == DVCState(
             // proposer_duty_queue := [],
@@ -249,7 +249,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         getEmptyOuputs().(
             sent_block_shares := outputs1.sent_block_shares + outputs2.sent_block_shares,
             sent_randao_shares := outputs1.sent_randao_shares + outputs2.sent_randao_shares,
-            submitted_blocks := outputs1.submitted_blocks + outputs2.submitted_blocks
+            submitted_data := outputs1.submitted_data + outputs2.submitted_data
         )
     }
 
@@ -526,7 +526,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                     DVCStateAndOuputs(
                         state := process_with_new_block_share,
                         outputs := getEmptyOuputs().(
-                                submitted_blocks := {complete_signed_block}
+                                submitted_data := {complete_signed_block}
                             )
                     )
             else 
@@ -568,13 +568,13 @@ module DVC_Block_Proposer_Spec_NonInstr {
 
     predicate isMyAttestation(
         a: Attestation,
-        bn: BNState,
+        bn: BNState<SignedBeaconBlock>,
         block: BeaconBlock,
         valIndex: Optional<ValidatorIndex>
     )
     requires block.body.state_root in bn.state_roots_of_imported_blocks
     {
-            && var committee := bn_get_epoch_committees(bn, block.body.state_root, a.data.index);
+            && var committee := bn_get_epoch_committees<SignedBeaconBlock>(bn, block.body.state_root, a.data.index);
             && valIndex.Some?
             && valIndex.v in committee
             && var i:nat :| i < |committee| && committee[i] == valIndex.v;

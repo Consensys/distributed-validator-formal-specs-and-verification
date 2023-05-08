@@ -23,16 +23,16 @@ module Ind_Inv_Implies_Safety
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
 
-    predicate non_slashable_submitted_blocks(
+    predicate non_slashable_submitted_data(
         dv: DVState
     )
     {
         && inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot(dv)
     }
 
-    lemma lem_ind_inv_no_slashable_submitted_blocks(dv: DVState)
+    lemma lem_ind_inv_no_slashable_submitted_data(dv: DVState)
     requires ind_inv(dv)    
-    ensures non_slashable_submitted_blocks(dv)
+    ensures non_slashable_submitted_data(dv)
     { }
 
 }

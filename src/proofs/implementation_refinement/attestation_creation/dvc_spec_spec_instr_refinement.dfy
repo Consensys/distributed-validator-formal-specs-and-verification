@@ -8,7 +8,8 @@ module Spec_Spec_NonInstr_Refinement
 {
     import opened Types 
     import opened CommonFunctions
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import Att_DVC_Spec_NonInstr
     import Att_DVC_Spec
     import opened Att_Helper_Pred_Fcn

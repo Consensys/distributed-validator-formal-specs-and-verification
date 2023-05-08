@@ -29,7 +29,7 @@ module Invs_DV_Next_2
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Consensus_Engine_Instr
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec    
@@ -408,7 +408,7 @@ module Invs_DV_Next_2
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires block_share in dv.block_share_network.allMessagesSent
     requires inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process)
-    ensures forall block | block in f_listen_for_block_signature_shares(process, block_share).outputs.submitted_blocks
+    ensures forall block | block in f_listen_for_block_signature_shares(process, block_share).outputs.submitted_data
                         ::
                         exists hn', block_share: SignedBeaconBlock
                             ::
@@ -467,9 +467,9 @@ module Invs_DV_Next_2
                             complete_block
                         );
 
-                assert f_listen_for_block_signature_shares(process, block_share).outputs.submitted_blocks == {complete_block};
+                assert f_listen_for_block_signature_shares(process, block_share).outputs.submitted_data == {complete_block};
 
-                assert forall a | a in f_listen_for_block_signature_shares(process, block_share).outputs.submitted_blocks ::
+                assert forall a | a in f_listen_for_block_signature_shares(process, block_share).outputs.submitted_data ::
                             exists hn', block_share: SignedBeaconBlock :: inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(dv, hn', block_share, a);
             }
         }
@@ -530,7 +530,7 @@ module Invs_DV_Next_2
 
                         var stateAndOutput := f_listen_for_block_signature_shares(s_node, block_share);
                         assert block_share in s.block_share_network.allMessagesSent;
-                        assert s'.all_blocks_created == s.all_blocks_created + stateAndOutput.outputs.submitted_blocks;
+                        assert s'.all_blocks_created == s.all_blocks_created + stateAndOutput.outputs.submitted_data;
                         
                         lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_f_listen_for_block_signature_shares(
                             s_node,
@@ -549,7 +549,7 @@ module Invs_DV_Next_2
                             }
                             else
                             {
-                                assert a in stateAndOutput.outputs.submitted_blocks;
+                                assert a in stateAndOutput.outputs.submitted_data;
                                 var hn', block_share: SignedBeaconBlock :| inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(s, hn', block_share, a);
                                 assert inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(s', hn', block_share, a);
                             }

@@ -34,7 +34,7 @@ module Fnc_Invs_2
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     
     import opened Fnc_Invs_1

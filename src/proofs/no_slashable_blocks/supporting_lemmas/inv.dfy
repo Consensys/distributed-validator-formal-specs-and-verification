@@ -22,7 +22,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Consensus_Engine_Instr
     import opened DV_Block_Proposer_Spec
     import opened Helper_Sets_Lemmas
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
 
 
@@ -1282,7 +1282,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         outputs: Outputs,
         dv_pubkey: BLSPubkey)
     {
-        forall submitted_block | submitted_block in outputs.submitted_blocks ::
+        forall submitted_block | submitted_block in outputs.submitted_data ::
             is_valid_signed_beacon_block(submitted_block, dv_pubkey)
     }
 
@@ -1474,7 +1474,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         outputs: Outputs,
         dvc: DVCState)
     {
-        forall submitted_block | submitted_block in outputs.submitted_blocks ::
+        forall submitted_block | submitted_block in outputs.submitted_data ::
             inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_body(dvc, submitted_block)
     } 
 

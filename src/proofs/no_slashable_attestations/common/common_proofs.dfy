@@ -6,7 +6,8 @@ include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "../supporting_lemmas/inv.dfy"
 include "../../common/helper_sets_lemmas.dfy"
-include "att_dvc_spec_axioms.dfy"
+include "../../bn_axioms.dfy"
+include "../../rs_axioms.dfy"
 
 
 module Common_Proofs
@@ -19,7 +20,8 @@ module Common_Proofs
     import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import Att_DVC_Spec_NonInstr
 
     lemma lem_updateConsensusInstanceValidityCheck(

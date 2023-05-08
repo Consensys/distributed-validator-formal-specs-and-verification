@@ -7,7 +7,8 @@ include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
-include "../../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 
 include "invs_dv_next_1.dfy"
 include "../inv.dfy"
@@ -27,7 +28,8 @@ module Invs_Att_DV_Next_2
     import opened Common_Proofs
     import opened Invs_Att_DV_Next_1
     import Att_DVC_Spec_NonInstr
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import opened Att_Helper_Pred_Fcn
 
     predicate pred_the_latest_attestation_duty_was_sent_from_dv(
@@ -108,7 +110,7 @@ module Invs_Att_DV_Next_2
     )  
     requires f_serve_attestation_duty.requires(s, attestation_duty)
     requires s' == f_serve_attestation_duty(s, attestation_duty).state
-    ensures s'.bn.attestations_submitted == s.bn.attestations_submitted      
+    ensures s'.bn.submitted_data == s.bn.submitted_data      
     ensures s'.rcvd_attestation_shares == s.rcvd_attestation_shares
     ensures f_serve_attestation_duty(s, attestation_duty).outputs == getEmptyOuputs()
     { }
@@ -120,7 +122,7 @@ module Invs_Att_DV_Next_2
     )
     requires f_check_for_next_duty.requires(s, attestation_duty)
     requires s' == f_check_for_next_duty(s, attestation_duty).state
-    ensures s'.bn.attestations_submitted == s.bn.attestations_submitted
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_attestation_shares == s.rcvd_attestation_shares
     ensures f_check_for_next_duty(s, attestation_duty).outputs == getEmptyOuputs()
     { }
@@ -133,7 +135,7 @@ module Invs_Att_DV_Next_2
     )
     requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
-    ensures s'.bn.attestations_submitted == s.bn.attestations_submitted
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_attestation_shares == s.rcvd_attestation_shares
     { } 
 
@@ -144,7 +146,7 @@ module Invs_Att_DV_Next_2
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
     requires s' == f_listen_for_new_imported_blocks(s, block).state
-    ensures s'.bn.attestations_submitted == s.bn.attestations_submitted
+    ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_attestation_shares.Keys <= s.rcvd_attestation_shares.Keys
     ensures forall k | k in s'.rcvd_attestation_shares.Keys :: s'.rcvd_attestation_shares[k] == s.rcvd_attestation_shares[k]
     ensures f_listen_for_new_imported_blocks(s, block).outputs == getEmptyOuputs()
@@ -216,7 +218,7 @@ module Invs_Att_DV_Next_2
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires attestation_share in dv.att_network.allMessagesSent
     requires inv_rcvd_attestation_shares_are_sent_messages_body(dv, process)
-    ensures forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted ::
+    ensures forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.submitted_data ::
                         exists hn', att_share: AttestationShare :: inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_body(dv, hn', att_share, a);
     {
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
@@ -273,9 +275,9 @@ module Invs_Att_DV_Next_2
                                 aggregated_attestation
                             );
 
-                assert f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted == {aggregated_attestation};
+                assert f_listen_for_attestation_shares(process, attestation_share).outputs.submitted_data == {aggregated_attestation};
 
-                assert forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.attestations_submitted ::
+                assert forall a | a in f_listen_for_attestation_shares(process, attestation_share).outputs.submitted_data ::
                             exists hn', att_share: AttestationShare :: inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_body(dv, hn', att_share, a);
             }
         }   
@@ -356,7 +358,7 @@ module Invs_Att_DV_Next_2
 
                         
                         assert attestation_share in s.att_network.allMessagesSent;
-                        assert s'.all_attestations_created == s.all_attestations_created + stateAndOutput.outputs.attestations_submitted;
+                        assert s'.all_attestations_created == s.all_attestations_created + stateAndOutput.outputs.submitted_data;
 
                         lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_ex_f_listen_for_attestation_shares(
                             s_node,
@@ -377,7 +379,7 @@ module Invs_Att_DV_Next_2
                             }
                             else 
                             {
-                                assert a in stateAndOutput.outputs.attestations_submitted;
+                                assert a in stateAndOutput.outputs.submitted_data;
                                 var hn', att_share: AttestationShare :| inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_body(s, hn', att_share, a);
                                 assert inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_body(s', hn', att_share, a);
                             }                                   

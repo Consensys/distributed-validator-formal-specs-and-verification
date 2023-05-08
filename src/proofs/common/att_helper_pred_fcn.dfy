@@ -15,7 +15,8 @@ module Att_Helper_Pred_Fcn
     import opened Att_DVC_Spec
     import opened Att_DV
     import opened Helper_Sets_Lemmas
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import Att_DVC_Spec_NonInstr
 
     function f_new_process_after_updateConsensusInstanceValidityCheck(
@@ -195,7 +196,7 @@ module Att_Helper_Pred_Fcn
     {
         process.(
             bn := process.bn.(
-                attestations_submitted := process.bn.attestations_submitted + [aggregated_attestation]
+                submitted_data := process.bn.submitted_data + [aggregated_attestation]
             )
         )
     }

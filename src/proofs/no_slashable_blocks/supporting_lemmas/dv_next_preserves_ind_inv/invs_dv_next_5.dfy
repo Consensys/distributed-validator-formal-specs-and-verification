@@ -29,7 +29,7 @@ module Invs_DV_Next_5
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Consensus_Engine_Instr
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec    
@@ -678,7 +678,7 @@ module Invs_DV_Next_5
         var dvc' := dv'.honest_nodes_states[node];
 
         assert inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(nodeOutputs, dvc');
-        assert dv'.all_blocks_created == dv.all_blocks_created + nodeOutputs.submitted_blocks;
+        assert dv'.all_blocks_created == dv.all_blocks_created + nodeOutputs.submitted_data;
 
         forall complete_signed_block: SignedBeaconBlock | complete_signed_block in dv'.all_blocks_created 
         ensures inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv', complete_signed_block)
@@ -711,7 +711,7 @@ module Invs_DV_Next_5
             }
             else
             {
-                assert complete_signed_block in nodeOutputs.submitted_blocks;
+                assert complete_signed_block in nodeOutputs.submitted_data;
                 assert inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_body(dvc', complete_signed_block);
 
                 var block_shares, rs_signer_pubkeys, k :|        

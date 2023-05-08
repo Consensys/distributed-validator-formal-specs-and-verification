@@ -15,7 +15,7 @@ module DV_Block_Proposer_Spec
     import opened ConsensusSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Consensus_Engine_Instr
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     
 
@@ -313,9 +313,9 @@ module DV_Block_Proposer_Spec
         ) 
     }
 
-    predicate is_empty_bn(bn: BNState)
+    predicate is_empty_bn(bn: BNState<SignedBeaconBlock>)
     {
-        && bn.submitted_blocks == []
+        && bn.submitted_data == []
         && bn.state_roots_of_imported_blocks == {}
     }
 
@@ -360,7 +360,7 @@ module DV_Block_Proposer_Spec
         && s.index_next_proposer_duty_to_be_served == 0   
         // //
         && ( forall n | n in s.honest_nodes_states.Keys ::
-                |s.honest_nodes_states[n].bn.submitted_blocks| == 0    
+                |s.honest_nodes_states[n].bn.submitted_data| == 0    
         )
     }
 
@@ -671,7 +671,7 @@ module DV_Block_Proposer_Spec
              && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
     {
         && var new_node_state := s'.honest_nodes_states[node];
-        && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_blocks
+        && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_data
         && (
             if nodeEvent.ServeProposerDuty? then
                 var proposer_duty_to_be_served := s.sequence_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];

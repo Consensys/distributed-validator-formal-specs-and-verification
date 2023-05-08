@@ -6,7 +6,8 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/att_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 include "invs_fnc_1.dfy"
 
 include "../../../common/att_helper_pred_fcn.dfy"
@@ -24,7 +25,8 @@ module Fnc_Invs_2
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened Fnc_Invs_1
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import opened Att_Helper_Pred_Fcn
 
     lemma lem_inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body_f_add_block_to_bn(
@@ -2122,13 +2124,13 @@ module Fnc_Invs_2
                     );
 
                 var new_outputs := getEmptyOuputs().(
-                                            attestations_submitted := {aggregated_attestation} 
+                                            submitted_data := {aggregated_attestation} 
                                         );
 
                 var process_after_submitting_attestations := 
                     process_with_new_att_shares_db.(
                         bn := process_with_new_att_shares_db.bn.(
-                            attestations_submitted := process_with_new_att_shares_db.bn.attestations_submitted + [aggregated_attestation]
+                            submitted_data := process_with_new_att_shares_db.bn.submitted_data + [aggregated_attestation]
                         )
                     );
 
@@ -2630,13 +2632,13 @@ module Fnc_Invs_2
                     );
 
                 var new_outputs := getEmptyOuputs().(
-                                            attestations_submitted := {aggregated_attestation} 
+                                            submitted_data := {aggregated_attestation} 
                                         );
 
                 var process_after_submitting_attestations := 
                     process_with_new_att_shares_db.(
                         bn := process_with_new_att_shares_db.bn.(
-                            attestations_submitted := process_with_new_att_shares_db.bn.attestations_submitted + [aggregated_attestation]
+                            submitted_data := process_with_new_att_shares_db.bn.submitted_data + [aggregated_attestation]
                         )
                     );
 

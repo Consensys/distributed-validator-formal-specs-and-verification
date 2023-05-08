@@ -2,7 +2,8 @@ include "../../common/commons.dfy"
 include "../../proofs/no_slashable_attestations/common/attestation_creation_instrumented.dfy"
 include "../consensus/consensus.dfy"
 include "../network/network.dfy"
-include "../../proofs/no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
+include "../../proofs/bn_axioms.dfy"
+include "../../proofs/rs_axioms.dfy"
 
 module Att_DV 
 {
@@ -11,8 +12,8 @@ module Att_DV
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened Att_DVC_Spec
-    // import opened Att_DVC_Externs_Proofs
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     
 
     datatype Adversary = Adversary(
@@ -192,7 +193,7 @@ module Att_DV
         && s.index_next_attestation_duty_to_be_served == 0   
         // //
         && ( forall n | n in s.honest_nodes_states.Keys ::
-                |s.honest_nodes_states[n].bn.attestations_submitted| == 0    
+                |s.honest_nodes_states[n].bn.submitted_data| == 0    
         )
     }
 
@@ -484,7 +485,7 @@ module Att_DV
                 && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
     {
         && var new_node_state := s'.honest_nodes_states[node];
-        && s'.all_attestations_created == s.all_attestations_created + nodeOutputs.attestations_submitted
+        && s'.all_attestations_created == s.all_attestations_created + nodeOutputs.submitted_data
         && (
             if nodeEvent.ServeAttestationDuty? then
                 var attestation_duty_to_be_served := s.sequence_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];

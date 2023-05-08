@@ -7,7 +7,8 @@ include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
-include "../../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 
 include "invs_dv_next_1.dfy"
 include "invs_dv_next_2.dfy"
@@ -34,7 +35,8 @@ module Invs_Att_DV_Next_5
     import opened Invs_Att_DV_Next_3
     import opened Invs_Att_DV_Next_4
     import opened Common_Proofs
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import opened Att_Helper_Pred_Fcn
     import opened Fnc_Invs_2
     import opened Helper_Sets_Lemmas
@@ -2476,7 +2478,7 @@ module Invs_Att_DV_Next_5
         var dvc' := dv'.honest_nodes_states[node];
 
         assert inv_outputs_attestations_submited_are_created_based_on_shares_of_a_quorum(nodeOutputs, dvc');
-        assert dv'.all_attestations_created == dv.all_attestations_created + nodeOutputs.attestations_submitted;
+        assert dv'.all_attestations_created == dv.all_attestations_created + nodeOutputs.submitted_data;
 
         forall att: Attestation | att in dv'.all_attestations_created 
         ensures inv_an_attestation_is_created_based_on_shares_of_a_quorum_body(dv', att)
@@ -2508,7 +2510,7 @@ module Invs_Att_DV_Next_5
             }
             else
             {
-                assert att in nodeOutputs.attestations_submitted;
+                assert att in nodeOutputs.submitted_data;
                 assert inv_outputs_attestations_submited_are_created_based_on_shares_of_a_quorum_body(dvc', att);
                 var att_shares, rs_signer_pubkeys, k :|        
                             && k in dvc'.rcvd_attestation_shares[att.data.slot].Keys

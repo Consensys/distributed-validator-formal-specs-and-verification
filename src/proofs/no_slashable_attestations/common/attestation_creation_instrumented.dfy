@@ -1,6 +1,7 @@
 include "../../../common/commons.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
-include "att_dvc_spec_axioms.dfy"
+include "../../bn_axioms.dfy"
+include "../../rs_axioms.dfy"
 
 
 module Att_DVC_Spec {
@@ -8,7 +9,8 @@ module Att_DVC_Spec {
     import opened CommonFunctions
     // import opened Att_DVC_Externs
     import Att_DVC_Spec_NonInstr
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     
 
     datatype ConsensusEngineState = ConsensusEngineState(
@@ -176,7 +178,7 @@ module Att_DVC_Spec {
         // TODO: Note difference with spec.py
         dv_pubkey: BLSPubkey,
         future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
-        bn: BNState,
+        bn: BNState<Attestation>,
         rs: RSState,
         
         ghost all_rcvd_duties: set<AttestationDuty>
@@ -537,13 +539,13 @@ module Att_DVC_Spec {
                         );
 
                     var new_outputs := getEmptyOuputs().(
-                                                attestations_submitted := {aggregated_attestation} 
+                                                submitted_data := {aggregated_attestation} 
                                             );
 
                     var process_after_submitting_attestations := 
                         process_with_new_att_shares_db.(
                             bn := process_with_new_att_shares_db.bn.(
-                                attestations_submitted := process_with_new_att_shares_db.bn.attestations_submitted + [aggregated_attestation]
+                                submitted_data := process_with_new_att_shares_db.bn.submitted_data + [aggregated_attestation]
                             )
                         );
 

@@ -6,7 +6,8 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
 {
     import opened Att_DVC_Spec_NonInstr
     import opened Att_DVC_Externs = Att_DVC_Externs_Proofs
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
 
     function toAttestationConsensusValidityCheckState(
         acvc: ConsensusValidityCheck<AttestationData>
@@ -162,7 +163,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
         {
             Outputs(
                 att_shares_sent :=  setUnion(seqMinusToSet(network.att_shares_sent, old(network.att_shares_sent))),
-                attestations_submitted := seqMinusToSet(bn.attestations_submitted, old(bn.attestations_submitted))
+                submitted_data := seqMinusToSet(bn.submitted_data, old(bn.submitted_data))
             )
         }              
 
@@ -1102,7 +1103,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
         twostate lemma lemaUnchangedThatImpliesEmptyOutputs()
         requires
             && unchanged(network`att_shares_sent)
-            && unchanged(bn`attestations_submitted)
+            && unchanged(bn`submitted_data)
         ensures toAtt_DVCStateAndOuputs().outputs == getEmptyOuputs()
         {
 
@@ -1154,11 +1155,11 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             && unchanged(this)
             && unchanged(att_consensus.Repr)
             && unchanged(bn`state_roots_of_imported_blocks)
-            && unchanged(bn`attestations_submitted)
+            && unchanged(bn`submitted_data)
                 invariant  old(isValidReprExtended()) ==> isValidReprExtended();       
                 invariant old(isValidReprExtended()) ==> lemmaConsensusInstancesAreTheSamePrecond(att_consensus)       
                 invariant old(isValidReprExtended() )==> toAtt_DVCState() == old(toAtt_DVCState()) 
-                invariant unchanged(bn`attestations_submitted)
+                invariant unchanged(bn`submitted_data)
                 invariant this as object != att_consensus
                 invariant this !in att_consensus.Repr
 
@@ -1379,7 +1380,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             {
                 assert toAtt_DVCState() == f_listen_for_new_imported_blocks(old(toAtt_DVCState()), block).state;  
                 assert unchanged(network);
-                assert unchanged(bn`attestations_submitted);
+                assert unchanged(bn`submitted_data);
                 lemaUnchangedThatImpliesEmptyOutputs();
                 f_listen_for_new_imported_blocks_empty_outputs(old(toAtt_DVCState()), block);               
             }            

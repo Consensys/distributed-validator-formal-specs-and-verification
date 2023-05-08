@@ -11,7 +11,7 @@ module Spec_Spec_NonInstr_Refinement
     import opened Types 
     import opened CommonFunctions
         
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     import DVC_Block_Proposer_Spec_NonInstr
     import DVC_Block_Proposer_Spec_Instr

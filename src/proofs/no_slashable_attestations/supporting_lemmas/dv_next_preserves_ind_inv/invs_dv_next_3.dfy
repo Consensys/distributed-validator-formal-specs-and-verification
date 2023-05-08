@@ -6,7 +6,8 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/att_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 
 include "../inv.dfy"
 
@@ -28,7 +29,8 @@ module Invs_Att_DV_Next_3
     import opened Helper_Sets_Lemmas
     import opened Invs_Att_DV_Next_1
     import opened Fnc_Invs_2
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
     import opened Invs_Att_DV_Next_2
 
     lemma lem_inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_dv_next(

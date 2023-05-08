@@ -196,7 +196,7 @@ module DVC_Block_Proposer_Spec_Instr {
     import opened CommonFunctions
     
     import DVC_Block_Proposer_Spec_NonInstr
-    import opened Block_BN_Axioms
+    import opened BN_Axioms
     import opened RS_Axioms
     import opened Block_Consensus_Engine_Instr
 
@@ -214,7 +214,7 @@ module DVC_Block_Proposer_Spec_Instr {
         peers: set<BLSPubkey>,        
         dv_pubkey: BLSPubkey,
         future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>,
-        bn: BNState,
+        bn: BNState<SignedBeaconBlock>,
         rs: RSState,
         block_consensus_engine_state: BlockConsensusEngineState,
         
@@ -259,7 +259,7 @@ module DVC_Block_Proposer_Spec_Instr {
         rs_pubkey: BLSPubkey
     )
     requires && s.bn.state_roots_of_imported_blocks == {}
-             && s.bn.submitted_blocks == []
+             && s.bn.submitted_data == []
     {
         s == DVCState(
             future_consensus_instances_on_blocks_already_decided := map[],
@@ -347,7 +347,7 @@ module DVC_Block_Proposer_Spec_Instr {
         getEmptyOuputs().(
             sent_block_shares := outputs1.sent_block_shares + outputs2.sent_block_shares,
             sent_randao_shares := outputs1.sent_randao_shares + outputs2.sent_randao_shares,
-            submitted_blocks := outputs1.submitted_blocks + outputs2.submitted_blocks
+            submitted_data := outputs1.submitted_data + outputs2.submitted_data
         )
     }
 
@@ -406,7 +406,7 @@ module DVC_Block_Proposer_Spec_Instr {
         proposer_duty: ProposerDuty
     ): (state_and_outputs: DVCStateAndOuputs)
     ensures process.all_rcvd_duties + {proposer_duty} == state_and_outputs.state.all_rcvd_duties
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {           
         var process_after_stopping_current_duty := 
             f_terminate_current_proposer_duty(process);
@@ -426,7 +426,7 @@ module DVC_Block_Proposer_Spec_Instr {
         proposer_duty: ProposerDuty
     ): (state_and_outputs: DVCStateAndOuputs)
     requires process.latest_proposer_duty.isPresent()
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {
         var slot := proposer_duty.slot;
         var fork_version := bn_get_fork_version(slot);    
@@ -466,7 +466,7 @@ module DVC_Block_Proposer_Spec_Instr {
         proposer_duty: ProposerDuty
     ): (state_and_outputs: DVCStateAndOuputs)
     requires process.latest_proposer_duty.isPresent()
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {            
         var slot := proposer_duty.slot;
         if slot in process.future_consensus_instances_on_blocks_already_decided.Keys 
@@ -562,7 +562,7 @@ module DVC_Block_Proposer_Spec_Instr {
         block: BeaconBlock
     ): (state_and_outputs: DVCStateAndOuputs)
     ensures state_and_outputs.state.all_rcvd_duties == process.all_rcvd_duties
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {
         if && process.current_proposer_duty.isPresent()
            && process.current_proposer_duty.safe_get().slot == block.slot
@@ -649,7 +649,7 @@ module DVC_Block_Proposer_Spec_Instr {
                     f_wrap_DVCState_with_Outputs(
                         process_with_new_block_share,
                         getEmptyOuputs().(
-                                submitted_blocks := {complete_signed_block}
+                                submitted_data := {complete_signed_block}
                             )
                     )
             else 
@@ -740,7 +740,7 @@ module DVC_Block_Proposer_Spec_Instr {
                         a1.data.slot == a2.data.slot ==> a1 == a2
     
     ensures state_and_outputs.state.all_rcvd_duties == process.all_rcvd_duties
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {    
         var new_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock> := 
             map[ block.slot := block ];
@@ -786,7 +786,7 @@ module DVC_Block_Proposer_Spec_Instr {
         process: DVCState
     ): (state_and_outputs: DVCStateAndOuputs)
     ensures state_and_outputs.state.all_rcvd_duties == process.all_rcvd_duties
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {
         DVCStateAndOuputs(
             state := process,
@@ -804,7 +804,7 @@ module DVC_Block_Proposer_Spec_Instr {
         process: DVCState
     ): (state_and_outputs: DVCStateAndOuputs)
     ensures state_and_outputs.state.all_rcvd_duties == process.all_rcvd_duties
-    ensures state_and_outputs.outputs.submitted_blocks == {}
+    ensures state_and_outputs.outputs.submitted_data == {}
     {
         DVCStateAndOuputs(
             state := process,

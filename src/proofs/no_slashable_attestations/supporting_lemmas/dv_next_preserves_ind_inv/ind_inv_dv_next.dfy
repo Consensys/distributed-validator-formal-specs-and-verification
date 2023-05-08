@@ -7,7 +7,9 @@ include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
-include "../../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
+
 
 include "invs_fnc_1.dfy"
 include "invs_fnc_2.dfy"

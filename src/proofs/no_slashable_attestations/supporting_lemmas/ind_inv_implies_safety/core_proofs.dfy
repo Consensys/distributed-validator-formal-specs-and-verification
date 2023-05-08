@@ -28,7 +28,8 @@ module Core_Proofs
     import opened Invs_Att_DV_Next_3
     import opened Invs_Att_DV_Next_5
     import opened Helper_Sets_Lemmas
-    import opened Att_DVC_Spec_Axioms
+    import opened BN_Axioms
+    import opened RS_Axioms
 
 
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)

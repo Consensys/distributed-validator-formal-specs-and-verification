@@ -28,7 +28,7 @@ module No_Slashable_Blocks_Main_Theorem
         )
     }  
 
-    lemma lem_non_slashable_submitted_blocks_rec(
+    lemma lem_non_slashable_submitted_data_rec(
         trace: iseq<DVState>,
         i: Slot
     )
@@ -43,23 +43,23 @@ module No_Slashable_Blocks_Main_Theorem
         }
         else 
         {
-            lem_non_slashable_submitted_blocks_rec(trace, i-1);
+            lem_non_slashable_submitted_data_rec(trace, i-1);
             lem_ind_inv_dv_ind_inv_NextPreCond(trace[i-1], trace[i]);
         }
     }
 
-    lemma lem_non_slashable_submitted_blocks(
+    lemma lem_non_slashable_submitted_data(
         trace: iseq<DVState>
     )
     requires isValidTrace(trace)
-    ensures forall i:nat :: non_slashable_submitted_blocks(trace[i])
+    ensures forall i:nat :: non_slashable_submitted_data(trace[i])
     {
         forall i:nat
         ensures ind_inv(trace[i])
-        ensures non_slashable_submitted_blocks(trace[i])
+        ensures non_slashable_submitted_data(trace[i])
         {
-            lem_non_slashable_submitted_blocks_rec(trace, i);
-            lem_ind_inv_no_slashable_submitted_blocks(trace[i]);
+            lem_non_slashable_submitted_data_rec(trace, i);
+            lem_ind_inv_no_slashable_submitted_data(trace[i]);
         }
         
     }    

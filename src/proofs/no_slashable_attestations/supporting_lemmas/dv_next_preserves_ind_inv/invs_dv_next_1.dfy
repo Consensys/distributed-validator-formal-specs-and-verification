@@ -6,7 +6,8 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/att_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 
 include "../inv.dfy"
 
