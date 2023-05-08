@@ -2,7 +2,8 @@ include "../../common/commons.dfy"
 include "../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../consensus/consensus.dfy"
 include "../network/network.dfy"
-include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
+include "../../proofs/bn_axioms.dfy"
+include "../../proofs/rs_axioms.dfy"
 
 
 module DV_Block_Proposer_Spec 
@@ -14,7 +15,8 @@ module DV_Block_Proposer_Spec
     import opened ConsensusSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Block_Consensus_Engine_Instr
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms
+    import opened RS_Axioms
     
 
     datatype Adversary = Adversary(

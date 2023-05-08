@@ -5,7 +5,9 @@ include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_block_proposer.dfy"
 include "../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/helper_sets_lemmas.dfy"
-include "../common/block_dvc_spec_axioms.dfy"
+include "../../bn_axioms.dfy"
+include "../../rs_axioms.dfy"
+
 
 
 
@@ -20,7 +22,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Consensus_Engine_Instr
     import opened DV_Block_Proposer_Spec
     import opened Helper_Sets_Lemmas
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms
+    import opened RS_Axioms
 
 
     predicate is_an_honest_node(s: DVState, n: BLSPubkey)

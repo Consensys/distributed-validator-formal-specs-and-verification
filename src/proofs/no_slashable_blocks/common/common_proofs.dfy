@@ -5,7 +5,8 @@ include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../supporting_lemmas/inv.dfy"
 include "../../common/helper_sets_lemmas.dfy"
-include "block_dvc_spec_axioms.dfy"
+include "../../bn_axioms.dfy"
+include "../../rs_axioms.dfy"
 
 
 module Common_Proofs_For_Block_Proposer
@@ -19,7 +20,8 @@ module Common_Proofs_For_Block_Proposer
     import opened DV_Block_Proposer_Spec
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms
+    import opened RS_Axioms
 
     lemma lem_updateConsensusInstanceValidityCheck(
         s: BlockConsensusEngineState,

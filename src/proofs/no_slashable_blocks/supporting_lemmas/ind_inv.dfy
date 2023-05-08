@@ -5,7 +5,6 @@ include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_block_proposer.dfy"
 include "../common/dvc_block_proposer_instrumented.dfy"
 include "../../common/helper_sets_lemmas.dfy"
-include "../common/block_dvc_spec_axioms.dfy"
 include "inv.dfy"
 
 

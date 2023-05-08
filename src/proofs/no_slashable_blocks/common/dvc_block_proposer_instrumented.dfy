@@ -1,7 +1,8 @@
 include "../../../common/commons.dfy"
 
 include "../../../specs/dvc/dvc_block_proposer.dfy"
-include "block_dvc_spec_axioms.dfy"
+include "../../rs_axioms.dfy"
+include "../../bn_axioms.dfy"
 
 module Block_Consensus_Engine_Instr
 {
@@ -195,7 +196,8 @@ module DVC_Block_Proposer_Spec_Instr {
     import opened CommonFunctions
     
     import DVC_Block_Proposer_Spec_NonInstr
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms
+    import opened RS_Axioms
     import opened Block_Consensus_Engine_Instr
 
 

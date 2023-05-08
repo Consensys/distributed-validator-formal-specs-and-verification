@@ -1,26 +1,28 @@
-include "../../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
+include "../../../rs_axioms.dfy"
 include "../../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../../../specs/dvc/dvc_block_proposer.dfy"
 include "../../../common/commons.dfy"
-include "../../no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
-include "../../common/helper_pred_fcn.dfy"
+include "../../common/att_helper_pred_fcn.dfy"
 
 module Spec_Spec_NonInstr_Refinement
 {
     import opened Types 
     import opened CommonFunctions
         
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms
+    import opened RS_Axioms
     import DVC_Block_Proposer_Spec_NonInstr
     import DVC_Block_Proposer_Spec_Instr
+    import Block_Consensus_Engine_NonInstr
+    import Block_Consensus_Engine_Instr
     import opened Att_Helper_Pred_Fcn
 
 
     predicate consensusEngineStateRel(
-        cei: DVC_Block_Proposer_Spec_Instr.BlockConsensusEngineState,
-        ceni: DVC_Block_Proposer_Spec_NonInstr.BlockConsensusEngineState
+        cei: Block_Consensus_Engine_Instr.BlockConsensusEngineState,
+        ceni: Block_Consensus_Engine_NonInstr.BlockConsensusEngineState
     )
     {
         cei.active_consensus_instances_on_beacon_blocks == ceni.active_consensus_instances_on_beacon_blocks
@@ -133,7 +135,7 @@ module Spec_Spec_NonInstr_Refinement
             var dvci_new :=
                     dvci.(
                         current_proposer_duty := None,
-                        block_consensus_engine_state := DVC_Block_Proposer_Spec_Instr.stopConsensusInstances(
+                        block_consensus_engine_state := Block_Consensus_Engine_Instr.stopConsensusInstances(
                                         dvci.block_consensus_engine_state,
                                         {dvci.current_proposer_duty.safe_get().slot}
                         )               
@@ -144,7 +146,7 @@ module Spec_Spec_NonInstr_Refinement
             var dvcni_new :=
                     dvcni.(
                         current_proposer_duty := None,
-                        block_consensus_engine_state := DVC_Block_Proposer_Spec_NonInstr.stopConsensusInstances(
+                        block_consensus_engine_state := Block_Consensus_Engine_NonInstr.stopConsensusInstances(
                                         dvcni.block_consensus_engine_state,
                                         {dvcni.current_proposer_duty.safe_get().slot}
                         )               

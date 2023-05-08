@@ -10,7 +10,8 @@ include "../inv.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/block_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 
 
 include "../inv.dfy"

@@ -4,7 +4,8 @@ include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/block_dvc_spec_axioms.dfy"
+include "../../../bn_axioms.dfy"
+include "../../../rs_axioms.dfy"
 
 include "../../../../common/commons.dfy"
 
@@ -30,7 +31,8 @@ module Fnc_Invs_1
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms
+    import opened RS_Axioms
     
 
     lemma lem_updated_all_rcvd_duties_f_terminate_current_proposer_duty(

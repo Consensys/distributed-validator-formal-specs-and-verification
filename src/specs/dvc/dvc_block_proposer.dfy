@@ -1,6 +1,6 @@
 include "../../common/commons.dfy"
-
-include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
+include "../../proofs/bn_axioms.dfy"
+include "../../proofs/rs_axioms.dfy"
 
 module Block_Consensus_Engine_NonInstr
 {
@@ -99,8 +99,8 @@ module DVC_Block_Proposer_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
     import opened Block_Consensus_Engine_NonInstr
-        
-    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_BN_Axioms    
+    import opened RS_Axioms
 
     datatype DVCState = DVCState(
         current_proposer_duty: Optional<ProposerDuty>,
