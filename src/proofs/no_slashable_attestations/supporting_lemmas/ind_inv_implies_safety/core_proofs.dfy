@@ -27,7 +27,7 @@ module Core_Proofs
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Invs_Att_DV_Next_3
     import opened Invs_Att_DV_Next_5
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Att_DVC_Spec_Axioms
 
 

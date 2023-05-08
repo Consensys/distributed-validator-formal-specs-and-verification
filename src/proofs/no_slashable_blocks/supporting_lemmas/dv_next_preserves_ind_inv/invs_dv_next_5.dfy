@@ -14,7 +14,6 @@ include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
-include "../../../common/att_helper_pred_fcn.dfy"
 include "../../common/common_proofs.dfy"
 
 include "invs_dv_next_1.dfy"
@@ -30,12 +29,13 @@ module Invs_DV_Next_5
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec    
     import opened Fnc_Invs_1
     import opened Fnc_Invs_2
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened Invs_DV_Next_1
     import opened Invs_DV_Next_2
@@ -2900,6 +2900,8 @@ module Invs_DV_Next_5
         }
     }
 
+    
+
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock(
         dv: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
@@ -2913,7 +2915,6 @@ module Invs_DV_Next_5
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
-    // requires nodeEvent == ImportedNewBlock(block)
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
     requires construct_complete_signed_block_assumptions_helper(

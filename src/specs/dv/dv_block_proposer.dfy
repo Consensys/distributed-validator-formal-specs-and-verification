@@ -13,6 +13,7 @@ module DV_Block_Proposer_Spec
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened DVC_Block_Proposer_Spec_Axioms
     
 

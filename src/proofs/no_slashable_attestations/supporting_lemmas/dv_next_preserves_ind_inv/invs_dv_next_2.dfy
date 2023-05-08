@@ -7,7 +7,7 @@ include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
-include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 
 include "invs_dv_next_1.dfy"
 include "../inv.dfy"
@@ -23,12 +23,12 @@ module Invs_Att_DV_Next_2
     import opened Att_DVC_Spec
     import opened Att_DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened Invs_Att_DV_Next_1
     import Att_DVC_Spec_NonInstr
     import opened Att_DVC_Spec_Axioms
-    import opened Helper_Pred_Fcn
+    import opened Att_Helper_Pred_Fcn
 
     predicate pred_the_latest_attestation_duty_was_sent_from_dv(
         s': Att_DVState,

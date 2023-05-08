@@ -7,7 +7,7 @@ include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
-include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 
 include "invs_fnc_1.dfy"
 include "invs_fnc_2.dfy"
@@ -32,7 +32,7 @@ module Ind_Inv_Att_DV_Next
     import opened Att_DV
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Invs_Att_DV_Next_1
     import opened Invs_Att_DV_Next_2
     import opened Invs_Att_DV_Next_3

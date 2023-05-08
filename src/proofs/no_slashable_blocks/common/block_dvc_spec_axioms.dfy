@@ -12,10 +12,6 @@ module DVC_Block_Proposer_Spec_Axioms
         submitted_blocks: seq<SignedBeaconBlock>    
     )  
 
-    datatype RSState = RSState(
-        pubkey: BLSPubkey
-    )    
-
     function {:axiom} bn_get_fork_version(slot: Slot): Version
 
     function {:axiom} bn_get_validator_index(bnState: BNState, state_id: Root, validator_id: BLSPubkey): (vi: Optional<ValidatorIndex>)
@@ -24,7 +20,6 @@ module DVC_Block_Proposer_Spec_Axioms
     function {:axiom} bn_get_epoch_committees(bnState: BNState, state_id: Root, index: CommitteeIndex): (sv: seq<ValidatorIndex>) 
     requires state_id in bnState.state_roots_of_imported_blocks   
 
-    // Don't need to use fork_version
     function {:axiom} rs_sign_block(        
         block: BeaconBlock,
         fork_version: Version,

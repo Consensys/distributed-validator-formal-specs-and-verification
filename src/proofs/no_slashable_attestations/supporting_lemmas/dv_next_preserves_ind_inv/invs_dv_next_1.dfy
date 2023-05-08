@@ -6,7 +6,7 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/dvc_spec_axioms.dfy"
+include "../../common/att_dvc_spec_axioms.dfy"
 
 include "../inv.dfy"
 
@@ -22,7 +22,7 @@ module Invs_Att_DV_Next_1
     import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Fnc_Invs_1
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
 
     lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)       
     requires NextEventPreCond(dv, event)

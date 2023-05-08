@@ -1,12 +1,12 @@
 include "../../../common/commons.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
-include "dvc_spec_axioms.dfy"
+include "att_dvc_spec_axioms.dfy"
 
 
 module Att_DVC_Spec {
     import opened Types 
     import opened CommonFunctions
-    import opened Att_DVC_Externs
+    // import opened Att_DVC_Externs
     import Att_DVC_Spec_NonInstr
     import opened Att_DVC_Spec_Axioms
     
@@ -230,7 +230,7 @@ module Att_DVC_Spec {
             dv_pubkey := dv_pubkey,
             future_att_consensus_instances_already_decided := map[],
             bn := s.bn,
-            rs := Att_DVC_Spec_NonInstr.getInitialRS(rs_pubkey),
+            rs := RSState(pubkey := rs_pubkey),
             all_rcvd_duties := {}
         )
     }

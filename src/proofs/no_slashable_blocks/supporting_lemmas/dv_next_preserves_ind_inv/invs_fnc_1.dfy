@@ -14,7 +14,7 @@ include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 
-include "../../../common/att_helper_pred_fcn.dfy"
+
 
 
 module Fnc_Invs_1
@@ -26,11 +26,12 @@ module Fnc_Invs_1
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened DVC_Block_Proposer_Spec_Axioms
-    import opened Helper_Pred_Fcn
+    
 
     lemma lem_updated_all_rcvd_duties_f_terminate_current_proposer_duty(
         dvc: DVCState,

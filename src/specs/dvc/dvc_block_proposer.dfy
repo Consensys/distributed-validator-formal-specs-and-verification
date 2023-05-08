@@ -2,27 +2,15 @@ include "../../common/commons.dfy"
 
 include "../../proofs/no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
-
-
-module DVC_Block_Proposer_Spec_NonInstr {
+module Block_Consensus_Engine_NonInstr
+{
     import opened Types 
     import opened CommonFunctions
-        
-    import opened DVC_Block_Proposer_Spec_Axioms
-
-    function getInitialRS(
-        pubkey: BLSPubkey
-    ): RSState
-    {
-        RSState(
-            pubkey := pubkey
-        )
-    }  
 
     datatype BlockConsensusEngineState = BlockConsensusEngineState(
         active_consensus_instances_on_beacon_blocks: map<Slot, BlockConsensusValidityCheckState>
     )
-
+    
     function getInitialBlockConensusEngineState(): BlockConsensusEngineState
     {
         BlockConsensusEngineState(
@@ -105,6 +93,14 @@ module DVC_Block_Proposer_Spec_NonInstr {
             active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks                
         )
     }
+}
+
+module DVC_Block_Proposer_Spec_NonInstr {
+    import opened Types 
+    import opened CommonFunctions
+    import opened Block_Consensus_Engine_NonInstr
+        
+    import opened DVC_Block_Proposer_Spec_Axioms
 
     datatype DVCState = DVCState(
         current_proposer_duty: Optional<ProposerDuty>,
@@ -179,7 +175,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
             current_proposer_duty := None,
             latest_proposer_duty := None,
             bn := s.bn,
-            rs := getInitialRS(rs_pubkey),
+            rs := RSState(pubkey := rs_pubkey),
             dv_pubkey := dv_pubkey,
             peers := peers,                        
             construct_complete_signed_block := construct_complete_signed_block,
@@ -305,8 +301,9 @@ module DVC_Block_Proposer_Spec_NonInstr {
                 latest_proposer_duty := Some(proposer_duty)
             );
 
-        // It seems that we can optimize the protocol by checking whether the decision for a corresponding consensus instance
+        // Note: It seems that we can optimize the protocol by checking whether the decision for a corresponding consensus instance
         // has been made before a node broadcasts randao shares.
+        // Before other nodes alreay know the decision.
         f_broadcast_randao_share(
             process_after_receiving_duty,
             proposer_duty
@@ -588,7 +585,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     function f_listen_for_new_imported_blocks_helper(
         process: DVCState,
         consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>
-    ): map<int, BeaconBlock>
+    ): map<Slot, BeaconBlock>
     {
         if process.latest_proposer_duty.isPresent() then
             var old_instances := 

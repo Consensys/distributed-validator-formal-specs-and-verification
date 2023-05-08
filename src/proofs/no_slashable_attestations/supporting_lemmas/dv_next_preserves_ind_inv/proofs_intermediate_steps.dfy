@@ -17,7 +17,7 @@ module Proofs_Intermediate_Steps
     import opened Att_DVC_Spec
     import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
-    import opened Att_Helper_Sets_Lemmas    
+    import opened Helper_Sets_Lemmas    
     
     lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: Att_DVState)
     requires inv_unchanged_paras_of_consensus_instances(dv)

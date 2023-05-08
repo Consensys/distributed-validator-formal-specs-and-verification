@@ -2,7 +2,7 @@ include "../../common/commons.dfy"
 include "../../proofs/no_slashable_attestations/common/attestation_creation_instrumented.dfy"
 include "../consensus/consensus.dfy"
 include "../network/network.dfy"
-include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../proofs/no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 
 module Att_DV 
 {
@@ -11,7 +11,7 @@ module Att_DV
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened Att_DVC_Spec
-    import opened Att_DVC_Externs_Proofs
+    // import opened Att_DVC_Externs_Proofs
     import opened Att_DVC_Spec_Axioms
     
 

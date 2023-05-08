@@ -8,11 +8,7 @@ module Att_DVC_Spec_Axioms
     datatype BNState = BNState(
         state_roots_of_imported_blocks: set<Root>,
         attestations_submitted: seq<Attestation>    
-    )  
-
-    datatype RSState = RSState(
-        pubkey: BLSPubkey
-    )    
+    )     
 
     function {:axiom} bn_get_fork_version(slot: Slot): Version
 

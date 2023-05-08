@@ -6,7 +6,7 @@ include "../../specs/dv/dv_attestation_creation.dfy"
 include "../common/helper_sets_lemmas.dfy"
 include "../no_slashable_attestations/common/attestation_creation_instrumented.dfy"
 
-module Helper_Pred_Fcn
+module Att_Helper_Pred_Fcn
 {
     import opened Types 
     import opened CommonFunctions
@@ -14,7 +14,7 @@ module Helper_Pred_Fcn
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Att_DVC_Spec_Axioms
     import Att_DVC_Spec_NonInstr
 

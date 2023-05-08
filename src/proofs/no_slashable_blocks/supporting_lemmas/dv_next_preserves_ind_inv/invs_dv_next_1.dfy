@@ -15,7 +15,7 @@ include "../../common/block_dvc_spec_axioms.dfy"
 
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
-include "../../../common/att_helper_pred_fcn.dfy"
+
 
 
 
@@ -27,10 +27,11 @@ module Invs_DV_Next_1
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec
     import opened Fnc_Invs_1
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
 
     lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
     requires NextEventPreCond(dv, event)

@@ -200,6 +200,10 @@ module Types
         | DOMAIN_BEACON_ATTESTER
         | DOMAIN_RANDAO
         | DOMAIN_BEACON_PROPOSER
+
+    datatype RSState = RSState(
+        pubkey: BLSPubkey
+    ) 
 }
 
 module CommonFunctions{
@@ -363,6 +367,7 @@ module CommonFunctions{
         }    
     }  
 
+    // TODO: Split general functions for sets/maps/... and functions for blocks and attestations
     lemma existsMaxOfNonemptySetOfInt(s: set<int>)
     requires s != {}
     ensures exists max :: 

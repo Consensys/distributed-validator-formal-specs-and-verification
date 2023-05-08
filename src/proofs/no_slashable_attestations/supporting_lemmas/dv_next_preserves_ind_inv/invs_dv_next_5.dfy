@@ -7,7 +7,7 @@ include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
-include "../../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 
 include "invs_dv_next_1.dfy"
 include "invs_dv_next_2.dfy"
@@ -35,9 +35,9 @@ module Invs_Att_DV_Next_5
     import opened Invs_Att_DV_Next_4
     import opened Common_Proofs
     import opened Att_DVC_Spec_Axioms
-    import opened Helper_Pred_Fcn
+    import opened Att_Helper_Pred_Fcn
     import opened Fnc_Invs_2
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
 
     lemma lem_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
         process: Att_DVCState,

@@ -1,5 +1,5 @@
 include "../../common/commons.dfy"
-include "../../specs/dv/dv_attestation_creation.dfy"
+include "../../specs/dv/dv_block_proposer.dfy"
 
 
 include "supporting_lemmas/ind_inv.dfy"
@@ -7,7 +7,7 @@ include "supporting_lemmas/init_implies_ind_inv/init_implies_ind_inv.dfy"
 include "supporting_lemmas/dv_next_preserves_ind_inv/ind_inv_dv_next.dfy"
 include "supporting_lemmas/ind_inv_implies_safety/ind_inv_implies_safety.dfy"
 
-module No_Slashable_Attestations_Main_Theorem
+module No_Slashable_Blocks_Main_Theorem
 {
     import opened Types
     import opened DV_Block_Proposer_Spec    

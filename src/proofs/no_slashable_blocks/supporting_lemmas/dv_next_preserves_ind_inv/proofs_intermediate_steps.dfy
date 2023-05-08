@@ -14,7 +14,7 @@ include "../../../../specs/network/network.dfy"
 
 include "../../../common/helper_sets_lemmas.dfy"
 
-include "../../../common/att_helper_pred_fcn.dfy"
+
 module Proofs_Intermediate_Steps
 {
     import opened Types 
@@ -24,11 +24,12 @@ module Proofs_Intermediate_Steps
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened DVC_Block_Proposer_Spec_Axioms
-    import opened Helper_Pred_Fcn
+    
     
     lemma lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv: DVState)
     requires inv_nodes_in_consensus_instances_are_in_dv(dv)

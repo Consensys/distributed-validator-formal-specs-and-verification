@@ -3,14 +3,10 @@ include "../../../common/commons.dfy"
 include "../../../specs/dvc/dvc_block_proposer.dfy"
 include "block_dvc_spec_axioms.dfy"
 
-
-module DVC_Block_Proposer_Spec_Instr {
+module Block_Consensus_Engine_Instr
+{
     import opened Types 
     import opened CommonFunctions
-    
-    import DVC_Block_Proposer_Spec_NonInstr
-    import opened DVC_Block_Proposer_Spec_Axioms
-
 
     datatype BlockConsensusEngineState = BlockConsensusEngineState(
         active_consensus_instances_on_beacon_blocks: map<Slot, BlockConsensusValidityCheckState>,
@@ -192,6 +188,16 @@ module DVC_Block_Proposer_Spec_Instr {
             )
         )
     }
+}
+
+module DVC_Block_Proposer_Spec_Instr {
+    import opened Types 
+    import opened CommonFunctions
+    
+    import DVC_Block_Proposer_Spec_NonInstr
+    import opened DVC_Block_Proposer_Spec_Axioms
+    import opened Block_Consensus_Engine_Instr
+
 
     datatype DVCState = DVCState(
         current_proposer_duty: Optional<ProposerDuty>,
@@ -254,7 +260,6 @@ module DVC_Block_Proposer_Spec_Instr {
              && s.bn.submitted_blocks == []
     {
         s == DVCState(
-            // proposer_duty_queue := [],
             future_consensus_instances_on_blocks_already_decided := map[],
             block_shares_to_broadcast := map[],
             randao_shares_to_broadcast := map[],
@@ -264,7 +269,7 @@ module DVC_Block_Proposer_Spec_Instr {
             current_proposer_duty := None,
             latest_proposer_duty := None,
             bn := s.bn,
-            rs := DVC_Block_Proposer_Spec_NonInstr.getInitialRS(rs_pubkey),
+            rs :=  RSState(pubkey := rs_pubkey),
             dv_pubkey := dv_pubkey,
             peers := peers,                        
             construct_complete_signed_block := construct_complete_signed_block,

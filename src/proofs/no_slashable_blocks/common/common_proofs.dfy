@@ -15,9 +15,10 @@ module Common_Proofs_For_Block_Proposer
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened DV_Block_Proposer_Spec
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened DVC_Block_Proposer_Spec_Axioms
 
     lemma lem_updateConsensusInstanceValidityCheck(

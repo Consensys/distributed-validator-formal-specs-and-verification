@@ -14,7 +14,7 @@ include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 
-include "../../../common/att_helper_pred_fcn.dfy"
+
 
 include "invs_fnc_1.dfy"
 
@@ -29,11 +29,12 @@ module Fnc_Invs_2
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
+    import opened Block_Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened DVC_Block_Proposer_Spec_Axioms
-    import opened Helper_Pred_Fcn
+    
     import opened Fnc_Invs_1
     
     lemma lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_body_ces_f_check_for_next_duty_known_decision(

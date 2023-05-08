@@ -1,6 +1,6 @@
 include "../../common/commons.dfy"
 include "../../dvc_implementation/attestation_creation.dfy"
-include "../../proofs/no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../proofs/no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 
 module Att_DVC_Spec_NonInstr {
     import opened Types 
@@ -121,15 +121,6 @@ module Att_DVC_Spec_NonInstr {
         )
     }
 
-    function getInitialRS(
-        pubkey: BLSPubkey
-    ): RSState
-    {
-        RSState(
-            pubkey := pubkey
-        )
-    }  
-
     datatype Att_DVCState = Att_DVCState(
         current_attestation_duty: Optional<AttestationDuty>,
         latest_attestation_duty: Optional<AttestationDuty>,
@@ -197,10 +188,11 @@ module Att_DVC_Spec_NonInstr {
             dv_pubkey := dv_pubkey,
             future_att_consensus_instances_already_decided := map[],
             bn := s.bn,
-            rs := getInitialRS(rs_pubkey)
+            rs := RSState(pubkey := rs_pubkey)
         )
     }
 
+    // TODO: Reorganize this file
     predicate Next(
         s: Att_DVCState,
         event: AttestationEvent,
@@ -666,47 +658,47 @@ module Att_DVC_Spec_NonInstr {
     }
 }
 
-module Att_DVC_Externs_Proofs refines Att_DVC_Externs
-{
-    import opened Att_DVC_Spec_NonInstr
-    import opened Att_DVC_Spec_Axioms
+// module Att_DVC_Externs_Proofs refines DVC_Externs
+// {
+//     import opened Att_DVC_Spec_NonInstr
+//     import opened Att_DVC_Spec_Axioms
 
-    function toBNState(bn: BeaconNode): BNState
-    reads bn
-    {
-        BNState(
-            state_roots_of_imported_blocks := bn.state_roots_of_imported_blocks,
-            attestations_submitted := bn.attestations_submitted
-        )
-    }
+//     function toBNState(bn: BeaconNode): BNState
+//     reads bn
+//     {
+//         BNState(
+//             state_roots_of_imported_blocks := bn.state_roots_of_imported_blocks,
+//             attestations_submitted := bn.attestations_submitted
+//         )
+//     }
 
-    trait BeaconNode...
-    {
-        method get_fork_version...
-        ensures bn_get_fork_version(s) == v
+//     // trait BeaconNode...
+//     // {
+//     //     method get_fork_version...
+//     //     ensures bn_get_fork_version(s) == v
 
-        method get_validator_index...
-        ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_validator_index(toBNState(this),state_id, validator_id) == vi
+//     //     method get_validator_index...
+//     //     ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_validator_index(toBNState(this),state_id, validator_id) == vi
 
-        method get_epoch_committees...
-        ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_epoch_committees(toBNState(this), state_id, index) == sv
-    }
+//     //     method get_epoch_committees...
+//     //     ensures state_id in this.state_roots_of_imported_blocks ==> bn_get_epoch_committees(toBNState(this), state_id, index) == sv
+//     // }
 
 
-    trait RemoteSigner...
-    {
-        method sign_attestation...
-        ensures rs_sign_attestation(attestation_data, fork_version, signing_root, toRSState(this)) == s
-    }
+//     trait RemoteSigner...
+//     {
+//         method sign_attestation...
+//         ensures rs_sign_attestation(attestation_data, fork_version, signing_root, toRSState(this)) == s
+//     }
 
-    function toRSState(
-        rs: RemoteSigner
-    ): RSState
-    reads rs 
-    {
-        RSState(
-            pubkey := rs.pubkey
-        )
-    }
+//     function toRSState(
+//         rs: RemoteSigner
+//     ): RSState
+//     reads rs 
+//     {
+//         RSState(
+//             pubkey := rs.pubkey
+//         )
+//     }
 
-}
+// }

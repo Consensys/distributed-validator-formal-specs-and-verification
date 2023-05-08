@@ -6,7 +6,7 @@ include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../inv.dfy"
 include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
-include "../../common/dvc_spec_axioms.dfy"
+include "../../common/att_dvc_spec_axioms.dfy"
 
 include "../../../common/att_helper_pred_fcn.dfy"
 
@@ -20,10 +20,10 @@ module Fnc_Invs_1
     import opened Att_DVC_Spec
     import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Att_Helper_Sets_Lemmas
+    import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened Att_DVC_Spec_Axioms
-    import opened Helper_Pred_Fcn
+    import opened Att_Helper_Pred_Fcn
 
     
     lemma lem_updated_all_rcvd_duties_f_serve_attestation_duty(
