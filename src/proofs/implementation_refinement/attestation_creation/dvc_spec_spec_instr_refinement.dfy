@@ -1,8 +1,8 @@
 include "../../../common/commons.dfy"
-include "../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 include "../../../proofs/no_slashable_attestations/common/attestation_creation_instrumented.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
-include "../../common/att_helper_pred_fcn.dfy"
+include "../../common/helper_pred_fcn.dfy"
 
 module Spec_Spec_NonInstr_Refinement
 {
@@ -11,7 +11,7 @@ module Spec_Spec_NonInstr_Refinement
     import opened Att_DVC_Spec_Axioms
     import Att_DVC_Spec_NonInstr
     import Att_DVC_Spec
-    import opened Helper_Pred_Fcn
+    import opened Att_Helper_Pred_Fcn
 
     predicate consensusEngineStateRel(
         cei: Att_DVC_Spec.ConsensusEngineState,

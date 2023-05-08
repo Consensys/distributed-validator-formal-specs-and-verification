@@ -1,10 +1,11 @@
 include "../common/commons.dfy"
+include "./dvc_externs.dfy"
 
 abstract module Att_DVC_Implementation
 {
     import opened Types
     import opened CommonFunctions
-    import opened Att_DVC_Externs : Att_DVC_Externs
+    import opened DVC_Externs : DVC_Externs
 
     export PublicInterface
         reveals Att_DVC        
@@ -13,10 +14,9 @@ abstract module Att_DVC_Implementation
                 Att_DVC.getRepr,
                 Att_DVC.ValidConstructorRepr,
                 Att_DVC.ValidRepr
-        provides Types, Att_DVC_Externs
+        provides Types, DVC_Externs
 
     class Att_DVC {
-
         var current_attestation_duty: Optional<AttestationDuty>;
         var latest_attestation_duty: Optional<AttestationDuty>;
         var rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>;
@@ -26,21 +26,21 @@ abstract module Att_DVC_Implementation
         var dv_pubkey: BLSPubkey;
         var future_att_consensus_instances_already_decided: map<Slot, AttestationData>
 
-        const slashing_db: SlashingDB;
-        const att_consensus: Consensus<AttestationData>;
+        const slashing_db: SlashingDB<SlashingDBAttestation>;
+        const att_consensus: Consensus<AttestationData, SlashingDBAttestation>;
         const network : Network
-        const bn: BeaconNode;
+        const bn: BeaconNode<Attestation>;
         const rs: RemoteSigner;
 
         constructor(
             pubkey: BLSPubkey, 
             dv_pubkey: BLSPubkey,
-            att_consensus: Consensus<AttestationData>, 
+            att_consensus: Consensus<AttestationData, SlashingDBAttestation>, 
             peers: set<BLSPubkey>,
             network: Network,
-            bn: BeaconNode,
+            bn: BeaconNode<Attestation>,
             rs: RemoteSigner,
-            initial_slashing_db: SlashingDB,
+            initial_slashing_db: SlashingDB<SlashingDBAttestation>,
             construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>
         )
         // The following indicates that `att_consensus` must not have any active consensus instance running.
@@ -48,13 +48,12 @@ abstract module Att_DVC_Implementation
         requires att_consensus.consensus_instances_started == map[]
         requires ValidConstructorRepr(att_consensus, network, bn, rs, initial_slashing_db)
         {
-            current_attestation_duty := None;
-            latest_attestation_duty := None;
-            slashing_db := initial_slashing_db;
-            attestation_shares_to_broadcast := map[];
-            rcvd_attestation_shares := map[];
-            future_att_consensus_instances_already_decided := map[];
-
+            this.current_attestation_duty := None;
+            this.latest_attestation_duty := None;
+            this.slashing_db := initial_slashing_db;
+            this.attestation_shares_to_broadcast := map[];
+            this.rcvd_attestation_shares := map[];
+            this.future_att_consensus_instances_already_decided := map[];
             this.att_consensus := att_consensus;
             this.peers := peers;
             this.network := network;
@@ -175,7 +174,7 @@ abstract module Att_DVC_Implementation
                                                 source_epoch := attestation_data.source.epoch,
                                                 target_epoch := attestation_data.target.epoch,
                                                 signing_root := Some(hash_tree_root(attestation_data)));
-            slashing_db.add_attestation(slashing_db_attestation, dv_pubkey);
+            slashing_db.add_record(slashing_db_attestation, dv_pubkey);
         }
 
         method att_consensus_decided(
@@ -259,10 +258,12 @@ abstract module Att_DVC_Implementation
                             rcvd_attestation_shares
                         );
 
-                    bn.submit_attestation(aggregated_attestation); 
+                    bn.submit_data(aggregated_attestation); 
                 } 
             } 
         }
+
+        
 
         method listen_for_new_imported_blocks(
             block: BeaconBlock
@@ -273,7 +274,9 @@ abstract module Att_DVC_Implementation
             var valIndex :- bn.get_validator_index(block.body.state_root, dv_pubkey);
             var i := 0;
 
-            var att_consensus_instances_already_decided := future_att_consensus_instances_already_decided;
+            var att_consensus_instances_already_decided := this.future_att_consensus_instances_already_decided;
+
+
 
             while i < |block.body.attestations|
                 invariant ValidRepr() && fresh(bn.Repr - old(bn.Repr)) && unchanged(rs) && unchanged(network) && unchanged(att_consensus) && unchanged(this) && unchanged(slashing_db)
@@ -337,11 +340,11 @@ abstract module Att_DVC_Implementation
         }     
 
         static predicate ValidConstructorRepr(
-            att_consensus: Consensus<AttestationData>, 
+            att_consensus: Consensus<AttestationData, SlashingDBAttestation>, 
             network: Network,
-            bn: BeaconNode,
+            bn: BeaconNode<Attestation>,
             rs: RemoteSigner,
-            slashing_db: SlashingDB            
+            slashing_db: SlashingDB<SlashingDBAttestation>            
         )
         reads *
         {
@@ -378,14 +381,14 @@ abstract module Att_DVC_Implementation
         }              
     }  
 
-    class AttestationConsensusValidityCheck extends ConsensusValidityCheck<AttestationData>
+    class AttestationConsensusValidityCheck extends ConsensusValidityCheck<AttestationData, SlashingDBAttestation>
     {
         const dv_pubkey: BLSPubkey
         const attestation_duty: AttestationDuty
 
         constructor(
             dv_pubkey: BLSPubkey,
-            slashing_db: SlashingDB,
+            slashing_db: SlashingDB<SlashingDBAttestation>,
             attestation_duty: AttestationDuty
         )
         requires slashing_db.Valid()
@@ -408,7 +411,7 @@ abstract module Att_DVC_Implementation
         {
             assert Valid();
             assert slashing_db.Valid();
-            var attestations := slashing_db.get_attestations(dv_pubkey);
+            var attestations := slashing_db.get_records(dv_pubkey);
             Repr := Repr + slashing_db.Repr;
 
             return ci_decision_is_valid_attestation_data(attestations, data, this.attestation_duty);             
@@ -416,126 +419,4 @@ abstract module Att_DVC_Implementation
     }      
 }
 
-module Att_DVC_Externs
-{
-    import opened Types
-    import opened CommonFunctions
-
-    trait 
-    // See https://github.com/dafny-lang/dafny/issues/1588 for why {:termination false} is needed
-    {:termination false} 
-    {:autocontracts} ConsensusValidityCheck<T>
-    {
-        const slashing_db: SlashingDB
-
-        method is_valid(data: T) returns (validity: bool)
-    }    
-
-    trait {:autocontracts} Consensus<T(!new, ==)>
-    {
-        ghost var consensus_instances_started: map<Slot, ConsensusValidityCheck<T>>
-
-        method start(
-            id: Slot,
-            validityPredicate: ConsensusValidityCheck<T>
-        ) returns (s: Status)
-        ensures s.Success? <==> id !in old(consensus_instances_started.Keys)
-        ensures s.Success? ==> consensus_instances_started == old(consensus_instances_started)[id := validityPredicate]
-        ensures s.Failure? ==> unchanged(`consensus_instances_started)  
-
-        method stop_multiple(
-            ids: set<Slot>
-        )
-        ensures consensus_instances_started == old(consensus_instances_started) - ids
-
-        method get_active_instances() returns (active_instances: set<Slot>)
-        ensures active_instances == consensus_instances_started.Keys 
-        ensures unchanged(`consensus_instances_started) 
-    }    
-
-    trait {:autocontracts} Network  
-    {
-        ghost var att_shares_sent: seq<set<MessaageWithRecipient<AttestationShare>>>;
-
-        method send_att_share(att_share: AttestationShare, receipients: set<BLSPubkey>)
-        ensures att_shares_sent == old(att_shares_sent)  + [addRecepientsToMessage(att_share, receipients)]
-
-        method send_att_shares(att_shares: set<AttestationShare>, receipients: set<BLSPubkey>)
-        ensures     var setWithRecipient := set att_share | att_share in att_shares :: addRecepientsToMessage(att_share, receipients);
-                    att_shares_sent == old(att_shares_sent)  + [setUnion(setWithRecipient)]
-        ensures unchanged(`att_shares_sent)
-
-    }
-
-    trait {:autocontracts} BeaconNode
-    {
-        ghost var state_roots_of_imported_blocks: set<Root>;
-        ghost var attestations_submitted: seq<Attestation>; 
-
-        method get_fork_version(s: Slot) returns (v: Version)
-        ensures unchanged(`state_roots_of_imported_blocks)
-        ensures unchanged(`attestations_submitted)
-
-        method submit_attestation(attestation: Attestation)
-        ensures attestations_submitted == old(attestations_submitted) + [attestation]
-        ensures unchanged(`state_roots_of_imported_blocks)
-
-        // https://ethereum.github.io/beacon-APIs/?urls.primaryName=v1#/Beacon/getEpochCommittees
-        method get_epoch_committees(
-            state_id: Root,
-            index: CommitteeIndex
-        ) returns (s: Status, sv: seq<ValidatorIndex>)
-        ensures unchanged(`state_roots_of_imported_blocks)
-        ensures unchanged(`attestations_submitted)        
-        ensures state_id in state_roots_of_imported_blocks <==> s.Success?
-        ensures uniqueSeq(sv)  
-
-        // https://ethereum.github.io/beacon-APIs/#/Beacon/getStateValidator
-        method get_validator_index(
-            state_id: Root,
-            validator_id: BLSPubkey
-        ) returns (s: Status, vi: Optional<ValidatorIndex>)
-        ensures unchanged(`state_roots_of_imported_blocks)
-        ensures unchanged(`attestations_submitted)        
-        ensures state_id in state_roots_of_imported_blocks <==> s.Success?
-    }
-
-    trait {:autocontracts} RemoteSigner
-    {
-        const pubkey: BLSPubkey;
-
-        method sign_attestation(
-            attestation_data: AttestationData, 
-            fork_version: Version, 
-            signing_root: Root           
-        ) returns (s: BLSSignature)
-        requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
-
-    }
-
-    // NOTE: All methods in this trait MUST be implemented thread-safe.
-    trait {:autocontracts} SlashingDB
-    {
-        ghost var attestations: imaptotal<BLSPubkey, set<SlashingDBAttestation>>;
-        ghost var proposals: imaptotal<BLSPubkey, set<SlashingDBBlock>>
-
-        method add_attestation(attestation: SlashingDBAttestation, pubkey: BLSPubkey)
-        ensures attestations == old(attestations)[pubkey := old(attestations)[pubkey] + {attestation}]
-        ensures unchanged(`proposals)
-
-        method get_attestations(pubkey: BLSPubkey) returns (attestations: set<SlashingDBAttestation>)
-        ensures attestations == this.attestations[pubkey]
-        ensures unchanged(`attestations)
-        ensures unchanged(`proposals)
-
-        method add_proposal(block: SlashingDBBlock, pubkey: BLSPubkey)
-        ensures proposals == old(proposals)[pubkey := old(proposals)[pubkey] + {block}]
-        ensures unchanged(`attestations)
-
-        method get_proposals(pubkey: BLSPubkey) returns (proposals: set<SlashingDBBlock>)
-        ensures proposals == this.proposals[pubkey]
-        ensures unchanged(`attestations)
-        ensures unchanged(`proposals)        
-    }    
-}
 

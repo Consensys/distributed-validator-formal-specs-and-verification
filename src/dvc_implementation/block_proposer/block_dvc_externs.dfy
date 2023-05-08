@@ -44,20 +44,20 @@ module Block_DVC_Externs
         ghost var sent_randao_shares: seq<set<MessaageWithRecipient<RandaoShare>>>;
 
         method send_block_share(block_share: SignedBeaconBlock, receipients: set<BLSPubkey>)
-        ensures sent_block_shares == old(sent_block_shares)  + [wrapMessageWithRecipients(block_share, receipients)]  
+        ensures sent_block_shares == old(sent_block_shares)  + [addRecepientsToMessage(block_share, receipients)]  
         ensures unchanged(`sent_randao_shares)
 
         method send_block_shares(block_shares: set<SignedBeaconBlock>, receipients: set<BLSPubkey>)
-        ensures var setWithRecipient := set block_share | block_share in block_shares :: wrapMessageWithRecipients(block_share, receipients);
+        ensures var setWithRecipient := set block_share | block_share in block_shares :: addRecepientsToMessage(block_share, receipients);
                 sent_block_shares == old(sent_block_shares)  + [setUnion(setWithRecipient)]
         ensures unchanged(`sent_randao_shares)        
 
         method send_randao_share(randao_share: RandaoShare, receipients: set<BLSPubkey>)
-        ensures sent_randao_shares == old(sent_randao_shares)  + [wrapMessageWithRecipients(randao_share, receipients)]
+        ensures sent_randao_shares == old(sent_randao_shares)  + [addRecepientsToMessage(randao_share, receipients)]
         ensures unchanged(`sent_block_shares)
 
         method send_randao_shares(randao_shares: set<RandaoShare>, receipients: set<BLSPubkey>)
-        ensures var setWithRecipient := set randao_share | randao_share in randao_shares :: wrapMessageWithRecipients(randao_share, receipients);
+        ensures var setWithRecipient := set randao_share | randao_share in randao_shares :: addRecepientsToMessage(randao_share, receipients);
                 sent_randao_shares == old(sent_randao_shares)  + [setUnion(setWithRecipient)]
         ensures unchanged(`sent_block_shares)        
     }

@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
-include "../../no_slashable_attestations/common/dvc_spec_axioms.dfy"
+include "../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
 
 module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
 {

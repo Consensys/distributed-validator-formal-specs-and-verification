@@ -5,7 +5,7 @@ include "../../../common/commons.dfy"
 include "../../no_slashable_blocks/common/block_dvc_spec_axioms.dfy"
 
 
-include "../../common/att_helper_pred_fcn.dfy"
+include "../../common/helper_pred_fcn.dfy"
 
 module Spec_Spec_NonInstr_Refinement
 {
@@ -15,7 +15,7 @@ module Spec_Spec_NonInstr_Refinement
     import opened DVC_Block_Proposer_Spec_Axioms
     import DVC_Block_Proposer_Spec_NonInstr
     import DVC_Block_Proposer_Spec_Instr
-    import opened Helper_Pred_Fcn
+    import opened Att_Helper_Pred_Fcn
 
 
     predicate consensusEngineStateRel(
