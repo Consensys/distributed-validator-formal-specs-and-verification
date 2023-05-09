@@ -29,7 +29,7 @@ abstract module Block_DVC_Implementation
         var dv_pubkey: BLSPubkey;       // its own BLS pubkey
         var future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>;    // known blocks for future slots
 
-        var slashing_db: SlashingDB<SlashingDBBlock>;
+        const slashing_db: SlashingDB<SlashingDBBlock>;
         const block_consensus: Consensus<BeaconBlock, SlashingDBBlock>;
         const network : Network
         const bn: BeaconNode<SignedBeaconBlock>;
