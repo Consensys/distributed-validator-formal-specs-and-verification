@@ -1954,7 +1954,7 @@ module Invs_DV_Next_5
                             ::
                             slot <= dvc'.latest_proposer_duty.safe_get().slot
                         ;
-               assert  inv_available_current_proposer_duty_is_latest_proposer_duty_body(dvc');
+                assert  inv_available_current_proposer_duty_is_latest_proposer_duty_body(dvc');
 
                 lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_block_consensus_decided_new_sent_block_shares(                            
                             dvc,

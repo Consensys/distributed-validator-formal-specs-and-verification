@@ -117,7 +117,6 @@ abstract module Block_DVC_Implementation
         modifies getRepr()
         ensures ValidRepr()
         {
-            terminate_current_proposer_duty();
             current_proposer_duty := Some(proposer_duty);
             latest_proposer_duty := Some(proposer_duty);
             :- broadcast_randao_share(proposer_duty);         
@@ -125,19 +124,11 @@ abstract module Block_DVC_Implementation
             return Success;
         }
 
-        method terminate_current_proposer_duty() 
-        requires ValidRepr()
-        modifies getRepr()
-        ensures ValidRepr()
-        {
-            current_proposer_duty := None;
-        }
-
         // broadcast_randao_share is for lines 166 - 171.
         method broadcast_randao_share(
             proposer_duty: ProposerDuty
         ) returns (s: Status)
-        // requires this.latest_proposer_duty.isPresent()
+        requires this.latest_proposer_duty.isPresent()
         requires ValidRepr()
         modifies getRepr()
         ensures ValidRepr()

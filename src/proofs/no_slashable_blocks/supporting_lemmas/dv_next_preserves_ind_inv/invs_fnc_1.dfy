@@ -34,17 +34,7 @@ module Fnc_Invs_1
     import opened BN_Axioms
     import opened RS_Axioms
     
-
-    lemma lem_updated_all_rcvd_duties_f_terminate_current_proposer_duty(
-        dvc: DVCState,
-        dvc': DVCState
-    )  
-    requires f_terminate_current_proposer_duty.requires(dvc)
-    requires dvc' == f_terminate_current_proposer_duty(dvc)
-    ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties 
-    { }
-
-    lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
+lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
         dvc: DVCState,
         proposer_duty: ProposerDuty, 
         dvc': DVCState
@@ -73,16 +63,8 @@ module Fnc_Invs_1
     requires dvc' == f_serve_proposer_duty(dvc, proposer_duty).state
     ensures dvc'.all_rcvd_duties == dvc.all_rcvd_duties + {proposer_duty}    
     {         
-        var process_after_stopping_current_duty := 
-            f_terminate_current_proposer_duty(dvc);
-
-        lem_updated_all_rcvd_duties_f_terminate_current_proposer_duty(
-            dvc,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);                
+            f_receive_new_duty(dvc, proposer_duty);                
 
         lem_updated_all_rcvd_duties_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -157,16 +139,6 @@ module Fnc_Invs_1
     requires s' == f_resend_block_share(s).state
     requires s.all_rcvd_duties == s'.all_rcvd_duties
     { } 
-
-    lemma lem_inv_current_proposer_duty_is_a_rcvd_duty_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_current_proposer_duty_is_a_rcvd_duty_body(process)
-    ensures inv_current_proposer_duty_is_a_rcvd_duty_body(process')
-    { }
 
     lemma lem_inv_current_proposer_duty_is_a_rcvd_duty_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
@@ -264,15 +236,8 @@ module Fnc_Invs_1
     requires inv_current_proposer_duty_is_a_rcvd_duty_body(process)
     ensures inv_current_proposer_duty_is_a_rcvd_duty_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_current_proposer_duty_is_a_rcvd_duty_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
         
         lem_inv_current_proposer_duty_is_a_rcvd_duty_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -332,16 +297,6 @@ module Fnc_Invs_1
     requires inv_current_proposer_duty_is_a_rcvd_duty_body(process)
     ensures inv_current_proposer_duty_is_a_rcvd_duty_body(process')
     { }  
-
-    lemma lem_inv_latest_served_duty_is_a_rcvd_duty_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_latest_served_duty_is_a_rcvd_duty_body(process)
-    ensures inv_latest_served_duty_is_a_rcvd_duty_body(process')
-    { }
 
     lemma lem_inv_latest_served_duty_is_a_rcvd_duty_body_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
@@ -438,15 +393,8 @@ module Fnc_Invs_1
     requires inv_latest_served_duty_is_a_rcvd_duty_body(process)
     ensures inv_latest_served_duty_is_a_rcvd_duty_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_latest_served_duty_is_a_rcvd_duty_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_latest_served_duty_is_a_rcvd_duty_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -506,16 +454,6 @@ module Fnc_Invs_1
     requires inv_latest_served_duty_is_a_rcvd_duty_body(process)
     ensures inv_latest_served_duty_is_a_rcvd_duty_body(process')
     { }  
-
-    lemma lem_inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(process)
-    ensures inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(process')
-    { }
 
     lemma lem_inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
@@ -612,15 +550,8 @@ module Fnc_Invs_1
     requires inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(process)
     ensures inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -680,16 +611,6 @@ module Fnc_Invs_1
     requires inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(process)
     ensures inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(process')
     { }  
-
-    lemma lem_inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(process)
-    ensures inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(process')
-    { }
 
     lemma lem_inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
@@ -786,15 +707,8 @@ module Fnc_Invs_1
     requires inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(process)
     ensures inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -855,16 +769,6 @@ module Fnc_Invs_1
     ensures inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(process')
     { }  
     
-    lemma lem_inv_available_current_proposer_duty_is_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_available_current_proposer_duty_is_latest_proposer_duty_body(process)
-    ensures inv_available_current_proposer_duty_is_latest_proposer_duty_body(process')
-    { }    
-
     lemma lem_inv_available_current_proposer_duty_is_latest_proposer_duty_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
         process': DVCState)
@@ -960,15 +864,8 @@ module Fnc_Invs_1
     requires inv_available_current_proposer_duty_is_latest_proposer_duty_body(process)
     ensures inv_available_current_proposer_duty_is_latest_proposer_duty_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_available_current_proposer_duty_is_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_available_current_proposer_duty_is_latest_proposer_duty_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -1028,28 +925,6 @@ module Fnc_Invs_1
     requires inv_available_current_proposer_duty_is_latest_proposer_duty_body(process)
     ensures inv_available_current_proposer_duty_is_latest_proposer_duty_body(process')
     { }  
-
-    lemma lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState,
-        hn: BLSPubkey,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
-        index_next_proposer_duty_to_be_served: nat
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
-                    hn, 
-                    process, 
-                    sequence_proposer_duties_to_be_served, 
-                    index_next_proposer_duty_to_be_served
-             )
-    ensures inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(
-                    hn, 
-                    process', 
-                    sequence_proposer_duties_to_be_served, 
-                    index_next_proposer_duty_to_be_served)
-    { }
 
     lemma lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
@@ -1230,18 +1105,9 @@ module Fnc_Invs_1
                     sequence_proposer_duties_to_be_served, 
                     index_next_proposer_duty_to_be_served)
     {        
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty,
-            hn,
-            sequence_proposer_duties_to_be_served,
-            index_next_proposer_duty_to_be_served
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
+
         lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper_body_f_broadcast_randao_share(
             process_after_receiving_duty,
             proposer_duty,
@@ -1377,16 +1243,6 @@ module Fnc_Invs_1
     ensures inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process')
     { }
     
-    lemma lem_inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process)
-    ensures inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process')
-    { }
-
     lemma lem_inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
         process': DVCState)
@@ -1487,15 +1343,8 @@ module Fnc_Invs_1
     requires inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process)
     ensures inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -1555,16 +1404,6 @@ module Fnc_Invs_1
     requires inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process)
     ensures inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(process')
     { }      
-
-    lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
-    ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
-    { }
 
     lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
@@ -1676,15 +1515,8 @@ module Fnc_Invs_1
     requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
     ensures inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -1752,16 +1584,6 @@ module Fnc_Invs_1
     )
     requires f_add_block_to_bn.requires(process, block)
     requires process' == f_add_block_to_bn(process, block)    
-    requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process)
-    ensures inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process')
-    { }
-
-    lemma lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
     requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process)
     ensures inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process')
     { }
@@ -1877,15 +1699,8 @@ module Fnc_Invs_1
     requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process)
     ensures inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -1945,17 +1760,6 @@ module Fnc_Invs_1
     requires inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process)
     ensures inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(process')
     { } 
-
-     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_terminate_current_proposer_duty(
-        dv: DVState,
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process)
-    ensures inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process')
-    { }
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_start_consensus_if_can_construct_randao_share(
         dv: DVState,
@@ -2058,16 +1862,9 @@ module Fnc_Invs_1
     requires inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process)
     ensures inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-
-        lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_terminate_current_proposer_duty(
-            dv,
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
+
         lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_broadcast_randao_share(
             dv,
             process_after_receiving_duty,
@@ -2134,26 +1931,6 @@ module Fnc_Invs_1
     ensures inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, process')
     { }  
 
-    lemma lem_inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    ensures process'.bn.submitted_data == process.bn.submitted_data      
-    ensures process'.rcvd_block_shares == process.rcvd_block_shares
-    { } 
-
-    lemma lem_f_terminate_current_proposer_duty_unchanged_vars(
-        s: DVCState,
-        s': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(s)
-    requires s' == f_terminate_current_proposer_duty(s)
-    ensures s'.bn.submitted_data == s.bn.submitted_data
-    ensures s'.rcvd_block_shares == s.rcvd_block_shares
-    { }
-
     lemma lem_f_broadcast_randao_share_unchanged_vars(
         s: DVCState,
         proposer_duty: ProposerDuty,
@@ -2179,15 +1956,9 @@ module Fnc_Invs_1
     ensures f_serve_proposer_duty(s, proposer_duty).outputs.submitted_data == {}
     ensures f_serve_proposer_duty(s, proposer_duty).outputs.sent_block_shares == {}
     { 
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(s);
-
-        lem_f_terminate_current_proposer_duty_unchanged_vars(
-            s,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(s, proposer_duty);
+
         lem_f_broadcast_randao_share_unchanged_vars(
             process_after_receiving_duty,
             proposer_duty,
@@ -2292,16 +2063,6 @@ module Fnc_Invs_1
     )
     requires f_add_block_to_bn.requires(process, block)
     requires process' == f_add_block_to_bn(process, block)    
-    requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
-    ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process')
-    { }
-
-    lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process')
     { }
@@ -2549,15 +2310,8 @@ module Fnc_Invs_1
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process)
     ensures inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -2736,16 +2490,6 @@ module Fnc_Invs_1
     requires s' == f_add_block_to_bn(s, block)    
     requires inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(s)
     ensures inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(s')
-    { }
-
-    lemma lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(process)
-    ensures inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(process')
     { }
 
     lemma lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body_f_start_consensus_if_can_construct_randao_share(
@@ -2928,15 +2672,8 @@ module Fnc_Invs_1
     requires inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(process)
     ensures inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -3085,16 +2822,6 @@ module Fnc_Invs_1
     ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(s')
     { }
 
-    lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process)
-    ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process')
-    { }
-
     lemma lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
         process': DVCState)
@@ -3191,15 +2918,8 @@ module Fnc_Invs_1
     requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process)
     ensures inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -3541,16 +3261,6 @@ module Fnc_Invs_1
     ensures inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(s')
     { }
 
-    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    requires inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(process)
-    ensures inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(process')
-    { }
-
     lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body_f_start_consensus_if_can_construct_randao_share(
         process: DVCState, 
         process': DVCState)
@@ -3644,15 +3354,8 @@ module Fnc_Invs_1
     requires inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(process)
     ensures inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -3721,15 +3424,6 @@ module Fnc_Invs_1
     requires f_add_block_to_bn.requires(s, block)
     requires s' == f_add_block_to_bn(s, block)    
     ensures inv_block_slashing_db_hist_is_monotonic_body(s, s')
-    { }
-
-    lemma lem_inv_block_slashing_db_hist_is_monotonic_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
-    ensures inv_block_slashing_db_hist_is_monotonic_body(process, process')
     { }
 
     lemma lem_inv_block_slashing_db_hist_is_monotonic_body_f_start_consensus_if_can_construct_randao_share(
@@ -3820,15 +3514,8 @@ module Fnc_Invs_1
     requires process' == f_serve_proposer_duty(process, proposer_duty).state
     ensures inv_block_slashing_db_hist_is_monotonic_body(process, process')
     {
-         var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_block_slashing_db_hist_is_monotonic_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
        
         lem_inv_block_slashing_db_hist_is_monotonic_body_f_broadcast_randao_share(
             process_after_receiving_duty,
@@ -3891,16 +3578,6 @@ module Fnc_Invs_1
     )
     requires f_add_block_to_bn.requires(process, block)
     requires process' == f_add_block_to_bn(process, block)    
-    requires inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process)
-    ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
-    { }
-
-    lemma lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-        process: DVCState,
-        process': DVCState
-    )
-    requires f_terminate_current_proposer_duty.requires(process)
-    requires process' == f_terminate_current_proposer_duty(process)
     requires inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process)
     ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
     { }
@@ -4122,15 +3799,8 @@ module Fnc_Invs_1
     requires inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(process, proposer_duty)    
     ensures inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(process')
     {
-        var process_after_stopping_current_duty := f_terminate_current_proposer_duty(process);
-        
-        lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body_f_terminate_current_proposer_duty(
-            process,
-            process_after_stopping_current_duty
-        );
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
+            f_receive_new_duty(process, proposer_duty);
 
         assert  inv_slots_of_active_consensus_instances_are_lower_than_the_slot_of_latest_proposer_duty_body(process_after_receiving_duty);
        

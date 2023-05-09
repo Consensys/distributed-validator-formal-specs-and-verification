@@ -363,26 +363,6 @@ module DVC_Block_Proposer_Spec_Instr {
             )
     }
 
-    function f_terminate_current_proposer_duty(
-        process: DVCState
-    ): (ret_process: DVCState)
-    ensures !ret_process.current_proposer_duty.isPresent()
-    {
-        // There exists an active consensus instance for the current proposer duty.
-        // In other words, a process has not know a decision for the current proposer duty.
-        if process.current_proposer_duty.isPresent()
-        then 
-            var process_after_terminating_current_duty :=
-                    process.(
-                        current_proposer_duty := None
-                    );                    
-            process_after_terminating_current_duty
-        // Either a process did not receive any proposer duty before
-        // or it knew a decision for the last proposer duty.
-        else 
-            process
-    }
-
     function f_receive_new_duty(
         process: DVCState,
         proposer_duty: ProposerDuty
@@ -400,7 +380,6 @@ module DVC_Block_Proposer_Spec_Instr {
             )
     }
 
-
     function f_serve_proposer_duty(
         process: DVCState,
         proposer_duty: ProposerDuty
@@ -408,12 +387,8 @@ module DVC_Block_Proposer_Spec_Instr {
     ensures process.all_rcvd_duties + {proposer_duty} == state_and_outputs.state.all_rcvd_duties
     ensures state_and_outputs.outputs.submitted_data == {}
     {           
-        var process_after_stopping_current_duty := 
-            f_terminate_current_proposer_duty(process);
-
         var process_after_receiving_duty := 
-            f_receive_new_duty(process_after_stopping_current_duty, proposer_duty);
-
+            f_receive_new_duty(process, proposer_duty);
 
         f_broadcast_randao_share(
             process_after_receiving_duty,
