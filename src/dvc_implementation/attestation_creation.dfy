@@ -376,8 +376,7 @@ abstract module Att_DVC_Implementation
         reads *
         {
             && ValidConstructorRepr(this.att_consensus, this.network, this.bn, this.rs, this.slashing_db)
-            && this
-            !in getChildrenRepr()                                
+            && this !in getChildrenRepr()                                
         }              
     }  
 
