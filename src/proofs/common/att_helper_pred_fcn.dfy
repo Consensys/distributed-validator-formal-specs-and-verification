@@ -4,7 +4,7 @@ include "../../specs/consensus/consensus.dfy"
 include "../../specs/network/network.dfy"
 include "../../specs/dv/dv_attestation_creation.dfy"
 include "../common/helper_sets_lemmas.dfy"
-include "../no_slashable_attestations/common/attestation_creation_instrumented.dfy"
+include "../no_slashable_attestations/common/dvc_attestation_creation_instrumented.dfy"
 
 module Att_Helper_Pred_Fcn
 {

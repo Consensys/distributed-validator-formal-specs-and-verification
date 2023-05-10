@@ -1,6 +1,6 @@
 include "../../../common/commons.dfy"
 include "../../no_slashable_attestations/common/att_dvc_spec_axioms.dfy"
-include "../../../proofs/no_slashable_attestations/common/attestation_creation_instrumented.dfy"
+include "../../../proofs/no_slashable_attestations/common/dvc_attestation_creation_instrumented.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
 include "../../common/helper_pred_fcn.dfy"
 

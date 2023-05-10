@@ -1,4 +1,4 @@
-include "../../../rs_axioms.dfy"
+include "../../../proofs/rs_axioms.dfy"
 include "../../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../../../specs/dvc/dvc_block_proposer.dfy"
 include "../../../common/commons.dfy"
@@ -117,44 +117,6 @@ module Spec_Spec_NonInstr_Refinement
                     );
             && DVCStateAndOuputsRel(dvcoi, dvconi);    
     { }
-
-    lemma refine_f_terminate_current_proposer_duty(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState
-    )
-    requires DVC_Block_Proposer_Spec_Instr.f_terminate_current_proposer_duty.requires(dvci)
-    requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_terminate_current_proposer_duty.requires(dvcni)
-    ensures DVCStateRel(
-        DVC_Block_Proposer_Spec_Instr.f_terminate_current_proposer_duty(dvci), 
-        DVC_Block_Proposer_Spec_NonInstr.f_terminate_current_proposer_duty(dvcni)
-    ); 
-    {
-        if dvci.current_proposer_duty.isPresent()
-        {
-            var dvci_new :=
-                    dvci.(
-                        current_proposer_duty := None,
-                        block_consensus_engine_state := Block_Consensus_Engine_Instr.stopConsensusInstances(
-                                        dvci.block_consensus_engine_state,
-                                        {dvci.current_proposer_duty.safe_get().slot}
-                        )               
-                    );                    
-            
-            assert dvcni.current_proposer_duty.isPresent();
-
-            var dvcni_new :=
-                    dvcni.(
-                        current_proposer_duty := None,
-                        block_consensus_engine_state := Block_Consensus_Engine_NonInstr.stopConsensusInstances(
-                                        dvcni.block_consensus_engine_state,
-                                        {dvcni.current_proposer_duty.safe_get().slot}
-                        )               
-                    );
-
-            assert  DVCStateRel(dvci_new, dvcni_new); 
-        }
-    }  
 
     lemma refine_f_serve_proposer_duty(
         dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
