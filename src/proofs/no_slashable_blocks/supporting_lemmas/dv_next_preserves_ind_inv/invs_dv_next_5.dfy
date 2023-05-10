@@ -28,7 +28,7 @@ module Invs_DV_Next_5
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
     import opened BN_Axioms
     import opened RS_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
@@ -119,7 +119,7 @@ module Invs_DV_Next_5
     ensures s.sequence_proposer_duties_to_be_served == s'.sequence_proposer_duties_to_be_served  
     { }  
 
-    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(
+    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper_honest(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
@@ -127,11 +127,11 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?    
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
-    requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
-    ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(s'.sequence_proposer_duties_to_be_served, event.node, s'.honest_nodes_states[event.node], s'.index_next_proposer_duty_to_be_served); 
+    requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist(s)
+    ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(s'.sequence_proposer_duties_to_be_served, event.node, s'.honest_nodes_states[event.node], s'.index_next_proposer_duty_to_be_served); 
     {
         assert s.sequence_proposer_duties_to_be_served == s'.sequence_proposer_duties_to_be_served;
         var sequence_proposer_duties_to_be_served := s'.sequence_proposer_duties_to_be_served;
@@ -144,15 +144,15 @@ module Invs_DV_Next_5
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
                 
-                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper(s, event, s', s_node, node);
-                assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s_node, s.index_next_proposer_duty_to_be_served);
-                assert inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s_node);     
+                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper(s, event, s', s_node, node);
+                assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s_node, s.index_next_proposer_duty_to_be_served);
+                assert inv_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s_node);     
 
                 match nodeEvent
                 {
                     case ServeProposerDuty(proposer_duty) => 
                         assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served - 1;
-                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_serve_proposer_duty(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_serve_proposer_duty(
                             s_node,
                             proposer_duty,
                             s'_node,
@@ -160,10 +160,10 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         );
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
                 
                     case ReceiveRandaoShare(randao_share) =>                             
-                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_randao_shares(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_listen_for_randao_shares(
                             s_node, 
                             randao_share, 
                             s'_node,
@@ -176,7 +176,7 @@ module Invs_DV_Next_5
                         assert s.index_next_proposer_duty_to_be_served == s'.index_next_proposer_duty_to_be_served;    
                         if f_block_consensus_decided.requires(s_node, id, decided_beacon_block)
                         {
-                            lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_block_consensus_decided(
+                            lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_block_consensus_decided(
                                 s_node,
                                 id,
                                 decided_beacon_block,
@@ -186,10 +186,10 @@ module Invs_DV_Next_5
                                 s'.index_next_proposer_duty_to_be_served
                             ); 
                         }
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                        
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                        
                
                     case ReceiveSignedBeaconBlock(block_share) =>
-                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_block_signature_shares(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_listen_for_block_signature_shares(
                             s_node, 
                             block_share, 
                             s'_node,
@@ -197,11 +197,11 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         );                        
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
                         
                     case ImportedNewBlock(block) => 
                         var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_listen_for_new_imported_blocks(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
                             s'_node,
@@ -209,54 +209,54 @@ module Invs_DV_Next_5
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         );  
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
                  
                     case ResendRandaoRevealSignatureShare =>
-                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_resend_randao_share(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_resend_randao_share(
                             s_node,
                             s'_node,
                             sequence_proposer_duties_to_be_served, 
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         ); 
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                     
 
 
                     case ResendBlockShare =>
-                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body_f_resend_block_share(
+                        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body_f_resend_block_share(
                             s_node,
                             s'_node,
                             sequence_proposer_duties_to_be_served, 
                             node,
                             s'.index_next_proposer_duty_to_be_served
                         ); 
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);  
 
                     case NoEvent => 
                         lem_NonServeProposerDuty_unchanged_vars(s, event, s');
                         assert s_node == s'_node; 
-                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                          
+                        assert inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(sequence_proposer_duties_to_be_served, node, s'_node, s'.index_next_proposer_duty_to_be_served);                          
                 }                     
 
         }
     }   
 
-    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(
+    lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
     requires inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
-    requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s)
-    ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist(s')
+    requires inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist(s)
+    ensures inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist(s')
     {
             match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_helper_honest(
+                lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper_honest(
                     s,
                     event,
                     s'
@@ -828,28 +828,28 @@ module Invs_DV_Next_5
         }  
     }   
     
-    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_implies_46_a(dv: DVState)
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv)
-    ensures inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(dv)
+    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_implies_46_a(dv: DVState)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
+    ensures inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(dv)
     {
         forall hn: BLSPubkey, s: Slot | is_an_honest_node(dv, hn)
         ensures
                 var hn_state := dv.honest_nodes_states[hn];
                 && ( hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
-                    ==> s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys)
+                    ==> s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys)
                 ;        
         {
             assert hn in dv.honest_nodes_states.Keys;
             var hn_state := dv.honest_nodes_states[hn];
-            assert inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(dv, hn, hn_state, s);
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(dv, hn, hn_state, s);
             assert
                 && ( hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
-                    ==> s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys)
+                    ==> s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys)
                 ;
         }
     }  
 
-    lemma lem_inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(
+    lemma lem_inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
@@ -859,13 +859,13 @@ module Invs_DV_Next_5
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)   
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)   
-    requires inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(s)   
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    ensures inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(s')   
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)   
+    requires inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(s)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
+    ensures inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(s')   
     {
-        lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s, event, s');
-        lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_implies_46_a(s');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s, event, s');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_implies_46_a(s');
     }     
 
     lemma lem_add_set_of_validity_predicates2<D(!new, 0)>(
@@ -898,19 +898,19 @@ module Invs_DV_Next_5
     ensures vp == honest_nodes_validity_predicates[n]
     { }      
 
-    function f_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body_helper_helper_function(
+    function f_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper_helper_function(
         s_w_honest_node_states_updated: DVState,
         cid: Slot
     ) : map<BLSPubkey, BeaconBlock -> bool>
     {
         map n |
                 && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
+                && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances.Keys
             ::
-                s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
+                s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
     }    
 
-    lemma lem_block_slashing_db_hist_cid_is_monotonic(
+    lemma lem_slashing_db_hist_cid_is_monotonic(
         s: DVCState,
         event: Types.BlockEvent,
         s': DVCState,
@@ -919,12 +919,12 @@ module Invs_DV_Next_5
     )
     requires DVC_Block_Proposer_Spec_Instr.Next.requires(s, event, s', outputs)
     requires DVC_Block_Proposer_Spec_Instr.Next(s, event, s', outputs)
-    requires cid in s.block_consensus_engine_state.block_slashing_db_hist.Keys
-    ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
-    ensures s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;  
+    requires cid in s.block_consensus_engine_state.slashing_db_hist.Keys
+    ensures cid in s'.block_consensus_engine_state.slashing_db_hist.Keys
+    ensures s.block_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.block_consensus_engine_state.slashing_db_hist[cid].Keys;  
     { } 
 
-    lemma lem_block_slashing_db_hist_cid_is_monotonic_corollary(
+    lemma lem_slashing_db_hist_cid_is_monotonic_corollary(
         s: DVCState,
         event: Types.BlockEvent,
         s': DVCState,
@@ -934,16 +934,16 @@ module Invs_DV_Next_5
     )
     requires DVC_Block_Proposer_Spec_Instr.Next.requires(s, event, s', outputs)    
     requires DVC_Block_Proposer_Spec_Instr.Next(s, event, s', outputs)
-    requires cid in s.block_consensus_engine_state.block_slashing_db_hist.Keys
-    requires vp in s.block_consensus_engine_state.block_slashing_db_hist[cid].Keys
-    ensures cid in s'.block_consensus_engine_state.block_slashing_db_hist.Keys
-    ensures vp in s'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys
+    requires cid in s.block_consensus_engine_state.slashing_db_hist.Keys
+    requires vp in s.block_consensus_engine_state.slashing_db_hist[cid].Keys
+    ensures cid in s'.block_consensus_engine_state.slashing_db_hist.Keys
+    ensures vp in s'.block_consensus_engine_state.slashing_db_hist[cid].Keys
     {
-        lem_block_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
+        lem_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
     }     
 
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_AdversaryTakingStep(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_AdversaryTakingStep(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,        
         s': DVState,
@@ -956,12 +956,12 @@ module Invs_DV_Next_5
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)
     
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s.honest_nodes_states[hn])
-    requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, hn)
-    ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s', hn)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s.honest_nodes_states[hn])
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s, hn)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s', hn)
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         assert s'.consensus_instances_on_beacon_block == s.consensus_instances_on_beacon_block;
@@ -972,8 +972,8 @@ module Invs_DV_Next_5
         forall cid: Slot, vp: BeaconBlock -> bool |
                     && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
                     && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]                          
-                    && cid in s'.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys
-        ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(
+                    && cid in s'.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys
+        ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
                     s',
                     hn,
                     hn_state',
@@ -981,19 +981,19 @@ module Invs_DV_Next_5
                     vp
                 )
         {
-            assert inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
-            assert inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp);
-            assert inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s.honest_nodes_states[hn]);
-            assert inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
-            assert cid in s.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys;
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+            assert inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp);
+            assert inv_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s.honest_nodes_states[hn]);
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+            assert cid in s.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys;
             assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-            assert cid in s'.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys;
-            assert vp in s'.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist[cid].Keys;
+            assert cid in s'.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys;
+            assert vp in s'.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist[cid].Keys;
         }   
         
     }  
 
-    predicate pred_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
+    predicate pred_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
                     s: DVState,
                     hn: BLSPubkey,
                     cid: Slot, 
@@ -1002,11 +1002,11 @@ module Invs_DV_Next_5
     {
         && hn in s.honest_nodes_states.Keys
         && var hn_state := s.honest_nodes_states[hn];
-        && cid in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys        
-        && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[cid].Keys
+        && cid in hn_state.block_consensus_engine_state.slashing_db_hist.Keys        
+        && vp in hn_state.block_consensus_engine_state.slashing_db_hist[cid].Keys
     }
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep_loop_helper(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_loop_helper(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,        
         s': DVState,
@@ -1025,15 +1025,15 @@ module Invs_DV_Next_5
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
-    requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, hn)
-    requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s, hn)
+    requires inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
     requires && var hn_state' := s'.honest_nodes_states[hn];
              && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
-             && cid in hn_state'.block_consensus_engine_state.block_slashing_db_hist.Keys
+             && cid in hn_state'.block_consensus_engine_state.slashing_db_hist.Keys
              && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
-    ensures pred_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
+    ensures pred_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
                     s,
                     hn,
                     cid, 
@@ -1056,7 +1056,7 @@ module Invs_DV_Next_5
                     None
                 ;
 
-        var validityPredicates := f_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body_helper_helper_function(s_w_honest_node_states_updated, cid);                    
+        var validityPredicates := f_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper_helper_function(s_w_honest_node_states_updated, cid);                    
 
         assert  && cid in s_w_honest_node_states_updated.consensus_instances_on_beacon_block.Keys
                 && cid in s'.consensus_instances_on_beacon_block.Keys
@@ -1076,7 +1076,7 @@ module Invs_DV_Next_5
         {
             if vp in s.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
             {
-                assert  inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist_body(
+                assert  inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist_body(
                             hn_state,
                             cid
                         );
@@ -1093,22 +1093,22 @@ module Invs_DV_Next_5
                         ;
                 assert  cid in s.consensus_instances_on_beacon_block.Keys;
                 assert  hn in s.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys;
-                assert  inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist_body(
+                assert  inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(
                             s,
                             hn,
                             hn_state,
                             cid
                         );
-                assert  cid in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys;
+                assert  cid in hn_state.block_consensus_engine_state.slashing_db_hist.Keys;
                 assert  vp in s.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn];
-                assert  inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(
+                assert  inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
                             s, 
                             hn,
                             hn_state,
                             cid,
                             vp
                         );
-                assert vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;
+                assert vp in hn_state.block_consensus_engine_state.slashing_db_hist[cid].Keys;
             }
             else 
             {
@@ -1120,13 +1120,13 @@ module Invs_DV_Next_5
                     vp
                 );
 
-                assert  vp == s.honest_nodes_states[hn].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate; 
-                assert  cid in hn_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
-                assert  inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist_body(
+                assert  vp == s.honest_nodes_states[hn].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate; 
+                assert  cid in hn_state.block_consensus_engine_state.active_consensus_instances.Keys;
+                assert  inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist_body(
                             hn_state,
                             cid
                         );
-                assert vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;
+                assert vp in hn_state.block_consensus_engine_state.slashing_db_hist[cid].Keys;
             }
         }
         else 
@@ -1142,16 +1142,16 @@ module Invs_DV_Next_5
                 vp
             );
 
-            assert  vp == s.honest_nodes_states[hn].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate; 
-            assert  cid in hn_state.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
-            assert  inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist_body(
+            assert  vp == s.honest_nodes_states[hn].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate; 
+            assert  cid in hn_state.block_consensus_engine_state.active_consensus_instances.Keys;
+            assert  inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist_body(
                         hn_state,
                         cid
                     );
-            assert vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;
+            assert vp in hn_state.block_consensus_engine_state.slashing_db_hist[cid].Keys;
         }
 
-        assert  pred_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
+        assert  pred_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
                     s,
                     hn,
                     cid, 
@@ -1159,7 +1159,7 @@ module Invs_DV_Next_5
                 );
     }
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,        
         s': DVState,
@@ -1176,11 +1176,11 @@ module Invs_DV_Next_5
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
-    requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, hn)
-    requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s', hn)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s, hn)
+    requires inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s', hn)
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
 
@@ -1193,9 +1193,9 @@ module Invs_DV_Next_5
 
         forall cid: Slot, vp : BeaconBlock -> bool |
                     && hn in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions.Keys
-                    && cid in hn_state'.block_consensus_engine_state.block_slashing_db_hist.Keys
+                    && cid in hn_state'.block_consensus_engine_state.slashing_db_hist.Keys
                     && vp in s'.consensus_instances_on_beacon_block[cid].honest_nodes_validity_functions[hn]
-        ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body(
+        ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
                     s', 
                     hn,
                     hn_state',
@@ -1210,7 +1210,7 @@ module Invs_DV_Next_5
                     None
                 ;
 
-            var validityPredicates := f_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_body_helper_helper_function(s_w_honest_node_states_updated, cid);                    
+            var validityPredicates := f_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper_helper_function(s_w_honest_node_states_updated, cid);                    
 
             assert  && cid in s_w_honest_node_states_updated.consensus_instances_on_beacon_block.Keys
                     && cid in s'.consensus_instances_on_beacon_block.Keys
@@ -1225,7 +1225,7 @@ module Invs_DV_Next_5
                         output
                     );
             
-            lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep_loop_helper(
+            lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_loop_helper(
                 s,
                 event,
                 s',
@@ -1237,8 +1237,8 @@ module Invs_DV_Next_5
                 vp
             );
 
-            assert  && cid in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys        
-                    && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[cid].Keys
+            assert  && cid in hn_state.block_consensus_engine_state.slashing_db_hist.Keys        
+                    && vp in hn_state.block_consensus_engine_state.slashing_db_hist[cid].Keys
                     ;
 
             if hn == node 
@@ -1248,19 +1248,19 @@ module Invs_DV_Next_5
                 assert DVC_Block_Proposer_Spec_Instr.Next.requires(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                 assert DVC_Block_Proposer_Spec_Instr.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                 
-                lem_block_slashing_db_hist_cid_is_monotonic_corollary(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs, cid, vp);
-                assert vp in hn_state'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;
+                lem_slashing_db_hist_cid_is_monotonic_corollary(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs, cid, vp);
+                assert vp in hn_state'.block_consensus_engine_state.slashing_db_hist[cid].Keys;
             }
             else 
             {
                 assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                assert vp in hn_state'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys;
+                assert vp in hn_state'.block_consensus_engine_state.slashing_db_hist[cid].Keys;
             }   
-            assert vp in hn_state'.block_consensus_engine_state.block_slashing_db_hist[cid].Keys; 
+            assert vp in hn_state'.block_consensus_engine_state.slashing_db_hist[cid].Keys; 
         }
     }
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_dv_next(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState,
@@ -1272,18 +1272,18 @@ module Invs_DV_Next_5
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_body(s.honest_nodes_states[hn])
-    requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
-    requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s, hn)
-    ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s', hn)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s.honest_nodes_states[hn])
+    requires inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(s)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s, hn)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s', hn)
     {
         assert s.block_share_network.allMessagesSent <= s'.block_share_network.allMessagesSent;
         match event 
         {
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_HonestNodeTakingStep(
+                lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep(
                     s,
                     event,                    
                     s',
@@ -1294,7 +1294,7 @@ module Invs_DV_Next_5
                 );
                 
             case AdversaryTakingStep(node, new_randao_shares_sent, new_sent_block_shares, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) => 
-                lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_AdversaryTakingStep(
+                lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_AdversaryTakingStep(
                     s,
                     event,                    
                     s',
@@ -1303,7 +1303,7 @@ module Invs_DV_Next_5
         }
     } 
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_dv_next(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_dv_next(
         s: DVState,
         event: DV_Block_Proposer_Spec.BlockEvent,
         s': DVState
@@ -1313,17 +1313,17 @@ module Invs_DV_Next_5
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(s)  
-    requires inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(s) 
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
-    requires inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(s)
-    ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist(s')   
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)  
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist(s) 
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
+    requires inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(s)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey | hn in s'.honest_nodes_states.Keys
-        ensures inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper(s', hn)    
+        ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(s', hn)    
         {
-            lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_helper_dv_next(s, event, s', hn);
+            lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_dv_next(s, event, s', hn);
         }
     }  
 
@@ -1335,8 +1335,8 @@ module Invs_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(s)        
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)  
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(s)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)  
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(s)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(s)
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(s)
     requires inv_seq_of_proposer_duties_is_ordered(s);
@@ -1450,9 +1450,9 @@ module Invs_DV_Next_5
             var validityPredicates := 
                 map n |
                         && n in dv.honest_nodes_states.Keys 
-                        && cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
+                        && cid in dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances.Keys
                     ::
-                        dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
+                        dv.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                 ;
 
             assert  ConsensusSpec.Next(
@@ -1667,7 +1667,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -1681,9 +1681,9 @@ module Invs_DV_Next_5
                 forall hn: BLSPubkey, slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
                             && is_an_honest_node(dv, hn) 
                             && var dvc' := dv.honest_nodes_states[hn];
-                            && slot in dvc'.block_consensus_engine_state.block_slashing_db_hist.Keys
-                            && vp in dvc'.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
-                            && db in dvc'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
+                            && slot in dvc'.block_consensus_engine_state.slashing_db_hist.Keys
+                            && vp in dvc'.block_consensus_engine_state.slashing_db_hist[slot].Keys
+                            && db in dvc'.block_consensus_engine_state.slashing_db_hist[slot][vp]
                 ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv',
                             hn,
@@ -1695,7 +1695,7 @@ module Invs_DV_Next_5
                     var dvc := dv.honest_nodes_states[hn];
                     var dvc' := dv'.honest_nodes_states[hn];
                     assert dvc == dvc';
-                    assert db in dvc.block_consensus_engine_state.block_slashing_db_hist[slot][vp];
+                    assert db in dvc.block_consensus_engine_state.slashing_db_hist[slot][vp];
 
                     assert inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv,
@@ -1763,9 +1763,9 @@ module Invs_DV_Next_5
         var process := dv.honest_nodes_states[hn];
 
         forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                && slot in process.block_consensus_engine_state.block_slashing_db_hist.Keys
-                && vp in process.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
-                && db in process.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
+                && slot in process.block_consensus_engine_state.slashing_db_hist.Keys
+                && vp in process.block_consensus_engine_state.slashing_db_hist[slot].Keys
+                && db in process.block_consensus_engine_state.slashing_db_hist[slot][vp]
         ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                     dv,
                     hn,
@@ -1822,7 +1822,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -1850,9 +1850,9 @@ module Invs_DV_Next_5
             if hn == node
             {
                 forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                    && slot in process'.block_consensus_engine_state.block_slashing_db_hist.Keys
-                    && vp in process'.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
-                    && db in process'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
+                    && slot in process'.block_consensus_engine_state.slashing_db_hist.Keys
+                    && vp in process'.block_consensus_engine_state.slashing_db_hist[slot].Keys
+                    && db in process'.block_consensus_engine_state.slashing_db_hist[slot][vp]
                 ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv,
                             hn,
@@ -1918,7 +1918,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -1950,7 +1950,7 @@ module Invs_DV_Next_5
                     dv'
                 );
 
-                assert  forall slot | slot in dvc'.block_consensus_engine_state.block_slashing_db_hist.Keys
+                assert  forall slot | slot in dvc'.block_consensus_engine_state.slashing_db_hist.Keys
                             ::
                             slot <= dvc'.latest_proposer_duty.safe_get().slot
                         ;
@@ -1987,9 +1987,9 @@ module Invs_DV_Next_5
                 forall hn: BLSPubkey, slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
                             && is_an_honest_node(dv, hn) 
                             && var process' := dv.honest_nodes_states[hn];
-                            && slot in process'.block_consensus_engine_state.block_slashing_db_hist.Keys
-                            && vp in process'.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
-                            && db in process'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
+                            && slot in process'.block_consensus_engine_state.slashing_db_hist.Keys
+                            && vp in process'.block_consensus_engine_state.slashing_db_hist[slot].Keys
+                            && db in process'.block_consensus_engine_state.slashing_db_hist[slot][vp]
                 ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
                             dv',
                             hn,
@@ -2045,7 +2045,7 @@ module Invs_DV_Next_5
                             assert signer == dvc'.rs.pubkey;
                             if hn == signer
                             {
-                                assert ( forall slot: Slot | slot in dvc'.block_consensus_engine_state.block_slashing_db_hist.Keys ::
+                                assert ( forall slot: Slot | slot in dvc'.block_consensus_engine_state.slashing_db_hist.Keys ::
                                         block_share.block.slot >= slot
                                 );
                             }
@@ -2103,7 +2103,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     requires && var dvc':= dv'.honest_nodes_states[node];
@@ -2130,9 +2130,9 @@ module Invs_DV_Next_5
                 assert  rs_pubkey == dvc'.rs.pubkey;
 
                 forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
-                            && slot in dvc'.block_consensus_engine_state.block_slashing_db_hist.Keys
-                            && vp in dvc'.block_consensus_engine_state.block_slashing_db_hist[slot].Keys
-                            && db in dvc'.block_consensus_engine_state.block_slashing_db_hist[slot][vp]
+                            && slot in dvc'.block_consensus_engine_state.slashing_db_hist.Keys
+                            && vp in dvc'.block_consensus_engine_state.slashing_db_hist[slot].Keys
+                            && db in dvc'.block_consensus_engine_state.slashing_db_hist[slot][vp]
                 
                 {
                     assert  allMessagesSent == allMessagesSent';
@@ -2185,7 +2185,7 @@ module Invs_DV_Next_5
     // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     // requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     // requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    // requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    // requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     // requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     // requires inv_seq_of_proposer_duties_is_ordered(dv)
     // ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -2250,7 +2250,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -2325,7 +2325,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -2393,7 +2393,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -2460,7 +2460,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')
@@ -2529,7 +2529,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     requires is_an_honest_node(dv, node);
@@ -2606,7 +2606,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     requires is_an_honest_node(dv, node);
@@ -2667,7 +2667,7 @@ module Invs_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)   
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     ensures  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv')

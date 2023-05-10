@@ -28,7 +28,7 @@ module Invs_DV_Next_2
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
     import opened BN_Axioms
     import opened RS_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
@@ -163,9 +163,9 @@ module Invs_DV_Next_2
                 var validityPredicates :=
                     map n |
                             && n in s_w_honest_node_states_updated.honest_nodes_states.Keys
-                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances.Keys
                         ::
-                            s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
+                            s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                     ;
 
                 var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];

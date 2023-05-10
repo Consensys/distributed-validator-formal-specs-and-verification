@@ -1,195 +1,10 @@
 include "../../../common/commons.dfy"
 
 include "../../../specs/dvc/dvc_block_proposer.dfy"
+include "../../../specs/consensus/consensus_engine.dfy"
 include "../../rs_axioms.dfy"
 include "../../bn_axioms.dfy"
 
-module Block_Consensus_Engine_Instr
-{
-    import opened Types 
-    import opened CommonFunctions
-
-    datatype BlockConsensusEngineState = BlockConsensusEngineState(
-        active_consensus_instances_on_beacon_blocks: map<Slot, BlockConsensusValidityCheckState>,
-        ghost block_slashing_db_hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>
-    )
-
-    function getInitialBlockConensusEngineState(): BlockConsensusEngineState
-    {
-        BlockConsensusEngineState(
-            active_consensus_instances_on_beacon_blocks := map[],
-            block_slashing_db_hist := map[]
-        )
-    }
-
-    function startConsensusInstance(
-        s: BlockConsensusEngineState,
-        slot: Slot,
-        proposer_duty: ProposerDuty,
-        block_slashing_db: set<SlashingDBBlock>,
-        complete_signed_randao_reveal: BLSSignature
-    ): BlockConsensusEngineState
-    requires slot !in s.active_consensus_instances_on_beacon_blocks.Keys    
-    requires slot == proposer_duty.slot
-    {
-        var bcvc := 
-            BlockConsensusValidityCheckState(
-                    proposer_duty := proposer_duty,
-                    randao_reveal := complete_signed_randao_reveal,
-                    validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-                                                                    block_slashing_db, 
-                                                                    block, 
-                                                                    proposer_duty,
-                                                                    complete_signed_randao_reveal)
-            );
-        
-        assert (bcvc.validityPredicate == ((block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-                                                                    block_slashing_db, 
-                                                                    block, 
-                                                                    bcvc.proposer_duty,
-                                                                    bcvc.randao_reveal)));                
-        
-        var new_active_consensus_instances_on_beacon_blocks := 
-            s.active_consensus_instances_on_beacon_blocks[
-                slot := bcvc
-            ];
-
-        s.(
-            active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks,
-            block_slashing_db_hist := 
-                addToBlockSlashingDBHist(
-                    s.block_slashing_db_hist,
-                    slot,
-                    bcvc.validityPredicate,
-                    block_slashing_db                    
-                )
-                
-        )
-    }
-
-    function addToBlockSlashingDBHist(
-        hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>,
-        id: Slot,
-        vp: BeaconBlock -> bool,
-        block_slashing_db: set<SlashingDBBlock>
-    ): (new_hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>)
-    ensures hist.Keys + { id } == new_hist.Keys
-    ensures ( forall slot0, vp0 ::
-                    && var hist_slot0 := getOrDefault(hist, slot0, map[]);
-                    && var hist_slot_vp0 := getOrDefault(hist_slot0, vp0, {});
-                    && var new_hist_slot0 := getOrDefault(new_hist, slot0, map[]);
-                    && var new_hist_slot_vp0 := getOrDefault(new_hist_slot0, vp0, {});
-                    && (( slot0 != id || vp0 != vp )
-                        ==> 
-                        hist_slot_vp0 == new_hist_slot_vp0
-                        )
-                    && ((slot0 == id && vp0 == vp )
-                        ==> 
-                        hist_slot_vp0 + {block_slashing_db} == new_hist_slot_vp0
-                        )
-            )
-    {
-        var hist_id := getOrDefault(hist, id, map[]);
-        var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {block_slashing_db};
-        hist[
-            id := hist_id[
-                vp := new_hist_id_vp
-            ]
-        ]
-    }  
-
-
-    function stopConsensusInstances(
-        s: BlockConsensusEngineState,
-        ids: set<Slot>
-    ): BlockConsensusEngineState
-    {
-        s.(
-            active_consensus_instances_on_beacon_blocks := s.active_consensus_instances_on_beacon_blocks - ids
-        )
-    }    
- 
-    function updateBlockSlashingDBHist(
-        hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>,
-        new_active_consensus_instances_on_beacon_blocks : map<Slot, BlockConsensusValidityCheckState>,
-        new_block_slashing_db: set<SlashingDBBlock>
-    ): (new_hist: map<Slot, map<BeaconBlock -> bool, set<set<SlashingDBBlock>>>>)
-    ensures hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys == new_hist.Keys
-    ensures ( forall s, vp | s in hist.Keys && vp in hist[s].Keys ::
-                && s in new_hist.Keys 
-                && vp in new_hist[s].Keys
-                && hist[s][vp] <= new_hist[s][vp]
-            )
-    {
-            var ret 
-                := 
-                map k: Slot | k in (new_active_consensus_instances_on_beacon_blocks.Keys + hist.Keys)
-                    ::            
-                    if k in new_active_consensus_instances_on_beacon_blocks.Keys then 
-                        var vp := new_active_consensus_instances_on_beacon_blocks[k].validityPredicate;
-                        var hist_k := getOrDefault(hist, k, map[]);
-                        var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_block_slashing_db};
-                        hist_k[
-                            vp := hist_k_vp
-                        ]
-                    else
-                        hist[k];
-            ret
-    }
-
-    function updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, BlockConsensusValidityCheckState>,
-        new_block_slashing_db: set<SlashingDBBlock>
-    ): (r: map<Slot, BlockConsensusValidityCheckState>)
-    ensures r.Keys <= m.Keys
-    ensures (forall k: Slot | k in r.Keys
-                ::
-                &&  m[k].proposer_duty == r[k].proposer_duty
-                && var vp := r[k].validityPredicate;
-                && vp == (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-                                                        new_block_slashing_db, 
-                                                        block, 
-                                                        r[k].proposer_duty,
-                                                        r[k].randao_reveal 
-                                                    )
-                );
-    {
-            map it | it in m.Items
-                ::
-                it.0 := it.1.(
-                    validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-                                                                    new_block_slashing_db, 
-                                                                    block, 
-                                                                    it.1.proposer_duty,
-                                                                    it.1.randao_reveal 
-                                                                 )
-                )        
-    } 
-
-    function updateConsensusInstanceValidityCheck(
-        s: BlockConsensusEngineState,
-        new_block_slashing_db: set<SlashingDBBlock>
-    ): (r: BlockConsensusEngineState)
-    ensures && var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
-                    s.active_consensus_instances_on_beacon_blocks,
-                    new_block_slashing_db
-                );
-            && s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys == r.block_slashing_db_hist.Keys
-    {
-        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
-                    s.active_consensus_instances_on_beacon_blocks,
-                    new_block_slashing_db
-                );
-        s.(
-            active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks,
-            block_slashing_db_hist := updateBlockSlashingDBHist(
-                s.block_slashing_db_hist,
-                new_active_consensus_instances_on_beacon_blocks,
-                new_block_slashing_db
-            )
-        )
-    }
-}
 
 module DVC_Block_Proposer_Spec_Instr {
     import opened Types 
@@ -198,7 +13,7 @@ module DVC_Block_Proposer_Spec_Instr {
     import DVC_Block_Proposer_Spec_NonInstr
     import opened BN_Axioms
     import opened RS_Axioms
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
 
 
     datatype DVCState = DVCState(
@@ -216,7 +31,7 @@ module DVC_Block_Proposer_Spec_Instr {
         future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>,
         bn: BNState<SignedBeaconBlock>,
         rs: RSState,
-        block_consensus_engine_state: BlockConsensusEngineState,
+        block_consensus_engine_state: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
         
         ghost all_rcvd_duties: set<ProposerDuty>,
         ghost latest_slashing_db_block: Optional<SlashingDBBlock>
@@ -454,7 +269,7 @@ module DVC_Block_Proposer_Spec_Instr {
                     current_proposer_duty := None,                    
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
                     ),
@@ -486,7 +301,7 @@ module DVC_Block_Proposer_Spec_Instr {
                                                     :: randao_share.signature;                
             var constructed_randao_reveal := process.construct_complete_signed_randao_reveal(all_rcvd_randao_sig);
             if && constructed_randao_reveal.isPresent()  
-               && proposer_duty.slot !in process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys 
+               && proposer_duty.slot !in process.block_consensus_engine_state.active_consensus_instances.Keys 
             then                      
                 var validityPredicate := ((block: BeaconBlock)  => 
                                             ci_decision_is_valid_beacon_block(
@@ -496,7 +311,7 @@ module DVC_Block_Proposer_Spec_Instr {
                                                 constructed_randao_reveal.safe_get()));        
                 DVCStateAndOuputs(
                     state :=  process.(
-                        block_consensus_engine_state := startConsensusInstance(
+                        block_consensus_engine_state := startBlockConsensusInstance(
                             process.block_consensus_engine_state,
                             proposer_duty.slot,
                             proposer_duty,
@@ -554,7 +369,7 @@ module DVC_Block_Proposer_Spec_Instr {
                 process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                     ), 
@@ -586,12 +401,12 @@ module DVC_Block_Proposer_Spec_Instr {
         // inconsistency should be fixed up by either accepting here only shares with slot higher than the
         // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
         // up only slot lower thant the slot of the current/latest duty.
-        var active_consensus_instances_on_beacon_blocks := 
-            process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+        var active_consensus_instances := 
+            process.block_consensus_engine_state.active_consensus_instances.Keys;
 
-        || (active_consensus_instances_on_beacon_blocks == {} && !process.latest_proposer_duty.isPresent())
-        || (active_consensus_instances_on_beacon_blocks != {} && get_min(active_consensus_instances_on_beacon_blocks) <= received_slot)
-        || (active_consensus_instances_on_beacon_blocks == {} && !process.current_proposer_duty.isPresent() && process.latest_proposer_duty.isPresent() && process.latest_proposer_duty.safe_get().slot < received_slot)            
+        || (active_consensus_instances == {} && !process.latest_proposer_duty.isPresent())
+        || (active_consensus_instances != {} && get_min(active_consensus_instances) <= received_slot)
+        || (active_consensus_instances == {} && !process.current_proposer_duty.isPresent() && process.latest_proposer_duty.isPresent() && process.latest_proposer_duty.safe_get().slot < received_slot)            
     }
 
     function f_listen_for_block_signature_shares(
@@ -647,7 +462,7 @@ module DVC_Block_Proposer_Spec_Instr {
     ensures state_and_outputs.outputs == getEmptyOuputs()
     {
         var slot := randao_share.slot;
-        var active_consensus_instances_on_beacon_blocks := process.block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys;
+        var active_consensus_instances := process.block_consensus_engine_state.active_consensus_instances.Keys;
 
         if is_slot_for_current_or_future_instances(process, slot) 
         then
@@ -728,7 +543,7 @@ module DVC_Block_Proposer_Spec_Instr {
         var process_after_stopping_consensus_instance :=
             process.(
                 future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                block_consensus_engine_state := stopConsensusInstances(
+                block_consensus_engine_state := stopBlockConsensusInstances(
                                 process.block_consensus_engine_state,
                                 consensus_instances_on_blocks_already_decided.Keys
                 ),
@@ -746,7 +561,7 @@ module DVC_Block_Proposer_Spec_Instr {
                 process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
                     ),

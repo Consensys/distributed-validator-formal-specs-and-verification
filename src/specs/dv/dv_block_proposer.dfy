@@ -1,6 +1,7 @@
 include "../../common/commons.dfy"
 include "../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../consensus/consensus.dfy"
+include "../consensus/consensus_engine.dfy"
 include "../network/network.dfy"
 include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
@@ -14,7 +15,7 @@ module DV_Block_Proposer_Spec
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened DVC_Block_Proposer_Spec_Instr
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
     import opened BN_Axioms
     import opened RS_Axioms
     
@@ -645,9 +646,9 @@ module DV_Block_Proposer_Spec
             && var  validityPredicates := 
                     map n |
                             && n in s.honest_nodes_states.Keys 
-                            && cid in s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks.Keys
+                            && cid in s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances.Keys
                         ::
-                            s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances_on_beacon_blocks[cid].validityPredicate
+                            s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                     ;
             &&  ConsensusSpec.Next(
                     s.consensus_instances_on_beacon_block[cid],

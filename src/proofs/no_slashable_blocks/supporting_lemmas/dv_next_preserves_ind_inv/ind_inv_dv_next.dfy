@@ -29,7 +29,7 @@ module Ind_Inv_DV_Next
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
     import opened BN_Axioms
     import opened RS_Axioms
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
@@ -98,9 +98,9 @@ module Ind_Inv_DV_Next
     requires ind_inv(dv)
     ensures invs_group_5(dv')
     {
-        lem_inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_dv_next(dv, e, dv');    
-        lem_inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_dv_next(dv, e, dv');  
-        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_dv_next(dv, e, dv');          
+        lem_inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_dv_next(dv, e, dv');    
+        lem_inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_dv_next(dv, e, dv');  
+        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_dv_next(dv, e, dv');          
     }
 
     lemma lem_ind_inv_dv_next_invs_group_6(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
@@ -109,8 +109,8 @@ module Ind_Inv_DV_Next
     requires ind_inv(dv)
     ensures invs_group_6(dv')
     {       
-        lem_inv_every_db_in_block_slashing_db_hist_is_a_subset_of_block_slashing_db_dv_next(dv, e, dv');  
-        lem_inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist_dv_next(dv, e, dv');  
+        lem_inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db_dv_next(dv, e, dv');  
+        lem_inv_active_consensus_instances_are_tracked_in_slashing_db_hist_dv_next(dv, e, dv');  
     }
 
     lemma lem_ind_inv_dv_next_invs_group_7(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
@@ -123,7 +123,7 @@ module Ind_Inv_DV_Next
         lem_inv_rcvd_block_shares_are_from_sent_messages_dv_next(dv, e, dv');  
         lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv);
         assert  inv_the_same_node_status_in_dv_and_ci(dv);
-        lem_inv_slots_for_sent_validity_predicates_are_stored_in_block_slashing_db_hist(dv, e, dv');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv, e, dv');
     }
 
     lemma lem_ind_inv_implies_intermediate_steps_helper_1(dv: DVState)
@@ -155,7 +155,7 @@ module Ind_Inv_DV_Next
     lemma lem_ind_inv_implies_intermediate_steps_helper_3(dv: DVState)
     requires ind_inv(dv)  
     ensures inv_seq_of_proposer_duties_is_ordered(dv)
-    ensures inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)
+    ensures inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)
     ensures inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     ensures inv_rcvd_block_shares_are_in_all_sent_messages(dv)
     {            
@@ -187,7 +187,7 @@ module Ind_Inv_DV_Next
                 dv.all_nodes
             )    
     ensures inv_seq_of_proposer_duties_is_ordered(dv)     
-    ensures inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)
+    ensures inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)
     ensures inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
     ensures inv_rcvd_block_shares_are_in_all_sent_messages(dv)
     ensures lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(dv)
@@ -235,7 +235,7 @@ module Ind_Inv_DV_Next
         lem_ind_inv_implies_intermediate_steps(dv);        
         lem_inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(dv, e, dv');        
         lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next(dv, e, dv');
-        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_block_slashing_db_hist_dv_next(dv, e, dv');
+        lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_dv_next(dv, e, dv');
     }
     
     lemma lem_ind_inv_dv_next_invs_group_11(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       
@@ -260,8 +260,8 @@ module Ind_Inv_DV_Next
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
         lem_inv_consensus_instance_isConditionForSafetyTrue_dv_next(dv, e, dv');   
         lem_inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_dv_next(dv, e, dv');  
-        lem_inv_sent_validity_predicate_only_for_slots_stored_in_block_slashing_db_hist(dv, e, dv');
-        lem_inv_all_validity_predicates_are_stored_in_block_slashing_db_hist_dv_next(dv, e, dv');
+        lem_inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(dv, e, dv');
+        lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_dv_next(dv, e, dv');
     }
 
     lemma lem_ind_inv_dv_next_invs_group_13(dv: DVState, e: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)       

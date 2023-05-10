@@ -16,69 +16,69 @@ module Common_Proofs_For_Block_Proposer
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
     import opened DV_Block_Proposer_Spec
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened BN_Axioms
     import opened RS_Axioms
 
-    lemma lem_updateConsensusInstanceValidityCheck(
-        s: BlockConsensusEngineState,
+    lemma lem_updateBlockConsensusInstanceValidityCheck(
+        s: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
         new_block_slashing_db: set<SlashingDBBlock>,        
-        r: BlockConsensusEngineState
+        r: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>
     )
-    requires r == updateConsensusInstanceValidityCheck(s, new_block_slashing_db)        
-    ensures r.block_slashing_db_hist.Keys
-                == s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys
+    requires r == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)        
+    ensures r.slashing_db_hist.Keys
+                == s.slashing_db_hist.Keys + s.active_consensus_instances.Keys
     {
-        var new_active_consensus_instances_on_beacon_blocks := updateConsensusInstanceValidityCheckHelper(
-                    s.active_consensus_instances_on_beacon_blocks,
+        var new_active_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
+                    s.active_consensus_instances,
                     new_block_slashing_db
                 );
 
-        lem_updateConsensusInstanceValidityCheckHelper(
-                s.active_consensus_instances_on_beacon_blocks,
+        lem_updateBlockConsensusInstanceValidityCheckHelper(
+                s.active_consensus_instances,
                 new_block_slashing_db,
-                new_active_consensus_instances_on_beacon_blocks);
+                new_active_consensus_instances);
 
-        assert new_active_consensus_instances_on_beacon_blocks.Keys == s.active_consensus_instances_on_beacon_blocks.Keys;
+        assert new_active_consensus_instances.Keys == s.active_consensus_instances.Keys;
 
-        var new_block_slashing_db_hist := updateBlockSlashingDBHist(
-                                            s.block_slashing_db_hist,
-                                            new_active_consensus_instances_on_beacon_blocks,
+        var new_slashing_db_hist := updateBlockSlashingDBHist(
+                                            s.slashing_db_hist,
+                                            new_active_consensus_instances,
                                             new_block_slashing_db
                                         );
 
-        assert new_block_slashing_db_hist.Keys 
-                    == s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys;
+        assert new_slashing_db_hist.Keys 
+                    == s.slashing_db_hist.Keys + new_active_consensus_instances.Keys;
 
-        var t := s.(active_consensus_instances_on_beacon_blocks := new_active_consensus_instances_on_beacon_blocks,
-                    block_slashing_db_hist := new_block_slashing_db_hist
+        var t := s.(active_consensus_instances := new_active_consensus_instances,
+                    slashing_db_hist := new_slashing_db_hist
                    );
 
-        assert r.block_slashing_db_hist.Keys == t.block_slashing_db_hist.Keys;
+        assert r.slashing_db_hist.Keys == t.slashing_db_hist.Keys;
 
         calc 
         {
-            r.block_slashing_db_hist.Keys;
+            r.slashing_db_hist.Keys;
             ==
-            t.block_slashing_db_hist.Keys;
+            t.slashing_db_hist.Keys;
             ==
-            new_block_slashing_db_hist.Keys;
+            new_slashing_db_hist.Keys;
             == 
-            s.block_slashing_db_hist.Keys + new_active_consensus_instances_on_beacon_blocks.Keys;
+            s.slashing_db_hist.Keys + new_active_consensus_instances.Keys;
             ==
-            s.block_slashing_db_hist.Keys + s.active_consensus_instances_on_beacon_blocks.Keys;
+            s.slashing_db_hist.Keys + s.active_consensus_instances.Keys;
         }
     }
 
-    lemma lem_updateConsensusInstanceValidityCheckHelper(
+    lemma lem_updateBlockConsensusInstanceValidityCheckHelper(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>,
         m': map<Slot, BlockConsensusValidityCheckState>
     )    
-    requires m' == updateConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
+    requires m' == updateBlockConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
     ensures m.Keys == m'.Keys
     ensures forall slot |
                 && slot in m'.Keys 

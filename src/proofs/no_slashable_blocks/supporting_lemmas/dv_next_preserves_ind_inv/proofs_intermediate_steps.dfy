@@ -25,7 +25,7 @@ module Proofs_Intermediate_Steps
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
-    import opened Block_Consensus_Engine_Instr
+    import opened Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
@@ -113,21 +113,21 @@ module Proofs_Intermediate_Steps
     lemma lem_inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_ind_inv(
         dv: DVState
     )    
-    requires inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv)
+    requires inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv)
     ensures inv_active_consensus_instances_implied_the_delivery_of_proposer_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
         ensures ( ( && is_an_honest_node(dv, hn) 
-                    && s in dv.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys
+                    && s in dv.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys
                   )
                   ==> inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
             if && is_an_honest_node(dv, hn) 
-               && s in dv.honest_nodes_states[hn].block_consensus_engine_state.block_slashing_db_hist.Keys
+               && s in dv.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys
             {
                 var hn_state := dv.honest_nodes_states[hn];
-                assert inv_block_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state);
+                assert inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state);
                 assert inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(hn_state, s);
             }
             else
@@ -138,33 +138,33 @@ module Proofs_Intermediate_Steps
     lemma lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_ind_inv(
         dv: DVState
     )    
-    requires inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv)
+    requires inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv)
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: BeaconBlock -> bool | 
             && is_an_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
-            && s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys
-            && vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s]            
+            && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
+            && vp in hn_state.block_consensus_engine_state.slashing_db_hist[s]            
         ensures ( exists duty, db, randao_reveal ::
                     && var hn_state := dv.honest_nodes_states[hn];
                     && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_body(dv, hn, s, db, duty, vp, randao_reveal) 
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
-            assert inv_exists_db_in_block_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(hn_state);
-            assert s in hn_state.block_consensus_engine_state.block_slashing_db_hist.Keys;
-            assert vp in hn_state.block_consensus_engine_state.block_slashing_db_hist[s].Keys;
+            assert inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(hn_state);
+            assert s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys;
+            assert vp in hn_state.block_consensus_engine_state.slashing_db_hist[s].Keys;
 
             assert ( exists db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature ::
                         && duty.slot == s
-                        && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+                        && db in hn_state.block_consensus_engine_state.slashing_db_hist[s][vp]
                         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, bb, duty, randao_reveal)
                     );
 
             var db: set<SlashingDBBlock>, duty: ProposerDuty, randao_reveal: BLSSignature :|
                         && duty.slot == s
-                        && db in hn_state.block_consensus_engine_state.block_slashing_db_hist[s][vp]
+                        && db in hn_state.block_consensus_engine_state.slashing_db_hist[s][vp]
                         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, bb, duty, randao_reveal)
                     ;
 
@@ -190,11 +190,11 @@ module Proofs_Intermediate_Steps
             )  
     {}
 
-    lemma lem_inv_active_proposer_consensus_instances_keys_is_subset_of_block_slashing_db_hist(
+    lemma lem_inv_active_proposer_consensus_instances_keys_is_subset_of_slashing_db_hist(
         dv: DVState
     )    
-    requires inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)    
-    ensures  inv_active_consensus_instances_on_beacon_blocks_are_tracked_in_block_slashing_db_hist(dv)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)    
+    ensures  inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)
     {}   
 
     lemma lem_inv_rcvd_block_shares_are_from_sent_messages_inv_rcvd_block_shares_are_in_all_sent_messages(
@@ -211,9 +211,9 @@ module Proofs_Intermediate_Steps
     ensures inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
     {}  
 
-    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k_inv_active_proposer_consensus_instances_predicate_is_in_block_slashing_db_hist(dv: DVState)    
-    requires inv_current_validity_predicate_for_slot_k_is_stored_in_block_slashing_db_hist_k(dv)
-    ensures inv_constraints_on_active_consensus_instances_on_beacon_blocks_are_ensured_with_block_slashing_db_hist(dv)
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_proposer_consensus_instances_predicate_is_in_slashing_db_hist(dv: DVState)    
+    requires inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv)
+    ensures inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(dv)
     {}  
 
 
