@@ -45,24 +45,6 @@ module Att_DVC_Spec_NonInstr {
         )
     }
 
-    function addToAttSlashingDBHist(
-        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        id: Slot,
-        vp: AttestationData -> bool,
-        new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
-    {
-
-            var  hist_id := getOrDefault(hist, id, map[]);
-            var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {new_attestation_slashing_db};
-            hist[
-                id := hist_id[
-                    vp := new_hist_id_vp
-                ]
-            ]
-    }  
-
-
     function stopConsensusInstances(
         s: ConsensusEngineState,
         ids: set<Slot>
@@ -85,28 +67,6 @@ module Att_DVC_Spec_NonInstr {
                 it.0 := it.1.(
                     validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(new_attestation_slashing_db, ad, it.1.attestation_duty)
                 )        
-    }
-
-  
-    function updateAttSlashingDBHist(
-        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
-        new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
-    {
-            var ret 
-                := map k: Slot | k in (new_active_attestation_consensus_instances.Keys + hist.Keys)
-                    ::            
-                    if k in new_active_attestation_consensus_instances.Keys then 
-                        var vp := new_active_attestation_consensus_instances[k].validityPredicate;
-                        var hist_k := getOrDefault(hist, k, map[]);
-                        var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
-                        hist_k[
-                            vp := hist_k_vp
-                        ]
-                    else
-                        hist[k];
-            ret
     }
 
     function updateConsensusInstanceValidityCheck(
