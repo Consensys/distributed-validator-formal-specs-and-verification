@@ -1,105 +1,11 @@
 include "../../common/commons.dfy"
 include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
-include "../consensus/consensus_engine.dfy"
-
-// module Block_Consensus_Engine_NonInstr
-// {
-//     import opened Types 
-//     import opened CommonFunctions
-
-//     datatype BlockConsensusEngineState = ConsensusEngineState<BlockConsensusValidityCheckState>(
-//         active_consensus_instances: map<Slot, BlockConsensusValidityCheckState>
-//     )
-    
-//     function getInitialBlockConensusEngineState(): ConsensusEngineState<BlockConsensusValidityCheckState>
-//     {
-//         BlockConsensusEngineState(
-//             active_consensus_instances := map[]
-//         )
-//     }
-
-//     function startBlockConsensusInstance(
-//         s: BlockConsensusEngineState,
-//         slot: Slot,
-//         proposer_duty: ProposerDuty,
-//         block_slashing_db: set<SlashingDBBlock>,
-//         complete_signed_randao_reveal: BLSSignature
-//     ): BlockConsensusEngineState
-//     requires slot !in s.active_consensus_instances.Keys    
-//     requires slot == proposer_duty.slot
-//     {
-//         var bcvc := 
-//             BlockConsensusValidityCheckState(
-//                     proposer_duty := proposer_duty,
-//                     randao_reveal := complete_signed_randao_reveal,
-//                     validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-//                                                                     block_slashing_db, 
-//                                                                     block, 
-//                                                                     proposer_duty,
-//                                                                     complete_signed_randao_reveal)
-//             );
-        
-//         assert (bcvc.validityPredicate == ((block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-//                                                                     block_slashing_db, 
-//                                                                     block, 
-//                                                                     bcvc.proposer_duty,
-//                                                                     bcvc.randao_reveal)));                
-//         s.(
-//             active_consensus_instances := s.active_consensus_instances[
-//                 slot := bcvc
-//             ]
-//         )
-//     }
-
-//     function stopBlockConsensusInstances(
-//         s: BlockConsensusEngineState,
-//         ids: set<Slot>
-//     ): BlockConsensusEngineState
-//     {
-//         s.(
-//             active_consensus_instances := s.active_consensus_instances - ids
-//         )
-//     }   
-
-//     function updateBlockConsensusInstanceValidityCheckHelper(
-//         m: map<Slot, BlockConsensusValidityCheckState>,
-//         new_block_slashing_db: set<SlashingDBBlock>
-//     ): (r: map<Slot, BlockConsensusValidityCheckState>)
-//     ensures r.Keys <= m.Keys
-//     {
-//             map it | it in m.Items
-//                 ::
-//                 it.0 := it.1.(
-//                     validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
-//                                                                     new_block_slashing_db, 
-//                                                                     block, 
-//                                                                     it.1.proposer_duty,
-//                                                                     it.1.randao_reveal 
-//                                                                  )
-//                 )        
-//     } 
-
-//     function updateBlockConsensusInstanceValidityCheck(
-//         s: BlockConsensusEngineState,
-//         new_block_slashing_db: set<SlashingDBBlock>
-//     ): (r: BlockConsensusEngineState)
-//     ensures r.active_consensus_instances.Keys <= s.active_consensus_instances.Keys
-//     {
-//         var new_active_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
-//                     s.active_consensus_instances,
-//                     new_block_slashing_db
-//                 );
-//         s.(
-//             active_consensus_instances := new_active_consensus_instances                
-//         )
-//     }
-// }
+include "../dvc/consensus_engine.dfy"
 
 module DVC_Block_Proposer_Spec_NonInstr {
     import opened Types 
     import opened CommonFunctions
-    // import opened Block_Consensus_Engine_NonInstr
     import opened Consensus_Engine_NonInstr
     import opened BN_Axioms    
     import opened RS_Axioms

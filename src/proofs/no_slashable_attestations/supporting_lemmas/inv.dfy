@@ -1,11 +1,13 @@
 include "../../../common/commons.dfy"
 include "../common/dvc_attestation_creation_instrumented.dfy"
+include "../../../specs/dvc/consensus_engine.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "../../common/helper_sets_lemmas.dfy"
 include "../../bn_axioms.dfy"
 include "../../rs_axioms.dfy"
+
 
 module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
@@ -18,6 +20,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Helper_Sets_Lemmas
     import opened BN_Axioms
     import opened RS_Axioms
+    import opened Consensus_Engine_Instr
 
 
     predicate is_an_honest_node(s: Att_DVState, n: BLSPubkey)
@@ -143,10 +146,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         cid: Slot
     )
     requires n in dv.honest_nodes_states.Keys 
-    requires cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances.Keys
     {
         &&  var dvc := dv.honest_nodes_states[n];
-        &&  var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
+        &&  var acvc := dvc.attestation_consensus_engine_state.active_consensus_instances[cid];
         &&  inv_existing_slashing_db_for_given_att_duty_and_vp(
                 cid, 
                 acvc.attestation_duty, 
@@ -158,9 +161,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc: Att_DVCState,
         cid: Slot
     )
-    requires cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires cid in dvc.attestation_consensus_engine_state.active_consensus_instances.Keys
     {
-        &&  var acvc := dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[cid];
+        &&  var acvc := dvc.attestation_consensus_engine_state.active_consensus_instances[cid];
         &&  inv_existing_slashing_db_for_given_att_duty_and_vp(
                 cid, 
                 acvc.attestation_duty, 
@@ -173,7 +176,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         forall cid | 
-            && cid in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+            && cid in dvc.attestation_consensus_engine_state.active_consensus_instances.Keys
             ::
             inv_exist_an_att_duty_and_a_validity_predicate_for_an_active_consensus_instance_at_slot_cid(dvc, cid)        
     }    
@@ -184,7 +187,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         forall n, cid | 
             && n in dv.honest_nodes_states.Keys
-            && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+            && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances.Keys
             ::
             inv_every_active_consensus_instance_has_a_corresponding_att_duty_and_a_validity_predicate(dv, n, cid)
     }
@@ -194,13 +197,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //     forall hn, s1: Slot, s2: Slot, vp, db2 |
     //         && hn in dv.honest_nodes_states.Keys
     //         && var hn_state := dv.honest_nodes_states[hn];
-    //         && s2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys            
+    //         && s2 in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys            
     //         && s1 < s2
     //         && hn in dv.consensus_on_attestation_data[s1].honest_nodes_validity_functions.Keys
     //         && hn in dv.consensus_on_attestation_data[s2].honest_nodes_validity_functions.Keys
     //         && vp in dv.consensus_on_attestation_data[s2].honest_nodes_validity_functions[hn]        
-    //         && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2].Keys   
-    //         && db2 in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s2][vp]          
+    //         && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s2].Keys   
+    //         && db2 in hn_state.attestation_consensus_engine_state.slashing_db_hist[s2][vp]          
     //         && dv.consensus_on_attestation_data[s1].decided_value.isPresent()
     //         ::                
     //         && var hn_state := dv.honest_nodes_states[hn];
@@ -210,11 +213,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //         && sdba in db2
     // }    
 
-    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: Att_DVState)    
+    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(dv: Att_DVState)    
     {
         forall hn | hn in dv.honest_nodes_states.Keys          
             ::
-            inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(
+            inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(
                 dv, 
                 hn,
                 dv.honest_nodes_states[hn],
@@ -222,7 +225,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             )                    
     }       
 
-    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(
+    predicate inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(
         dv: Att_DVState, 
         n: BLSPubkey,
         n_state: Att_DVCState,
@@ -230,7 +233,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         forall slot  |
-            && slot in n_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            && slot in n_state.attestation_consensus_engine_state.slashing_db_hist.Keys
             ::
             exists i: Slot :: 
                 && i < index_next_attestation_duty_to_be_served
@@ -254,7 +257,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         forall slot: Slot |
-            && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            && slot in dvc.attestation_consensus_engine_state.slashing_db_hist.Keys
             ::
             slot < get_upperlimit_active_instances(dvc)
     }     
@@ -384,40 +387,40 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             n_state.future_att_consensus_instances_already_decided[slot].slot == slot
     }       
 
-    predicate inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv: Att_DVState)    
+    predicate inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv: Att_DVState)    
     {
         forall hn |hn in dv.honest_nodes_states.Keys  ::
-            inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(
+            inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(
                 dv.honest_nodes_states[hn]
             )                    
     }       
 
-    predicate inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body
+    predicate inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body
     (
         n_state: Att_DVCState
     )
     {
-        n_state.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys <= n_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        n_state.attestation_consensus_engine_state.active_consensus_instances.Keys <= n_state.attestation_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: Att_DVState)    
+    predicate inv_active_consensus_instances_predicate_is_in_slashing_db_hist(dv: Att_DVState)    
     {
         forall hn, cid | hn in dv.honest_nodes_states.Keys ::
-            inv_validitty_predicates_of_active_attestation_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dv.honest_nodes_states[hn], cid)
+            inv_validitty_predicates_of_active_consensus_instances_are_tracked_in_slashing_db_hist_body(dv.honest_nodes_states[hn], cid)
              
     }       
 
-    predicate inv_validitty_predicates_of_active_attestation_consensus_instances_are_tracked_in_att_slashing_db_hist_body
+    predicate inv_validitty_predicates_of_active_consensus_instances_are_tracked_in_slashing_db_hist_body
     (
         n_state: Att_DVCState,
         cid: Slot
     )
     {
-        cid in n_state.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+        cid in n_state.attestation_consensus_engine_state.active_consensus_instances.Keys
         ==>
         (
-            && cid in n_state.attestation_consensus_engine_state.att_slashing_db_hist
-            && n_state.attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate in n_state.attestation_consensus_engine_state.att_slashing_db_hist[cid] 
+            && cid in n_state.attestation_consensus_engine_state.slashing_db_hist
+            && n_state.attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate in n_state.attestation_consensus_engine_state.slashing_db_hist[cid] 
         )
     }    
 
@@ -479,16 +482,16 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //     && ( forall r | r in S :: get_slot_from_slashing_db_attestation(r) < s )
     // }
 
-    predicate inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(dv: Att_DVState)
+    predicate inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv: Att_DVState)
     {
         forall hn: BLSPubkey, s: Slot | is_an_honest_node(dv, hn) ::
             && var hn_state := dv.honest_nodes_states[hn];
             && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
                  ==> 
-                 s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
+                 s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys)
     }
 
-    predicate inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(
+    predicate inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
         dv: Att_DVState, 
         hn: BLSPubkey,
         hn_state: Att_DVCState,
@@ -500,22 +503,22 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         (
             && var hn_state := dv.honest_nodes_states[hn];
             && hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
-            && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
             && vp in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions[hn]
         )
             ==>
         (
             && var hn_state := dv.honest_nodes_states[hn];
-            && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s]   
+            && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s]   
         )             
     }       
     
-    predicate inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: Att_DVState)
+    predicate inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv: Att_DVState)
     {
         forall hn: BLSPubkey, s: Slot, vp : AttestationData -> bool |
             hn in dv.honest_nodes_states.Keys
             ::
-            inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(
+            inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
                 dv,
                 hn,
                 dv.honest_nodes_states[hn],
@@ -581,12 +584,12 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         vp: AttestationData -> bool)
     requires && is_an_honest_node(dv, hn)
              && var hn_state := dv.honest_nodes_states[hn];
-             && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-             && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s].Keys
+             && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
+             && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s].Keys
     {
         && var hn_state := dv.honest_nodes_states[hn];
         && duty.slot == s
-        && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+        && db in hn_state.attestation_consensus_engine_state.slashing_db_hist[s][vp]
         && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
     }
 
@@ -595,8 +598,8 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
             && is_an_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
-            && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-            && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s].Keys
+            && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
+            && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s].Keys
             ::
             exists duty, db ::
                 && var hn_state := dv.honest_nodes_states[hn];
@@ -867,7 +870,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     {
         !dvc.latest_attestation_duty.isPresent()
         ==> 
-        dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys == {}
+        dvc.attestation_consensus_engine_state.active_consensus_instances.Keys == {}
     }
 
     predicate inv_no_active_consensus_instances_before_the_first_att_duty_was_received(dv: Att_DVState)
@@ -880,7 +883,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     predicate inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_body(dvc: Att_DVCState)
     {
         dvc.latest_attestation_duty.isPresent()
-        ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
+        ==> ( forall k: Slot | k in dvc.attestation_consensus_engine_state.active_consensus_instances.Keys 
                 ::
                 k <= dvc.latest_attestation_duty.safe_get().slot
             )
@@ -895,7 +898,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_body(dvc: Att_DVCState)
     {
-        forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys ::
+        forall k: Slot | k in dvc.attestation_consensus_engine_state.active_consensus_instances.Keys ::
             exists rcvd_duty: AttestationDuty :: 
                 && rcvd_duty in dvc.all_rcvd_duties
                 && rcvd_duty.slot == k
@@ -910,10 +913,10 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_body(dvc: Att_DVCState)
     {
-        forall k: Slot | k in dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
+        forall k: Slot | k in dvc.attestation_consensus_engine_state.active_consensus_instances.Keys 
             ::
-            && dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[k].attestation_duty in dvc.all_rcvd_duties                
-            && dvc.attestation_consensus_engine_state.active_attestation_consensus_instances[k].attestation_duty.slot == k
+            && dvc.attestation_consensus_engine_state.active_consensus_instances[k].attestation_duty in dvc.all_rcvd_duties                
+            && dvc.attestation_consensus_engine_state.active_consensus_instances[k].attestation_duty.slot == k
     }
 
     predicate inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k(dv: Att_DVState)
@@ -924,7 +927,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     predicate inv_active_consensus_instances_imply_the_delivery_of_att_duties_body(hn_state: Att_DVCState, s: Slot)
-    requires s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+    requires s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
     {
         exists duty: AttestationDuty :: 
                     && duty in hn_state.all_rcvd_duties
@@ -937,77 +940,77 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn: BLSPubkey, s: Slot ::
             ( && is_an_honest_node(dv, hn) 
               && var hn_state := dv.honest_nodes_states[hn];
-              && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+              && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
             )
             ==>
             inv_active_consensus_instances_imply_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)                
     }
 
-    predicate inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state: Att_DVCState)    
+    predicate inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state: Att_DVCState)    
     {
-        forall k: Slot | k in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys ::
+        forall k: Slot | k in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys ::
             exists duty: AttestationDuty :: 
                     && duty in hn_state.all_rcvd_duties
                     && duty.slot == k
     }
 
-    predicate inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv: Att_DVState)
+    predicate inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv: Att_DVState)
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && var hn_state := dv.honest_nodes_states[hn];            
-            && inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state)       
+            && inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state)       
     }
 
-    predicate inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body_ces(ces: ConsensusEngineState)
+    predicate inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body_ces(ces: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>)
     {
         forall s: Slot, vp: AttestationData -> bool |
-                ( && s in ces.att_slashing_db_hist.Keys
-                  && vp in ces.att_slashing_db_hist[s].Keys
+                ( && s in ces.slashing_db_hist.Keys
+                  && vp in ces.slashing_db_hist[s].Keys
                 )
                 :: 
                 ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                         && duty.slot == s
-                        && db in ces.att_slashing_db_hist[s][vp]
+                        && db in ces.slashing_db_hist[s][vp]
                         && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                 )
     }
 
-    predicate inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(hn_state: Att_DVCState)
+    predicate inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(hn_state: Att_DVCState)
     {
         forall s: Slot, vp: AttestationData -> bool |
-                ( && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                  && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s].Keys
+                ( && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
+                  && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s].Keys
                 )
                 :: 
                 ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                         && duty.slot == s
-                        && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                        && db in hn_state.attestation_consensus_engine_state.slashing_db_hist[s][vp]
                         && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                 )
     }
 
-    predicate inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv: Att_DVState)
+    predicate inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv: Att_DVState)
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(dvc)
+            && inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(dvc)
     }
 
-    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(hn_state: Att_DVCState)
+    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_body(hn_state: Att_DVCState)
     {
         forall k: Slot |
-            k in hn_state.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys ::
-                && var ci := hn_state.attestation_consensus_engine_state.active_attestation_consensus_instances[k];
+            k in hn_state.attestation_consensus_engine_state.active_consensus_instances.Keys ::
+                && var ci := hn_state.attestation_consensus_engine_state.active_consensus_instances[k];
                 && var vp: AttestationData -> bool := ci.validityPredicate;
-                && k in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys 
-                && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[k].Keys             
+                && k in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys 
+                && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[k].Keys             
     }
 
-    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv: Att_DVState)
+    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv: Att_DVState)
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_body(dvc)
+            && inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_body(dvc)
     }
 
     predicate inv_monotonic_att_slashing_db_body(dvc: Att_DVCState, dvc': Att_DVCState)
@@ -1024,49 +1027,49 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv_monotonic_att_slashing_db_body(dvc, dvc')
     }
 
-    predicate inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db_body_ces(ces: ConsensusEngineState, attestation_slashing_db: set<SlashingDBAttestation>)
+    predicate inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db_body_ces(ces: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>, attestation_slashing_db: set<SlashingDBAttestation>)
     {
         forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
-                ( && s in ces.att_slashing_db_hist.Keys
-                  && vp in ces.att_slashing_db_hist[s].Keys
-                  && db in ces.att_slashing_db_hist[s][vp]
+                ( && s in ces.slashing_db_hist.Keys
+                  && vp in ces.slashing_db_hist[s].Keys
+                  && db in ces.slashing_db_hist[s][vp]
                 )
                 :: 
                 db <= attestation_slashing_db
     }
 
-    predicate inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db_body(hn_state: Att_DVCState)
+    predicate inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db_body(hn_state: Att_DVCState)
     {
         forall s: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> |
-                ( && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                  && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s].Keys
-                  && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                ( && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
+                  && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s].Keys
+                  && db in hn_state.attestation_consensus_engine_state.slashing_db_hist[s][vp]
                 )
                 :: 
                 db <= hn_state.attestation_slashing_db
     }
 
-    predicate inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db(dv: Att_DVState)
+    predicate inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db(dv: Att_DVState)
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db_body(dvc)
+            && inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db_body(dvc)
     }
 
-    predicate inv_monotonic_att_slashing_db_hist_body(dvc: Att_DVCState, dvc': Att_DVCState)
+    predicate inv_monotonic_slashing_db_hist_body(dvc: Att_DVCState, dvc': Att_DVCState)
     {        
-        dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        dvc.attestation_consensus_engine_state.slashing_db_hist.Keys
         <= 
-        dvc'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        dvc'.attestation_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_monotonic_att_slashing_db_hist(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)    
+    predicate inv_monotonic_slashing_db_hist(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
-            && inv_monotonic_att_slashing_db_hist_body(dvc, dvc')
+            && inv_monotonic_slashing_db_hist_body(dvc, dvc')
     }
 
     predicate prop_monotonic_set_of_in_transit_messages(dv: Att_DVState, dv': Att_DVState)
@@ -1075,18 +1078,18 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
      
    
-    predicate inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc: Att_DVCState)
+    predicate inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist_body(dvc: Att_DVCState)
     {
-        dvc.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys 
+        dvc.attestation_consensus_engine_state.active_consensus_instances.Keys 
         <= 
-        dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        dvc.attestation_consensus_engine_state.slashing_db_hist.Keys
     } 
 
-    predicate inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist(dv: Att_DVState)
+    predicate inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist(dv: Att_DVState)
     {
         forall hn | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist_body(dvc)
+            && inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist_body(dvc)
     } 
 
     predicate inv_construct_signed_attestation_signature_assumptions_helper(dv: Att_DVState)
@@ -1158,7 +1161,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     //     dv.att_network.allMessagesSent <= dv'.att_network.allMessagesSent
     // }
     
-    predicate inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(
+    predicate inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(
         dv: Att_DVState, 
         hn: BLSPubkey,
         hn_state: Att_DVCState,
@@ -1166,13 +1169,13 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
-        ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        ==> s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(dv: Att_DVState)
+    predicate inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv: Att_DVState)
     {
         forall hn: BLSPubkey, s: Slot | hn in dv.honest_nodes_states.Keys :: 
-            inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
+            inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
     } 
 
     predicate inv_every_consensus_instance_isConditionForSafetyTrue(dv: Att_DVState)
@@ -1521,9 +1524,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
             && is_an_honest_node(dv, hn) 
             && var dvc := dv.honest_nodes_states[hn];
-            && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist
-            && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
-            && db in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+            && slot in dvc.attestation_consensus_engine_state.slashing_db_hist
+            && vp in dvc.attestation_consensus_engine_state.slashing_db_hist[slot].Keys
+            && db in dvc.attestation_consensus_engine_state.slashing_db_hist[slot][vp]
             :: 
             inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_body(
                 dv,
@@ -1560,9 +1563,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     )
     {
         forall slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
-            && slot in dvc.attestation_consensus_engine_state.att_slashing_db_hist
-            && vp in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
-            && db in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+            && slot in dvc.attestation_consensus_engine_state.slashing_db_hist.Keys
+            && vp in dvc.attestation_consensus_engine_state.slashing_db_hist[slot].Keys
+            && db in dvc.attestation_consensus_engine_state.slashing_db_hist[slot][vp]
             :: 
             inv_db_of_vp_contains_all_att_data_of_sent_att_shares_with_lower_slots_dvc_body(
                 allMessagesSent,

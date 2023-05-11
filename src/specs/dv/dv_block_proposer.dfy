@@ -1,7 +1,7 @@
 include "../../common/commons.dfy"
 include "../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumented.dfy"
 include "../consensus/consensus.dfy"
-include "../consensus/consensus_engine.dfy"
+include "../dvc/consensus_engine.dfy"
 include "../network/network.dfy"
 include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
@@ -14,8 +14,8 @@ module DV_Block_Proposer_Spec
     
     import opened NetworkSpec
     import opened ConsensusSpec
-    import opened DVC_Block_Proposer_Spec_Instr
     import opened Consensus_Engine_Instr
+    import opened DVC_Block_Proposer_Spec_Instr
     import opened BN_Axioms
     import opened RS_Axioms
     

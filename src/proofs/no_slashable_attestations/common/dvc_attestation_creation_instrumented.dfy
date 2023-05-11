@@ -1,5 +1,6 @@
 include "../../../common/commons.dfy"
 include "../../../specs/dvc/dvc_attestation_creation.dfy"
+include "../../../specs/dvc/consensus_engine.dfy"
 include "../../bn_axioms.dfy"
 include "../../rs_axioms.dfy"
 
@@ -7,172 +8,18 @@ include "../../rs_axioms.dfy"
 module Att_DVC_Spec {
     import opened Types 
     import opened CommonFunctions
-    // import opened Att_DVC_Externs
     import Att_DVC_Spec_NonInstr
     import opened BN_Axioms
     import opened RS_Axioms
+    import opened Consensus_Engine_Instr
     
-
-    datatype ConsensusEngineState = ConsensusEngineState(
-        active_attestation_consensus_instances: map<Slot, AttestationConsensusValidityCheckState>,
-        ghost att_slashing_db_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>
-    )
-
-    function getInitialConensusEngineState(): ConsensusEngineState
-    {
-        ConsensusEngineState(
-            active_attestation_consensus_instances := map[],
-            att_slashing_db_hist := map[]
-        )
-    }
-
-    function startConsensusInstance(
-        s: ConsensusEngineState,
-        id: Slot,
-        attestation_duty: AttestationDuty,
-        attestation_slashing_db: set<SlashingDBAttestation>
-    ): ConsensusEngineState
-    requires id !in s.active_attestation_consensus_instances.Keys
-    requires id == attestation_duty.slot
-    {
-        var acvc := 
-            AttestationConsensusValidityCheckState(
-                attestation_duty := attestation_duty,
-                validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, attestation_duty)
-            );
-        
-        assert (acvc.validityPredicate == (ad: AttestationData) => ci_decision_is_valid_attestation_data(attestation_slashing_db, ad, acvc.attestation_duty));
-        
-        var new_active_attestation_consensus_instances := 
-            s.active_attestation_consensus_instances[
-                id := acvc
-            ];
-
-        s.(
-            active_attestation_consensus_instances := new_active_attestation_consensus_instances,
-            att_slashing_db_hist := 
-                addToAttSlashingDBHist(
-                    s.att_slashing_db_hist,
-                    id,
-                    acvc.validityPredicate,
-                    attestation_slashing_db                    
-                )
-                
-        )
-    }
-
-    function addToAttSlashingDBHist(
-        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        id: Slot,
-        vp: AttestationData -> bool,
-        attestation_slashing_db: set<SlashingDBAttestation>
-    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
-    ensures hist.Keys + { id } == new_hist.Keys
-    ensures ( forall slot0, vp0 ::
-                    && var hist_slot0 := getOrDefault(hist, slot0, map[]);
-                    && var hist_slot_vp0 := getOrDefault(hist_slot0, vp0, {});
-                    && var new_hist_slot0 := getOrDefault(new_hist, slot0, map[]);
-                    && var new_hist_slot_vp0 := getOrDefault(new_hist_slot0, vp0, {});
-                    && (( slot0 != id || vp0 != vp )
-                        ==> 
-                        hist_slot_vp0 == new_hist_slot_vp0
-                        )
-                    && ((slot0 == id && vp0 == vp )
-                        ==> 
-                        hist_slot_vp0 + {attestation_slashing_db} == new_hist_slot_vp0
-                        )
-            )
-    {
-        var hist_id := getOrDefault(hist, id, map[]);
-        var new_hist_id_vp := getOrDefault(hist_id, vp, {}) + {attestation_slashing_db};
-        hist[
-            id := hist_id[
-                vp := new_hist_id_vp
-            ]
-        ]
-    }  
-
-
-    function stopConsensusInstances(
-        s: ConsensusEngineState,
-        ids: set<Slot>
-    ): ConsensusEngineState
-    {
-        s.(
-            active_attestation_consensus_instances := s.active_attestation_consensus_instances - ids
-        )
-    }    
-
-
-    function updateConsensusInstanceValidityCheckHelper(
-        m: map<Slot, AttestationConsensusValidityCheckState>,
-        new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (r: map<Slot, AttestationConsensusValidityCheckState>)
-    // Questions: It seems r.Keys == m.Keys, not <=
-    ensures r.Keys <= m.Keys
-    {
-            map it | it in m.Items
-                ::
-                it.0 := it.1.(
-                    validityPredicate := (ad: AttestationData) => ci_decision_is_valid_attestation_data(new_attestation_slashing_db, ad, it.1.attestation_duty)
-                )        
-    }
-
-  
-    function updateAttSlashingDBHist(
-        hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>,
-        new_active_attestation_consensus_instances : map<Slot, AttestationConsensusValidityCheckState>,
-        new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (new_hist: map<Slot, map<AttestationData -> bool, set<set<SlashingDBAttestation>>>>)
-    ensures hist.Keys + new_active_attestation_consensus_instances.Keys == new_hist.Keys
-    {
-            var ret 
-                := map k: Slot | k in (new_active_attestation_consensus_instances.Keys + hist.Keys)
-                    ::            
-                    if k in new_active_attestation_consensus_instances.Keys then 
-                        var vp := new_active_attestation_consensus_instances[k].validityPredicate;
-                        var hist_k := getOrDefault(hist, k, map[]);
-                        var hist_k_vp := getOrDefault(hist_k, vp, {}) + {new_attestation_slashing_db};
-                        hist_k[
-                            vp := hist_k_vp
-                        ]
-                    else
-                        hist[k];
-            ret
-    }
-
-    function updateConsensusInstanceValidityCheck(
-        s: ConsensusEngineState,
-        new_attestation_slashing_db: set<SlashingDBAttestation>
-    ): (r: ConsensusEngineState)
-    ensures && var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.active_attestation_consensus_instances,
-                    new_attestation_slashing_db
-                );
-            && s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys == r.att_slashing_db_hist.Keys
-    {
-        var new_active_attestation_consensus_instances := updateConsensusInstanceValidityCheckHelper(
-                    s.active_attestation_consensus_instances,
-                    new_attestation_slashing_db
-                );
-        s.(
-            active_attestation_consensus_instances := new_active_attestation_consensus_instances,
-            att_slashing_db_hist := updateAttSlashingDBHist(
-                s.att_slashing_db_hist,
-                new_active_attestation_consensus_instances,
-                new_attestation_slashing_db
-            )
-        )
-    }
-
-
     datatype Att_DVCState = Att_DVCState(
         current_attestation_duty: Optional<AttestationDuty>,
         latest_attestation_duty: Optional<AttestationDuty>,
         attestation_slashing_db: set<SlashingDBAttestation>,
         rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>,
         attestation_shares_to_broadcast: map<Slot, AttestationShare>,
-        attestation_consensus_engine_state: ConsensusEngineState,
+        attestation_consensus_engine_state: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>,
         peers: set<BLSPubkey>,
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         // TODO: Note difference with spec.py
@@ -225,8 +72,8 @@ module Att_DVC_Spec {
             latest_attestation_duty := None,
             attestation_slashing_db := initial_attestation_slashing_db,
             rcvd_attestation_shares := map[],
-            attestation_shares_to_broadcast := map[],
-            attestation_consensus_engine_state := getInitialConensusEngineState(),
+            attestation_shares_to_broadcast := map[],                                                  
+            attestation_consensus_engine_state := getInitialAttConsensusEngineState(),
             peers := peers,
             construct_signed_attestation_signature := construct_signed_attestation_signature,
             dv_pubkey := dv_pubkey,
@@ -304,10 +151,10 @@ module Att_DVC_Spec {
         process: Att_DVCState,
         attestation_duty: AttestationDuty
     ): Att_DVCStateAndOuputs    
-    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
-    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys
     {
         var process_rcvd_duty := 
                 process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
@@ -343,7 +190,7 @@ module Att_DVC_Spec {
         attestation_duty: AttestationDuty
     ): Att_DVCStateAndOuputs
     requires !process.current_attestation_duty.isPresent()
-    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     {
@@ -360,7 +207,7 @@ module Att_DVC_Spec {
                         latest_attestation_duty := Some(attestation_duty),
                         future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
                         attestation_slashing_db := new_attestation_slashing_db,
-                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                             process.attestation_consensus_engine_state,
                             new_attestation_slashing_db
                         )                        
@@ -371,7 +218,7 @@ module Att_DVC_Spec {
     }         
 
     function f_start_next_duty(process: Att_DVCState, attestation_duty: AttestationDuty): Att_DVCStateAndOuputs
-    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+    requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     {
@@ -379,7 +226,7 @@ module Att_DVC_Spec {
                 process.(
                             current_attestation_duty := Some(attestation_duty),
                             latest_attestation_duty := Some(attestation_duty),
-                            attestation_consensus_engine_state := startConsensusInstance(
+                            attestation_consensus_engine_state := startAttConsensusInstance(
                                 process.attestation_consensus_engine_state,
                                 attestation_duty.slot,
                                 attestation_duty,
@@ -452,7 +299,7 @@ module Att_DVC_Spec {
                     current_attestation_duty := None,
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
                     attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                         process.attestation_consensus_engine_state,
                         new_attestation_slashing_db
                     )
@@ -502,7 +349,7 @@ module Att_DVC_Spec {
         attestation_share: AttestationShare
     ): Att_DVCStateAndOuputs
     {
-        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+        var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_consensus_instances.Keys;
 
         if 
             || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
@@ -621,7 +468,7 @@ module Att_DVC_Spec {
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
+                    attestation_consensus_engine_state := stopAttConsensusInstances(
                                     process.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     ),
@@ -635,7 +482,7 @@ module Att_DVC_Spec {
             var process_after_updating_validity_check := process_after_stopping_consensus_instance.(
                 current_attestation_duty := None,
                 attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                     process_after_stopping_consensus_instance.attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )

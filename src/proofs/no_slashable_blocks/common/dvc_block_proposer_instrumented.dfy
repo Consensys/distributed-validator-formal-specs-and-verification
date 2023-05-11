@@ -1,7 +1,6 @@
 include "../../../common/commons.dfy"
-
 include "../../../specs/dvc/dvc_block_proposer.dfy"
-include "../../../specs/consensus/consensus_engine.dfy"
+include "../../../specs/dvc/consensus_engine.dfy"
 include "../../rs_axioms.dfy"
 include "../../bn_axioms.dfy"
 

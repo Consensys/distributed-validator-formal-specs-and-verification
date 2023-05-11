@@ -26,6 +26,7 @@ module Invs_Att_DV_Next_5
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV    
@@ -41,19 +42,19 @@ module Invs_Att_DV_Next_5
     import opened Fnc_Invs_2
     import opened Helper_Sets_Lemmas
 
-    lemma lem_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
+    lemma lem_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
         process: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
-    ensures process.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+    ensures process.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
     {
    
     }       
 
-    lemma lem_att_slashing_db_hist_is_monotonic_f_att_consensus_decided(
+    lemma lem_slashing_db_hist_is_monotonic_f_att_consensus_decided(
         s: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -61,7 +62,7 @@ module Invs_Att_DV_Next_5
     )
     requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;   
+    ensures s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;   
     {
         if  || !s.current_attestation_duty.isPresent()
             || id != s.current_attestation_duty.safe_get().slot 
@@ -76,14 +77,14 @@ module Invs_Att_DV_Next_5
 
     }     
 
-    lemma lem_att_slashing_db_hist_is_monotonic_f_listen_for_new_imported_blocks(
+    lemma lem_slashing_db_hist_is_monotonic_f_listen_for_new_imported_blocks(
         s: Att_DVCState,
         block: BeaconBlock,
         s': Att_DVCState
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
     requires s' == f_listen_for_new_imported_blocks(s, block).state
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys; 
+    ensures s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys; 
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(s, block);
 
@@ -92,33 +93,33 @@ module Invs_Att_DV_Next_5
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(s, att_consensus_instances_already_decided);
 
-        var s := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+        var s := f_stopAttConsensusInstances_after_receiving_new_imported_blocks(
                                 s,
                                 block
                             );                  
 
         if pred_listen_for_new_imported_blocks_checker(s, att_consensus_instances_already_decided)
         {
-            var s := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+            var s := f_updateAttConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
                                     s,
                                     att_consensus_instances_already_decided
                                 );
         }
     }      
 
-    lemma lem_att_slashing_db_hist_is_monotonic_f_check_for_next_duty(
+    lemma lem_slashing_db_hist_is_monotonic_f_check_for_next_duty(
         s: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState
     )
     requires f_check_for_next_duty.requires(s, attestation_duty)
     requires s' == f_check_for_next_duty(s, attestation_duty).state
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+    ensures s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
     {
         
     }      
 
-    lemma lem_att_slashing_db_hist_is_monotonic(
+    lemma lem_slashing_db_hist_is_monotonic(
         s: Att_DVCState,
         event: Types.AttestationEvent,
         s': Att_DVCState,
@@ -126,27 +127,27 @@ module Invs_Att_DV_Next_5
     )
     requires Att_DVC_Spec.Next.requires(s, event, s', outputs)
     requires Att_DVC_Spec.Next(s, event, s', outputs)
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+    ensures s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
     {
         match event
         {
             case ServeAttestationDuty(attestation_duty) => 
-                lem_att_slashing_db_hist_is_monotonic_f_serve_attestation_duty(s, attestation_duty, s');
+                lem_slashing_db_hist_is_monotonic_f_serve_attestation_duty(s, attestation_duty, s');
 
             case AttConsensusDecided(id, decided_attestation_data) => 
-                lem_att_slashing_db_hist_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s');
+                lem_slashing_db_hist_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s');
             
             case ReceivedAttestationShare(attestation_share) => 
-                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
 
             case ImportedNewBlock(block) => 
-                lem_att_slashing_db_hist_is_monotonic_f_listen_for_new_imported_blocks(s, block, s');
+                lem_slashing_db_hist_is_monotonic_f_listen_for_new_imported_blocks(s, block, s');
             
             case ResendAttestationShares => 
-                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
         
             case NoEvent => 
-                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
 
         }        
     }
@@ -167,7 +168,7 @@ module Invs_Att_DV_Next_5
 
     } 
 
-    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next_helper(
+    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_dv_next_helper(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         cid: Slot,
@@ -180,9 +181,9 @@ module Invs_Att_DV_Next_5
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    ensures inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    ensures inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid)
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -205,9 +206,9 @@ module Invs_Att_DV_Next_5
                 var validityPredicates := 
                     map n |
                             && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                            && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances.Keys
                         ::
-                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+                            s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                     ;
 
                 var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
@@ -225,16 +226,16 @@ module Invs_Att_DV_Next_5
                 {
                     if hn in  s.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     {
-                        assert inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+                        assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
 
-                        assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                        assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
                     }
                     else 
                     {
                         assert hn in validityPredicates;
-                        assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
-                        assert inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(s.honest_nodes_states[hn]);
-                        assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                        assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.active_consensus_instances.Keys;
+                        assert inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(s.honest_nodes_states[hn]);
+                        assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
                     }
 
                     if hn == node 
@@ -242,14 +243,14 @@ module Invs_Att_DV_Next_5
                         lem_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_Att_DVC_Spec_Next(s, event, s');
                         assert Att_DVC_Spec.Next.requires(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
                         assert Att_DVC_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
-                        lem_att_slashing_db_hist_is_monotonic(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
-                        assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                        assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                        lem_slashing_db_hist_is_monotonic(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
+                        assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
+                        assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
                     }
                     else 
                     {
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                        assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                        assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
                     }
                 }  
 
@@ -261,16 +262,16 @@ module Invs_Att_DV_Next_5
                 if
                     && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                 {
-                    assert inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
-                    assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                    assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+                    assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                    assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;                    
+                    assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;                    
                 } 
 
         }
     }   
 
-    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next(
+    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_dv_next(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         s': Att_DVState
@@ -280,40 +281,40 @@ module Invs_Att_DV_Next_5
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(s)   
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    ensures inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(s')   
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    ensures inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey, slot: Slot |
             hn in s'.honest_nodes_states.Keys
-        ensures inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot)    
+        ensures inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot)    
         {
-            lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next_helper(s, event, slot, hn, s');
+            lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_dv_next_helper(s, event, slot, hn, s');
         }
     }  
 
-    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_implies_46_a(dv: Att_DVState)
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
-    ensures inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(dv)
+    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_implies_46_a(dv: Att_DVState)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
+    ensures inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv)
     {
         forall hn: BLSPubkey, s: Slot | is_an_honest_node(dv, hn)
         ensures
                 var hn_state := dv.honest_nodes_states[hn];
                 && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
-                    ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
+                    ==> s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys)
                 ;        
         {
             assert hn in dv.honest_nodes_states.Keys;
             var hn_state := dv.honest_nodes_states[hn];
-            assert inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(dv, hn, hn_state, s);
+            assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(dv, hn, hn_state, s);
             assert
                 && ( hn in dv.consensus_on_attestation_data[s].honest_nodes_validity_functions.Keys
-                    ==> s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys)
+                    ==> s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys)
                 ;
         }
     }  
 
-    lemma lem_inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(
+    lemma lem_inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         s': Att_DVState
@@ -323,13 +324,13 @@ module Invs_Att_DV_Next_5
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)   
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(s)   
-    requires inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(s)   
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    ensures inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(s')   
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)   
+    requires inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(s)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    ensures inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(s')   
     {
-        lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next(s, event, s');
-        lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_implies_46_a(s');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_dv_next(s, event, s');
+        lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_implies_46_a(s');
     }     
 
     lemma lem_add_set_of_validity_predicates<D(!new, 0)>(
@@ -377,19 +378,19 @@ module Invs_Att_DV_Next_5
 
     }      
 
-    function lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper_helper_function(
+    function lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper_helper_function(
         s_w_honest_node_states_updated: Att_DVState,
         cid: Slot
     ) : map<BLSPubkey, AttestationData -> bool>
     {
         map n |
                 && n in s_w_honest_node_states_updated.honest_nodes_states.Keys 
-                && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                && cid in s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances.Keys
             ::
-                s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+                s_w_honest_node_states_updated.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate
     }    
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(
+    lemma lem_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(
         process: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState,
@@ -397,14 +398,14 @@ module Invs_Att_DV_Next_5
     )
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
-    requires cid in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures process.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    requires cid in process.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures process.attestation_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.slashing_db_hist[cid].Keys; 
     {
 
     }           
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(
+    lemma lem_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(
         s: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -413,14 +414,14 @@ module Invs_Att_DV_Next_5
     )
     requires f_att_consensus_decided.requires(s, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(s, id, decided_attestation_data).state
-    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    requires cid in s.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.slashing_db_hist[cid].Keys; 
     {
          
     }         
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(
+    lemma lem_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(
         s: Att_DVCState,
         block: BeaconBlock,
         s': Att_DVCState,
@@ -428,9 +429,9 @@ module Invs_Att_DV_Next_5
     )
     requires f_listen_for_new_imported_blocks.requires(s, block)
     requires s' == f_listen_for_new_imported_blocks(s, block).state
-    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    requires cid in s.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.slashing_db_hist[cid].Keys; 
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(s, block);
 
@@ -439,7 +440,7 @@ module Invs_Att_DV_Next_5
         var future_att_consensus_instances_already_decided := 
             f_listen_for_new_imported_blocks_helper_2(s, att_consensus_instances_already_decided);
 
-        var s := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+        var s := f_stopAttConsensusInstances_after_receiving_new_imported_blocks(
                                 s,
                                 block
                             );                    
@@ -447,14 +448,14 @@ module Invs_Att_DV_Next_5
         if pred_listen_for_new_imported_blocks_checker(s, att_consensus_instances_already_decided)
         {
             var decided_attestation_data := att_consensus_instances_already_decided[s.current_attestation_duty.safe_get().slot];
-            var s := f_updateConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
+            var s := f_updateAttConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
                                     s,
                                     att_consensus_instances_already_decided
                                 );
         }
     }   
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(
+    lemma lem_slashing_db_hist_cid_is_monotonic_f_check_for_next_duty(
         s: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState,
@@ -462,14 +463,14 @@ module Invs_Att_DV_Next_5
     )
     requires f_check_for_next_duty.requires(s, attestation_duty)
     requires s' == f_check_for_next_duty(s, attestation_duty).state
-    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+    requires cid in s.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.slashing_db_hist[cid].Keys; 
     {
-        assert s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys; 
+        assert s.attestation_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.slashing_db_hist[cid].Keys; 
     }      
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic(
+    lemma lem_slashing_db_hist_cid_is_monotonic(
         s: Att_DVCState,
         event: Types.AttestationEvent,
         s': Att_DVCState,
@@ -478,34 +479,34 @@ module Invs_Att_DV_Next_5
     )
     requires Att_DVC_Spec.Next.requires(s, event, s', outputs)
     requires Att_DVC_Spec.Next(s, event, s', outputs)
-    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures s.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys;  
+    requires cid in s.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures cid in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures s.attestation_consensus_engine_state.slashing_db_hist[cid].Keys <= s'.attestation_consensus_engine_state.slashing_db_hist[cid].Keys;  
     {
         match event
         {
             case ServeAttestationDuty(attestation_duty) => 
-                lem_att_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(s, attestation_duty, s', cid);
+                lem_slashing_db_hist_cid_is_monotonic_f_serve_attestation_duty(s, attestation_duty, s', cid);
 
             case AttConsensusDecided(id, decided_attestation_data) => 
-                lem_att_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s', cid);
+                lem_slashing_db_hist_cid_is_monotonic_f_att_consensus_decided(s, id, decided_attestation_data, s', cid);
             
             case ReceivedAttestationShare(attestation_share) => 
-                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
 
             case ImportedNewBlock(block) => 
-                lem_att_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(s, block, s', cid);
+                lem_slashing_db_hist_cid_is_monotonic_f_listen_for_new_imported_blocks(s, block, s', cid);
             
             case ResendAttestationShares => 
-                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
         
             case NoEvent => 
-                assert s.attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                assert s.attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.attestation_consensus_engine_state.slashing_db_hist.Keys;
 
         }           
     } 
 
-    lemma lem_att_slashing_db_hist_cid_is_monotonic_corollary(
+    lemma lem_slashing_db_hist_cid_is_monotonic_corollary(
         s: Att_DVCState,
         event: Types.AttestationEvent,
         s': Att_DVCState,
@@ -515,15 +516,15 @@ module Invs_Att_DV_Next_5
     )
     requires Att_DVC_Spec.Next.requires(s, event, s', outputs)    
     requires Att_DVC_Spec.Next(s, event, s', outputs)
-    requires cid in s.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    requires vp in s.attestation_consensus_engine_state.att_slashing_db_hist[cid]
-    ensures cid in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-    ensures vp in s'.attestation_consensus_engine_state.att_slashing_db_hist[cid]
+    requires cid in s.attestation_consensus_engine_state.slashing_db_hist.Keys
+    requires vp in s.attestation_consensus_engine_state.slashing_db_hist[cid]
+    ensures cid in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
+    ensures vp in s'.attestation_consensus_engine_state.slashing_db_hist[cid]
     {
-        lem_att_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
+        lem_slashing_db_hist_cid_is_monotonic(s, event, s', outputs, cid);
     }     
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_HonestNodeTakingStep(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_HonestNodeTakingStep(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         cid: Slot,
@@ -538,11 +539,11 @@ module Invs_Att_DV_Next_5
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
-    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    requires inv_validitty_predicates_of_active_attestation_consensus_instances_are_tracked_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
-    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    requires inv_validitty_predicates_of_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -561,7 +562,7 @@ module Invs_Att_DV_Next_5
                         None
                     ;
 
-                var validityPredicates := lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper_helper_function(s_w_honest_node_states_updated, cid);                    
+                var validityPredicates := lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper_helper_function(s_w_honest_node_states_updated, cid);                    
                 var s_consensus := s_w_honest_node_states_updated.consensus_on_attestation_data[cid];
                 var s'_consensus := s'.consensus_on_attestation_data[cid];                
 
@@ -578,14 +579,14 @@ module Invs_Att_DV_Next_5
 
                 if && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                    && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]                          
-                   && cid in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                   && cid in hn'_state.attestation_consensus_engine_state.slashing_db_hist.Keys
                 {
                     if hn in  s.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     {
                         if vp in s.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]
                         {
-                            assert cid in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                            assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];
+                            assert cid in hn'_state.attestation_consensus_engine_state.slashing_db_hist.Keys;
+                            assert vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[cid];
                         }
                         else 
                         {
@@ -596,8 +597,8 @@ module Invs_Att_DV_Next_5
                                 hn,
                                 vp
                             );
-                            assert vp == s.honest_nodes_states[hn].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate; 
-                            assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];
+                            assert vp == s.honest_nodes_states[hn].attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate; 
+                            assert vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[cid];
                         }
                     }
                     else 
@@ -612,33 +613,33 @@ module Invs_Att_DV_Next_5
                             vp
                         );
 
-                        assert vp == s.honest_nodes_states[hn].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate; 
-                        assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];
+                        assert vp == s.honest_nodes_states[hn].attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate; 
+                        assert vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[cid];
 
                     }
-                    assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];
+                    assert vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[cid];
 
                     if hn == node 
                     {
                         lem_NextEvent_implies_NextHonestAfterAddingBlockToBn_and_Att_DVC_Spec_Next(s, event, s');
                         assert Att_DVC_Spec.Next(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs);
-                        lem_att_slashing_db_hist_cid_is_monotonic_corollary(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs, cid, vp);
-                        // assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                        // assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                        assert vp in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];
+                        lem_slashing_db_hist_cid_is_monotonic_corollary(s_w_honest_node_states_updated.honest_nodes_states[hn], nodeEvent, s'.honest_nodes_states[hn], nodeOutputs, cid, vp);
+                        // assert s_w_honest_node_states_updated.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys <= s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
+                        // assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
+                        assert vp in hn'_state.attestation_consensus_engine_state.slashing_db_hist[cid];
                     }
                     else 
                     {
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                        assert vp in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];
+                        assert vp in hn'_state.attestation_consensus_engine_state.slashing_db_hist[cid];
                     }   
-                    assert vp in hn'_state.attestation_consensus_engine_state.att_slashing_db_hist[cid];                 
+                    assert vp in hn'_state.attestation_consensus_engine_state.slashing_db_hist[cid];                 
 
                 }  
         }
     }     
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdversaryTakingStep(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_AdversaryTakingStep(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         cid: Slot,
@@ -653,11 +654,11 @@ module Invs_Att_DV_Next_5
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
-    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    requires inv_validitty_predicates_of_active_attestation_consensus_instances_are_tracked_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
-    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    requires inv_validitty_predicates_of_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -669,19 +670,19 @@ module Invs_Att_DV_Next_5
                 if
                     && hn in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions.Keys
                     && vp in s'.consensus_on_attestation_data[cid].honest_nodes_validity_functions[hn]                          
-                    && cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                    && cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys
                 {
-                    assert inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
-                    assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+                    assert inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid);
+                    assert cid in s.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                    assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-                    assert vp in s'.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist[cid].Keys;                 
+                    assert cid in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys;
+                    assert vp in s'.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist[cid].Keys;                 
                 } 
 
         }
     }  
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         cid: Slot,
@@ -695,18 +696,18 @@ module Invs_Att_DV_Next_5
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
     requires hn in s.honest_nodes_states.Keys
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
-    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    requires inv_validitty_predicates_of_active_attestation_consensus_instances_are_tracked_in_att_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
-    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s, hn, s.honest_nodes_states[hn], cid, vp)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    requires inv_validitty_predicates_of_active_consensus_instances_are_tracked_in_slashing_db_hist_body(s.honest_nodes_states[hn], cid)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], cid, vp)
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
         {
             
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_HonestNodeTakingStep(
+                lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_HonestNodeTakingStep(
                     s,
                     event,
                     cid,
@@ -716,7 +717,7 @@ module Invs_Att_DV_Next_5
                 );
                 
             case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
-                lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_AdversaryTakingStep(
+                lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_AdversaryTakingStep(
                     s,
                     event,
                     cid,
@@ -727,7 +728,7 @@ module Invs_Att_DV_Next_5
         }
     }  
 
-    lemma lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(
+    lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         s': Att_DVState
@@ -737,21 +738,21 @@ module Invs_Att_DV_Next_5
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires same_honest_nodes_in_dv_and_ci(s)
     requires inv_only_dv_construct_signed_attestation_signature(s)    
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(s)  
-    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s) 
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    requires inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(s)
-    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(s')   
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(s)  
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist(s) 
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    requires inv_active_consensus_instances_predicate_is_in_slashing_db_hist(s)
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist(s')   
     {
         forall hn: BLSPubkey, slot: Slot, vp : AttestationData -> bool |
             hn in s'.honest_nodes_states
-        ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot, vp)    
+        ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], slot, vp)    
         {
-            lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body_helper(s, event, slot, vp, hn, s');
+            lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper(s, event, slot, vp, hn, s');
         }
     }  
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_terminate_current_attestation_duty(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_terminate_current_attestation_duty(
         process: Att_DVCState,
         s': Att_DVCState,
         dv: Att_DVState,
@@ -760,27 +761,27 @@ module Invs_Att_DV_Next_5
     )
     requires f_terminate_current_attestation_duty.requires(process)
     requires s' == f_terminate_current_attestation_duty(process)
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
         
     }
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_startConsensusInstance_helper(
-        s: ConsensusEngineState,
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_startAttConsensusInstance_helper(
+        s: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>,
         id: Slot,
         attestation_duty: AttestationDuty,
         attestation_slashing_db: set<SlashingDBAttestation>,
-        s': ConsensusEngineState
+        s': ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>
     )
-    requires startConsensusInstance.requires(s, id, attestation_duty, attestation_slashing_db)
-    requires s' == startConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
-    ensures s.att_slashing_db_hist.Keys + { attestation_duty.slot } == s'.att_slashing_db_hist.Keys
+    requires startAttConsensusInstance.requires(s, id, attestation_duty, attestation_slashing_db)
+    requires s' == startAttConsensusInstance(s, id, attestation_duty, attestation_slashing_db)
+    ensures s.slashing_db_hist.Keys + { attestation_duty.slot } == s'.slashing_db_hist.Keys
     {   
         
     }
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_start_next_duty(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_start_next_duty(
         process: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState,
@@ -790,12 +791,12 @@ module Invs_Att_DV_Next_5
     )
     requires f_start_next_duty.requires(process, attestation_duty)
     requires s' == f_start_next_duty(process, attestation_duty).state  
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(process)
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(process)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires pred_last_att_duty_is_delivering_to_given_honest_node(attestation_duty, dv, n, index_next_attestation_duty_to_be_served)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
-        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_startConsensusInstance_helper(
+        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_startAttConsensusInstance_helper(
             process.attestation_consensus_engine_state,
             attestation_duty.slot,
             attestation_duty,
@@ -803,7 +804,7 @@ module Invs_Att_DV_Next_5
             s'.attestation_consensus_engine_state
         );
 
-        forall slot | slot in s'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+        forall slot | slot in s'.attestation_consensus_engine_state.slashing_db_hist.Keys
         ensures exists i: Slot :: 
                     && i < index_next_attestation_duty_to_be_served
                     && var an := dv.sequence_attestation_duties_to_be_served[i];
@@ -811,7 +812,7 @@ module Invs_Att_DV_Next_5
                     && an.node == n
                     ;
         {
-            if slot in process.attestation_consensus_engine_state.att_slashing_db_hist.Keys
+            if slot in process.attestation_consensus_engine_state.slashing_db_hist.Keys
             {
                 var i: Slot :| && i < index_next_attestation_duty_to_be_served
                                && var an := dv.sequence_attestation_duties_to_be_served[i];
@@ -831,24 +832,24 @@ module Invs_Att_DV_Next_5
         }
     }
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_updateConsensusInstanceValidityCheck_helper(
-        s: ConsensusEngineState,
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_updateAttConsensusInstanceValidityCheck_helper(
+        s: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>,
         new_attestation_slashing_db: set<SlashingDBAttestation>,
-        s': ConsensusEngineState
+        s': ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>
     )
-    requires updateConsensusInstanceValidityCheck.requires(s, new_attestation_slashing_db)
-    requires s' == updateConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
-    ensures && var new_active_attestation_consensus_instances := 
-                        updateConsensusInstanceValidityCheckHelper(
-                            s.active_attestation_consensus_instances,
+    requires updateAttConsensusInstanceValidityCheck.requires(s, new_attestation_slashing_db)
+    requires s' == updateAttConsensusInstanceValidityCheck(s, new_attestation_slashing_db)
+    ensures && var new_active_consensus_instances := 
+                        updateAttConsensusInstanceValidityCheckHelper(
+                            s.active_consensus_instances,
                             new_attestation_slashing_db
                         );
-            && s.att_slashing_db_hist.Keys + new_active_attestation_consensus_instances.Keys == s'.att_slashing_db_hist.Keys
+            && s.slashing_db_hist.Keys + new_active_consensus_instances.Keys == s'.slashing_db_hist.Keys
     {   
 
     }
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_check_for_next_duty(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_check_for_next_duty(
         process: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState,
@@ -858,10 +859,10 @@ module Invs_Att_DV_Next_5
     )
     requires f_check_for_next_duty.requires(process, attestation_duty)
     requires s' == f_check_for_next_duty(process, attestation_duty).state  
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(process)
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(process)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
     requires pred_last_att_duty_is_delivering_to_given_honest_node(attestation_duty, dv, n, index_next_attestation_duty_to_be_served)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {   
         
         if attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
@@ -871,16 +872,16 @@ module Invs_Att_DV_Next_5
                         process.attestation_slashing_db, 
                         process.future_att_consensus_instances_already_decided[attestation_duty.slot]
                     );
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_updateConsensusInstanceValidityCheck_helper(
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_updateAttConsensusInstanceValidityCheck_helper(
                     process.attestation_consensus_engine_state,
                     new_attestation_slashing_db,
                     s'.attestation_consensus_engine_state
             );
-            assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served);
+            assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served);
         }
         else
         {
-            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_start_next_duty(
+            lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_start_next_duty(
                 process,
                 attestation_duty,
                 s',
@@ -888,12 +889,12 @@ module Invs_Att_DV_Next_5
                 n,
                 index_next_attestation_duty_to_be_served
             );
-            assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served);
+            assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served);
         }
             
     }
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_serve_attestation_duty(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_serve_attestation_duty(
         process: Att_DVCState,
         attestation_duty: AttestationDuty,
         s': Att_DVCState,
@@ -904,19 +905,19 @@ module Invs_Att_DV_Next_5
     requires f_serve_attestation_duty.requires(process, attestation_duty)
     requires s' == f_serve_attestation_duty(process, attestation_duty).state  
     requires index_next_attestation_duty_to_be_served > 0    
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(process)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served-1)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(process)
     requires pred_last_att_duty_is_delivering_to_given_honest_node(attestation_duty, dv, n, index_next_attestation_duty_to_be_served)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {
         var process_rcvd_duty := 
                 process.(all_rcvd_duties := process.all_rcvd_duties + {attestation_duty});
 
-        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, process_rcvd_duty, index_next_attestation_duty_to_be_served);
+        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, process_rcvd_duty, index_next_attestation_duty_to_be_served);
 
         var process_after_stopping_active_consensus_instance := f_terminate_current_attestation_duty(process_rcvd_duty);
 
-        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_terminate_current_attestation_duty(
+        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_terminate_current_attestation_duty(
                 process_rcvd_duty,
                 process_after_stopping_active_consensus_instance,
                 dv,
@@ -929,7 +930,7 @@ module Invs_Att_DV_Next_5
                             attestation_duty
                         ).state;
 
-        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_check_for_next_duty(
+        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_check_for_next_duty(
                 process_after_stopping_active_consensus_instance,
                 attestation_duty,
                 s',
@@ -939,7 +940,7 @@ module Invs_Att_DV_Next_5
             );
     }       
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_att_consensus_decided(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_att_consensus_decided(
         process: Att_DVCState,
         id: Slot,
         decided_attestation_data: AttestationData,        
@@ -950,14 +951,14 @@ module Invs_Att_DV_Next_5
     )
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
     requires s' == f_att_consensus_decided(process, id, decided_attestation_data).state
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(process)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, process, index_next_attestation_duty_to_be_served)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(process)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv, n, s', index_next_attestation_duty_to_be_served)
     {   
 
     }    
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_listen_for_new_imported_blocks(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_listen_for_new_imported_blocks(
         process: Att_DVCState,
         block: BeaconBlock,
         s': Att_DVCState,
@@ -967,14 +968,14 @@ module Invs_Att_DV_Next_5
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)
     requires s' == f_listen_for_new_imported_blocks(process, block).state        
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv', n, process, index_next_attestation_duty_to_be_served)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(process)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(dv', n, s', index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv', n, process, index_next_attestation_duty_to_be_served)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(process)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(dv', n, s', index_next_attestation_duty_to_be_served)
     {
         
     }        
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest_helper4(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_helper_honest_helper4(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         s': Att_DVState,
@@ -983,8 +984,8 @@ module Invs_Att_DV_Next_5
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')      
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s, n, s_node, s.index_next_attestation_duty_to_be_served)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', n, s_node, s.index_next_attestation_duty_to_be_served)
     {
 
     }     
@@ -1001,7 +1002,7 @@ module Invs_Att_DV_Next_5
 
     }    
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_helper_honest(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         s': Att_DVState
@@ -1009,9 +1010,9 @@ module Invs_Att_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?    
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', event.node, s'.honest_nodes_states[event.node], s'.index_next_attestation_duty_to_be_served); 
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(s)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', event.node, s'.honest_nodes_states[event.node], s'.index_next_attestation_duty_to_be_served); 
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1020,17 +1021,17 @@ module Invs_Att_DV_Next_5
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest_helper4(s, event, s', s_node, node);
+                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_helper_honest_helper4(s, event, s', s_node, node);
 
-                assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
-                assert inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist_body(s_node);     
+                assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s_node, s.index_next_attestation_duty_to_be_served);
+                assert inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist_body(s_node);     
 
                 match nodeEvent
                 {
                     case ServeAttestationDuty(attestation_duty) => 
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served - 1;
                         lem_ServeAttestationDuty_constraints(s, event, s');
-                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_serve_attestation_duty(
+                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_serve_attestation_duty(
                             s_node,
                             attestation_duty,
                             s'_node,
@@ -1038,12 +1039,12 @@ module Invs_Att_DV_Next_5
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         );
-                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                     
+                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                     
                 
                     case AttConsensusDecided(id, decided_attestation_data) =>  
                         lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         assert s.index_next_attestation_duty_to_be_served == s'.index_next_attestation_duty_to_be_served;    
-                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_att_consensus_decided(
+                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_att_consensus_decided(
                             s_node,
                             id,
                             decided_attestation_data,
@@ -1052,17 +1053,17 @@ module Invs_Att_DV_Next_5
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         ); 
-                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                        
+                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                        
                
                     case ReceivedAttestationShare(attestation_share) =>
                         lem_NonServeAttestationDuty_unchanged_vars(s, event, s'); 
                         lem_f_listen_for_attestation_shares_constants(s_node, attestation_share, s'_node);
-                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);  
+                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);  
                         
                     case ImportedNewBlock(block) => 
                         lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         var s_node2 := f_add_block_to_bn(s_node, nodeEvent.block);
-                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body_f_listen_for_new_imported_blocks(
+                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body_f_listen_for_new_imported_blocks(
                             s_node2,
                             block,
                             s'_node,
@@ -1070,32 +1071,32 @@ module Invs_Att_DV_Next_5
                             node,
                             s'.index_next_attestation_duty_to_be_served
                         );  
-                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                     
+                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                     
                  
                     case ResendAttestationShares => 
                         lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         lem_f_resend_attestation_share_constants(s_node, s'_node);
-                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);  
+                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);  
 
                     case NoEvent => 
                         lem_NonServeAttestationDuty_unchanged_vars(s, event, s');
                         assert s_node == s'_node; 
-                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                          
+                        assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', node, s'_node, s'.index_next_attestation_duty_to_be_served);                          
                 }                     
 
         }
     }   
 
-    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(
+    lemma lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(
         s: Att_DVState,
         event: Att_DV.AttestationEvent,
         s': Att_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
-    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s');  
+    requires inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(s)
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(s');  
     {
         assert s.att_network.allMessagesSent <= s'.att_network.allMessagesSent;
         match event 
@@ -1104,27 +1105,27 @@ module Invs_Att_DV_Next_5
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest(s, event, s');
+                lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_helper_honest(s, event, s');
                    
                 forall hn | hn in s'.honest_nodes_states.Keys   
-                ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_attestation_duty_to_be_served); 
+                ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_attestation_duty_to_be_served); 
                 {
                     if hn != node 
                     {
                         assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest_helper4(s, event, s', s.honest_nodes_states[hn], hn);
+                        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_helper_honest_helper4(s, event, s', s.honest_nodes_states[hn], hn);
                     }
                 }  
-                assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s');
+                assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(s');
                          
             case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) =>
                 forall hn | hn in s'.honest_nodes_states.Keys   
-                ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_attestation_duty_to_be_served); 
+                ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_body(s', hn, s'.honest_nodes_states[hn], s'.index_next_attestation_duty_to_be_served); 
                 {
                     assert s.honest_nodes_states[hn] == s'.honest_nodes_states[hn];
-                    lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist_helper_honest_helper4(s, event, s', s.honest_nodes_states[hn], hn);
+                    lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist_helper_honest_helper4(s, event, s', s.honest_nodes_states[hn], hn);
                 }  
-                assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(s');            
+                assert inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(s');            
         }
     }  
 
@@ -1145,7 +1146,7 @@ module Invs_Att_DV_Next_5
     requires event.HonestNodeTakingStep?
     requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(s)
     ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s')
@@ -1210,7 +1211,7 @@ module Invs_Att_DV_Next_5
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s)        
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(s)       
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(s)       
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(s)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(s);
     ensures inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(s')
@@ -1304,9 +1305,9 @@ module Invs_Att_DV_Next_5
             var validityPredicates := 
                 map n |
                         && n in dv.honest_nodes_states.Keys 
-                        && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                        && cid in dv.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances.Keys
                     ::
-                        dv.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+                        dv.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                 ;
 
             assert  ConsensusSpec.Next(
@@ -1931,7 +1932,7 @@ module Invs_Att_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
     requires inv_available_current_att_duty_is_latest_att_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures  inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv')
@@ -1944,9 +1945,9 @@ module Invs_Att_DV_Next_5
                 forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
                             && is_an_honest_node(dv, hn) 
                             && var dvc' := dv.honest_nodes_states[hn];
-                            && slot in dvc'.attestation_consensus_engine_state.att_slashing_db_hist
-                            && vp in dvc'.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
-                            && db in dvc'.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+                            && slot in dvc'.attestation_consensus_engine_state.slashing_db_hist
+                            && vp in dvc'.attestation_consensus_engine_state.slashing_db_hist[slot].Keys
+                            && db in dvc'.attestation_consensus_engine_state.slashing_db_hist[slot][vp]
                 ensures inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_body(
                             dv',
                             hn,
@@ -1957,7 +1958,7 @@ module Invs_Att_DV_Next_5
                     var dvc := dv.honest_nodes_states[hn];
                     var dvc' := dv'.honest_nodes_states[hn];
                     assert dvc == dvc';
-                    assert db in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp];
+                    assert db in dvc.attestation_consensus_engine_state.slashing_db_hist[slot][vp];
 
                     assert inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_body(
                             dv,
@@ -2031,7 +2032,7 @@ module Invs_Att_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
     requires inv_available_current_att_duty_is_latest_att_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures  inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv')
@@ -2058,7 +2059,7 @@ module Invs_Att_DV_Next_5
                                 );
 
                                 assert ( forall slot  |
-                                                    slot in dvc'.attestation_consensus_engine_state.att_slashing_db_hist
+                                                    slot in dvc'.attestation_consensus_engine_state.slashing_db_hist
                                                     ::
                                                     slot <= dvc'.latest_attestation_duty.safe_get().slot
                                         );
@@ -2093,9 +2094,9 @@ module Invs_Att_DV_Next_5
                                 forall hn: BLSPubkey, slot: Slot, vp: AttestationData -> bool, db: set<SlashingDBAttestation> | 
                                             && is_an_honest_node(dv, hn) 
                                             && var process' := dv.honest_nodes_states[hn];
-                                            && slot in process'.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-                                            && vp in process'.attestation_consensus_engine_state.att_slashing_db_hist[slot].Keys
-                                            && db in process'.attestation_consensus_engine_state.att_slashing_db_hist[slot][vp]
+                                            && slot in process'.attestation_consensus_engine_state.slashing_db_hist.Keys
+                                            && vp in process'.attestation_consensus_engine_state.slashing_db_hist[slot].Keys
+                                            && db in process'.attestation_consensus_engine_state.slashing_db_hist[slot][vp]
                                 ensures inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_body(
                                             dv',
                                             hn,
@@ -2157,7 +2158,7 @@ module Invs_Att_DV_Next_5
                                             assert signer == dvc'.rs.pubkey;
                                             if hn == signer
                                             {
-                                                assert ( forall slot: Slot | slot in dvc'.attestation_consensus_engine_state.att_slashing_db_hist ::
+                                                assert ( forall slot: Slot | slot in dvc'.attestation_consensus_engine_state.slashing_db_hist ::
                                                         attestation_with_signature_share.data.slot >= slot
                                                 );
                                             }
@@ -2206,7 +2207,7 @@ module Invs_Att_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
     requires inv_available_current_att_duty_is_latest_att_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures  inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv')
@@ -2248,7 +2249,7 @@ module Invs_Att_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
     requires inv_available_current_att_duty_is_latest_att_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures  inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv')
@@ -2291,7 +2292,7 @@ module Invs_Att_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
     requires inv_available_current_att_duty_is_latest_att_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures  inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv')
@@ -2335,7 +2336,7 @@ module Invs_Att_DV_Next_5
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
     requires inv_available_current_att_duty_is_latest_att_duty(dv)
     requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)
-    requires inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)   
+    requires inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)   
     requires inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
     requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
     ensures  inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv')

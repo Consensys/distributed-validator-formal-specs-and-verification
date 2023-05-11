@@ -13,6 +13,7 @@ module Proofs_Intermediate_Steps
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
@@ -116,21 +117,21 @@ module Proofs_Intermediate_Steps
     lemma lem_inv_active_consensus_instances_imply_the_delivery_of_att_duties_ind_inv(
         dv: Att_DVState
     )    
-    requires inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv)
+    requires inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv)
     ensures inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
         ensures ( ( && is_an_honest_node(dv, hn) 
-                    && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
+                    && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys
                   )
                   ==> inv_active_consensus_instances_imply_the_delivery_of_att_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
             if && is_an_honest_node(dv, hn) 
-               && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.att_slashing_db_hist.Keys
+               && s in dv.honest_nodes_states[hn].attestation_consensus_engine_state.slashing_db_hist.Keys
             {
                 var hn_state := dv.honest_nodes_states[hn];
-                assert inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state);
+                assert inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_body(hn_state);
                 assert inv_active_consensus_instances_imply_the_delivery_of_att_duties_body(hn_state, s);
             }
             else
@@ -142,33 +143,33 @@ module Proofs_Intermediate_Steps
     lemma lem_inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_ind_inv(
         dv: Att_DVState
     )    
-    requires inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
+    requires inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
     ensures inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: AttestationData -> bool | 
             && is_an_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
-            && s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys
-            && vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s]            
+            && s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys
+            && vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s]            
         ensures ( exists duty, db ::
                     && var hn_state := dv.honest_nodes_states[hn];
                     && inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_body(dv, hn, s, db, duty, vp) 
                 )                
         {
             var hn_state := dv.honest_nodes_states[hn];            
-            assert inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(hn_state);
-            assert s in hn_state.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
-            assert vp in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s];
+            assert inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(hn_state);
+            assert s in hn_state.attestation_consensus_engine_state.slashing_db_hist.Keys;
+            assert vp in hn_state.attestation_consensus_engine_state.slashing_db_hist[s];
 
             assert ( exists db: set<SlashingDBAttestation>, duty: AttestationDuty ::
                         && duty.slot == s
-                        && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                        && db in hn_state.attestation_consensus_engine_state.slashing_db_hist[s][vp]
                         && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                     );
 
             var db: set<SlashingDBAttestation>, duty: AttestationDuty :|
                         && duty.slot == s
-                        && db in hn_state.attestation_consensus_engine_state.att_slashing_db_hist[s][vp]
+                        && db in hn_state.attestation_consensus_engine_state.slashing_db_hist[s][vp]
                         && vp == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db, ad, duty)
                     ;
 
@@ -193,11 +194,11 @@ module Proofs_Intermediate_Steps
                 dv.all_nodes)    
     {}
 
-    lemma lem_inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(
+    lemma lem_inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(
         dv: Att_DVState
     )    
-    requires inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)    
-    ensures  inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
+    requires inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist(dv)    
+    ensures  inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)
     {}
 
     lemma lem_inv_rcvd_att_shares_are_from_sent_messages_inv_rcvd_attestation_shares_are_sent_messages(
@@ -214,9 +215,9 @@ module Proofs_Intermediate_Steps
     ensures inv_attestation_shares_to_broadcast_is_a_subset_of_all_messages_sent(dv)
     {}  
 
-    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv: Att_DVState)    
-    requires inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)
-    ensures inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_consensus_instances_predicate_is_in_slashing_db_hist(dv: Att_DVState)    
+    requires inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv)
+    ensures inv_active_consensus_instances_predicate_is_in_slashing_db_hist(dv)
     {}  
     
 }

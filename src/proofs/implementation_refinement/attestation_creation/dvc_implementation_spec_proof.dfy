@@ -48,7 +48,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
         assert (k, m[k]) in m.Items;
     }
     
-    function get_active_attestation_consensus_instances(
+    function get_active_consensus_instances(
         m: map<Slot, ConsensusValidityCheck<AttestationData>>
     ): (r: map<Slot, AttestationConsensusValidityCheckState>)
     reads m.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in m.Values  :: v.slashing_db
@@ -62,11 +62,11 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                     it.0 := toAttestationConsensusValidityCheckState(it.1)           
     }
 
-    function toConsensusEngineState(ce: Consensus<AttestationData>): (r: ConsensusEngineState)
+    function toConsensusEngineState(ce: Consensus<AttestationData>): (r: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>)
     reads ce, ce.consensus_instances_started.Values, set v: ConsensusValidityCheck<AttestationData>  | && v in ce.consensus_instances_started.Values  :: v.slashing_db
     {
-        ConsensusEngineState(
-            active_attestation_consensus_instances := get_active_attestation_consensus_instances(ce.consensus_instances_started)   
+        ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>(
+            active_consensus_instances := get_active_consensus_instances(ce.consensus_instances_started)   
         )
     }
 
@@ -89,7 +89,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
     )
     requires lemmaConsensusInstancesHaveBeenRemovedPrecond(ce, removed_keys)
     ensures toConsensusEngineState(ce) == old(toConsensusEngineState(ce)).(
-        active_attestation_consensus_instances := old(toConsensusEngineState(ce)).active_attestation_consensus_instances - removed_keys
+        active_consensus_instances := old(toConsensusEngineState(ce)).active_consensus_instances - removed_keys
     )
     {      
     }    
@@ -114,13 +114,13 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
     ensures old(toConsensusEngineState(ce)) == toConsensusEngineState(ce)
     {
 
-        forall e | e in old(toConsensusEngineState(ce)).active_attestation_consensus_instances.Keys
-        ensures e in toConsensusEngineState(ce).active_attestation_consensus_instances.Keys;
+        forall e | e in old(toConsensusEngineState(ce)).active_consensus_instances.Keys
+        ensures e in toConsensusEngineState(ce).active_consensus_instances.Keys;
         {
-            lemmaMapKeysHasOneEntryInItems(old(toConsensusEngineState(ce)).active_attestation_consensus_instances, e);
+            lemmaMapKeysHasOneEntryInItems(old(toConsensusEngineState(ce)).active_consensus_instances, e);
         } 
 
-        assert old(toConsensusEngineState(ce)).active_attestation_consensus_instances.Keys == toConsensusEngineState(ce).active_attestation_consensus_instances.Keys;        
+        assert old(toConsensusEngineState(ce)).active_consensus_instances.Keys == toConsensusEngineState(ce).active_consensus_instances.Keys;        
     }
 
     export PublicInterface...
@@ -265,7 +265,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
         }
 
         function  f_check_for_next_duty_helper(process: Att_DVCState): Att_DVCState
-        requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+        requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys
         requires process.attestation_duties_queue != []
         requires process.attestation_duties_queue[0].slot in process.future_att_consensus_instances_already_decided.Keys 
         
@@ -276,7 +276,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                 attestation_duties_queue := process.attestation_duties_queue[1..],
                 future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {queue_head.slot},
                 attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                     process.attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )                        
@@ -309,10 +309,10 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         {
                             var rs := f_check_for_next_duty_helper(old(toAtt_DVCState()));                              
 
-                            forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
-                            ensures e in rs.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                            forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances.Keys
+                            ensures e in rs.attestation_consensus_engine_state.active_consensus_instances.Keys
                             {
-                                lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                                lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances, e);
                             }   
 
                             lemmaAttestationHasBeenAddedToSlashingDb(old(future_att_consensus_instances_already_decided)[queue_head.slot], rs);                       
@@ -372,7 +372,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             if old(isValidReprExtended())
             {
                 forall e | e in old(att_consensus.consensus_instances_started.Keys)
-                ensures e in old(get_active_attestation_consensus_instances(att_consensus.consensus_instances_started)).Keys; // TOOD: Possible violation of postcondition
+                ensures e in old(get_active_consensus_instances(att_consensus.consensus_instances_started)).Keys; // TOOD: Possible violation of postcondition
                 {
                     lemmaMapKeysHasOneEntryInItems(old(att_consensus.consensus_instances_started), e);
                 }     
@@ -415,7 +415,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             decided_attestation_data: AttestationData
         ): Att_DVCStateAndOuputs
         requires process.current_attestation_duty.isPresent()
-        requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys    
+        requires forall ad | ad in process.attestation_duties_queue :: ad.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys    
         {
             var local_current_attestation_duty := process.current_attestation_duty.safe_get();
             var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
@@ -434,7 +434,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                     current_attestation_duty := None,
                     attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
                     attestation_slashing_db := attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                         process.attestation_consensus_engine_state,
                         attestation_slashing_db
                     )
@@ -465,7 +465,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         && p.dv_pubkey == dv_pubkey  
                         && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data);
                         && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data)
-                        && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
+                        && p.attestation_consensus_engine_state == updateAttConsensusInstanceValidityCheck(
                             old(toAtt_DVCState()).attestation_consensus_engine_state,
                             new_attestation_slashing_db
                         )
@@ -476,16 +476,16 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                 && p.dv_pubkey == dv_pubkey  
                 && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data);
                 && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data)
-                && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
+                && p.attestation_consensus_engine_state == updateAttConsensusInstanceValidityCheck(
                     old(toAtt_DVCState()).attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )
             ensures  p.attestation_consensus_engine_state ==  toAtt_DVCState().attestation_consensus_engine_state
             {
-                forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
-                ensures e in p.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances.Keys
+                ensures e in p.attestation_consensus_engine_state.active_consensus_instances.Keys
                 {
-                    lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                    lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances, e);
                 } 
             }                  
         }
@@ -507,17 +507,17 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         && p.dv_pubkey == dv_pubkey  
                         && var new_attestation_slashing_db := f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data);
                         && p.attestation_slashing_db == f_update_attestation_slashing_db(old(toAtt_DVCState()).attestation_slashing_db, attestation_data)
-                        && p.attestation_consensus_engine_state == updateConsensusInstanceValidityCheck(
+                        && p.attestation_consensus_engine_state == updateAttConsensusInstanceValidityCheck(
                             old(toAtt_DVCState()).attestation_consensus_engine_state,
                             new_attestation_slashing_db
                         )
         ensures
                         p.attestation_consensus_engine_state ==  toAtt_DVCState().attestation_consensus_engine_state
         {
-            forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
-            ensures e in p.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+            forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances.Keys
+            ensures e in p.attestation_consensus_engine_state.active_consensus_instances.Keys
             {
-                lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances, e);
             }           
         }                        
 
@@ -563,7 +563,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             attestation_share: AttestationShare
         )
         {
-            var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+            var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_consensus_instances.Keys;
 
                 || (activate_att_consensus_intances == {} && !process.latest_attestation_duty.isPresent())
                 || (activate_att_consensus_intances != {} && minInSet(activate_att_consensus_intances) <= attestation_share.data.slot)
@@ -576,7 +576,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             attestation_share: AttestationShare
         ): Att_DVCState
         {
-            var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+            var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_consensus_instances.Keys;
 
             var k := (attestation_share.data, attestation_share.aggregation_bits);
             var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
@@ -606,17 +606,17 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             {
                 if  old(isValidReprExtended())
                 {
-                    forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                    forall e | e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances.Keys
                     ensures e in att_consensus.consensus_instances_started.Keys
                     {
-                        lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances, e);
+                        lemmaMapKeysHasOneEntryInItems(old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances, e);
                     }                 
                     forall e | e in att_consensus.consensus_instances_started.Keys
-                    ensures e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+                    ensures e in old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances.Keys;
                     {
                         lemmaMapKeysHasOneEntryInItems(att_consensus.consensus_instances_started, e);
                     }                  
-                    assert att_consensus.consensus_instances_started.Keys <= old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances.Keys;
+                    assert att_consensus.consensus_instances_started.Keys <= old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances.Keys;
                     assert old(isValidReprExtended()) ==>  f_listen_for_attestation_shares_helper_2(old(toAtt_DVCState()), attestation_share);
                 }
                 ...;
@@ -713,7 +713,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                     p_listen_for_new_imported_blocks_part_2_for_loop_inv(process, block,|block.body.attestations|, a1)
         ensures a1 == process.future_att_consensus_instances_already_decided + f_listen_for_new_imported_blocks_part_1(process, block);
         ensures p_listen_for_new_imported_blocks_part_2(process, block, a1)
-        ensures f_listen_for_new_imported_blocks_part_2(process, block).attestation_consensus_engine_state.active_attestation_consensus_instances == process.attestation_consensus_engine_state.active_attestation_consensus_instances - a1.Keys
+        ensures f_listen_for_new_imported_blocks_part_2(process, block).attestation_consensus_engine_state.active_consensus_instances == process.attestation_consensus_engine_state.active_consensus_instances - a1.Keys
         {
 
         }        
@@ -751,7 +751,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + s;
 
             process.(
-                    attestation_consensus_engine_state := stopConsensusInstances(
+                    attestation_consensus_engine_state := stopAttConsensusInstances(
                                     process.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     ),
@@ -791,7 +791,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
 
             process.(
                     future_att_consensus_instances_already_decided := new_future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopConsensusInstances(
+                    attestation_consensus_engine_state := stopAttConsensusInstances(
                                     process.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     ),
@@ -833,7 +833,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         ;
 
 
-            var attestation_consensus_engine_state_after_stop := stopConsensusInstances(
+            var attestation_consensus_engine_state_after_stop := stopAttConsensusInstances(
                                     process.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     );    
@@ -847,7 +847,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                     rcvd_attestation_shares := process.rcvd_attestation_shares - att_consensus_instances_already_decided.Keys,
                     current_attestation_duty := None,
                     attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                         attestation_consensus_engine_state_after_stop,
                         new_attestation_slashing_db
                     )                  
@@ -924,7 +924,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                 && toAtt_DVCState() == p0.(
                         current_attestation_duty := None,
                         attestation_slashing_db := new_attestation_slashing_db,
-                        attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                        attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                             p0.attestation_consensus_engine_state,
                             new_attestation_slashing_db
                         )                             
@@ -989,7 +989,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             var newProcess :=
                     process.(
                         future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                        attestation_consensus_engine_state := stopConsensusInstances(
+                        attestation_consensus_engine_state := stopAttConsensusInstances(
                                         process.attestation_consensus_engine_state,
                                         att_consensus_instances_already_decided_let.Keys
                         ),
@@ -1002,7 +1002,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             var newProces2 := newProcess.(
                 current_attestation_duty := None,
                 attestation_slashing_db := new_attestation_slashing_db,
-                attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                     newProcess.attestation_consensus_engine_state,
                     new_attestation_slashing_db
                 )                
@@ -1077,7 +1077,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         f_check_for_next_duty_empty_outputs(process.(
                             attestation_duties_queue := process.attestation_duties_queue[1..],
                             attestation_slashing_db := new_attestation_slashing_db,
-                            attestation_consensus_engine_state := updateConsensusInstanceValidityCheck(
+                            attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
                                 process.attestation_consensus_engine_state,
                                 new_attestation_slashing_db
                             )                        
@@ -1213,7 +1213,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         assert lemmaConsensusInstancesHaveBeenRemovedPrecond(att_consensus, att_consensus_instances_already_decided.Keys);
                         lemmaConsensusInstancesHaveBeenRemoved(att_consensus, att_consensus_instances_already_decided.Keys);
 
-                        assert f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block).attestation_consensus_engine_state.active_attestation_consensus_instances == old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances - att_consensus_instances_already_decided.Keys;
+                        assert f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block).attestation_consensus_engine_state.active_consensus_instances == old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances - att_consensus_instances_already_decided.Keys;
 
                         calc {
                             o1;
@@ -1268,7 +1268,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                         assert lemmaConsensusInstancesHaveBeenRemovedPrecond(att_consensus, att_consensus_instances_already_decided.Keys);
                         lemmaConsensusInstancesHaveBeenRemoved(att_consensus, att_consensus_instances_already_decided.Keys);
 
-                        assert f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block).attestation_consensus_engine_state.active_attestation_consensus_instances == old(toAtt_DVCState()).attestation_consensus_engine_state.active_attestation_consensus_instances - att_consensus_instances_already_decided.Keys;
+                        assert f_listen_for_new_imported_blocks_part_2(old(toAtt_DVCState()), block).attestation_consensus_engine_state.active_consensus_instances == old(toAtt_DVCState()).attestation_consensus_engine_state.active_consensus_instances - att_consensus_instances_already_decided.Keys;
 
                         calc {
                             o1;

@@ -29,6 +29,7 @@ module Ind_Inv_Att_DV_Next
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
@@ -98,9 +99,9 @@ module Ind_Inv_Att_DV_Next
     requires ind_inv(dv)
     ensures invs_group_5(dv')
     {
-        lem_inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_dv_next(dv, e, dv');    
-        lem_inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_dv_next(dv, e, dv');  
-        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_dv_next(dv, e, dv');          
+        lem_inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties_dv_next(dv, e, dv');    
+        lem_inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_dv_next(dv, e, dv');  
+        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_dv_next(dv, e, dv');          
     }
 
     lemma lem_ind_inv_dv_next_invs_group_6(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
@@ -109,8 +110,8 @@ module Ind_Inv_Att_DV_Next
     requires ind_inv(dv)
     ensures invs_group_6(dv')
     {       
-        lem_inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db_dv_next(dv, e, dv');  
-        lem_inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist_dv_next(dv, e, dv');  
+        lem_inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db_dv_next(dv, e, dv');  
+        lem_inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist_dv_next(dv, e, dv');  
         lem_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
     }
 
@@ -122,7 +123,7 @@ module Ind_Inv_Att_DV_Next
     {               
         lem_inv_all_in_transit_messages_were_sent_dv_next(dv, e, dv');  
         lem_inv_rcvd_att_shares_are_from_sent_messages_dv_next(dv, e, dv');  
-        Invs_Att_DV_Next_5.lem_inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist_dv_next(dv, e, dv');
+        Invs_Att_DV_Next_5.lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_dv_next(dv, e, dv');
     }
 
     lemma lem_ind_inv_implies_intermediate_steps_helper_1(dv: Att_DVState)
@@ -155,11 +156,11 @@ module Ind_Inv_Att_DV_Next
     lemma lem_ind_inv_implies_intermediate_steps_helper_3(dv: Att_DVState)
     requires ind_inv(dv)  
     ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
-    ensures inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
+    ensures inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)
     ensures inv_available_current_att_duty_is_latest_att_duty(dv)
     ensures inv_rcvd_attestation_shares_are_sent_messages(dv)
     {    
-        lem_inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv);
+        lem_inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv);
         lem_inv_available_current_att_duty_is_latest_att_duty(dv);
         lem_inv_rcvd_att_shares_are_from_sent_messages_inv_rcvd_attestation_shares_are_sent_messages(dv);
     }
@@ -188,7 +189,7 @@ module Ind_Inv_Att_DV_Next
                 dv.dv_pubkey,
                 dv.all_nodes)  
     ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)     
-    ensures inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
+    ensures inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)
     ensures inv_available_current_att_duty_is_latest_att_duty(dv)
     ensures inv_rcvd_attestation_shares_are_sent_messages(dv)
     ensures lem_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att_new_precond(dv)
@@ -202,33 +203,33 @@ module Ind_Inv_Att_DV_Next
         lem_inv_data_of_all_created_attestations_is_a_set_of_decided_values_dv_next(dv);
     }
    
-    lemma lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)  
+    lemma lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)  
     requires Att_DV.NextEventPreCond(dv, e)
     requires Att_DV.NextEvent(dv, e, dv')       
     requires ind_inv(dv)
-    ensures inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv')
+    ensures inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv')
     {
-        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k_inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv);
-        assert inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv);
+        lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_consensus_instances_predicate_is_in_slashing_db_hist(dv);
+        assert inv_active_consensus_instances_predicate_is_in_slashing_db_hist(dv);
 
-        lem_inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv);
-        assert inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv);
+        lem_inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv);
+        assert inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv);
 
         lem_ind_inv_implies_intermediate_steps(dv);
         assert same_honest_nodes_in_dv_and_ci(dv);
 
 
-        assert && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+        assert && inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
                && inv_all_honest_nodes_is_a_quorum(dv)
                && same_honest_nodes_in_dv_and_ci(dv)
                && inv_only_dv_construct_signed_attestation_signature(dv)    
-               && inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(dv)  
-               && inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv)
-               && inv_active_attestation_consensus_instances_predicate_is_in_att_slashing_db_hist(dv)
+               && inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)  
+               && inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv)
+               && inv_active_consensus_instances_predicate_is_in_slashing_db_hist(dv)
                ;
 
-        lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');    
-        assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv');
+        lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv, e, dv');    
+        assert inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv');
     }
 
     lemma lem_ind_inv_dv_next_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
@@ -310,7 +311,7 @@ module Ind_Inv_Att_DV_Next
     requires ind_inv(dv)
     ensures invs_group_8(dv')
     {
-        lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');  
+        lem_ind_inv_dv_next_inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv, e, dv');  
         lem_ind_inv_dv_next_inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv, e, dv');             
         lem_ind_inv_dv_next_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv, e, dv');       
         lem_ind_inv_dv_next_inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv(dv, e, dv');  
@@ -338,13 +339,13 @@ module Ind_Inv_Att_DV_Next
         lem_inv_attestation_shares_to_broadcast_are_sent_messages_dv_next(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
+    lemma lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
     requires Att_DV.NextEventPreCond(dv, e)
     requires Att_DV.NextEvent(dv, e, dv')  
     requires ind_inv(dv)
-    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv')
+    ensures inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(dv')
     {
-        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv, e, dv');
+        lem_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(dv, e, dv');
     }
 
     lemma lem_ind_inv_dv_next_invs_group_9(dv: Att_DVState, e: Att_DV.AttestationEvent, dv': Att_DVState)       
@@ -365,7 +366,7 @@ module Ind_Inv_Att_DV_Next
     requires ind_inv(dv)
     ensures invs_group_10(dv')
     {        
-        lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv, e, dv');
+        lem_ind_inv_dv_next_inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(dv, e, dv');
         lem_inv_available_latest_att_duty_is_from_dv_seq_of_att_duties_new_body_dv_next(dv, e, dv');
         lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_dv_next(dv, e, dv');
         lem_ind_inv_implies_intermediate_steps(dv);
@@ -411,8 +412,8 @@ module Ind_Inv_Att_DV_Next
     ensures invs_group_12(dv')
     {
         lem_ind_inv_implies_intermediate_steps_helper_4(dv);
-        lem_inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(dv, e, dv');
-        lem_inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv, e, dv');
+        lem_inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv, e, dv');
+        lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv, e, dv');
         lem_inv_every_consensus_instance_isConditionForSafetyTrue_dv_next(dv, e, dv');  
         lem_inv_unique_rcvd_att_duty_per_slot_dv_next(dv, e, dv');  
         lem_inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties_dv_next(dv, e, dv');  
@@ -442,7 +443,7 @@ module Ind_Inv_Att_DV_Next
         lem_inv_att_shares_to_broadcast_are_tracked_in_attestation_slashing_db_dv_next(dv, e, dv');
         lem_inv_sent_att_shares_have_corresponding_slashing_db_attestations_dv_next(dv, e, dv');
         lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty_dv_next(dv, e, dv');
-        lem_inv_the_domain_of_active_attestation_consensus_instances_is_a_subset_of_att_slashing_db_hist(dv);   
+        lem_inv_the_domain_of_active_consensus_instances_is_a_subset_of_slashing_db_hist(dv);   
         lem_inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_dv_next(dv, e, dv');        
     }
     

@@ -15,17 +15,17 @@ module Spec_Spec_NonInstr_Refinement
     import opened RS_Axioms
     import DVC_Block_Proposer_Spec_NonInstr
     import DVC_Block_Proposer_Spec_Instr
-    import Block_Consensus_Engine_NonInstr
-    import Block_Consensus_Engine_Instr
+    import Consensus_Engine_NonInstr
+    import Consensus_Engine_Instr
     import opened Att_Helper_Pred_Fcn
 
 
     predicate consensusEngineStateRel(
-        cei: Block_Consensus_Engine_Instr.BlockConsensusEngineState,
-        ceni: Block_Consensus_Engine_NonInstr.BlockConsensusEngineState
+        cei: Consensus_Engine_Instr.ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
+        ceni: Consensus_Engine_NonInstr.ConsensusEngineState<BlockConsensusValidityCheckState>
     )
     {
-        cei.active_consensus_instances_on_beacon_blocks == ceni.active_consensus_instances_on_beacon_blocks
+        cei.active_consensus_instances == ceni.active_consensus_instances
     }
 
     predicate DVCStateRel(

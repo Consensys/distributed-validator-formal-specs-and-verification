@@ -11,6 +11,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
@@ -68,15 +69,15 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_5(dv: Att_DVState)       
     {                
-        &&  inv_att_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv)  
-        &&  inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)  
-        &&  inv_current_validity_predicate_for_slot_k_is_stored_in_att_slashing_db_hist_k(dv)          
+        &&  inv_slashing_db_hist_keeps_track_only_of_rcvd_att_duties(dv)  
+        &&  inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)  
+        &&  inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv)          
     }
 
     predicate invs_group_6(dv: Att_DVState)       
     {                
-        &&  inv_every_db_in_att_slashing_db_hist_is_a_subset_of_att_slashing_db(dv)  
-        &&  inv_active_att_consensus_instances_are_tracked_in_att_slashing_db_hist(dv)
+        &&  inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db(dv)  
+        &&  inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist(dv)
         &&  inv_construct_signed_attestation_signature_assumptions_helper(dv)        
     }
 
@@ -84,12 +85,12 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         &&  inv_all_in_transit_messages_were_sent(dv)
         &&  inv_rcvd_att_shares_are_from_sent_messages(dv)
-        &&  inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+        &&  inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
     }
     
     predicate invs_group_8(dv: Att_DVState)       
     {                
-        && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+        && inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
         && inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv) 
         && inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)    
         && inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db_for_dv(dv)
@@ -107,7 +108,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_10(dv: Att_DVState)       
     {                
-        && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_att_slashing_db_hist(dv)        
+        && inv_exists_att_duty_in_dv_seq_of_att_duty_for_every_slot_in_slashing_db_hist(dv)        
         && inv_latest_att_duty_is_from_dv_seq_of_att_duties(dv)
         && inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)        
         && inv_data_of_att_shares_are_decided_values(dv)                     
@@ -121,8 +122,8 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     
     predicate invs_group_12(dv: Att_DVState)       
     {                
-        && inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(dv)
-        && inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+        && inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv)
+        && inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
         && inv_every_consensus_instance_isConditionForSafetyTrue(dv)
         && inv_none_latest_att_duty_and_empty_set_of_rcvd_att_duties(dv)
         && inv_unique_rcvd_att_duty_per_slot(dv)

@@ -1,6 +1,7 @@
 include "../../common/commons.dfy"
 include "../../proofs/no_slashable_attestations/common/dvc_attestation_creation_instrumented.dfy"
 include "../consensus/consensus.dfy"
+include "../dvc/consensus_engine.dfy"
 include "../network/network.dfy"
 include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
@@ -11,6 +12,7 @@ module Att_DV
     import opened CommonFunctions
     import opened NetworkSpec
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened Att_DVC_Spec
     import opened BN_Axioms
     import opened RS_Axioms
@@ -457,9 +459,9 @@ module Att_DV
                 && var validityPredicates := 
                     map n |
                             && n in s.honest_nodes_states.Keys 
-                            && cid in s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances.Keys
+                            && cid in s.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances.Keys
                         ::
-                            s.honest_nodes_states[n].attestation_consensus_engine_state.active_attestation_consensus_instances[cid].validityPredicate
+                            s.honest_nodes_states[n].attestation_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                     ;
 
                 ConsensusSpec.Next(

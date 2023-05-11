@@ -23,6 +23,7 @@ module Invs_Att_DV_Next_4
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV    
@@ -161,7 +162,7 @@ module Invs_Att_DV_Next_4
                 f_listen_for_new_imported_blocks_helper_2(process, att_consensus_instances_already_decided);
 
         var process_after_stopping_consensus_instance :=
-                f_stopConsensusInstances_after_receiving_new_imported_blocks(
+                f_stopAttConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );   
@@ -182,7 +183,7 @@ module Invs_Att_DV_Next_4
     requires f_listen_for_attestation_shares.requires(s, attestation_share)
     requires s' == f_listen_for_attestation_shares(s, attestation_share).state    
     ensures s'.attestation_consensus_engine_state == s.attestation_consensus_engine_state
-    ensures s'.attestation_consensus_engine_state.att_slashing_db_hist == s.attestation_consensus_engine_state.att_slashing_db_hist
+    ensures s'.attestation_consensus_engine_state.slashing_db_hist == s.attestation_consensus_engine_state.slashing_db_hist
     ensures s'.latest_attestation_duty == s.latest_attestation_duty
     ensures s'.current_attestation_duty == s.current_attestation_duty
     ensures s'.attestation_slashing_db == s.attestation_slashing_db
@@ -198,7 +199,7 @@ module Invs_Att_DV_Next_4
     requires f_resend_attestation_share.requires(s)
     requires s' == f_resend_attestation_share(s).state    
     ensures s'.attestation_consensus_engine_state == s.attestation_consensus_engine_state
-    ensures s'.attestation_consensus_engine_state.att_slashing_db_hist == s.attestation_consensus_engine_state.att_slashing_db_hist
+    ensures s'.attestation_consensus_engine_state.slashing_db_hist == s.attestation_consensus_engine_state.slashing_db_hist
     ensures s'.latest_attestation_duty == s.latest_attestation_duty
     ensures s'.current_attestation_duty == s.current_attestation_duty
     ensures s'.attestation_slashing_db == s.attestation_slashing_db
@@ -516,7 +517,7 @@ module Invs_Att_DV_Next_4
 
         var att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided + new_consensus_instances_already_decided;
 
-        var new_process := f_stopConsensusInstances_after_receiving_new_imported_blocks(
+        var new_process := f_stopAttConsensusInstances_after_receiving_new_imported_blocks(
                                 process,
                                 block
                             );   

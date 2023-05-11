@@ -21,6 +21,7 @@ module Core_Proofs
     import opened Types 
     import opened CommonFunctions
     import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
@@ -68,8 +69,8 @@ module Core_Proofs
              && is_valid_attestation(a', dv.dv_pubkey)
     requires a.data.slot < a'.data.slot 
     requires inv_every_decided_data_has_an_honest_witness(dv)
-    requires inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(dv)
-    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+    requires inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
     requires inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
     requires inv_data_of_all_created_attestations_is_a_set_of_decided_values(dv)
     requires inv_unique_rcvd_att_duty_per_slot(dv)
@@ -78,8 +79,8 @@ module Core_Proofs
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)
     requires inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+    requires inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
@@ -164,25 +165,25 @@ module Core_Proofs
         assert att_share.data == dva;
 
         var dvc := dv.honest_nodes_states[m];
-        assert inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(dvc);
+        assert inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(dvc);
 
         var vp': AttestationData -> bool :|
                 && vp' in consa'.honest_nodes_validity_functions[m] 
                 && vp'(consa'.decided_value.safe_get())  
                 ;
-        assert inv_all_validity_predicates_are_stored_in_att_slashing_db_hist_body(
+        assert inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
                         dv,
                         m,
                         dvc,
                         slot',
                         vp'
                     );
-        assert  vp' in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot'];
-        assert  slot' in dvc.attestation_consensus_engine_state.att_slashing_db_hist.Keys;
+        assert  vp' in dvc.attestation_consensus_engine_state.slashing_db_hist[slot'];
+        assert  slot' in dvc.attestation_consensus_engine_state.slashing_db_hist.Keys;
         
         var db': set<SlashingDBAttestation>, duty': AttestationDuty :| 
                 && duty'.slot == slot'
-                && db' in dvc.attestation_consensus_engine_state.att_slashing_db_hist[slot'][vp']
+                && db' in dvc.attestation_consensus_engine_state.slashing_db_hist[slot'][vp']
                 && vp' == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db', ad, duty')
                 ;
         assert ci_decision_is_valid_attestation_data(db', data', duty');
@@ -256,16 +257,16 @@ module Core_Proofs
     requires && a' in dv.all_attestations_created
              && is_valid_attestation(a', dv.dv_pubkey)
     requires inv_every_decided_data_has_an_honest_witness(dv)
-    requires inv_sent_validity_predicates_are_only_for_slots_stored_in_att_slashing_db_hist(dv)
-    requires inv_all_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+    requires inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv)
+    requires inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
     requires inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
     requires inv_unique_rcvd_att_duty_per_slot(dv)
     requires inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)
     requires inv_data_of_all_created_attestations_is_a_set_of_decided_values(dv)
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exist_a_db_in_att_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
-    requires inv_slots_for_sent_validity_predicates_are_stored_in_att_slashing_db_hist(dv)
+    requires inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
+    requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
     requires inv_an_attestation_is_created_based_on_shares_of_a_quorum(dv)
     requires inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
