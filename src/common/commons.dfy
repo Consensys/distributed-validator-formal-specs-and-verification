@@ -206,6 +206,7 @@ module Types
 
 module Common_Functions{
     import opened Types
+    import opened Set_Seq_Helper
 
     function method getOrDefault<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
     {
@@ -248,6 +249,17 @@ module Common_Functions{
         else 
             0
     }
+
+    function multicast<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    {
+        addRecepientsToMessage(m, receipients)
+    }
+
+    function multicast_multiple<M>(ms: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    {
+        var setWithRecipient := set m | m in ms :: addRecepientsToMessage(m, receipients);
+        setUnion(setWithRecipient)
+    }    
 }
 
 module Set_Seq_Helper{
@@ -376,13 +388,6 @@ module Set_Seq_Helper{
     forall x1, x2 :: f(x1) == f(x2) ==> x1 == x2
     }
 
-    // predicate InjectiveOverSimp<X, Y>(xs:set<X>, f:X-->Y)
-    //   reads f.reads;
-    //   requires forall x :: x in xs ==> f.requires(x);
-    // {
-    //   forall x1, x2 :: x1 in xs && x2 in xs && f(x1) == f(x2) ==> x1 == x2
-    // }
-
     predicate InjectiveOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
     reads f.reads;
     requires forall x :: x in xs ==> f.requires(x);
@@ -412,21 +417,6 @@ module Set_Seq_Helper{
         lem_MapSetCardinality(xs', ys', f);
     }
     }
-
-    // lemma lem_MapSetCardinalityOverSImp<X, Y>(xs:set<X>, f:X-->Y)
-    //   requires forall x :: x in xs ==> f.requires(x);
-    //   requires InjectiveOverSimp(xs, f);
-    //   requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
-    //   ensures  |xs| == |ys|;
-    // {
-    //   if (xs != {})
-    //   {
-    //     var x :| x in xs;
-    //     var xs' := xs - {x};
-    //     var ys' := ys - {f(x)};
-    //     lem_MapSetCardinalityOver(xs', ys', f);
-    //   }
-    // }
 
     lemma lem_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
     requires forall x :: x in xs ==> f.requires(x);
@@ -642,127 +632,6 @@ module Set_Seq_Helper{
     {
 
     }
-
-    // lemma lemmaQuorumIntersection<T(==)>(nodes:set<T>, byz:set<T>, Q1:set<T>, Q2:set<T>)
-    // requires nodes != {}
-    // requires Q1 <= nodes
-    // requires Q2 <= nodes
-    // // requires byz <= nodes
-    // requires |Q1| >= quorum(|nodes|)
-    // requires |Q2| >= quorum(|nodes|)
-    // requires |byz| <= f(|nodes|)
-    // ensures var hon := nodes - byz; Q1 * Q2 * hon != {}
-    // {
-    //     var hon := nodes - byz;
-
-    //     calc {
-    //         |Q1 * Q2 * hon|;
-    //         ==
-    //         |(Q1*Q2) * hon|;
-    //         ==
-    //         |Q1*Q2| + |hon| - |(Q1*Q2) + hon|;
-    //         >= 
-    //         |Q1*Q2| + |nodes| - |byz| - |(Q1*Q2) + hon|;
-    //         >= calc {
-    //             |Q1 * Q2|;
-    //             |Q1| + |Q2| - |Q1 + Q2|;
-    //             >= calc {
-    //                     |Q1 + Q2|; 
-    //                     <= {SubsetCardinality(Q1 + Q2, nodes);}
-    //                     |nodes|; 
-    //                 }
-    //             |Q1| + |Q2| - |nodes|;
-    //         }
-    //         |Q1| + |Q2| - |byz| - |(Q1*Q2) + hon|;
-    //         >= {SubsetCardinality((Q1*Q2) + hon, nodes);}
-    //         |Q1| + |Q2| - |byz| - |nodes|;
-    //         >=
-    //         2 * quorum(|nodes|)- |nodes| - f(|nodes|);
-    //         >=
-    //         1;
-    //     }
-
-    // }
-
-    // lemma lemmaThereExistsAnHonestInQuorum<T(==)>(nodes:set<T>, byz:set<T>, Q1:set<T>)
-    // requires nodes != {}
-    // requires Q1 <= nodes
-    // requires |Q1| >= quorum(|nodes|)
-    // requires |byz| <= f(|nodes|)
-    // ensures var hon := nodes - byz; Q1 * hon != {}
-    // {
-    //     var hon := nodes - byz;
-
-    //     calc {
-    //         |Q1 * hon|;
-    //         ==
-    //         |Q1| + |hon| - |Q1 + hon|;
-    //         >= 
-    //         |Q1| + |nodes| - |byz| - |Q1 + hon|;
-    //         >= 
-    //         {SubsetCardinality(Q1 + hon, nodes);}
-    //         |Q1|  - |byz|;
-    //         >=
-    //         quorum(|nodes|) - f(|nodes|);
-    //         >=
-    //         1;
-    //     }        
-    // }   
-
-    // lemma lemmaThereExistsAnHonestInQuorum2<T(==)>(nodes:set<T>, byz: set<T>, hon:set<T>)
-    // requires nodes != {}
-    // requires hon <= nodes
-    // requires byz <= nodes
-    // requires |hon| >= quorum(|nodes|) - |byz|
-    // requires |byz| <= f(|nodes|)
-    // requires hon * byz == {}
-    // ensures hon != {}
-    // {
-    //     lemmaEmptyIntersectionImpliesDisjointness(hon, byz);
-    //     var hon_byz := hon + byz;
-
-
-    //     assert |hon_byz| >= quorum(|nodes|);
-
-    //     lemmaThereExistsAnHonestInQuorum(nodes, byz, hon_byz);
-
-    //     assert hon != {};
-    // }       
-
-    
-
-    // lemma lemmaQuorumIsGreaterThan2F<T(==)>(nodes:set<T>)
-    // requires |nodes| > 0
-    // ensures quorum(|nodes|) > 2*f(|nodes|)
-    // { }
-
-    // lemma lemmaIntersectionOfHonestNodesInTwoQuorumsIsNotEmpty<T(==)>(
-    //     nodes: set<T>, subset: set<T>, S1: set<T>, S2: set<T>)
-    // requires |nodes| > 0 
-    // requires |subset| >= quorum(|nodes|)
-    // requires subset <= nodes && S1 <= subset && S2 <= subset
-    // requires |S1| + |S2| > |subset|
-    // ensures S1 * S2 != {}
-    // { 
-    //     calc {
-    //         |S1 * S2|;
-    //         ==
-    //         |S1| + |S2| - |S1 + S2|;
-    //         >
-    //         |subset| - |S1 + S2|;            
-    //         >=
-    //         {SubsetCardinality(S1 + S2, subset);}
-    //         |subset| - |subset|;
-    //         ==
-    //         0;
-    //     }
-    // }
-
-    // lemma lemmaQuorumAndF<T(==)>(nodes: set<T>)
-    // requires |nodes| > 0 
-    // ensures && var n := |nodes|;
-    //         && 2 * quorum(n) > n + f(n)
-    // {}
 
     lemma lemmaEmptyIntersectionImpliesDisjointness<T>(
       s1: set<T>,

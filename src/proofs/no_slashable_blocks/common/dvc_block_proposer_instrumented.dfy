@@ -48,17 +48,6 @@ module DVC_Block_Proposer_Spec_Instr {
         )
     }  
 
-    function multicast<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
-    {
-        addRecepientsToMessage(m, receipients)
-    }
-
-    function multicast_multiple<M>(ms: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
-    {
-        var setWithRecipient := set m | m in ms :: addRecepientsToMessage(m, receipients);
-        setUnion(setWithRecipient)
-    }
-
     datatype DVCStateAndOuputs = DVCStateAndOuputs(
         state: DVCState,
         outputs: Outputs

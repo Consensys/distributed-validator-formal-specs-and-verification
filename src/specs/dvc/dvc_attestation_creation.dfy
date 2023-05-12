@@ -42,17 +42,6 @@ module Att_DVC_Spec_NonInstr {
     }  
 
 
-    function multicast<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
-    {
-        addRecepientsToMessage(m, receipients)
-    }
-
-    function multicast_multiple<M>(ms: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
-    {
-        var setWithRecipient := set m | m in ms :: addRecepientsToMessage(m, receipients);
-        setUnion(setWithRecipient)
-    }    
-
     datatype Att_DVCStateAndOuputs = Att_DVCStateAndOuputs(
         state: Att_DVCState,
         outputs: Outputs
