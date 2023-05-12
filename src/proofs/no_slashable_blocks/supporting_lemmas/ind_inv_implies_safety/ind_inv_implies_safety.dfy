@@ -14,7 +14,7 @@ module Ind_Inv_Implies_Safety
 {
     import opened Types
     
-    import opened CommonFunctions
+    import opened Common_Functions
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr

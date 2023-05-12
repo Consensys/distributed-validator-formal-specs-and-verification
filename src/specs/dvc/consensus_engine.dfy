@@ -3,7 +3,7 @@ include "../../common/commons.dfy"
 module Consensus_Engine_NonInstr
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Signing_Methods
 
     datatype ConsensusEngineState<T(!new)> = ConsensusEngineState(
         active_consensus_instances: map<Slot, T>
@@ -168,7 +168,8 @@ module Consensus_Engine_NonInstr
 module Consensus_Engine_Instr
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Signing_Methods
 
     datatype ConsensusEngineState<T1(!new), !T2(!new, ==), T3(!new, ==)> = ConsensusEngineState(
         active_consensus_instances: map<Slot, T1>,
@@ -197,7 +198,7 @@ module Consensus_Engine_Instr
             BlockConsensusValidityCheckState(
                     proposer_duty := proposer_duty,
                     randao_reveal := complete_signed_randao_reveal,
-                    validityPredicate := (block: BeaconBlock) => ci_decision_is_valid_beacon_block(
+                    validityPredicate := (block: BeaconBlock) =>  ci_decision_is_valid_beacon_block(
                                                                     block_slashing_db, 
                                                                     block, 
                                                                     proposer_duty,
@@ -493,4 +494,6 @@ module Consensus_Engine_Instr
             )
         )
     }
+
+    
 }

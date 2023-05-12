@@ -4,7 +4,6 @@ include "dvc_block_proposer_instrumented.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../supporting_lemmas/inv.dfy"
-include "../../common/helper_sets_lemmas.dfy"
 include "../../bn_axioms.dfy"
 include "../../rs_axioms.dfy"
 
@@ -12,14 +11,15 @@ include "../../rs_axioms.dfy"
 module Common_Proofs_For_Block_Proposer
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Consensus_Engine_Instr
     import opened DV_Block_Proposer_Spec
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Helper_Sets_Lemmas
     import opened BN_Axioms
     import opened RS_Axioms
 

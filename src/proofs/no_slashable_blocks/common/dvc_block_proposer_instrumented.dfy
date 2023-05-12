@@ -7,8 +7,9 @@ include "../../bn_axioms.dfy"
 
 module DVC_Block_Proposer_Spec_Instr {
     import opened Types 
-    import opened CommonFunctions
-    
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import DVC_Block_Proposer_Spec_NonInstr
     import opened BN_Axioms
     import opened RS_Axioms

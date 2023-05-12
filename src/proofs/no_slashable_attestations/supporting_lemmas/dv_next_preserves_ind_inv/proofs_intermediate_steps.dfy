@@ -4,21 +4,21 @@ include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_attestation_creation.dfy"
 
-include "../../../common/helper_sets_lemmas.dfy"
 
 include "../inv.dfy"
 
 module Proofs_Intermediate_Steps
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
-    import opened Helper_Sets_Lemmas    
     
     lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: Att_DVState)
     requires inv_unchanged_paras_of_consensus_instances(dv)

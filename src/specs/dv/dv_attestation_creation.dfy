@@ -9,7 +9,8 @@ include "../../proofs/rs_axioms.dfy"
 module Att_DV 
 {
     import opened Types
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Signing_Methods
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr

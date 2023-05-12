@@ -4,7 +4,7 @@ include "../../common/commons.dfy"
 module ConsensusSpec
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
 
     datatype InCommand<!D> = 
     | Start(node: BLSPubkey)

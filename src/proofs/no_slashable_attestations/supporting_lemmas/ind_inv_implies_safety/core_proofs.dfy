@@ -4,7 +4,6 @@ include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_attestation_creation.dfy"
 
-include "../../../common/helper_sets_lemmas.dfy"
 
 include "../dv_next_preserves_ind_inv/invs_fnc_1.dfy"
 include "../dv_next_preserves_ind_inv/invs_fnc_2.dfy"
@@ -15,11 +14,14 @@ include "../dv_next_preserves_ind_inv/invs_dv_next_4.dfy"
 include "../dv_next_preserves_ind_inv/invs_dv_next_5.dfy"
 
 include "../inv.dfy"
+include "../../../common/quorum_lemmas.dfy"
 
 module Core_Proofs
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec
@@ -28,9 +30,9 @@ module Core_Proofs
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Invs_Att_DV_Next_3
     import opened Invs_Att_DV_Next_5
-    import opened Helper_Sets_Lemmas
     import opened BN_Axioms
     import opened RS_Axioms
+    import opened Quorum_Lemmas
 
 
     predicate is_slashable_attestation_data_eth_spec(data_1: AttestationData, data_2: AttestationData)

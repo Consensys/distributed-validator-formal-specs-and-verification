@@ -1,20 +1,12 @@
 include "../../../common/commons.dfy"
-
-include "../../../specs/consensus/consensus.dfy"
-include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_block_proposer.dfy"
 include "../common/dvc_block_proposer_instrumented.dfy"
-include "../../common/helper_sets_lemmas.dfy"
 include "inv.dfy"
 
 
 module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
 {
     import opened Types 
-    import opened CommonFunctions
-    
-    import opened ConsensusSpec
-    import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Consensus_Engine_Instr
     import opened DV_Block_Proposer_Spec

@@ -5,7 +5,9 @@ include "../dvc/consensus_engine.dfy"
 
 module DVC_Block_Proposer_Spec_NonInstr {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened Consensus_Engine_NonInstr
     import opened BN_Axioms    
     import opened RS_Axioms

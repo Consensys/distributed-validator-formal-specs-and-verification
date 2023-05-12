@@ -4,7 +4,9 @@ include "./dvc_externs.dfy"
 abstract module Block_DVC_Implementation
 {
     import opened Types
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened DVC_Externs : DVC_Externs
 
     export PublicInterface

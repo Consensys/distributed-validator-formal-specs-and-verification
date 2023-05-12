@@ -3,7 +3,7 @@ include "../common/commons.dfy"
 module RS_Axioms
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Signing_Methods
 
     function {:axiom} rs_sign_attestation(
         attestation_data: AttestationData, 
@@ -76,4 +76,36 @@ module RS_Axioms
         rs: RSState
     ): BLSSignature
     requires signing_root == compute_randao_reveal_signing_root(epoch * SLOTS_PER_EPOCH)
+
+    lemma {:axiom} compute_signing_root_properties<T>()
+    ensures forall da1, do1, da2, do2 ::
+        compute_signing_root<T>(da1, do1) == compute_signing_root<T>(da2, do2) ==>
+            && da1 == da2 
+            && do1 == do2
+
+    predicate {:extern} verify_bls_signature(
+        data: Root,
+        signature: BLSSignature,
+        pubkey: BLSPubkey
+    )   
+
+    lemma {:axiom} lem_verify_bls_signature()
+    ensures 
+        forall d: Root, s, pk1, pk2 |
+            && verify_bls_signature(d, s, pk1)
+            && verify_bls_signature(d, s, pk2)
+            ::
+            pk1 == pk2
+    ensures 
+        forall d: Root, s1, s2, pk |
+            && verify_bls_signature(d, s1, pk)
+            && verify_bls_signature(d, s2, pk)
+            ::
+            s1 == s2            
+    ensures 
+        forall d1: Root, d2: Root, s, pk |
+            && verify_bls_signature(d1, s, pk)
+            && verify_bls_signature(d2, s, pk)
+            ::
+            d1 == d2           
 }

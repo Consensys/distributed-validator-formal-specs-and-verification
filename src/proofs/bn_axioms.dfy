@@ -3,7 +3,7 @@ include "../common/commons.dfy"
 module BN_Axioms
 {
     import opened Types 
-    import opened CommonFunctions
+    
 
     datatype BNState<T(!new, ==)> = BNState(
         state_roots_of_imported_blocks: set<Root>,

@@ -5,11 +5,9 @@ module Types
     type Slot = nat
     const SLOTS_PER_EPOCH := 32
     type {:extern "CommitteeIndex"} CommitteeIndex(!new, 0, ==)
-    // type Attestation 
     type {:extern "BLSSignature"} BLSSignature(==, !new, 0)
     type {:extern "BLSPubkey"} BLSPubkey(==, !new, 0)
     type {:extern "Bytes32"} Bytes32(0)
-    // type SignedBeaconBlock
     type {:extern "Root"} Root(==, 0, !new)
     type {:extern "SyncCommitteeSignature"} SyncCommitteeSignature
     type {:extern "SyncCommitteeDuty"} SyncCommitteeDuty   
@@ -206,7 +204,7 @@ module Types
     ) 
 }
 
-module CommonFunctions{
+module Common_Functions{
     import opened Types
 
     function method getOrDefault<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
@@ -216,84 +214,6 @@ module CommonFunctions{
         else
             default
     }      
-
-    function method compute_start_slot_at_epoch(epoch: Epoch): Slot
-    {
-        epoch * SLOTS_PER_EPOCH
-    }   
-
-    // TODO: What about the genesis_validator_root parameter?
-    function method {:extern} compute_domain(
-        domain_type: DomainTypes,
-        fork_version: Version
-    ): (domain: Domain)
-
-
-    lemma {:axiom} compute_domain_properties()
-    ensures forall d1, f1, d2, f2 :: 
-                compute_domain(d1, f2) == compute_domain(d2, f2) 
-                ==>
-                ( && d1 == d2 
-                  && f1 == f2
-                )
-
-    function method {:extern} compute_signing_root<T>(
-        data: T,
-        domain: Domain
-    ): Root
-
-    lemma {:axiom} compute_signing_root_properties<T>()
-    ensures forall da1, do1, da2, do2 ::
-        compute_signing_root<T>(da1, do1) == compute_signing_root<T>(da2, do2) ==>
-            && da1 == da2 
-            && do1 == do2
-
-    // TODO: Fix Python code to match the following (Python code uses epoch)
-    function method compute_attestation_signing_root(attestation_data: AttestationData, fork_version: Version): Root
-    {
-        var domain := compute_domain(DOMAIN_BEACON_ATTESTER, fork_version);
-        compute_signing_root(attestation_data, domain)
-    }
-
-    predicate uniqueSeq<T(==)>(s: seq<T>)
-    {
-        forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
-    }
-
-    predicate {:extern} verify_bls_signature(
-        data: Root,
-        signature: BLSSignature,
-        pubkey: BLSPubkey
-    )   
-
-    lemma {:axiom} lem_verify_bls_signature()
-    ensures 
-        forall d: Root, s, pk1, pk2 |
-            && verify_bls_signature(d, s, pk1)
-            && verify_bls_signature(d, s, pk2)
-            ::
-            pk1 == pk2
-
-    ensures 
-        forall d: Root, s1, s2, pk |
-            && verify_bls_signature(d, s1, pk)
-            && verify_bls_signature(d, s2, pk)
-            ::
-            s1 == s2            
-
-    ensures 
-        forall d1: Root, d2: Root, s, pk |
-            && verify_bls_signature(d1, s, pk)
-            && verify_bls_signature(d2, s, pk)
-            ::
-            d1 == d2               
-        
-
-    function method {:extern} hash_tree_root<T>(data: T): Root 
-
-    lemma {:axiom} hash_tree_root_properties<T>()
-    ensures forall d1: T, d2: T :: hash_tree_root(d1) == hash_tree_root(d2) ==> d1 == d2
-    
 
     function getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
     {
@@ -313,6 +233,24 @@ module CommonFunctions{
         set r | r in receipients :: MessaageWithRecipient(message := m, receipient := r)
     }
 
+    function f(n:nat): nat
+    {
+        if n > 0 then
+            (n-1)/3
+        else
+            0
+    }
+
+    function quorum(n:nat):nat
+    {
+        if n > 0 then
+            (2*n - 1)/3 + 1 
+        else 
+            0
+    }
+}
+
+module Set_Seq_Helper{
     function setUnion<T>(sets:set<set<T>>):set<T>
     {
         set s, e | s in sets && e in s :: e
@@ -321,6 +259,11 @@ module CommonFunctions{
     function seqToSet<T>(s: seq<T>): (r: set<T>)
     {
         set e | e in s
+    }
+
+    predicate uniqueSeq<T(==)>(s: seq<T>)
+    {
+        forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
     }
 
     lemma minOfSetOfSlotExists(s: set<int>)
@@ -345,6 +288,566 @@ module CommonFunctions{
         }    
     }
 
+    
+    function method {:opaque} minInSet(s: set<int>): (min: int)
+    requires s != {}
+    ensures min in s 
+    ensures forall e | e in s :: min <= e 
+    {
+        existsMinOfNonemptySetOfInt(s);
+        var e :| e in s && forall e' | e' in s :: e' >= e;
+        e
+    }
+
+    function method {:opaque} maxInSet(s: set<int>): (max: int)
+    requires s != {}
+    ensures max in s 
+    ensures forall e | e in s :: max >= e 
+    {
+        existsMaxOfNonemptySetOfInt(s);
+        var e :| e in s && forall e' | e' in s :: e' <= e;
+        e
+    }   
+
+    function seq_last<T>(s: seq<T>): T 
+    requires |s| > 0 
+    {
+        s[|s|-1]
+    }
+
+    function method {:opaque} get_min(s: set<int>): (min: int)    
+    requires s != {}
+    ensures min in s
+    ensures forall e | e in s :: min <= e
+    {        
+        minOfSetOfSlotExists(s);
+        var e: int :| e in s && forall e' | e' in s :: e' >= e;
+        e        
+    }
+
+    
+
+    lemma ThingsIKnowAboutSubset<T>(x:set<T>, y:set<T>)
+        requires x<y;
+        ensures |x|<|y|;
+    {
+        if (x!={}) {
+            var e :| e in x;
+            ThingsIKnowAboutSubset(x-{e}, y-{e});
+        }
+    }
+
+    lemma SubsetCardinality<T>(x:set<T>, y:set<T>)
+        ensures x<y ==> |x|<|y|;
+        ensures x<=y ==> |x|<=|y|;
+    {
+        if (x<y) {
+            ThingsIKnowAboutSubset(x, y);
+        }
+        if (x==y) { // OBSERVE the other case
+        }
+    }
+
+    lemma ItIsASingletonSet<T>(foo:set<T>, x:T)
+        requires foo=={x};
+        ensures |foo|==1;
+    {
+    }
+
+    lemma ThingsIKnowAboutASingletonSet<T>(foo:set<T>, x:T, y:T)
+        requires |foo|==1;
+        requires x in foo;
+        requires y in foo;
+        ensures x==y;
+    {
+        if (x!=y) {
+            assert {x} < foo;
+            ThingsIKnowAboutSubset({x}, foo);
+            assert |{x}| < |foo|;
+            assert |foo|>1;
+            assert false;
+        }
+    }
+
+    predicate Injective<X(!new), Y(!new)>(f:X-->Y)
+    reads f.reads;
+    requires forall x :: f.requires(x);
+    {
+    forall x1, x2 :: f(x1) == f(x2) ==> x1 == x2
+    }
+
+    // predicate InjectiveOverSimp<X, Y>(xs:set<X>, f:X-->Y)
+    //   reads f.reads;
+    //   requires forall x :: x in xs ==> f.requires(x);
+    // {
+    //   forall x1, x2 :: x1 in xs && x2 in xs && f(x1) == f(x2) ==> x1 == x2
+    // }
+
+    predicate InjectiveOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+    reads f.reads;
+    requires forall x :: x in xs ==> f.requires(x);
+    {
+    forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
+    }
+
+    predicate InjectiveOverSeq<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
+    reads f.reads;
+    requires forall x :: x in xs ==> f.requires(x);
+    {
+    forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
+    }
+
+    lemma lem_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+    requires forall x :: f.requires(x);
+    requires Injective(f);
+    requires forall x :: x in xs <==> f(x) in ys;
+    requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
+    ensures  |xs| == |ys|;
+    {
+    if (xs != {})
+    {
+        var x :| x in xs;
+        var xs' := xs - {x};
+        var ys' := ys - {f(x)};
+        lem_MapSetCardinality(xs', ys', f);
+    }
+    }
+
+    // lemma lem_MapSetCardinalityOverSImp<X, Y>(xs:set<X>, f:X-->Y)
+    //   requires forall x :: x in xs ==> f.requires(x);
+    //   requires InjectiveOverSimp(xs, f);
+    //   requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
+    //   ensures  |xs| == |ys|;
+    // {
+    //   if (xs != {})
+    //   {
+    //     var x :| x in xs;
+    //     var xs' := xs - {x};
+    //     var ys' := ys - {f(x)};
+    //     lem_MapSetCardinalityOver(xs', ys', f);
+    //   }
+    // }
+
+    lemma lem_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+    requires forall x :: x in xs ==> f.requires(x);
+    requires InjectiveOver(xs, ys, f);
+    requires forall x :: x in xs ==> f(x) in ys;
+    requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
+    ensures  |xs| == |ys|;
+    {
+    if (xs != {})
+    {
+        var x :| x in xs;
+        var xs' := xs - {x};
+        var ys' := ys - {f(x)};
+        lem_MapSetCardinalityOver(xs', ys', f);
+    }
+    }
+
+    lemma lem_MapSubsetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X->Y)
+    requires forall x :: x in xs ==> f.requires(x);
+    requires InjectiveOver(xs, ys, f);
+    requires forall x :: x in xs ==> f(x) in ys;
+    ensures  |xs| <= |ys|;
+    {
+    if (xs != {})
+    {
+        var x :| x in xs;
+        var xs' := xs - {x};
+        var ys' := ys - {f(x)};
+        lem_MapSubsetCardinalityOver(xs', ys', f);
+    }
+    }
+
+    lemma lem_MapSubsetCardinalityOverNoInjective<T,T2>(s:set<T>, s2: set<T2>, f:T --> T2)
+    requires forall m | m in s :: f.requires(m)
+    requires s2 == set m | m in s :: f(m)
+    requires |s| > 0 
+    ensures |s2| > 0
+    {
+    var e :| e in s;
+
+    assert f(e) in s2;
+    }
+
+    lemma lem_MapSubseqCardinalityOver<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
+    requires forall x :: x in xs ==> f.requires(x);
+    requires forall i, j :: 0 <= i < |xs| && 0 <= j < |xs| && i != j ==> xs[i] != xs[j];
+    requires InjectiveOverSeq(xs, ys, f);
+    requires forall x :: x in xs ==> f(x) in ys;
+    ensures  |xs| <= |ys|;
+    {
+    if (xs != [])
+    {
+        var x := xs[0];
+        var xs' := xs[1..];
+        var ys' := ys - {f(x)};
+        forall x' | x' in xs'
+            ensures f(x') in ys';
+        {
+            assert x' in xs;
+            assert f(x') in ys;
+            if f(x') == f(x)
+            {
+                assert x in xs && x' in xs && f(x) in ys && f(x') in ys && f(x') == f(x);
+                assert x' == x;
+            }
+        }
+        forall x1, x2 | x1 in xs' && x2 in xs' && f(x1) in ys' && f(x2) in ys' && f(x1) == f(x2)
+            ensures x1 == x2;
+        {
+            assert x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys';
+        }
+        lem_MapSubseqCardinalityOver(xs', ys', f);
+    }
+    }
+
+    function MapSetToSet<X(!new), Y>(xs:set<X>, f:X->Y):set<Y>
+    reads f.reads;
+    requires forall x :: f.requires(x);
+    requires Injective(f);
+    ensures  forall x :: x in xs <==> f(x) in MapSetToSet(xs, f);
+    ensures  |xs| == |MapSetToSet(xs, f)|;
+    {
+    var ys := set x | x in xs :: f(x); 
+    lem_MapSetCardinality(xs, ys, f);
+    ys
+    }
+
+    function MapSetToSetOver<X, Y>(xs:set<X>, f:X->Y):set<Y>
+    reads f.reads;
+    requires forall x :: x in xs ==> f.requires(x);
+    requires InjectiveOver(xs, set x | x in xs :: f(x), f);
+    ensures  forall x :: x in xs ==> f(x) in MapSetToSetOver(xs, f);
+    ensures  |xs| == |MapSetToSetOver(xs, f)|;
+    {
+    var ys := set x | x in xs :: f(x); 
+    lem_MapSetCardinalityOver(xs, ys, f);
+    ys
+    }
+
+    function MapSeqToSet<X(!new), Y>(xs:seq<X>, f:X->Y):set<Y>
+    reads f.reads;
+    requires forall x :: f.requires(x);
+    requires Injective(f);
+    ensures  forall x :: x in xs <==> f(x) in MapSeqToSet(xs, f);
+    {
+    set x | x in xs :: f(x)
+    }
+
+    lemma lem_SubsetCardinality<X>(xs:set<X>, ys:set<X>, f:X->bool)
+    requires forall x :: x in xs ==> f.requires(x);
+    requires forall x :: x in ys ==> x in xs && f(x);
+    ensures  |ys| <= |xs|;
+    {
+    if (ys != {})
+    {
+        var y :| y in ys;
+        var xs' := xs - {y};
+        var ys' := ys - {y};
+        lem_SubsetCardinality(xs', ys', f);
+    }
+    }
+
+    function MakeSubset<X(!new)>(xs:set<X>, f:X->bool):set<X>
+    reads f.reads;
+    requires forall x :: x in xs ==> f.requires(x);
+    ensures  forall x :: x in MakeSubset(xs, f) <==> x in xs && f(x);
+    ensures  |MakeSubset(xs, f)| <= |xs|;
+    {
+    var ys := set x | x in xs && f(x);
+    lem_SubsetCardinality(xs, ys, f);
+    ys
+    }
+
+    /* examples:
+    function{:opaque} setAdd1(xs:set<int>):set<int>
+    ensures forall x :: x in xs <==> x + 1 in setAdd1(xs);
+    ensures |xs| == |setAdd1(xs)|;
+    {
+    MapSetToSet(xs, x => x + 1)
+    }
+    function{:opaque} setPos(xs:set<int>):set<int>
+    ensures forall x :: x in setPos(xs) <==> x in xs && x > 0;
+    {
+    MakeSubset(xs, x => x > 0)
+    }
+    */
+
+    lemma lem_UnionCardinality<X>(xs:set<X>, ys:set<X>, us:set<X>)
+        requires us==xs+ys;
+        ensures |us| >= |xs|;
+        decreases ys;
+    {
+        if (ys=={}) {
+        } else {
+            var y :| y in ys;
+            if (y in xs) {
+                var xr := xs - {y};
+                var yr := ys - {y};
+                var ur := us - {y};
+                lem_UnionCardinality(xr, yr, ur);
+            } else {
+                var ur := us - {y};
+                var yr := ys - {y};
+                lem_UnionCardinality(xs, yr, ur);
+            }
+        }
+    }
+
+    function SetOfNumbersInRightExclusiveRange(a:int, b:int):set<int>
+        requires a <= b;
+        ensures forall opn :: a <= opn < b ==> opn in SetOfNumbersInRightExclusiveRange(a, b);
+        ensures forall opn :: opn in SetOfNumbersInRightExclusiveRange(a, b) ==> a <= opn < b;
+        ensures |SetOfNumbersInRightExclusiveRange(a, b)| == b-a;
+        decreases b-a;
+    {
+        if a == b then {} else {a} + SetOfNumbersInRightExclusiveRange(a+1, b)
+    }
+
+    lemma lem_CardinalityOfBoundedSet(s:set<int>, a:int, b:int)
+        requires forall opn :: opn in s ==> a <= opn < b;
+        requires a <= b;
+        ensures  |s| <= b-a;
+    {
+        var range := SetOfNumbersInRightExclusiveRange(a, b);
+        forall i | i in s
+            ensures i in range;
+        {
+        }
+        assert s <= range;
+        SubsetCardinality(s, range);
+    }
+
+
+    function intsetmax(s:set<int>):int
+        requires |s| > 0;
+        ensures  var m := intsetmax(s);
+                m in s && forall i :: i in s ==> m >= i;
+    {
+        var x :| x in s;
+        if |s| == 1 then
+            assert |s - {x}| == 0;
+            x
+        else
+            var sy := s - {x};
+            var y := intsetmax(sy);
+            assert forall i :: i in s ==> i in sy || i == x;
+            if x > y then x else y
+    }
+
+    lemma lemmDoubleIntersections<T(==)>(S1:set<T>, S2:set<T>, S3:set<T>)
+    requires S1 * S2 * S3 != {}
+    ensures exists m: T :: m in S1 && m in S2 && m in S3
+    {
+
+    }
+
+    // lemma lemmaQuorumIntersection<T(==)>(nodes:set<T>, byz:set<T>, Q1:set<T>, Q2:set<T>)
+    // requires nodes != {}
+    // requires Q1 <= nodes
+    // requires Q2 <= nodes
+    // // requires byz <= nodes
+    // requires |Q1| >= quorum(|nodes|)
+    // requires |Q2| >= quorum(|nodes|)
+    // requires |byz| <= f(|nodes|)
+    // ensures var hon := nodes - byz; Q1 * Q2 * hon != {}
+    // {
+    //     var hon := nodes - byz;
+
+    //     calc {
+    //         |Q1 * Q2 * hon|;
+    //         ==
+    //         |(Q1*Q2) * hon|;
+    //         ==
+    //         |Q1*Q2| + |hon| - |(Q1*Q2) + hon|;
+    //         >= 
+    //         |Q1*Q2| + |nodes| - |byz| - |(Q1*Q2) + hon|;
+    //         >= calc {
+    //             |Q1 * Q2|;
+    //             |Q1| + |Q2| - |Q1 + Q2|;
+    //             >= calc {
+    //                     |Q1 + Q2|; 
+    //                     <= {SubsetCardinality(Q1 + Q2, nodes);}
+    //                     |nodes|; 
+    //                 }
+    //             |Q1| + |Q2| - |nodes|;
+    //         }
+    //         |Q1| + |Q2| - |byz| - |(Q1*Q2) + hon|;
+    //         >= {SubsetCardinality((Q1*Q2) + hon, nodes);}
+    //         |Q1| + |Q2| - |byz| - |nodes|;
+    //         >=
+    //         2 * quorum(|nodes|)- |nodes| - f(|nodes|);
+    //         >=
+    //         1;
+    //     }
+
+    // }
+
+    // lemma lemmaThereExistsAnHonestInQuorum<T(==)>(nodes:set<T>, byz:set<T>, Q1:set<T>)
+    // requires nodes != {}
+    // requires Q1 <= nodes
+    // requires |Q1| >= quorum(|nodes|)
+    // requires |byz| <= f(|nodes|)
+    // ensures var hon := nodes - byz; Q1 * hon != {}
+    // {
+    //     var hon := nodes - byz;
+
+    //     calc {
+    //         |Q1 * hon|;
+    //         ==
+    //         |Q1| + |hon| - |Q1 + hon|;
+    //         >= 
+    //         |Q1| + |nodes| - |byz| - |Q1 + hon|;
+    //         >= 
+    //         {SubsetCardinality(Q1 + hon, nodes);}
+    //         |Q1|  - |byz|;
+    //         >=
+    //         quorum(|nodes|) - f(|nodes|);
+    //         >=
+    //         1;
+    //     }        
+    // }   
+
+    // lemma lemmaThereExistsAnHonestInQuorum2<T(==)>(nodes:set<T>, byz: set<T>, hon:set<T>)
+    // requires nodes != {}
+    // requires hon <= nodes
+    // requires byz <= nodes
+    // requires |hon| >= quorum(|nodes|) - |byz|
+    // requires |byz| <= f(|nodes|)
+    // requires hon * byz == {}
+    // ensures hon != {}
+    // {
+    //     lemmaEmptyIntersectionImpliesDisjointness(hon, byz);
+    //     var hon_byz := hon + byz;
+
+
+    //     assert |hon_byz| >= quorum(|nodes|);
+
+    //     lemmaThereExistsAnHonestInQuorum(nodes, byz, hon_byz);
+
+    //     assert hon != {};
+    // }       
+
+    
+
+    // lemma lemmaQuorumIsGreaterThan2F<T(==)>(nodes:set<T>)
+    // requires |nodes| > 0
+    // ensures quorum(|nodes|) > 2*f(|nodes|)
+    // { }
+
+    // lemma lemmaIntersectionOfHonestNodesInTwoQuorumsIsNotEmpty<T(==)>(
+    //     nodes: set<T>, subset: set<T>, S1: set<T>, S2: set<T>)
+    // requires |nodes| > 0 
+    // requires |subset| >= quorum(|nodes|)
+    // requires subset <= nodes && S1 <= subset && S2 <= subset
+    // requires |S1| + |S2| > |subset|
+    // ensures S1 * S2 != {}
+    // { 
+    //     calc {
+    //         |S1 * S2|;
+    //         ==
+    //         |S1| + |S2| - |S1 + S2|;
+    //         >
+    //         |subset| - |S1 + S2|;            
+    //         >=
+    //         {SubsetCardinality(S1 + S2, subset);}
+    //         |subset| - |subset|;
+    //         ==
+    //         0;
+    //     }
+    // }
+
+    // lemma lemmaQuorumAndF<T(==)>(nodes: set<T>)
+    // requires |nodes| > 0 
+    // ensures && var n := |nodes|;
+    //         && 2 * quorum(n) > n + f(n)
+    // {}
+
+    lemma lemmaEmptyIntersectionImpliesDisjointness<T>(
+      s1: set<T>,
+      s2: set<T>
+    )
+    requires s1 * s2 == {}
+    ensures s1 !! s2 
+    {
+      if s1 == {} && s2 == {}
+      {
+        assert s1 !! s2 ;
+      }
+      else if s1 == {} 
+      {
+        assert s1 !! s2 ;
+      }  
+      else if s2 == {} 
+      {
+        assert s1 !! s2 ;
+      }           
+      else if !(s1 !! s2)
+      {
+        var e :| e in s1 && e in s2;
+        assert e in (s1 * s2);
+        assert (s1 * s2) != {};
+        assert false;
+      }
+    }
+
+    lemma lemmaInUnion<T(==)>(S: set<T>, S1: set<T>, S2: set<T>, m: T)
+    requires S == S1 + S2
+    requires m in S
+    ensures m in S1 || m in S2
+    {}
+
+    lemma lemmaInUnionOneElement<T(==)>(S: set<T>, S1: set<T>, m1: T, m2: T)
+    requires S == S1 + {m1}
+    requires m2 in S
+    ensures m2 in S1 || m2 == m1
+    {}    
+
+    lemma lemmaMapKeysHasOneEntryInItems<K, V>(m: map<K, V>, k: K)  
+    requires k in m.Keys
+    ensures exists i :: i in m.Items && i.0 == k 
+    {
+        assert (k, m[k]) in m.Items;
+    }       
+
+    lemma lemmaFromMemberToSingletonSet<T>(e: T, S: set<T>)
+    requires e in S
+    ensures {e} <= S
+    {}
+
+    lemma lemmaUnionOfSubsets<T>(S1: set<T>, S2: set<T>, S: set<T>)
+    requires S1 <= S && S2 <= S
+    ensures S1 + S2 <= S
+    {}
+
+    lemma lemmaSubsetOfSubset<T>(S1: set<T>, S2: set<T>, S3: set<T>)
+    requires S1 <= S2 && S2 <= S3
+    ensures S1  <= S3
+    {}
+
+    lemma lem_member_of_subset_is_member_of_superset<T>(m: T, S1: set<T>, S2: set<T>)
+    requires m in S1
+    requires S1 <= S2 
+    ensures  m in S2
+    {}
+
+    lemma lem_union_with_subset_is_unchanged<T>(S1: set<T>, S2: set<T>)
+    requires S1 <= S2 
+    ensures  S1 + S2 == S2
+    {}
+
+    lemma lem_union_with_empty_set_is_unchanged<T>(S1: set<T>, S2: set<T>, S: set<T>)
+    requires && S1 == {}
+             && S1 + S2 == S   
+    ensures  S == S2
+    {}
+
+    lemma lemmaSingletonSetToMembership<T>(e: T, S: set<T>)
+    requires {e} == S
+    ensures e in S
+    {}
+
     lemma existsMinOfNonemptySetOfInt(s: set<int>)
     requires s != {}
     ensures exists min :: 
@@ -367,7 +870,6 @@ module CommonFunctions{
         }    
     }  
 
-    // TODO: Split general functions for sets/maps/... and functions for blocks and attestations
     lemma existsMaxOfNonemptySetOfInt(s: set<int>)
     requires s != {}
     ensures exists max :: 
@@ -388,27 +890,37 @@ module CommonFunctions{
             existsMaxOfNonemptySetOfInt(sMinusE);
             var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' <= mMinusE;
         }    
-    }    
+    }       
+}
 
-    function method {:opaque} minInSet(s: set<int>): (min: int)
-    requires s != {}
-    ensures min in s 
-    ensures forall e | e in s :: min <= e 
+module Signing_Methods{
+    import opened Types
+    import opened Set_Seq_Helper
+
+    function method compute_start_slot_at_epoch(epoch: Epoch): Slot
     {
-        existsMinOfNonemptySetOfInt(s);
-        var e :| e in s && forall e' | e' in s :: e' >= e;
-        e
+        epoch * SLOTS_PER_EPOCH
+    }   
+
+    // TODO: What about the genesis_validator_root parameter?
+    function method {:extern} compute_domain(
+        domain_type: DomainTypes,
+        fork_version: Version
+    ): (domain: Domain)
+
+    function method {:extern} compute_signing_root<T>(
+        data: T,
+        domain: Domain
+    ): Root
+
+    // TODO: Fix Python code to match the following (Python code uses epoch)
+    function method compute_attestation_signing_root(attestation_data: AttestationData, fork_version: Version): Root
+    {
+        var domain := compute_domain(DOMAIN_BEACON_ATTESTER, fork_version);
+        compute_signing_root(attestation_data, domain)
     }
 
-    function method {:opaque} maxInSet(s: set<int>): (max: int)
-    requires s != {}
-    ensures max in s 
-    ensures forall e | e in s :: max >= e 
-    {
-        existsMaxOfNonemptySetOfInt(s);
-        var e :| e in s && forall e' | e' in s :: e' <= e;
-        e
-    }   
+    function method {:extern} hash_tree_root<T>(data: T): Root 
 
     function method get_target_epochs(att_slashing_db: set<SlashingDBAttestation>): (target_epochs: set<nat>)
     requires att_slashing_db != {}
@@ -528,46 +1040,6 @@ module CommonFunctions{
         && attestation_data.source.epoch < attestation_data.target.epoch 
     }      
 
-    // Given an attestation, returns its slot
-    function method get_slot_from_att(att: Attestation): Slot
-    {
-        att.data.slot
-    }
-
-    // Given an attestation data d and a slashing DB attestation dbAttRecord, 
-    // check whether dbAttRecord is based on d.
-    predicate method is_SlashingDBAtt_for_given_att_data(
-        dbAttRecord: SlashingDBAttestation, 
-        d: AttestationData)
-    {
-        && dbAttRecord.source_epoch == d.source.epoch
-        && dbAttRecord.target_epoch == d.target.epoch
-        && dbAttRecord.signing_root == Some(hash_tree_root(d))
-    }
-    
-    // Given an attestation att and a slashing DB attestation dbAttRecord, 
-    // check whether dbAttRecord is based on att.
-    predicate method is_SlashingDBAtt_for_given_att(
-        dbAttRecord: SlashingDBAttestation, 
-        att: Attestation)
-    {
-        is_SlashingDBAtt_for_given_att_data(dbAttRecord, att.data)
-    }
-
-    // Given a set S of attestation shares and an attestastion att,
-    // returns all shares in S that are based on att.
-    function get_shares_in_set_based_on_given_att(
-        S: set<AttestationShare>,
-        att: Attestation
-    ): set<AttestationShare>
-    {
-        var ret_set := set s: AttestationShare |
-                                s in S && s.data == att.data :: s;
-
-        ret_set
-    }
-
-    // Construct a slashing DB attestation for a given attestastion data
     function method construct_SlashingDBAttestation_from_att_data(attestation_data: AttestationData): SlashingDBAttestation
     {        
         var slashing_db_attestation := SlashingDBAttestation(
@@ -578,158 +1050,11 @@ module CommonFunctions{
         slashing_db_attestation
     }
 
-    function get_slot_from_slashing_db_attestation(a: SlashingDBAttestation): Slot
-    requires exists att_data: AttestationData ::  a.signing_root == Some(hash_tree_root(att_data))
-    {        
-        hash_tree_root_properties<AttestationData>();
-        var att_data: AttestationData :|  a.signing_root == Some(hash_tree_root(att_data));
-
-        att_data.slot
-    }
-
-    ghost method get_slashing_db_attestations_before_slot_s(
-        db: set<SlashingDBAttestation>,
-        s: Slot
-    ) returns (S: set<SlashingDBAttestation>)
-    requires ( forall r: SlashingDBAttestation | r in db :: 
-                    ( exists att_data: AttestationData ::  r.signing_root == Some(hash_tree_root(att_data))
-                    )
-             )
-    ensures ( forall r | r in S :: 
-                            && ( exists data: AttestationData ::  r.signing_root == Some(hash_tree_root(data)) )
-                            && get_slot_from_slashing_db_attestation(r) < s)
-    ensures ( forall r | r in db && r !in S :: 
-                            && ( exists data: AttestationData ::  r.signing_root == Some(hash_tree_root(data)) )
-                            && get_slot_from_slashing_db_attestation(r) >= s)
-    {
-        S := {};
-        var unchecked := db;
-        var checked := {};
-        
-        while unchecked != {}        
-        invariant unchecked + checked == db
-        invariant ( forall r: SlashingDBAttestation | r in S :: 
-                                && ( exists data: AttestationData ::  r.signing_root == Some(hash_tree_root(data)) )
-                                && get_slot_from_slashing_db_attestation(r) < s )
-        invariant ( forall r: SlashingDBAttestation | r in checked && r !in S ::
-                                && ( exists data: AttestationData ::  r.signing_root == Some(hash_tree_root(data)) )
-                                && get_slot_from_slashing_db_attestation(r) >= s )                            
-        decreases |unchecked|
-        {
-            var a: SlashingDBAttestation :| a in unchecked;
-            unchecked := unchecked - {a};
-            checked := checked + {a};
-
-            hash_tree_root_properties<AttestationData>();
-            var att_data: AttestationData :| a.signing_root == Some(hash_tree_root(att_data));
-            if att_data.slot < s
-            {
-                S := S + {a};
-            }
-            else 
-            {
-                S := S;
-            }            
-        }             
-
-        return S;
-    }
-
-    // Construct a slashing DB attestation for a given attestastion 
     function method construct_SlashingDBAttestation_from_att(att: Attestation): SlashingDBAttestation
     {        
         var slashing_db_attestation := construct_SlashingDBAttestation_from_att_data(att.data);
 
         slashing_db_attestation
-    }
-
-    // Given a set S of attestation and a slot s such that there exists only one attestation att 
-    // such that att.data.slot == s. 
-    // Returns att.
-    function method get_attestation_duty_with_given_slot(adSet: set<AttestationDuty>, s: Slot): AttestationDuty
-    requires exists duty: AttestationDuty :: duty in adSet && duty.slot == s
-    requires ( forall ad1, ad2: AttestationDuty :: 
-                    ( && ad1 in adSet 
-                      && ad2 in adSet 
-                      && ad1.slot == ad2.slot
-                    )
-                        ==> ad1 == ad2 )
-    {
-        var ret_att_ad: AttestationDuty :| ret_att_ad in adSet && ret_att_ad.slot == s;
-
-        ret_att_ad
-    }
-
-    // Given a set S of attestation and a slot s such that there exists only one attestation att 
-    // such that att.data.slot == s. 
-    // Returns att.
-    function method get_attestation_with_given_slot(attSet: set<Attestation>, s: Slot): Attestation
-    requires exists att: Attestation :: att in attSet && att.data.slot == s
-    requires forall a1, a2: Attestation :: 
-                ( && a1 in attSet 
-                  && a2 in attSet 
-                  && a1.data.slot == a2.data.slot
-                )
-                        ==> a1 == a2
-    {
-        var ret_att: Attestation :| ret_att in attSet && ret_att.data.slot == s;
-
-        ret_att
-    }
-    
-    function method construct_SlashingDBAttestations_from_set_of_attestations(S: set<Attestation>): set<SlashingDBAttestation>
-    {
-        var ret_set := set att: Attestation |
-                                att in S :: construct_SlashingDBAttestation_from_att_data(att.data);
-
-        ret_set
-    }
-
-    predicate is_slashable_attestation_data_in_set_of_attestations(
-        attSet: set<Attestation>, 
-        attestation_data: AttestationData)
-    {
-        && var slashingDBAttestationSet := construct_SlashingDBAttestations_from_set_of_attestations(attSet);
-        && is_slashable_attestation_data(slashingDBAttestationSet, attestation_data)
-    }
-
-    function f(n:nat): nat
-    {
-        if n > 0 then
-            (n-1)/3
-        else
-            0
-    }
-
-    function quorum(n:nat):nat
-    {
-        if n > 0 then
-            (2*n - 1)/3 + 1 
-        else 
-            0
-    }
-
-    function seq_last<T>(s: seq<T>): T 
-    requires |s| > 0 
-    {
-        s[|s|-1]
-    }
-
-    lemma lemmaImaptotalElementInDomainIsInKeys<K(!new), V>(m: imaptotal<K, V>, e: K)
-    ensures e in m.Keys
-    {
-
-    }
-
-    lemma lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame<M>(
-        messagesToBeSent: set<MessaageWithRecipient<M>>,
-        message: M
-    )
-    requires forall m | m in messagesToBeSent :: m.message == message 
-    requires messagesToBeSent != {}
-    ensures getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {message}
-    {
-
     }
 
     function method f_construct_aggregated_attestation_for_new_attestation_share(
@@ -749,15 +1074,14 @@ module CommonFunctions{
             signature := construct_signed_attestation_signature(rcvd_attestation_shares[attestation_share.data.slot][k]).safe_get()
         )
     }
-
-    function method {:opaque} get_min(s: set<int>): (min: int)    
-    requires s != {}
-    ensures min in s
-    ensures forall e | e in s :: min <= e
-    {        
-        minOfSetOfSlotExists(s);
-        var e: int :| e in s && forall e' | e' in s :: e' >= e;
-        e        
+    
+    function method get_slashing_slots(slashing_db: set<SlashingDBBlock>): (slots_in_db: set<int>)    
+    requires slashing_db != {}
+    ensures slots_in_db != {}    
+    {
+        var slots_in_db := set block | block in slashing_db :: block.slot;
+        assert var e :| e in slashing_db; e.slot in slots_in_db;
+        slots_in_db
     }
 
     // is_slashable_block is for line 153 in helpers.py
@@ -822,43 +1146,6 @@ module CommonFunctions{
         && !is_slashable_block(block_slashing_db, block)
     }
 
-    // 
-    function method get_slashing_slots(slashing_db: set<SlashingDBBlock>): (slots_in_db: set<int>)    
-    requires slashing_db != {}
-    ensures slots_in_db != {}    
-    {
-        var slots_in_db := set block | block in slashing_db :: block.slot;
-        assert var e :| e in slashing_db; e.slot in slots_in_db;
-        slots_in_db
-    }
-    
-    predicate method is_slashable_pair_of_beacon_blocks(
-        block_1: SlashingDBBlock, 
-        block_2: SlashingDBBlock)
-    {
-        && block_1.slot == block_2.slot
-        && block_1.signing_root.isPresent()
-        && block_2.signing_root.isPresent()
-        && block_1.signing_root.safe_get() != block_2.signing_root.safe_get()
-    }  
-
-    function method construct_SlashingDBBlock_from_beacon_block(block: BeaconBlock
-    ): (slashing_db_block: SlashingDBBlock)
-    ensures slashing_db_block == SlashingDBBlock(block.slot, Some(hash_tree_root(block)))
-    ensures slashing_db_block.slot == block.slot
-    ensures && slashing_db_block.signing_root.isPresent()
-            && slashing_db_block.signing_root.safe_get() == hash_tree_root(block)
-    {   
-        var slot := block.slot;
-        var signing_root := hash_tree_root(block);
-        var slashing_db_block := SlashingDBBlock(
-                                            slot := slot,                                            
-                                            signing_root := Some(signing_root)
-                                );
-
-        slashing_db_block
-    }  
-
     function method compute_epoch_at_slot(slot: Slot): Epoch
     {
         slot / SLOTS_PER_EPOCH
@@ -869,7 +1156,6 @@ module CommonFunctions{
         epoch: Epoch
     ): (domain: Domain)
 
-    // TODO: What about the genesis_validator_root parameter?
     function method {:extern} compute_domain_with_fork_version(
         domain_type: DomainTypes,
         fork_version: Version
@@ -887,5 +1173,22 @@ module CommonFunctions{
         var epoch := compute_epoch_at_slot(block.slot);
         var domain := compute_domain_with_epoch(DOMAIN_BEACON_PROPOSER, epoch);
         compute_signing_root(block, domain)
+    }  
+
+    function method construct_SlashingDBBlock_from_beacon_block(block: BeaconBlock
+    ): (slashing_db_block: SlashingDBBlock)
+    ensures slashing_db_block == SlashingDBBlock(block.slot, Some(hash_tree_root(block)))
+    ensures slashing_db_block.slot == block.slot
+    ensures && slashing_db_block.signing_root.isPresent()
+            && slashing_db_block.signing_root.safe_get() == hash_tree_root(block)
+    {   
+        var slot := block.slot;
+        var signing_root := hash_tree_root(block);
+        var slashing_db_block := SlashingDBBlock(
+                                            slot := slot,                                            
+                                            signing_root := Some(signing_root)
+                                );
+
+        slashing_db_block
     }  
 }

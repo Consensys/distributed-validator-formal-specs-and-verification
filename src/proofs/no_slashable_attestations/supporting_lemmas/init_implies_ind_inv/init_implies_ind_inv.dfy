@@ -9,7 +9,9 @@ include "../ind_inv.dfy"
 module Ind_Inv_Att_DV_Init
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec

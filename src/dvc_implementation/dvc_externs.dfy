@@ -3,7 +3,9 @@ include "../common/commons.dfy"
 module DVC_Externs
 {
     import opened Types
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
 
     trait 
     // See https://github.com/dafny-lang/dafny/issues/1588 for why {:termination false} is needed

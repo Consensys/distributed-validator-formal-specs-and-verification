@@ -1,12 +1,13 @@
 include "../../common/commons.dfy"
-include "../../dvc_implementation/attestation_creation.dfy"
 include "../dvc/consensus_engine.dfy"
 include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
 
 module Att_DVC_Spec_NonInstr {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened Consensus_Engine_NonInstr
     import opened BN_Axioms
     import opened RS_Axioms

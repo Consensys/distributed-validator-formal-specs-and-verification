@@ -12,7 +12,6 @@ include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
 
 
-include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
 
 include "invs_dv_next_1.dfy"
@@ -23,8 +22,9 @@ include "invs_dv_next_4.dfy"
 module Invs_DV_Next_5
 {
     import opened Types
-    
-    import opened CommonFunctions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
+    import opened Common_Functions
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DVC_Block_Proposer_Spec_Instr
@@ -35,7 +35,6 @@ module Invs_DV_Next_5
     import opened DV_Block_Proposer_Spec    
     import opened Fnc_Invs_1
     import opened Fnc_Invs_2
-    import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened Invs_DV_Next_1
     import opened Invs_DV_Next_2

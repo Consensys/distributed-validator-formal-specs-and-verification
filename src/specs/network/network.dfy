@@ -5,7 +5,8 @@ include "../../common/commons.dfy"
 module NetworkSpec
 {
     import opened Types
-    import opened CommonFunctions
+    import opened Common_Functions
+
     datatype Network<M> = Network(
         messagesInTransit: multiset<MessaageWithRecipient>,
         allMessagesSent: set<M>

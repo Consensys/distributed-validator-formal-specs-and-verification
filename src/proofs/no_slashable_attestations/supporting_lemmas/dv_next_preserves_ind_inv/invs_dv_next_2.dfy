@@ -5,7 +5,6 @@ include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
-include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
 include "../../../bn_axioms.dfy"
 include "../../../rs_axioms.dfy"
@@ -13,25 +12,28 @@ include "../../../rs_axioms.dfy"
 include "invs_dv_next_1.dfy"
 include "../inv.dfy"
 include "../../../common/att_helper_pred_fcn.dfy"
+include "../../../common/quorum_lemmas.dfy"
 
 
 module Invs_Att_DV_Next_2
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV    
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
-    import opened Helper_Sets_Lemmas
     import opened Common_Proofs
     import opened Invs_Att_DV_Next_1
     import Att_DVC_Spec_NonInstr
     import opened BN_Axioms
     import opened RS_Axioms
     import opened Att_Helper_Pred_Fcn
+    import opened Quorum_Lemmas
 
     predicate pred_the_latest_attestation_duty_was_sent_from_dv(
         s': Att_DVState,
@@ -1204,6 +1206,19 @@ module Invs_Att_DV_Next_2
            lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_helper(s, cid);
         }        
     }       
+
+    lemma lemmaImaptotalElementInDomainIsInKeys<K(!new), V>(m: imaptotal<K, V>, e: K)
+    ensures e in m.Keys
+    { }
+
+    lemma lemmaOnGetMessagesFromMessagesWithRecipientWhenAllMessagesAreTheSame<M>(
+        messagesToBeSent: set<MessaageWithRecipient<M>>,
+        message: M
+    )
+    requires forall m | m in messagesToBeSent :: m.message == message 
+    requires messagesToBeSent != {}
+    ensures getMessagesFromMessagesWithRecipient(messagesToBeSent) ==  {message}
+    { }
 
     lemma lem_inv_data_of_att_shares_are_decided_values_att_consensus_decided_with_decided_data_for_current_slot(
         s: Att_DVState,

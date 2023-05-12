@@ -4,7 +4,6 @@ include "../../../specs/dvc/consensus_engine.dfy"
 include "../../../specs/consensus/consensus.dfy"
 include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
-include "../../common/helper_sets_lemmas.dfy"
 include "../../bn_axioms.dfy"
 include "../../rs_axioms.dfy"
 
@@ -12,12 +11,13 @@ include "../../rs_axioms.dfy"
 module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
-    import opened Helper_Sets_Lemmas
     import opened BN_Axioms
     import opened RS_Axioms
     import opened Consensus_Engine_Instr
@@ -468,19 +468,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
                     dv.sequence_attestation_duties_to_be_served,
                     dv.index_next_attestation_duty_to_be_served)
     }  
-
-    // predicate has_all_slashing_db_attestations_before_slot_s(
-    //     db: set<SlashingDBAttestation>,
-    //     S: set<SlashingDBAttestation>,
-    //     s: Slot
-    // )
-    // requires (forall r: SlashingDBAttestation :: 
-    //                 r in db ==> (exists data: AttestationData :: r.signing_root == Some(hash_tree_root(data))))
-    // {
-    //     && S <= db
-    //     && ( forall r | r in db && r !in S :: get_slot_from_slashing_db_attestation(r) >= s )
-    //     && ( forall r | r in S :: get_slot_from_slashing_db_attestation(r) < s )
-    // }
 
     predicate inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv: Att_DVState)
     {
@@ -1601,4 +1588,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             ::
             inv_honest_nodes_are_not_owners_of_att_shares_from_adversary_body(dv, att_share)
     }
+
+    
 }

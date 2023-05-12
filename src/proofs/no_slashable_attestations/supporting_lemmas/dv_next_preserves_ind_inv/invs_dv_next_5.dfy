@@ -5,7 +5,6 @@ include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
-include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
 include "../../../bn_axioms.dfy"
 include "../../../rs_axioms.dfy"
@@ -24,7 +23,9 @@ include "../../../common/att_helper_pred_fcn.dfy"
 module Invs_Att_DV_Next_5
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec
@@ -40,7 +41,6 @@ module Invs_Att_DV_Next_5
     import opened RS_Axioms
     import opened Att_Helper_Pred_Fcn
     import opened Fnc_Invs_2
-    import opened Helper_Sets_Lemmas
 
     lemma lem_slashing_db_hist_is_monotonic_f_serve_attestation_duty(
         process: Att_DVCState,

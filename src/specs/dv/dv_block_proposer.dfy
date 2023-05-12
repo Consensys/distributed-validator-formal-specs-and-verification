@@ -10,8 +10,8 @@ include "../../proofs/rs_axioms.dfy"
 module DV_Block_Proposer_Spec 
 {
     import opened Types
-    import opened CommonFunctions
-    
+    import opened Common_Functions
+    import opened Signing_Methods
     import opened NetworkSpec
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr

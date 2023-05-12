@@ -7,7 +7,9 @@ include "../../common/att_helper_pred_fcn.dfy"
 module Spec_Spec_NonInstr_Refinement
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened BN_Axioms
     import opened RS_Axioms
     import Att_DVC_Spec_NonInstr

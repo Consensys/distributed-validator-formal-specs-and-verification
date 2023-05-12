@@ -1,7 +1,5 @@
 include "../../../common/commons.dfy"
 include "../common/dvc_attestation_creation_instrumented.dfy"
-include "../../../specs/consensus/consensus.dfy"
-include "../../../specs/network/network.dfy"
 include "../../../specs/dv/dv_attestation_creation.dfy"
 include "inv.dfy"
 
@@ -9,10 +7,6 @@ include "inv.dfy"
 module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 {
     import opened Types 
-    import opened CommonFunctions
-    import opened ConsensusSpec
-    import opened Consensus_Engine_Instr
-    import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB

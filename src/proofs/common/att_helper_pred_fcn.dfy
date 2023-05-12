@@ -4,19 +4,19 @@ include "../../specs/dvc/consensus_engine.dfy"
 include "../../specs/consensus/consensus.dfy"
 include "../../specs/network/network.dfy"
 include "../../specs/dv/dv_attestation_creation.dfy"
-include "../common/helper_sets_lemmas.dfy"
 include "../no_slashable_attestations/common/dvc_attestation_creation_instrumented.dfy"
 
 module Att_Helper_Pred_Fcn
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
-    import opened Helper_Sets_Lemmas
     import opened BN_Axioms
     import opened RS_Axioms
     import Att_DVC_Spec_NonInstr

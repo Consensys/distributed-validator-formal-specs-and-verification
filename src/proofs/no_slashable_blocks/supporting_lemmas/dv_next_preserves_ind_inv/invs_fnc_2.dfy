@@ -2,7 +2,6 @@ include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_block_proposer.dfy"
 include "../inv.dfy"
-include "../../../common/helper_sets_lemmas.dfy"
 include "../../common/common_proofs.dfy"
 include "../../../bn_axioms.dfy"
 include "../../../rs_axioms.dfy"
@@ -13,7 +12,6 @@ include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
-include "../../../common/helper_sets_lemmas.dfy"
 
 
 
@@ -24,15 +22,15 @@ include "invs_fnc_1.dfy"
 module Fnc_Invs_2
 {
     import opened Types 
-    
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
-    import opened Helper_Sets_Lemmas
     import opened Common_Proofs_For_Block_Proposer
     import opened BN_Axioms
     import opened RS_Axioms

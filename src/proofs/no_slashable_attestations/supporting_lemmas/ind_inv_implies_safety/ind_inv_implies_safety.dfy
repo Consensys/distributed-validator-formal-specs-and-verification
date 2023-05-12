@@ -5,7 +5,6 @@ include "../../../../specs/network/network.dfy"
 include "../../../../specs/dv/dv_attestation_creation.dfy"
 include "../../../../specs/dvc/dvc_attestation_creation.dfy"
 
-include "../../../common/helper_sets_lemmas.dfy"
 include "../../../no_slashable_attestations/common/common_proofs.dfy"
 include "../../../bn_axioms.dfy"
 include "../../../rs_axioms.dfy"
@@ -22,7 +21,9 @@ include "core_proofs.dfy"
 module Ind_Inv_Implies_Safety
 {
     import opened Types 
-    import opened CommonFunctions
+    import opened Common_Functions
+    import opened Set_Seq_Helper
+    import opened Signing_Methods
     import opened ConsensusSpec
     import opened Consensus_Engine_Instr
     import opened NetworkSpec
