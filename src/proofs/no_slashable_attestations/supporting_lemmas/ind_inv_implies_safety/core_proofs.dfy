@@ -27,6 +27,7 @@ module Core_Proofs
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
+    import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Invs_Att_DV_Next_3
     import opened Invs_Att_DV_Next_5

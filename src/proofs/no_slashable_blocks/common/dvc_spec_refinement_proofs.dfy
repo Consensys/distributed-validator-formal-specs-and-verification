@@ -104,12 +104,12 @@ module Spec_Spec_NonInstr_Refinement
     ensures && var  dvcoi := 
                     DVC_Block_Proposer_Spec_Instr.DVCStateAndOuputs(
                         dvci,
-                        DVC_Block_Proposer_Spec_Instr.getEmptyOuputs()
+                        getEmptyBlockOuputs()
                     );
             && var  dvconi := 
                     DVC_Block_Proposer_Spec_NonInstr.DVCStateAndOuputs(
                         dvcni,
-                        DVC_Block_Proposer_Spec_NonInstr.getEmptyOuputs()
+                        getEmptyBlockOuputs()
                     );
             && DVCStateAndOuputsRel(dvcoi, dvconi);    
     { }

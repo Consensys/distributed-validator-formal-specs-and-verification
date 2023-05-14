@@ -9,6 +9,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     import opened Types 
     import opened Att_DVC_Spec
     import opened Att_DV
+    import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate ind_inv(dv: Att_DVState)       
@@ -43,7 +44,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
         &&  inv_none_latest_att_duty_implies_none_current_att_duty(dv)   
         &&  inv_current_att_duty_is_either_none_or_latest_att_duty(dv)  
         &&  inv_available_current_att_duty_is_latest_att_duty(dv) 
-        &&  inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)              
+        &&  inv_the_sequence_of_att_duties_is_in_order_of_slots(dv.sequence_attestation_duties_to_be_served)              
     }
 
     predicate invs_group_3(dv: Att_DVState)       
@@ -134,7 +135,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
 
     predicate invs_group_14(dv: Att_DVState)       
     {   
-        && inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
+        && inv_the_sequence_of_att_duties_is_in_order_of_slots(dv.sequence_attestation_duties_to_be_served)
         && inv_att_shares_to_broadcast_are_tracked_in_attestation_slashing_db(dv)
         && inv_sent_att_shares_have_corresponding_slashing_db_attestations(dv)
         && inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_att_duty(dv)

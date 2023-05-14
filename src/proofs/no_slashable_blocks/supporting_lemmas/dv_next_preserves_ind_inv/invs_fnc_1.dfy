@@ -5,15 +5,11 @@ include "../inv.dfy"
 include "../../common/common_proofs.dfy"
 include "../../../bn_axioms.dfy"
 include "../../../rs_axioms.dfy"
-
 include "../../../../common/commons.dfy"
-
 include "../../common/dvc_block_proposer_instrumented.dfy"
 include "../../../../specs/consensus/consensus.dfy"
 include "../../../../specs/network/network.dfy"
 include "../inv.dfy"
-
-
 
 
 module Fnc_Invs_1
@@ -1996,7 +1992,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     requires s' == f_check_for_next_duty(s, proposer_duty).state
     ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_block_shares == s.rcvd_block_shares
-    ensures f_check_for_next_duty(s, proposer_duty).outputs == getEmptyOuputs()
+    ensures f_check_for_next_duty(s, proposer_duty).outputs == getEmptyBlockOuputs()
     { }
 
     lemma lem_f_block_consensus_decided_unchanged_dvc_vars(
@@ -2021,7 +2017,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     ensures s'.bn.submitted_data == s.bn.submitted_data
     ensures s'.rcvd_block_shares.Keys <= s.rcvd_block_shares.Keys
     ensures forall k | k in s'.rcvd_block_shares.Keys :: s'.rcvd_block_shares[k] == s.rcvd_block_shares[k]
-    ensures f_listen_for_new_imported_blocks(s, block).outputs == getEmptyOuputs()
+    ensures f_listen_for_new_imported_blocks(s, block).outputs == getEmptyBlockOuputs()
     ensures f_listen_for_new_imported_blocks(s, block).outputs.sent_block_shares == {}
     { }  
 

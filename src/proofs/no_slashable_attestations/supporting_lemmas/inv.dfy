@@ -18,9 +18,21 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
+    import opened Att_DV_Assumptions
     import opened BN_Axioms
     import opened RS_Axioms
     import opened Consensus_Engine_Instr
+
+    predicate construct_signed_attestation_signature_assumptions(
+        s: Att_DVState
+    )
+    {
+        construct_signed_attestation_signature_assumptions_helper(
+            s.construct_signed_attestation_signature,
+            s.dv_pubkey,
+            s.all_nodes
+        ) 
+    }
 
 
     predicate is_an_honest_node(s: Att_DVState, n: BLSPubkey)
@@ -1005,7 +1017,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc.attestation_slashing_db <= dvc'.attestation_slashing_db
     }
 
-    predicate inv_monotonic_att_slashing_db(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)    
+    predicate inv_monotonic_att_slashing_db(dv: Att_DVState, event: DVAttestationEvent, dv': Att_DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys
@@ -1050,7 +1062,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
         dvc'.attestation_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_monotonic_slashing_db_hist(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)    
+    predicate inv_monotonic_slashing_db_hist(dv: Att_DVState, event: DVAttestationEvent, dv': Att_DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys
@@ -1249,7 +1261,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }
 
     predicate inv_outputs_attestations_submited_are_valid(
-        outputs: Outputs,
+        outputs: AttestationOutputs,
         dv_pubkey: BLSPubkey)
     {
         forall submitted_attestation | submitted_attestation in outputs.submitted_data ::
@@ -1311,7 +1323,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }   
 
     predicate inv_outputs_att_shares_sent_are_tracked_in_attestation_slashing_db(
-        outputs: Outputs,
+        outputs: AttestationOutputs,
         dvc: Att_DVCState)
     {
         forall att_share: AttestationShare | 
@@ -1475,7 +1487,7 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     }   
 
     predicate inv_outputs_attestations_submited_are_created_based_on_shares_of_a_quorum(
-        outputs: Outputs,
+        outputs: AttestationOutputs,
         dvc: Att_DVCState)
     {
         forall submitted_attestation | submitted_attestation in outputs.submitted_data ::

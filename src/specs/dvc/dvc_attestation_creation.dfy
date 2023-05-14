@@ -27,24 +27,10 @@ module Att_DVC_Spec_NonInstr {
         bn: BNState<Attestation>,
         rs: RSState
     )
-
-    datatype Outputs = Outputs(
-        att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
-        submitted_data: set<Attestation>
-    )    
-
-    function getEmptyOuputs(): Outputs
-    {
-        Outputs(
-            {},
-            {}
-        )
-    }  
-
-
+  
     datatype Att_DVCStateAndOuputs = Att_DVCStateAndOuputs(
         state: Att_DVCState,
-        outputs: Outputs
+        outputs: AttestationOutputs
     )
 
     predicate Init(
@@ -77,7 +63,7 @@ module Att_DVC_Spec_NonInstr {
         s: Att_DVCState,
         event: AttestationEvent,
         s': Att_DVCState,
-        outputs: Outputs
+        outputs: AttestationOutputs
     )
     {
         var newNodeStateAndOutputs := Att_DVCStateAndOuputs(
@@ -121,13 +107,13 @@ module Att_DVC_Spec_NonInstr {
             case ResendAttestationShares => 
                 f_resend_attestation_share(s)
             case NoEvent => 
-                Att_DVCStateAndOuputs(state := s, outputs := getEmptyOuputs() )
+                Att_DVCStateAndOuputs(state := s, outputs := getEmptyAttestationOuputs() )
     }  
 
     // Wraps a Att_DVC state with outputs to construct a state with type Att_DVCStateAndOutputs
     function f_wrap_Att_DVCState_with_Outputs(
         dvc: Att_DVCState,
-        outputs: Outputs
+        outputs: AttestationOutputs
     ): Att_DVCStateAndOuputs
     {
         Att_DVCStateAndOuputs(
@@ -204,7 +190,7 @@ module Att_DVC_Spec_NonInstr {
                             new_attestation_slashing_db
                         )                        
                     );
-            f_wrap_Att_DVCState_with_Outputs(new_process, getEmptyOuputs())
+            f_wrap_Att_DVCState_with_Outputs(new_process, getEmptyAttestationOuputs())
         else
             f_start_next_duty(process, attestation_duty)
     }         
@@ -226,7 +212,7 @@ module Att_DVC_Spec_NonInstr {
                                 process.attestation_slashing_db
                             )
                 );
-        f_wrap_Att_DVCState_with_Outputs(new_process, getEmptyOuputs())
+        f_wrap_Att_DVCState_with_Outputs(new_process, getEmptyAttestationOuputs())
     }      
 
     function get_aggregation_bits(
@@ -321,13 +307,13 @@ module Att_DVC_Spec_NonInstr {
                             new_attestation_slashing_db
                         );         
 
-            var outputs := getEmptyOuputs().(
+            var outputs := getEmptyAttestationOuputs().(
                                     att_shares_sent := multicast(attestation_with_signature_share, process.peers)
                                 );
              
             f_wrap_Att_DVCState_with_Outputs(process_mod, outputs)       
         else   
-            f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())            
+            f_wrap_Att_DVCState_with_Outputs(process, getEmptyAttestationOuputs())            
     }    
 
     function f_listen_for_attestation_shares(
@@ -378,7 +364,7 @@ module Att_DVC_Spec_NonInstr {
                             process_with_new_att_shares_db.rcvd_attestation_shares
                         );
 
-                    var new_outputs := getEmptyOuputs().(
+                    var new_outputs := getEmptyAttestationOuputs().(
                                                 submitted_data := {aggregated_attestation} 
                                             );
 
@@ -391,9 +377,9 @@ module Att_DVC_Spec_NonInstr {
 
                     f_wrap_Att_DVCState_with_Outputs(process_after_submitting_attestations, new_outputs)  
                 else 
-                    f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())    
+                    f_wrap_Att_DVCState_with_Outputs(process, getEmptyAttestationOuputs())    
         else 
-            f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())          
+            f_wrap_Att_DVCState_with_Outputs(process, getEmptyAttestationOuputs())          
     }
  
     predicate isMyAttestation(
@@ -511,16 +497,16 @@ module Att_DVC_Spec_NonInstr {
                         new_attestation_slashing_db
                     )                
             );
-            f_wrap_Att_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyOuputs()) 
+            f_wrap_Att_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyAttestationOuputs()) 
         else
-            f_wrap_Att_DVCState_with_Outputs(process, getEmptyOuputs())    
+            f_wrap_Att_DVCState_with_Outputs(process, getEmptyAttestationOuputs())    
     }    
   
     function f_resend_attestation_share(
         process: Att_DVCState
     ): Att_DVCStateAndOuputs
     {
-        var new_outputs := getEmptyOuputs().(
+        var new_outputs := getEmptyAttestationOuputs().(
                                     att_shares_sent :=
                                         multicast_multiple(process.attestation_shares_to_broadcast.Values, process.peers)
                                 );

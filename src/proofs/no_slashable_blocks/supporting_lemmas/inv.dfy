@@ -21,7 +21,29 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec    
     import opened BN_Axioms
     import opened RS_Axioms
+    import opened DV_Block_Proposer_Assumptions
 
+    predicate construct_complete_signed_randao_reveal_assumptions(
+        s: DVState
+    )
+    {
+        construct_complete_signed_randao_reveal_assumptions_helper(
+            s.construct_complete_signed_randao_reveal,
+            s.dv_pubkey,
+            s.all_nodes
+        ) 
+    }
+
+    predicate construct_complete_signed_block_assumptions(
+        s: DVState
+    )
+    {
+        construct_complete_signed_block_assumptions_helper(
+            s.construct_complete_signed_block,
+            s.dv_pubkey,
+            s.all_nodes
+        ) 
+    }
 
     predicate is_an_honest_node(s: DVState, n: BLSPubkey)
     {
@@ -165,7 +187,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     predicate inv_seq_of_proposer_duties_is_ordered(dv: DVState)
     {
-        proposer_duties_are_ordered(dv)
+        assumption_on_sequence_of_proposer_duties(dv.sequence_proposer_duties_to_be_served)
     }
 
     predicate inv_no_duplicated_proposer_duties(dv: DVState)
@@ -665,7 +687,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         dvc'.block_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_slashing_db_hist_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
+    predicate inv_slashing_db_hist_is_monotonic(dv: DVState, event: DVBlockEvent, dv': DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states
@@ -674,7 +696,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && inv_slashing_db_hist_is_monotonic_body(dvc, dvc')
     }
 
-    predicate inv_all_blocks_created_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
+    predicate inv_all_blocks_created_is_monotonic(dv: DVState, event: DVBlockEvent, dv': DVState)    
     {
         dv.all_blocks_created <= dv'.all_blocks_created
     }
@@ -1139,7 +1161,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         dvc.block_slashing_db <= dvc'.block_slashing_db
     }
 
-    predicate inv_block_slashing_db_is_monotonic(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
+    predicate inv_block_slashing_db_is_monotonic(dv: DVState, event: DVBlockEvent, dv': DVState)    
     {
         forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys
@@ -1276,7 +1298,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_submitted_outputs_blocks_are_valid(
-        outputs: Outputs,
+        outputs: BlockOutputs,
         dv_pubkey: BLSPubkey)
     {
         forall submitted_block | submitted_block in outputs.submitted_data ::
@@ -1307,7 +1329,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
                          
     predicate inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(
-        outputs: Outputs,
+        outputs: BlockOutputs,
         dvc: DVCState)
     {
         forall block_share: SignedBeaconBlock | 
@@ -1468,7 +1490,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }   
 
     predicate inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(
-        outputs: Outputs,
+        outputs: BlockOutputs,
         dvc: DVCState)
     {
         forall submitted_block | submitted_block in outputs.submitted_data ::

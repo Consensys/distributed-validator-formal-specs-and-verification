@@ -18,6 +18,7 @@ module Proofs_Intermediate_Steps
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
+    import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB    
     
     lemma lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv: Att_DVState)
@@ -79,7 +80,7 @@ module Proofs_Intermediate_Steps
         dv: Att_DVState
     )    
     requires inv_all_honest_nodes_is_a_quorum(dv)  
-    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
+    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv.sequence_attestation_duties_to_be_served)
     requires inv_rcvd_att_duties_are_from_dv_seq_of_att_duties(dv)
     ensures inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties(dv)    
     {   

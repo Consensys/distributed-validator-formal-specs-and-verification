@@ -158,10 +158,10 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             )
         }  
 
-        twostate function getOutputs(): (o: Outputs)
+        twostate function getOutputs(): (o: AttestationOutputs)
         reads this, network, bn
         {
-            Outputs(
+            AttestationOutputs(
                 att_shares_sent :=  setUnion(seqMinusToSet(network.att_shares_sent, old(network.att_shares_sent))),
                 submitted_data := seqMinusToSet(bn.submitted_data, old(bn.submitted_data))
             )
@@ -443,7 +443,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
 
             Att_DVCStateAndOuputs(
                 newProcess,
-                outputs := getEmptyOuputs().(
+                outputs := getEmptyAttestationOuputs().(
                     att_shares_sent := multicast(attestation_with_signature_share, process.peers)
                 )                  
             )                
@@ -1046,10 +1046,10 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
             block: BeaconBlock
         )
         requires f_listen_for_new_imported_blocks.requires(process, block)
-        ensures f_listen_for_new_imported_blocks(process, block).outputs == getEmptyOuputs()
+        ensures f_listen_for_new_imported_blocks(process, block).outputs == getEmptyAttestationOuputs()
         {
             forall p | f_check_for_next_duty.requires(p)
-            ensures f_check_for_next_duty(p).outputs == getEmptyOuputs()
+            ensures f_check_for_next_duty(p).outputs == getEmptyAttestationOuputs()
             {
                 f_check_for_next_duty_empty_outputs(p);
             }
@@ -1061,7 +1061,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
         )
         requires f_check_for_next_duty.requires(process, attestation_duty)
         
-        ensures f_check_for_next_duty(process).outputs == getEmptyOuputs()
+        ensures f_check_for_next_duty(process).outputs == getEmptyAttestationOuputs()
         {
             if  && process.attestation_duties_queue != [] 
                 && (
@@ -1082,20 +1082,20 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
                                 new_attestation_slashing_db
                             )                        
                         ));
-                        assert f_check_for_next_duty(process).outputs == getEmptyOuputs();       
+                        assert f_check_for_next_duty(process).outputs == getEmptyAttestationOuputs();       
                     }
                     else
                     {
                         var new_process := process.(
                             attestation_duties_queue := process.attestation_duties_queue[1..]
                         );  
-                        assert f_check_for_next_duty(process).outputs == getEmptyOuputs();       
+                        assert f_check_for_next_duty(process).outputs == getEmptyAttestationOuputs();       
                     }
             }
                     
             else 
             {
-                assert f_check_for_next_duty(process).outputs == getEmptyOuputs();
+                assert f_check_for_next_duty(process).outputs == getEmptyAttestationOuputs();
             }
          
         }     
@@ -1104,7 +1104,7 @@ module Att_DVC_Implementation_Proofs refines Att_DVC_Implementation
         requires
             && unchanged(network`att_shares_sent)
             && unchanged(bn`submitted_data)
-        ensures toAtt_DVCStateAndOuputs().outputs == getEmptyOuputs()
+        ensures toAtt_DVCStateAndOuputs().outputs == getEmptyAttestationOuputs()
         {
 
         }        

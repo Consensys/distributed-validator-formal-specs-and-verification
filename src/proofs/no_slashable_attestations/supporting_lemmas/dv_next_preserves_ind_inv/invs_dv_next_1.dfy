@@ -23,24 +23,25 @@ module Invs_Att_DV_Next_1
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
+    import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Fnc_Invs_1
 
-    lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)       
+    lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: Att_DVState, event: DVAttestationEvent, dv': Att_DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_all_honest_nodes_is_a_quorum(dv)
     ensures inv_all_honest_nodes_is_a_quorum(dv')
     { }    
 
-    lemma lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)       
+    lemma lem_inv_unchanged_paras_of_consensus_instances_dv_next(dv: Att_DVState, event: DVAttestationEvent, dv': Att_DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_unchanged_paras_of_consensus_instances(dv)
     ensures inv_unchanged_paras_of_consensus_instances(dv')
     { }    
 
-    lemma lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv: Att_DVState, event: Att_DV.AttestationEvent, dv': Att_DVState)       
+    lemma lem_inv_only_dv_construct_signed_attestation_signature_dv_next(dv: Att_DVState, event: DVAttestationEvent, dv': Att_DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_only_dv_construct_signed_attestation_signature(dv)
@@ -51,7 +52,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_current_att_duty_is_rcvd_duty_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -95,7 +96,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_latest_att_duty_is_rcvd_duty_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -139,7 +140,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_none_latest_att_duty_implies_none_current_att_duty_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -187,7 +188,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_current_att_duty_is_either_none_or_latest_att_duty_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -235,7 +236,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_available_current_att_duty_is_latest_att_duty_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -284,13 +285,13 @@ module Invs_Att_DV_Next_1
     
     lemma lem_inv_the_sequence_of_att_duties_is_in_order_of_slots_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
-    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
-    ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(dv')
+    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv.sequence_attestation_duties_to_be_served)
+    ensures inv_the_sequence_of_att_duties_is_in_order_of_slots(dv'.sequence_attestation_duties_to_be_served)
     { 
         assert dv.sequence_attestation_duties_to_be_served == dv'.sequence_attestation_duties_to_be_served;
     }
@@ -298,7 +299,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_no_duplicated_att_duties_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -309,7 +310,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_pred_unchanged_dvn_seq_of_att_duties_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -319,7 +320,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_every_att_duty_before_dvn_att_index_was_delivered_f_serve_attestation_duty(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )  
     requires inv_all_honest_nodes_is_a_quorum(dv)    
@@ -406,7 +407,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_every_att_duty_before_dvn_att_index_was_delivered_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )
     requires inv_all_honest_nodes_is_a_quorum(dv)    
@@ -454,7 +455,7 @@ module Invs_Att_DV_Next_1
     
     lemma lem_inv_no_active_consensus_instances_before_the_first_att_duty_was_received_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -502,13 +503,13 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires inv_latest_att_duty_is_rcvd_duty(dv)
-    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv)
+    requires inv_the_sequence_of_att_duties_is_in_order_of_slots(dv.sequence_attestation_duties_to_be_served)
     requires inv_an_att_duty_in_the_next_delivery_is_not_lower_than_rcvd_att_duties(dv)
     requires inv_no_active_consensus_instances_before_the_first_att_duty_was_received(dv)
     requires inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_att_duty(dv)  
@@ -566,7 +567,7 @@ module Invs_Att_DV_Next_1
     
     lemma lem_inv_dvc_has_a_corresponding_att_duty_for_every_active_attestation_consensus_instance_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -618,7 +619,7 @@ module Invs_Att_DV_Next_1
 
     lemma lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_at_slot_k_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)

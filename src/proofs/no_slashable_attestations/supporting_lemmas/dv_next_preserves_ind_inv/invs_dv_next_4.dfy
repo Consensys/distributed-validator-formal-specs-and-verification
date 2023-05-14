@@ -28,6 +28,7 @@ module Invs_Att_DV_Next_4
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV    
+    import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Invs_Att_DV_Next_2
     import opened Invs_Att_DV_Next_3
@@ -59,7 +60,7 @@ module Invs_Att_DV_Next_4
         && inv_future_decisions_known_by_dvc_are_decisions_of_quorums(s)
         && inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(s) 
         && inv_data_of_att_shares_are_decided_values(s) 
-        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s) 
+        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s.sequence_attestation_duties_to_be_served) 
         && inv_available_current_att_duty_is_latest_att_duty(s)
         && construct_signed_attestation_signature_assumptions_helper(
             s.construct_signed_attestation_signature,
@@ -76,7 +77,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_NonServeAttestationDuty_unchanged_vars(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState
     )
     requires NextEventPreCond(s, event)
@@ -232,7 +233,7 @@ module Invs_Att_DV_Next_4
         s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: Att_DVC_Spec.Outputs,
+        nodeOutputs:  AttestationOutputs,
         s': Att_DVState
     )
     requires Att_DV.ConsensusInstanceStep.requires(s, node, nodeEvent, nodeOutputs, s')
@@ -254,7 +255,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_every_consensus_instance_isConditionForSafetyTrue_dv_next(
         dv: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
@@ -291,7 +292,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_unchanged_decision_dv(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState,
         slot: Slot
     )
@@ -310,7 +311,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums_helper_honest(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState
     )
     requires NextEventPreCond(s, event)
@@ -415,7 +416,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState
     )
     requires NextEventPreCond(s, event)
@@ -564,7 +565,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_slots_in_future_decided_data_are_correct_transpose(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState,
         s_node: Att_DVCState,
         n: BLSPubkey
@@ -579,7 +580,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_slots_in_future_decided_data_are_correct_helper_honest(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState
     )
     requires NextEventPreCond(s, event)
@@ -669,7 +670,7 @@ module Invs_Att_DV_Next_4
 
     lemma lem_inv_slots_in_future_decided_data_are_correct(
         s: Att_DVState,
-        event: Att_DV.AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState
     )
     requires NextEventPreCond(s, event)

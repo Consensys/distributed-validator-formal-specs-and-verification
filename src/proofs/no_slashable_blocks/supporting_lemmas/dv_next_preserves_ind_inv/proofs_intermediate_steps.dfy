@@ -29,6 +29,7 @@ module Proofs_Intermediate_Steps
     import opened Common_Proofs_For_Block_Proposer
     import opened BN_Axioms
     import opened RS_Axioms
+    import opened DV_Block_Proposer_Assumptions
     
     
     lemma lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv: DVState)

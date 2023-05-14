@@ -37,6 +37,7 @@ module Invs_DV_Next_3
     import opened Common_Proofs_For_Block_Proposer
     import opened Invs_DV_Next_1
     import opened Invs_DV_Next_2
+    import opened DV_Block_Proposer_Assumptions
 
     lemma f_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(
         s: DVState,
@@ -76,7 +77,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState,
         cid: Slot,
         hn: BLSPubkey,
@@ -168,7 +169,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -197,8 +198,6 @@ module Invs_DV_Next_3
         }
     }
     
-    
-
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_when_no_new_block_share_is_added_helper<M>(
         allMessagesSent': set<M>,
         allMessagesSent: set<M>,
@@ -212,7 +211,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_when_no_new_block_share_is_added(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -306,7 +305,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_BlockConsensusDecided_block_of_inputs_is_decision_of_consensus_instance(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState,
         hn: BLSPubkey,
         block_share: SignedBeaconBlock
@@ -391,18 +390,18 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_BlockConsensusDecided_with_decided_data_for_current_slot(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         id: Slot,
         decided_beacon_block: BeaconBlock
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.BlockConsensusDecided?
     requires nodeEvent == BlockConsensusDecided(id, decided_beacon_block)
     requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)
@@ -462,7 +461,7 @@ module Invs_DV_Next_3
                 lemmaImaptotalElementInDomainIsInKeys(s.consensus_instances_on_beacon_block, id);
                 assert id in s.consensus_instances_on_beacon_block.Keys ;
                  
-                lem_inv_blocks_of_in_transit_block_shares_are_decided_values_BlockConsensusDecided_block_in_inputs_is_decided_value(s, event, s');
+                lem_inv_blocks_of_in_transit_block_shares_are_decided_values_BlockConsensusDecided_block_in_inputs_is_decided_value(s, event, s', node, nodeEvent, nodeOutputs, id, decided_beacon_block);
                 assert s'.consensus_instances_on_beacon_block[id].decided_value.safe_get() == decided_beacon_block;
                 assert s'.consensus_instances_on_beacon_block[id].decided_value.safe_get() == block_share.block;
 
@@ -475,7 +474,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next_ServeProposerDuty(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -510,7 +509,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next_ReceiveRandaoShare(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -545,61 +544,60 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_BlockConsensusDecided_block_in_inputs_is_decided_value(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
-        s': DVState
+        event: DVBlockEvent,
+        s': DVState,
+        node: BLSPubkey,
+        nodeEvent: Types.BlockEvent,
+        nodeOutputs: BlockOutputs,
+        id: Slot,
+        decided_beacon_block: BeaconBlock
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.BlockConsensusDecided?
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires nodeEvent == BlockConsensusDecided(id, decided_beacon_block)
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_nodes_in_consensus_instances_are_in_dv(s)
     ensures s'.consensus_instances_on_beacon_block[event.event.id].decided_value.safe_get() == event.event.decided_beacon_block;
     {
-        match event
-        {
-            case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
-                var s_node := s.honest_nodes_states[node];
-                var s'_node := s'.honest_nodes_states[node];
-                match nodeEvent
-                {
-                    case BlockConsensusDecided(id: Slot, decided_beacon_block) =>
-                        var s_w_honest_node_states_updated := f_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(s, node, nodeEvent);
-                        var cid := id;
+        var s_node := s.honest_nodes_states[node];
+        var s'_node := s'.honest_nodes_states[node];                
+        var s_w_honest_node_states_updated := f_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_get_s_w_honest_node_states_updated(s, node, nodeEvent);
+        var cid := id;
 
-                        assert s_w_honest_node_states_updated.consensus_instances_on_beacon_block == s.consensus_instances_on_beacon_block;
+        assert s_w_honest_node_states_updated.consensus_instances_on_beacon_block == s.consensus_instances_on_beacon_block;
 
-                        var output := Some(Decided(node, nodeEvent.decided_beacon_block));
+        var output := Some(Decided(node, nodeEvent.decided_beacon_block));
 
-                        var validityPredicates :=
-                                map n |
-                                        && n in s_w_honest_node_states_updated.honest_nodes_states.Keys
-                                        && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances.Keys
-                                    ::
-                                        s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
-                                ;
+        var validityPredicates :=
+                map n |
+                        && n in s_w_honest_node_states_updated.honest_nodes_states.Keys
+                        && cid in s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances.Keys
+                    ::
+                        s_w_honest_node_states_updated.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
+                ;
 
-                        var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
-                        var s'_consensus := s'.consensus_instances_on_beacon_block[cid];
+        var s_consensus := s_w_honest_node_states_updated.consensus_instances_on_beacon_block[cid];
+        var s'_consensus := s'.consensus_instances_on_beacon_block[cid];
 
-                        assert ConsensusSpec.Next(
-                                    s_consensus,
-                                    validityPredicates,
-                                    s'_consensus,
-                                    output
-                                );
+        assert ConsensusSpec.Next(
+                    s_consensus,
+                    validityPredicates,
+                    s'_consensus,
+                    output
+                );
 
-                        assert s'.consensus_instances_on_beacon_block[id].decided_value.isPresent();
-                        assert isConditionForSafetyTrue(s'_consensus);
-                        assert s'_consensus.decided_value.safe_get() == decided_beacon_block;
-                        assert s'.consensus_instances_on_beacon_block[id].decided_value.safe_get() == decided_beacon_block;
-                }
-        }
+        assert s'.consensus_instances_on_beacon_block[id].decided_value.isPresent();
+        assert isConditionForSafetyTrue(s'_consensus);
+        assert s'_consensus.decided_value.safe_get() == decided_beacon_block;
+        assert s'.consensus_instances_on_beacon_block[id].decided_value.safe_get() == decided_beacon_block;
     }
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_BlockConsensusDecided(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -658,7 +656,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next_ReceiveSignedBeaconBlock(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -693,7 +691,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next_ImportedNewBlock(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -733,7 +731,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next_ResendBlockShare(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -774,7 +772,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_proposer_adversary(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -825,7 +823,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_blocks_of_in_transit_block_shares_are_decided_values_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -885,7 +883,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -909,7 +907,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -971,7 +969,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1021,7 +1019,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1070,7 +1068,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_slashing_db_hist_is_monotonic_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1119,7 +1117,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1182,7 +1180,7 @@ module Invs_DV_Next_3
 
     lemma lem_inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)

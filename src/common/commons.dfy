@@ -202,6 +202,57 @@ module Types
     datatype RSState = RSState(
         pubkey: BLSPubkey
     ) 
+
+    datatype BlockOutputs = BlockOutputs(
+        sent_block_shares: set<MessaageWithRecipient<SignedBeaconBlock>>,
+        sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,        
+        submitted_data: set<SignedBeaconBlock>
+    )
+
+    datatype AttestationOutputs = AttestationOutputs(
+        att_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
+        submitted_data: set<Attestation>
+    )  
+
+    datatype Adversary = Adversary(
+        nodes: set<BLSPubkey>   
+    )
+
+    datatype AttestationDutyAndNode = AttestationDutyAndNode(
+        attestation_duty: AttestationDuty,
+        node: BLSPubkey
+    )
+
+    datatype ProposerDutyAndNode = ProposerDutyAndNode(
+        proposer_duty: ProposerDuty,
+        node: BLSPubkey
+    )
+
+    datatype DVAttestationEvent = 
+        | AdversaryTakingStep(
+                node: BLSPubkey, 
+                new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
+                messagesReceivedByTheNode: set<AttestationShare>
+            )
+        | HonestNodeTakingStep(
+                node: BLSPubkey, 
+                event: AttestationEvent, 
+                nodeOutputs:  AttestationOutputs
+            )
+
+    datatype DVBlockEvent = 
+        | AdversaryTakingStep(
+                node: BLSPubkey, 
+                new_sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,
+                new_sent_block_shares: set<MessaageWithRecipient<SignedBeaconBlock>>,
+                randaoShareReceivedByTheNode: set<RandaoShare>,
+                blockShareReceivedByTheNode: set<SignedBeaconBlock>
+            )
+        | HonestNodeTakingStep(
+                node: BLSPubkey, 
+                event: BlockEvent, 
+                nodeOutputs: BlockOutputs
+            )
 }
 
 module Common_Functions{
@@ -260,6 +311,23 @@ module Common_Functions{
         var setWithRecipient := set m | m in ms :: addRecepientsToMessage(m, receipients);
         setUnion(setWithRecipient)
     }    
+
+    function getEmptyBlockOuputs(): BlockOutputs
+    {
+        BlockOutputs(
+            {},
+            {},
+            {}
+        )
+    }  
+
+    function getEmptyAttestationOuputs(): AttestationOutputs
+    {
+        AttestationOutputs(
+            {},
+            {}
+        )
+    }  
 }
 
 module Set_Seq_Helper{

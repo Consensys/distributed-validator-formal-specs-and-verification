@@ -23,6 +23,7 @@ module Fnc_Invs_2
     import opened NetworkSpec
     import opened Att_DVC_Spec
     import opened Att_DV
+    import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened Common_Proofs
     import opened Fnc_Invs_1
@@ -1128,7 +1129,7 @@ module Fnc_Invs_2
         id: Slot,
         decided_attestation_data: AttestationData, 
         process': Att_DVCState,
-        outputs: Outputs
+        outputs: AttestationOutputs
     )
     requires |process.peers| > 0
     requires f_att_consensus_decided.requires(process, id, decided_attestation_data)
@@ -2124,7 +2125,7 @@ module Fnc_Invs_2
                         process_with_new_att_shares_db.rcvd_attestation_shares
                     );
 
-                var new_outputs := getEmptyOuputs().(
+                var new_outputs := getEmptyAttestationOuputs().(
                                             submitted_data := {aggregated_attestation} 
                                         );
 
@@ -2221,7 +2222,7 @@ module Fnc_Invs_2
     ensures && var outputs := f_resend_attestation_share(process).outputs;
             && inv_outputs_att_shares_sent_are_tracked_in_attestation_slashing_db(outputs, process')
     {
-        var new_outputs := getEmptyOuputs().(
+        var new_outputs := getEmptyAttestationOuputs().(
                                     att_shares_sent :=
                                         multicast_multiple(process.attestation_shares_to_broadcast.Values, process.peers)
                                 );
@@ -2355,7 +2356,7 @@ module Fnc_Invs_2
 
             assert  f_att_consensus_decided(process, id, decided_attestation_data).outputs
                     ==
-                    getEmptyOuputs().(
+                    getEmptyAttestationOuputs().(
                         att_shares_sent := multicast(attestation_with_signature_share, process.peers)
                     );
 
@@ -2485,7 +2486,7 @@ module Fnc_Invs_2
 
             assert  f_att_consensus_decided(process, id, decided_attestation_data).outputs
                     ==
-                    getEmptyOuputs().(
+                    getEmptyAttestationOuputs().(
                         att_shares_sent := multicast(attestation_with_signature_share, process.peers)
                     );            
         }     
@@ -2632,7 +2633,7 @@ module Fnc_Invs_2
                         process_with_new_att_shares_db.rcvd_attestation_shares
                     );
 
-                var new_outputs := getEmptyOuputs().(
+                var new_outputs := getEmptyAttestationOuputs().(
                                             submitted_data := {aggregated_attestation} 
                                         );
 

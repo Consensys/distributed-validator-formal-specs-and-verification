@@ -37,20 +37,9 @@ module DVC_Block_Proposer_Spec_Instr {
         ghost latest_slashing_db_block: Optional<SlashingDBBlock>
     )
 
-    type Outputs = DVC_Block_Proposer_Spec_NonInstr.Outputs
-
-    function getEmptyOuputs(): Outputs
-    {
-        DVC_Block_Proposer_Spec_NonInstr.Outputs(
-            {},
-            {},
-            {}
-        )
-    }  
-
     datatype DVCStateAndOuputs = DVCStateAndOuputs(
         state: DVCState,
-        outputs: Outputs
+        outputs: BlockOutputs
     )
 
     predicate Init(
@@ -90,7 +79,7 @@ module DVC_Block_Proposer_Spec_Instr {
         s: DVCState,
         event: BlockEvent,
         s': DVCState,
-        outputs: Outputs
+        outputs: BlockOutputs
     )
     {
         &&  var newNodeStateAndOutputs := 
@@ -140,15 +129,15 @@ module DVC_Block_Proposer_Spec_Instr {
             case ResendBlockShare => 
                 f_resend_block_share(s) 
             case NoEvent => 
-                DVCStateAndOuputs(state := s, outputs := getEmptyOuputs() )
+                DVCStateAndOuputs(state := s, outputs := getEmptyBlockOuputs() )
     }
 
     function merge_two_outputs(
-        outputs1: Outputs,
-        outputs2: Outputs
-    ): Outputs
+        outputs1: BlockOutputs,
+        outputs2: BlockOutputs
+    ): BlockOutputs
     {
-        getEmptyOuputs().(
+        getEmptyBlockOuputs().(
             sent_block_shares := outputs1.sent_block_shares + outputs2.sent_block_shares,
             sent_randao_shares := outputs1.sent_randao_shares + outputs2.sent_randao_shares,
             submitted_data := outputs1.submitted_data + outputs2.submitted_data
@@ -157,7 +146,7 @@ module DVC_Block_Proposer_Spec_Instr {
 
     function f_wrap_DVCState_with_Outputs(
         dvc: DVCState,
-        outputs: Outputs
+        outputs: BlockOutputs
     ): (ret: DVCStateAndOuputs)
     ensures ret.state == dvc
     {
@@ -220,7 +209,7 @@ module DVC_Block_Proposer_Spec_Instr {
                 signature := randao_reveal_signature_share
             );
         var broadcasted_output := 
-            getEmptyOuputs().(
+            getEmptyBlockOuputs().(
                 sent_randao_shares := multicast(randao_share, process.peers)                                            
             );
         
@@ -267,7 +256,7 @@ module DVC_Block_Proposer_Spec_Instr {
 
             f_wrap_DVCState_with_Outputs(
                 new_process,
-                getEmptyOuputs()
+                getEmptyBlockOuputs()
             )    
         else 
             f_start_consensus_if_can_construct_randao_share(
@@ -278,7 +267,7 @@ module DVC_Block_Proposer_Spec_Instr {
     function f_start_consensus_if_can_construct_randao_share(
         process: DVCState
     ): (state_and_outputs: DVCStateAndOuputs)
-    ensures state_and_outputs.outputs == getEmptyOuputs()
+    ensures state_and_outputs.outputs == getEmptyBlockOuputs()
     {        
         if && process.current_proposer_duty.isPresent()
            && process.current_proposer_duty.safe_get().slot in process.rcvd_randao_shares
@@ -308,17 +297,17 @@ module DVC_Block_Proposer_Spec_Instr {
                             constructed_randao_reveal.safe_get()
                         )
                     ),
-                    outputs := getEmptyOuputs()
+                    outputs := getEmptyBlockOuputs()
                 )                        
             else 
                 f_wrap_DVCState_with_Outputs(
                     process,
-                    getEmptyOuputs()
+                    getEmptyBlockOuputs()
                 )
         else
             f_wrap_DVCState_with_Outputs(
                     process,
-                    getEmptyOuputs()
+                    getEmptyBlockOuputs()
             )
     }
     
@@ -364,18 +353,18 @@ module DVC_Block_Proposer_Spec_Instr {
                     ), 
                     latest_slashing_db_block := Some(new_slashingDB_block)
                 );
-            var multicastOutputs := getEmptyOuputs().(
+            var multicastOutputs := getEmptyBlockOuputs().(
                                         sent_block_shares := multicast(block_share, process.peers)
                                     );
 
             f_wrap_DVCState_with_Outputs(
                 process_after_updating_block_shares_to_broadcast,
-                merge_two_outputs(multicastOutputs, getEmptyOuputs())
+                merge_two_outputs(multicastOutputs, getEmptyBlockOuputs())
             )
         else
             f_wrap_DVCState_with_Outputs(
                 process,
-                getEmptyOuputs()
+                getEmptyBlockOuputs()
             )
     }
 
@@ -427,19 +416,19 @@ module DVC_Block_Proposer_Spec_Instr {
                     var complete_signed_block := process.construct_complete_signed_block(process_with_new_block_share.rcvd_block_shares[slot][data]).safe_get();                      
                     f_wrap_DVCState_with_Outputs(
                         process_with_new_block_share,
-                        getEmptyOuputs().(
+                        getEmptyBlockOuputs().(
                                 submitted_data := {complete_signed_block}
                             )
                     )
             else 
                 f_wrap_DVCState_with_Outputs(
                     process,
-                    getEmptyOuputs()
+                    getEmptyBlockOuputs()
                 )            
         else
             f_wrap_DVCState_with_Outputs(
                 process,
-                getEmptyOuputs()
+                getEmptyBlockOuputs()
             )     
     }
 
@@ -448,7 +437,7 @@ module DVC_Block_Proposer_Spec_Instr {
         randao_share: RandaoShare
     ): (state_and_outputs: DVCStateAndOuputs)
     ensures state_and_outputs.state.all_rcvd_duties == process.all_rcvd_duties
-    ensures state_and_outputs.outputs == getEmptyOuputs()
+    ensures state_and_outputs.outputs == getEmptyBlockOuputs()
     {
         var slot := randao_share.slot;
         var active_consensus_instances := process.block_consensus_engine_state.active_consensus_instances.Keys;
@@ -466,7 +455,7 @@ module DVC_Block_Proposer_Spec_Instr {
         else
             f_wrap_DVCState_with_Outputs(
                 process,
-                getEmptyOuputs()
+                getEmptyBlockOuputs()
             )
     }
     
@@ -556,9 +545,9 @@ module DVC_Block_Proposer_Spec_Instr {
                     ),
                     latest_slashing_db_block := Some(new_slashingDB_block)          
                 );
-            f_wrap_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyOuputs())
+            f_wrap_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyBlockOuputs())
         else
-            f_wrap_DVCState_with_Outputs(process, getEmptyOuputs())
+            f_wrap_DVCState_with_Outputs(process, getEmptyBlockOuputs())
     }
 
     function f_resend_block_share(
@@ -569,7 +558,7 @@ module DVC_Block_Proposer_Spec_Instr {
     {
         DVCStateAndOuputs(
             state := process,
-            outputs := getEmptyOuputs().(
+            outputs := getEmptyBlockOuputs().(
                 sent_block_shares :=
                     if process.block_shares_to_broadcast.Keys != {} then
                         multicast_multiple(process.block_shares_to_broadcast.Values, process.peers)                        
@@ -587,7 +576,7 @@ module DVC_Block_Proposer_Spec_Instr {
     {
         DVCStateAndOuputs(
             state := process,
-            outputs := getEmptyOuputs().(
+            outputs := getEmptyBlockOuputs().(
                 sent_randao_shares :=
                     if process.randao_shares_to_broadcast.Keys != {} then
                         multicast_multiple(process.randao_shares_to_broadcast.Values, process.peers)                        

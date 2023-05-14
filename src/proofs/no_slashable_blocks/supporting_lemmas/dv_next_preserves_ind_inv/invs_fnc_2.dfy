@@ -28,6 +28,7 @@ module Fnc_Invs_2
     import opened ConsensusSpec
     import opened NetworkSpec
     import opened DV_Block_Proposer_Spec
+    import opened DV_Block_Proposer_Assumptions
     import opened DVC_Block_Proposer_Spec_Instr
     import opened Consensus_Engine_Instr
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
@@ -565,7 +566,7 @@ module Fnc_Invs_2
         id: Slot,
         decided_beacon_block: BeaconBlock, 
         process': DVCState,
-        outputs: Outputs
+        outputs: BlockOutputs
     )
     requires |process.peers| > 0
     requires f_block_consensus_decided.requires(process, id, decided_beacon_block)
@@ -2343,7 +2344,7 @@ module Fnc_Invs_2
     ensures && var outputs := f_resend_block_share(process).outputs;
             && inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(outputs, process')
     {
-        var new_outputs := getEmptyOuputs().(
+        var new_outputs := getEmptyBlockOuputs().(
                                     sent_block_shares :=
                                         multicast_multiple(process.block_shares_to_broadcast.Values, process.peers)
                                 );
@@ -4227,7 +4228,7 @@ module Fnc_Invs_2
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState,
         s_node: DVCState,
         n: BLSPubkey

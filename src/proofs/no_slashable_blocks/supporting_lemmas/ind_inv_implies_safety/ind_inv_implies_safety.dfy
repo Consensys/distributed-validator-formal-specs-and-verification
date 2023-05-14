@@ -22,6 +22,7 @@ module Ind_Inv_Implies_Safety
     import opened DV_Block_Proposer_Spec 
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
+    import opened DV_Block_Proposer_Assumptions
 
     predicate non_slashable_submitted_data(
         dv: DVState

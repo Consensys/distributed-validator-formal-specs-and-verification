@@ -17,17 +17,8 @@ module Att_DV
     import opened Att_DVC_Spec
     import opened BN_Axioms
     import opened RS_Axioms
+    import opened Att_DV_Assumptions
     
-
-    datatype Adversary = Adversary(
-        nodes: set<BLSPubkey>   
-    )
-
-    datatype AttestationDutyAndNode = AttestationDutyAndNode(
-        attestation_duty: AttestationDuty,
-        node: BLSPubkey
-    )
-
     datatype Att_DVState = Att_DVState(
         all_nodes: set<BLSPubkey>,
         honest_nodes_states: map<BLSPubkey, Att_DVCState>,
@@ -41,134 +32,6 @@ module Att_DV
         index_next_attestation_duty_to_be_served: nat
     )
 
-    datatype AttestationEvent = 
-        | AdversaryTakingStep(
-                node: BLSPubkey, 
-                new_attestation_shares_sent: set<MessaageWithRecipient<AttestationShare>>,
-                messagesReceivedByTheNode: set<AttestationShare>
-            )
-        | HonestNodeTakingStep(
-                node: BLSPubkey, 
-                event: Types.AttestationEvent, 
-                nodeOutputs: Att_DVC_Spec.Outputs
-            )
-
-    predicate all_att_shares_have_the_same_data(
-        att_shares: set<AttestationShare>,
-        data: AttestationData 
-    )
-    {
-        forall att_share | att_share in att_shares ::att_share.data == data
-    }
-
-    predicate signer_threshold(
-        all_nodes: set<BLSPubkey>,
-        att_shares: set<AttestationShare>,
-        signing_root: Root
-    )
-    {
-        && var signers := 
-                    set signer, att_share | 
-                        && att_share in att_shares
-                        && signer in all_nodes
-                        && verify_bls_signature(signing_root, att_share.signature, signer)
-                    ::
-                        signer;
-        && |signers| >= quorum(|all_nodes|)
-        && signers <= all_nodes
-           
-    }    
-
-    predicate construct_signed_attestation_signature_assumptions_forward(
-        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
-        dv_pubkey: BLSPubkey,
-        all_nodes: set<BLSPubkey>
-    )    
-    {
-        forall data: AttestationData, signing_root: Root, att_shares |
-            && all_att_shares_have_the_same_data(att_shares, data)
-            && signer_threshold(all_nodes, att_shares, signing_root) 
-        ::
-            && construct_signed_attestation_signature(att_shares).isPresent()
-            && verify_bls_signature(
-                signing_root,
-                construct_signed_attestation_signature(att_shares).safe_get(),
-                dv_pubkey
-            )
-    }
-
-    predicate construct_signed_attestation_signature_assumptions_reverse_helper(
-        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
-        dv_pubkey: BLSPubkey,
-        all_nodes: set<BLSPubkey>,
-        att_shares: set<AttestationShare>,
-        data: AttestationData
-    )       
-    requires construct_signed_attestation_signature(att_shares).isPresent()
-    {
-        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
-        && var signing_root := compute_attestation_signing_root(data, fork_version);
-        && verify_bls_signature(
-            signing_root,
-            construct_signed_attestation_signature(att_shares).safe_get(),
-            dv_pubkey
-        )                   
-        && all_att_shares_have_the_same_data(att_shares, data)
-        && signer_threshold(all_nodes, att_shares, signing_root) 
-    }
-
-    predicate construct_signed_attestation_signature_assumptions_reverse(
-        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
-        dv_pubkey: BLSPubkey,
-        all_nodes: set<BLSPubkey>
-    )    
-    {
-        forall att_shares |
-            && construct_signed_attestation_signature(att_shares).isPresent()
-        ::
-        exists data: AttestationData ::      
-            construct_signed_attestation_signature_assumptions_reverse_helper(
-                construct_signed_attestation_signature,
-                dv_pubkey,
-                all_nodes,
-                att_shares,
-                data                
-            )
-    }    
-
-    predicate construct_signed_attestation_signature_assumptions_helper(
-        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
-        dv_pubkey: BLSPubkey,
-        all_nodes: set<BLSPubkey>
-    )
-    {
-        && (                            
-            construct_signed_attestation_signature_assumptions_forward(
-                construct_signed_attestation_signature,
-                dv_pubkey,
-                all_nodes
-            )
-        )   
-        && (
-            construct_signed_attestation_signature_assumptions_reverse(
-                construct_signed_attestation_signature,
-                dv_pubkey,
-                all_nodes
-            )
-        )
-    }
-
-    predicate construct_signed_attestation_signature_assumptions(
-        s: Att_DVState
-    )
-    {
-        construct_signed_attestation_signature_assumptions_helper(
-            s.construct_signed_attestation_signature,
-            s.dv_pubkey,
-            s.all_nodes
-        ) 
-    }
-    
     predicate Init(
         s: Att_DVState,
         initial_attestation_slashing_db: set<SlashingDBAttestation>
@@ -178,37 +41,27 @@ module Att_DV
         && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
         && s.honest_nodes_states.Keys != {}
         && |s.adversary.nodes| <= f(|s.all_nodes|)
-        && construct_signed_attestation_signature_assumptions(s)
+        && construct_signed_attestation_signature_assumptions_helper(
+                s.construct_signed_attestation_signature,
+                s.dv_pubkey,
+                s.all_nodes
+            )
         && s.all_attestations_created == {}
-        && (
-            forall n | n in s.honest_nodes_states.Keys ::
+        && ( forall n | n in s.honest_nodes_states.Keys ::
                 Att_DVC_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature, initial_attestation_slashing_db, n)
-        )      
+            )      
         &&  NetworkSpec.Init(s.att_network, s.all_nodes)
-        &&  (
-            forall ci | ci in  s.consensus_on_attestation_data.Values ::
+        &&  ( forall ci | ci in  s.consensus_on_attestation_data.Values ::
                 ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
-        )
-        && (forall i: Slot :: i in s.consensus_on_attestation_data 
+            )
+        && ( forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
-        )        
-        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s)
+            )        
+        && inv_the_sequence_of_att_duties_is_in_order_of_slots(s.sequence_attestation_duties_to_be_served)
         && s.index_next_attestation_duty_to_be_served == 0   
-        // //
         && ( forall n | n in s.honest_nodes_states.Keys ::
                 |s.honest_nodes_states[n].bn.submitted_data| == 0    
-        )
-    }
-
-    // IMPORTANT
-    predicate inv_the_sequence_of_att_duties_is_in_order_of_slots(s: Att_DVState)
-    {
-        && (forall i, j | 
-                    && 0 <= i < j
-                    && s.sequence_attestation_duties_to_be_served[i].node == s.sequence_attestation_duties_to_be_served[j].node 
-                ::
-                    s.sequence_attestation_duties_to_be_served[i].attestation_duty.slot < s.sequence_attestation_duties_to_be_served[j].attestation_duty.slot
-        )       
+            )
     }
 
     predicate NextPreCond(
@@ -331,7 +184,7 @@ module Att_DV
 
     predicate validEvent(
         s: Att_DVState,
-        event: AttestationEvent
+        event: DVAttestationEvent
     )
     {
         event.HonestNodeTakingStep? ==>
@@ -348,7 +201,7 @@ module Att_DV
 
     predicate NextEventPreCond(
         s: Att_DVState,
-        event: AttestationEvent
+        event: DVAttestationEvent
     )
     {
         && validEvent(s, event)         
@@ -377,7 +230,7 @@ module Att_DV
 
     predicate NextEvent(
         s: Att_DVState,
-        event: AttestationEvent,
+        event: DVAttestationEvent,
         s': Att_DVState
     )
     requires validEvent(s, event)
@@ -426,7 +279,7 @@ module Att_DV
         s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: Att_DVC_Spec.Outputs,
+        nodeOutputs:  AttestationOutputs,
         s': Att_DVState        
     ) 
     requires unchanged_fixed_paras(s, s')
@@ -444,7 +297,7 @@ module Att_DV
         s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: Att_DVC_Spec.Outputs,
+        nodeOutputs:  AttestationOutputs,
         s': Att_DVState
     )
     {
@@ -478,7 +331,7 @@ module Att_DV
         s: Att_DVState,
         node: BLSPubkey,
         nodeEvent: Types.AttestationEvent,
-        nodeOutputs: Att_DVC_Spec.Outputs,
+        nodeOutputs:  AttestationOutputs,
         s': Att_DVState
     )
     requires unchanged_fixed_paras(s, s')
@@ -502,14 +355,12 @@ module Att_DV
         && s'.honest_nodes_states == s.honest_nodes_states[
             node := new_node_state
         ]
-        && var messagesReceivedByTheNode :=
+        &&  var messagesReceivedByTheNode :=
             match nodeEvent
                 case ReceivedAttestationShare(attestation_share) => {attestation_share}
                 case _ => {}
             ;
         && NetworkSpec.Next(s.att_network, s'.att_network, node, nodeOutputs.att_shares_sent, messagesReceivedByTheNode)
-        // TODO
-        // IMPORTANT: ConsensusInstanceStep should also appear in NextAdversary?
         && ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
     }    
@@ -548,4 +399,133 @@ module Att_DV
     }
 
 
+}
+
+
+module Att_DV_Assumptions 
+{
+    import opened Types
+    import opened Common_Functions
+    import opened Signing_Methods
+    import opened NetworkSpec
+    import opened ConsensusSpec
+    import opened Consensus_Engine_Instr
+    import opened Att_DVC_Spec
+    import opened BN_Axioms
+    import opened RS_Axioms        
+
+    predicate all_att_shares_have_the_same_data(
+        att_shares: set<AttestationShare>,
+        data: AttestationData 
+    )
+    {
+        forall att_share | att_share in att_shares ::att_share.data == data
+    }
+
+    predicate signer_threshold(
+        all_nodes: set<BLSPubkey>,
+        att_shares: set<AttestationShare>,
+        signing_root: Root
+    )
+    {
+        && var signers := 
+                    set signer, att_share | 
+                        && att_share in att_shares
+                        && signer in all_nodes
+                        && verify_bls_signature(signing_root, att_share.signature, signer)
+                    ::
+                        signer;
+        && |signers| >= quorum(|all_nodes|)
+        && signers <= all_nodes
+           
+    }    
+
+    predicate construct_signed_attestation_signature_assumptions_forward(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall data: AttestationData, signing_root: Root, att_shares |
+            && all_att_shares_have_the_same_data(att_shares, data)
+            && signer_threshold(all_nodes, att_shares, signing_root) 
+        ::
+            && construct_signed_attestation_signature(att_shares).isPresent()
+            && verify_bls_signature(
+                signing_root,
+                construct_signed_attestation_signature(att_shares).safe_get(),
+                dv_pubkey
+            )
+    }
+
+    predicate construct_signed_attestation_signature_assumptions_reverse_helper(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>,
+        att_shares: set<AttestationShare>,
+        data: AttestationData
+    )       
+    requires construct_signed_attestation_signature(att_shares).isPresent()
+    {
+        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(data.target.epoch));
+        && var signing_root := compute_attestation_signing_root(data, fork_version);
+        && verify_bls_signature(
+            signing_root,
+            construct_signed_attestation_signature(att_shares).safe_get(),
+            dv_pubkey
+        )                   
+        && all_att_shares_have_the_same_data(att_shares, data)
+        && signer_threshold(all_nodes, att_shares, signing_root) 
+    }
+
+    predicate construct_signed_attestation_signature_assumptions_reverse(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )    
+    {
+        forall att_shares |
+            && construct_signed_attestation_signature(att_shares).isPresent()
+        ::
+        exists data: AttestationData ::      
+            construct_signed_attestation_signature_assumptions_reverse_helper(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes,
+                att_shares,
+                data                
+            )
+    }    
+
+    predicate construct_signed_attestation_signature_assumptions_helper(
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>
+    )
+    {
+        && (                            
+            construct_signed_attestation_signature_assumptions_forward(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes
+            )
+        )   
+        && (
+            construct_signed_attestation_signature_assumptions_reverse(
+                construct_signed_attestation_signature,
+                dv_pubkey,
+                all_nodes
+            )
+        )
+    }    
+
+    predicate inv_the_sequence_of_att_duties_is_in_order_of_slots(sequence_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>)
+    {
+        && (forall i, j | 
+                    && 0 <= i < j
+                    && sequence_attestation_duties_to_be_served[i].node == sequence_attestation_duties_to_be_served[j].node 
+                ::
+                    sequence_attestation_duties_to_be_served[i].attestation_duty.slot < sequence_attestation_duties_to_be_served[j].attestation_duty.slot
+        )       
+    }
 }

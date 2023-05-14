@@ -40,10 +40,11 @@ module Invs_DV_Next_5
     import opened Invs_DV_Next_2
     import opened Invs_DV_Next_3
     import opened Invs_DV_Next_4
+    import opened DV_Block_Proposer_Assumptions
 
     lemma lem_inv_block_slashing_db_is_monotonic_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     ) 
     requires NextEvent.requires(dv, event, dv')    
@@ -91,7 +92,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
@@ -107,7 +108,7 @@ module Invs_DV_Next_5
 
     lemma lem_NonServeProposerDuty_unchanged_vars(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -120,7 +121,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper_honest(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -242,7 +243,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -268,7 +269,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_AdversaryTakingStep(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -307,16 +308,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_HonestNodeTakingStep(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires && var dvc' := dv'.honest_nodes_states[node];
              && inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(nodeOutputs, dvc');
     requires inv_all_honest_nodes_is_a_quorum(dv)
@@ -401,7 +402,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -477,7 +478,7 @@ module Invs_DV_Next_5
          
     lemma lem_inv_unchanged_rs_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -529,7 +530,7 @@ module Invs_DV_Next_5
     
     lemma lem_inv_all_created_signed_beacon_blocks_are_valid_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -595,7 +596,7 @@ module Invs_DV_Next_5
     
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_AdversaryTakingStep(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -646,16 +647,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_HonestNodeTakingStep(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires && var dvc' := dv'.honest_nodes_states[node];
              && inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(
                     nodeOutputs,
@@ -749,7 +750,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -850,7 +851,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -913,7 +914,7 @@ module Invs_DV_Next_5
         s: DVCState,
         event: Types.BlockEvent,
         s': DVCState,
-        outputs: Outputs,
+        outputs: BlockOutputs,
         cid: Slot       
     )
     requires DVC_Block_Proposer_Spec_Instr.Next.requires(s, event, s', outputs)
@@ -927,7 +928,7 @@ module Invs_DV_Next_5
         s: DVCState,
         event: Types.BlockEvent,
         s': DVCState,
-        outputs: Outputs,
+        outputs: BlockOutputs,
         cid: Slot,
         vp: BeaconBlock -> bool       
     )
@@ -944,7 +945,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_AdversaryTakingStep(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,        
+        event: DVBlockEvent,        
         s': DVState,
         hn: BLSPubkey
     )
@@ -1007,19 +1008,19 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_loop_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,        
+        event: DVBlockEvent,        
         s': DVState,
         hn: BLSPubkey,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         cid: Slot, 
         vp : BeaconBlock -> bool
     )    
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)    
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)    
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
@@ -1160,17 +1161,17 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,        
+        event: DVBlockEvent,        
         s': DVState,
         hn: BLSPubkey,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)    
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)    
     requires inv_all_honest_nodes_is_a_quorum(s)
     requires inv_the_same_node_status_in_dv_and_ci(s)
     requires inv_only_dv_construct_complete_signing_functions(s)    
@@ -1261,7 +1262,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState,
         hn: BLSPubkey
     )
@@ -1304,7 +1305,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1328,7 +1329,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -1425,7 +1426,7 @@ module Invs_DV_Next_5
         dv: DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         dv': DVState
     )    
     requires && DV_Block_Proposer_Spec.ConsensusInstanceStep.requires(dv, node, nodeEvent, nodeOutputs, dv')
@@ -1475,7 +1476,7 @@ module Invs_DV_Next_5
         dv: DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         dv': DVState
     )    
     requires && DV_Block_Proposer_Spec.NextHonestAfterAddingBlockToBn.requires(dv, node, nodeEvent, nodeOutputs, dv')
@@ -1492,7 +1493,7 @@ module Invs_DV_Next_5
         dv: DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         dv': DVState
     )    
     requires && DV_Block_Proposer_Spec.NextHonestNode.requires(dv, node, nodeEvent, nodeOutputs, dv')
@@ -1522,7 +1523,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1595,7 +1596,7 @@ module Invs_DV_Next_5
 
     lemma lem_AdversaryTakingStep_block_share_from_honest_node_were_sent_before(
         dv: DVState,        
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         node: BLSPubkey,
         new_randao_share_sent: set<MessaageWithRecipient<RandaoShare>>, 
         new_block_share_sent: set<MessaageWithRecipient<SignedBeaconBlock>>,
@@ -1652,7 +1653,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next_AdversaryTakingStep(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -1798,19 +1799,70 @@ module Invs_DV_Next_5
         }
     }
 
-    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty(
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty_helper(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         proposer_duty: ProposerDuty
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires nodeEvent.ServeProposerDuty?
+    requires nodeEvent == ServeProposerDuty(proposer_duty)
+    requires inv_unchanged_dvc_rs_pubkey(dv)
+    requires inv_all_honest_nodes_is_a_quorum(dv)
+    requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
+    requires inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(dv)
+    requires inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)
+    requires inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(dv)
+    requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)   
+    requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)
+    requires inv_seq_of_proposer_duties_is_ordered(dv)
+    ensures  && var allMessagesSent := dv'.block_share_network.allMessagesSent;
+             var process' := dv'.honest_nodes_states[node];
+             && inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
+                    allMessagesSent,
+                    process'
+                )
+    {        
+        assert  is_an_honest_node(dv, node);
+
+        var process := dv.honest_nodes_states[node];
+        var process' := dv'.honest_nodes_states[node];
+        var allMessagesSent := dv.block_share_network.allMessagesSent;
+
+        assert  allMessagesSent == dv'.block_share_network.allMessagesSent;
+        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv, node);
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(allMessagesSent, process);
+
+        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_serve_proposer_duty(                            
+            process,
+            proposer_duty,
+            process',
+            allMessagesSent
+        );
+    }
+
+    lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty(
+        dv: DVState,
+        event: DVBlockEvent,
+        dv': DVState,
+        node: BLSPubkey, 
+        nodeEvent: Types.BlockEvent, 
+        nodeOutputs: BlockOutputs,
+        proposer_duty: ProposerDuty
+    )    
+    requires NextEventPreCond(dv, event)
+    requires NextEvent(dv, event, dv')  
+    requires event.HonestNodeTakingStep?
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ServeProposerDuty?
     requires nodeEvent == ServeProposerDuty(proposer_duty)
     requires inv_unchanged_dvc_rs_pubkey(dv)
@@ -1831,17 +1883,22 @@ module Invs_DV_Next_5
         var process := dv.honest_nodes_states[node];
         var process' := dv'.honest_nodes_states[node];
         var allMessagesSent := dv.block_share_network.allMessagesSent;
+        assert  allMessagesSent == dv'.block_share_network.allMessagesSent;        
 
-        assert  allMessagesSent == dv'.block_share_network.allMessagesSent;
-        assert  inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv, node);
-        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(allMessagesSent, process);
-
-        lem_inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_f_serve_proposer_duty(                            
-            process,
-            proposer_duty,
-            process',
-            dv.block_share_network.allMessagesSent
+        lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty_helper(
+            dv,
+            event,
+            dv',
+            node,
+            nodeEvent,
+            nodeOutputs,
+            proposer_duty
         );
+
+        assert  inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(                
+                    allMessagesSent,
+                    process'
+                );
 
         forall hn: BLSPubkey | is_an_honest_node(dv', hn)
         ensures inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv', hn)
@@ -1895,18 +1952,18 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_BlockConsensusDecided(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         id: Slot,
         decided_beacon_block: BeaconBlock
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.BlockConsensusDecided?
     requires nodeEvent == BlockConsensusDecided(id, decided_beacon_block)
     requires inv_unchanged_dvc_rs_pubkey(dv)
@@ -2084,16 +2141,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
@@ -2162,18 +2219,18 @@ module Invs_DV_Next_5
 
     // lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
     //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.BlockEvent,
+    //     event: DVBlockEvent,
     //     dv': DVState,
     //     node: BLSPubkey, 
     //     nodeEvent: Types.BlockEvent, 
-    //     nodeOutputs: Outputs,
+    //     nodeOutputs: BlockOutputs,
     //     block: BeaconBlock
     // )    
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')  
     // requires event.HonestNodeTakingStep?
     // requires event.event.ImportedNewBlock?
-    // requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    // requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     // requires nodeEvent.ImportedNewBlock?
     // requires nodeEvent == ImportedNewBlock(block)  // Error as duplicated names
     // requires inv_unchanged_dvc_rs_pubkey(dv)
@@ -2229,17 +2286,17 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
     requires event.event.ImportedNewBlock?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_all_honest_nodes_is_a_quorum(dv)
@@ -2302,18 +2359,18 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveSignedBeaconBlock(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         block_share: SignedBeaconBlock
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
     requires event.event.ReceiveSignedBeaconBlock?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ReceiveSignedBeaconBlock?
     requires nodeEvent == ReceiveSignedBeaconBlock(block_share)
     requires inv_unchanged_dvc_rs_pubkey(dv)
@@ -2372,17 +2429,17 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendRandaoRevealSignatureShare(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
     requires event.event.ResendRandaoRevealSignatureShare?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ResendRandaoRevealSignatureShare?
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_all_honest_nodes_is_a_quorum(dv)
@@ -2439,17 +2496,17 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendBlockShare(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
     requires event.event.ResendBlockShare?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ResendBlockShare?
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_all_honest_nodes_is_a_quorum(dv)
@@ -2506,18 +2563,18 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveRandaoShare(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs,
+        nodeOutputs: BlockOutputs,
         randao_share: RandaoShare
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
     requires event.event.ReceiveRandaoShare?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ReceiveRandaoShare?
     requires nodeEvent == ReceiveRandaoShare(randao_share)
     requires inv_unchanged_dvc_rs_pubkey(dv)
@@ -2541,7 +2598,7 @@ module Invs_DV_Next_5
         var dvc' := dv'.honest_nodes_states[node];
         var state_and_outputs := f_listen_for_randao_shares(dvc, randao_share);
         assert  && state_and_outputs.state == dvc'
-                && state_and_outputs.outputs == getEmptyOuputs()
+                && state_and_outputs.outputs == getEmptyBlockOuputs()
                 ;
 
         var allMessagesSent := dv.block_share_network.allMessagesSent;
@@ -2586,16 +2643,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_NoEvent(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.NoEvent?
     requires inv_unchanged_dvc_rs_pubkey(dv)
     requires inv_all_honest_nodes_is_a_quorum(dv)
@@ -2653,7 +2710,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -2800,7 +2857,7 @@ module Invs_DV_Next_5
         }
     }  
 
-    lemma lem_inv_all_blocks_created_is_monotonic_dv_next(dv: DVState, event: DV_Block_Proposer_Spec.BlockEvent, dv': DVState)    
+    lemma lem_inv_all_blocks_created_is_monotonic_dv_next(dv: DVState, event: DVBlockEvent, dv': DVState)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')     
     ensures dv.all_blocks_created <= dv'.all_blocks_created
@@ -2808,7 +2865,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock_helper(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )
     requires NextEventPreCond(dv, event)
@@ -2845,17 +2902,17 @@ module Invs_DV_Next_5
 
     // lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_checking_processes(
     //     dv: DVState,
-    //     event: DV_Block_Proposer_Spec.BlockEvent,
+    //     event: DVBlockEvent,
     //     dv': DVState,
     //     node: BLSPubkey,
     //     nodeEvent: Types.BlockEvent,
-    //     nodeOutputs: Outputs,
+    //     nodeOutputs: BlockOutputs,
     //     block: BeaconBlock
     // )
     // requires NextEventPreCond(dv, event)
     // requires NextEvent(dv, event, dv')    
     // requires event.HonestNodeTakingStep?
-    // requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    // requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     // requires nodeEvent.ImportedNewBlock?
     // requires nodeEvent == ImportedNewBlock(block)
     // ensures && var process := dv.honest_nodes_states[node];
@@ -2872,16 +2929,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_checking_processes(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
     ensures && var process := dv.honest_nodes_states[node];
             && var process' := dv'.honest_nodes_states[node];
@@ -2898,21 +2955,20 @@ module Invs_DV_Next_5
                 assert process' == f_listen_for_new_imported_blocks(process_after_adding_block, block).state ;
         }
     }
-
     
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')     
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ImportedNewBlock?
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
@@ -3012,16 +3068,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_HonestNodeTakingStep_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')     
     requires event.HonestNodeTakingStep?
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)
     requires inv_blocks_of_in_transit_block_shares_are_decided_values(s)               
     requires inv_consensus_instance_isConditionForSafetyTrue(s) 
@@ -3131,7 +3187,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -3225,7 +3281,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_HonestNodeTakingStep_helper(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -3300,7 +3356,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_dv_next(
         s: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         s': DVState
     )
     requires NextEventPreCond(s, event)
@@ -3339,16 +3395,16 @@ module Invs_DV_Next_5
 
     lemma lem_inv_block_shares_to_broadcast_are_sent_messages_HonestNodeTakingStep(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
-        nodeOutputs: Outputs
+        nodeOutputs: BlockOutputs
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv') 
     requires event.HonestNodeTakingStep? 
-    requires event == HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
+    requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires inv_all_honest_nodes_is_a_quorum(dv)
     requires inv_nodes_in_consensus_instances_are_in_dv(dv)
     requires inv_only_dv_construct_complete_signing_functions(dv)
@@ -3417,7 +3473,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_block_shares_to_broadcast_are_sent_messages_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )       
     requires NextEventPreCond(dv, event)
@@ -3456,7 +3512,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_stored_SlashingDBBlocks_have_available_signing_root_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -3545,7 +3601,7 @@ module Invs_DV_Next_5
         
     lemma lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -3599,7 +3655,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_none_latest_proposer_duty_implies_emply_block_slashing_db_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -3652,7 +3708,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
@@ -3701,7 +3757,7 @@ module Invs_DV_Next_5
 
     lemma lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_dv_next(
         dv: DVState,
-        event: DV_Block_Proposer_Spec.BlockEvent,
+        event: DVBlockEvent,
         dv': DVState
     )    
     requires NextEventPreCond(dv, event)
