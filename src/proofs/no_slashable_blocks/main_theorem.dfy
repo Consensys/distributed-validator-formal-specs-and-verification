@@ -18,7 +18,7 @@ module No_Slashable_Blocks_Main_Theorem
 
 
     predicate isValidTrace(
-        trace: iseq<DVState>
+        trace: iseq<Block_DVState>
     )  
     {
         && DV_Block_Proposer_Spec.Init(trace[0], {})
@@ -29,7 +29,7 @@ module No_Slashable_Blocks_Main_Theorem
     }  
 
     lemma lem_non_slashable_submitted_data_rec(
-        trace: iseq<DVState>,
+        trace: iseq<Block_DVState>,
         i: Slot
     )
     requires isValidTrace(trace)
@@ -37,19 +37,24 @@ module No_Slashable_Blocks_Main_Theorem
                 && NextPreCond(trace[j])  
                 && ind_inv(trace[j])
     {
-        if i == 0 
+        forall j | 0 <= j <= i 
+        ensures && NextPreCond(trace[j])  
+                && ind_inv(trace[j])
         {
-            lem_ind_inv_dv_init(trace[0]);
-        }
-        else 
-        {
-            lem_non_slashable_submitted_data_rec(trace, i-1);
-            lem_ind_inv_dv_ind_inv_NextPreCond(trace[i-1], trace[i]);
+            if i == 0 
+            {
+                lem_ind_inv_dv_init(trace[0]);
+            }
+            else 
+            {
+                lem_non_slashable_submitted_data_rec(trace, i-1);
+                lem_ind_inv_dv_ind_inv_NextPreCond(trace[i-1], trace[i]);
+            }
         }
     }
 
     lemma lem_non_slashable_submitted_data(
-        trace: iseq<DVState>
+        trace: iseq<Block_DVState>
     )
     requires isValidTrace(trace)
     ensures forall i:nat :: non_slashable_submitted_data(trace[i])

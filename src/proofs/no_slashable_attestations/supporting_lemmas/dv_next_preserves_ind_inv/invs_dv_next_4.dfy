@@ -62,7 +62,7 @@ module Invs_Att_DV_Next_4
         && inv_data_of_att_shares_are_decided_values(s) 
         && inv_the_sequence_of_att_duties_is_in_order_of_slots(s.sequence_attestation_duties_to_be_served) 
         && inv_available_current_att_duty_is_latest_att_duty(s)
-        && construct_signed_attestation_signature_assumptions_helper(
+        && construct_signed_attestation_signature_assumptions(
             s.construct_signed_attestation_signature,
             s.dv_pubkey,
             s.all_nodes

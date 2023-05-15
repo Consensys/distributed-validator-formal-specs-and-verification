@@ -185,11 +185,11 @@ module Proofs_Intermediate_Steps
     ensures inv_available_current_att_duty_is_latest_att_duty(dv)    
     {}
 
-    lemma lem_construct_signed_attestation_signature_assumptions_helper(
+    lemma lem_construct_signed_attestation_signature_assumptions(
         dv: Att_DVState
     )    
-    requires inv_construct_signed_attestation_signature_assumptions_helper(dv)    
-    ensures construct_signed_attestation_signature_assumptions_helper(
+    requires inv_construct_signed_attestation_signature_assumptions(dv)    
+    ensures construct_signed_attestation_signature_assumptions(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
                 dv.all_nodes)    

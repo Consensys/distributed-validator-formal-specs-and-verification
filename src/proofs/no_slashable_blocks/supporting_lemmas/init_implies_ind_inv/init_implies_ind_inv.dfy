@@ -22,7 +22,7 @@ module Ind_Inv_DV_Init
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
     
-    lemma lem_ind_inv_dv_init(dv: DVState)       
+    lemma lem_ind_inv_dv_init(dv: Block_DVState)       
     requires DV_Block_Proposer_Spec.Init(dv, {})    
     ensures ind_inv(dv)
     ensures NextPreCond(dv)

@@ -25,13 +25,13 @@ module Ind_Inv_Implies_Safety
     import opened DV_Block_Proposer_Assumptions
 
     predicate non_slashable_submitted_data(
-        dv: DVState
+        dv: Block_DVState
     )
     {
         && inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot(dv)
     }
 
-    lemma lem_ind_inv_no_slashable_submitted_data(dv: DVState)
+    lemma lem_ind_inv_no_slashable_submitted_data(dv: Block_DVState)
     requires ind_inv(dv)    
     ensures non_slashable_submitted_data(dv)
     { }

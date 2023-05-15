@@ -4227,9 +4227,9 @@ module Fnc_Invs_2
     { }       
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState,
+        s': Block_DVState,
         s_node: DVCState,
         n: BLSPubkey
     )
@@ -4746,7 +4746,7 @@ module Fnc_Invs_2
         process: DVCState,
         block: BeaconBlock,
         process': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_add_block_to_bn.requires(process, block)
@@ -4759,7 +4759,7 @@ module Fnc_Invs_2
         process: DVCState,
         proposer_duty: ProposerDuty,
         process': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_serve_proposer_duty.requires(process, proposer_duty)
@@ -4772,7 +4772,7 @@ module Fnc_Invs_2
         process: DVCState,
         randao_share: RandaoShare,
         process': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_listen_for_randao_shares.requires(process, randao_share)
@@ -4785,7 +4785,7 @@ module Fnc_Invs_2
         process: DVCState,
         block_share: SignedBeaconBlock,
         process': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_listen_for_block_signature_shares.requires(process, block_share)
@@ -4799,7 +4799,7 @@ module Fnc_Invs_2
         id: Slot,
         decided_beacon_block: BeaconBlock,        
         process': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_block_consensus_decided.requires(process, id, decided_beacon_block)
@@ -4812,7 +4812,7 @@ module Fnc_Invs_2
         process: DVCState,
         proposer_duty: ProposerDuty,
         s': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_check_for_next_duty.requires(process, proposer_duty)
@@ -4827,7 +4827,7 @@ module Fnc_Invs_2
         process: DVCState,
         block: BeaconBlock,
         s': DVCState,
-        dv: DVState,
+        dv: Block_DVState,
         n: BLSPubkey
     )
     requires f_listen_for_new_imported_blocks.requires(process, block)

@@ -214,7 +214,7 @@ module Invs_Att_DV_Next_2
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires s' == f_listen_for_attestation_shares(process, attestation_share).state
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
         process.construct_signed_attestation_signature,
         process.dv_pubkey,
         dv.all_nodes
@@ -334,7 +334,7 @@ module Invs_Att_DV_Next_2
     requires event.HonestNodeTakingStep?
     requires event.event.ReceivedAttestationShare?
     requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(s)
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
         s.construct_signed_attestation_signature,
         s.dv_pubkey,
         s.all_nodes
@@ -403,7 +403,7 @@ module Invs_Att_DV_Next_2
     requires NextEvent(s, event, s')  
     requires event.AdversaryTakingStep?
     requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(s)
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
         s.construct_signed_attestation_signature,
         s.dv_pubkey,
         s.all_nodes
@@ -516,7 +516,7 @@ module Invs_Att_DV_Next_2
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
     requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(s)
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
         s.construct_signed_attestation_signature,
         s.dv_pubkey,
         s.all_nodes

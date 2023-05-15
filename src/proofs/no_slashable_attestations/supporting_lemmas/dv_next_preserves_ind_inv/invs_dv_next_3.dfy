@@ -383,15 +383,15 @@ module Invs_Att_DV_Next_3
         }   
     }
 
-    lemma lem_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(
+    lemma lem_inv_construct_signed_attestation_signature_assumptions_dv_next(
         dv: Att_DVState,
         event: DVAttestationEvent,
         dv': Att_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')    
-    requires inv_construct_signed_attestation_signature_assumptions_helper(dv)
-    ensures inv_construct_signed_attestation_signature_assumptions_helper(dv')    
+    requires inv_construct_signed_attestation_signature_assumptions(dv)
+    ensures inv_construct_signed_attestation_signature_assumptions(dv')    
     {
         assert dv.construct_signed_attestation_signature == dv'.construct_signed_attestation_signature;
     }

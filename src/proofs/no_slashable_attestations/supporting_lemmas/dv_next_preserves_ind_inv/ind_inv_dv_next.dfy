@@ -113,7 +113,7 @@ module Ind_Inv_Att_DV_Next
     {       
         lem_inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db_dv_next(dv, e, dv');  
         lem_inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist_dv_next(dv, e, dv');  
-        lem_inv_construct_signed_attestation_signature_assumptions_helper_dv_next(dv, e, dv');  
+        lem_inv_construct_signed_attestation_signature_assumptions_dv_next(dv, e, dv');  
     }
 
     lemma lem_ind_inv_dv_next_invs_group_7(dv: Att_DVState, e: DVAttestationEvent, dv': Att_DVState)       
@@ -143,7 +143,7 @@ module Ind_Inv_Att_DV_Next
     ensures inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
     ensures inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)   
     ensures same_honest_nodes_in_dv_and_ci(dv)    
-    ensures construct_signed_attestation_signature_assumptions_helper(
+    ensures construct_signed_attestation_signature_assumptions(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
                 dv.all_nodes)  
@@ -151,7 +151,7 @@ module Ind_Inv_Att_DV_Next
         lem_inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty_ind_inv(dv);
         lem_inv_active_consensus_instances_imply_the_delivery_of_att_duties_ind_inv(dv);
         lem_inv_queued_att_duty_is_rcvd_duty3_ind_inv(dv);      
-        lem_construct_signed_attestation_signature_assumptions_helper(dv);       
+        lem_construct_signed_attestation_signature_assumptions(dv);       
     }
 
     lemma lem_ind_inv_implies_intermediate_steps_helper_3(dv: Att_DVState)
@@ -185,7 +185,7 @@ module Ind_Inv_Att_DV_Next
     ensures inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
     ensures inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)   
     ensures same_honest_nodes_in_dv_and_ci(dv)    
-    ensures construct_signed_attestation_signature_assumptions_helper(
+    ensures construct_signed_attestation_signature_assumptions(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
                 dv.all_nodes)  
@@ -240,7 +240,7 @@ module Ind_Inv_Att_DV_Next
     ensures inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv')
     {
         lem_ind_inv_implies_intermediate_steps(dv);
-        assert construct_signed_attestation_signature_assumptions_helper(
+        assert construct_signed_attestation_signature_assumptions(
                 dv.construct_signed_attestation_signature,
                 dv.dv_pubkey,
                 dv.all_nodes);
@@ -253,7 +253,7 @@ module Ind_Inv_Att_DV_Next
 
         assert  && Att_DV.NextEvent(dv, e, dv')
                 && inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
-                && construct_signed_attestation_signature_assumptions_helper(
+                && construct_signed_attestation_signature_assumptions(
                     dv.construct_signed_attestation_signature,
                     dv.dv_pubkey,
                     dv.all_nodes

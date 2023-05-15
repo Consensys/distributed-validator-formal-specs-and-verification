@@ -12,7 +12,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened DV_Block_Proposer_Spec
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
-    predicate ind_inv(dv: DVState)       
+    predicate ind_inv(dv: Block_DVState)       
     {
         && invs_group_1(dv)        
         && invs_group_2(dv)
@@ -31,7 +31,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         && invs_group_15(dv)  
     }
 
-    predicate invs_group_1(dv: DVState)       
+    predicate invs_group_1(dv: Block_DVState)       
     {
         &&  inv_all_honest_nodes_is_a_quorum(dv)
         &&  inv_nodes_in_consensus_instances_are_in_dv(dv)
@@ -40,21 +40,21 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         &&  inv_latest_served_duty_is_a_rcvd_duty(dv)
     }
 
-    predicate invs_group_2(dv: DVState)       
+    predicate invs_group_2(dv: Block_DVState)       
     {        
         &&  inv_none_latest_proposer_duty_implies_none_current_proposer_duty(dv)   
         &&  inv_current_proposer_duty_is_either_none_or_latest_proposer_duty(dv)  
         &&  inv_available_current_proposer_duty_is_latest_proposer_duty(dv) 
     }
 
-    predicate invs_group_3(dv: DVState)       
+    predicate invs_group_3(dv: Block_DVState)       
     {        
         &&  inv_no_duplicated_proposer_duties(dv)           
         &&  inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered(dv) 
         &&  inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none(dv)              
     }
 
-    predicate invs_group_4(dv: DVState)       
+    predicate invs_group_4(dv: Block_DVState)       
     {        
         &&  inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty(dv)  
         &&  inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties(dv)          
@@ -62,20 +62,20 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         &&  inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty(dv)
     }
 
-    predicate invs_group_5(dv: DVState)       
+    predicate invs_group_5(dv: Block_DVState)       
     {                
         &&  inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv)  
         &&  inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv)  
         &&  inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv)          
     }
 
-    predicate invs_group_6(dv: DVState)       
+    predicate invs_group_6(dv: Block_DVState)       
     {                
         &&  inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db(dv)  
         &&  inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)
     }
 
-    predicate invs_group_7(dv: DVState)       
+    predicate invs_group_7(dv: Block_DVState)       
     {                
         // &&  inv_the_same_node_status_in_dv_and_ci(dv)
         &&  inv_all_in_transit_messages_were_sent(dv)
@@ -83,7 +83,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         &&  inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
     }
     
-    predicate invs_group_8(dv: DVState)       
+    predicate invs_group_8(dv: Block_DVState)       
     {   
         && inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv) 
         && inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)    
@@ -91,7 +91,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         && inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv)
     }
 
-    predicate invs_group_9(dv: DVState)       
+    predicate invs_group_9(dv: Block_DVState)       
     {                    
         && inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv) 
         && inv_in_transit_messages_are_in_allMessagesSent(dv)
@@ -103,7 +103,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         
     }
 
-    predicate invs_group_10(dv: DVState)       
+    predicate invs_group_10(dv: Block_DVState)       
     {   
         && inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv)        
         && inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist(dv) 
@@ -114,7 +114,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         
     }
     
-    predicate invs_group_11(dv: DVState)       
+    predicate invs_group_11(dv: Block_DVState)       
     {             
         && inv_slots_in_future_decided_beacon_blocks_are_correct(dv)  
         && inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(dv)
@@ -122,7 +122,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         && inv_unique_rcvd_proposer_duty_per_slot(dv)
     }
     
-    predicate invs_group_12(dv: DVState)       
+    predicate invs_group_12(dv: Block_DVState)       
     {   
         && inv_consensus_instance_isConditionForSafetyTrue(dv)
         && inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty(dv)
@@ -131,7 +131,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         
     }
 
-    predicate invs_group_13(dv: DVState)       
+    predicate invs_group_13(dv: Block_DVState)       
     {   
         && inv_unchanged_dvc_rs_pubkey(dv)
         && inv_all_created_signed_beacon_blocks_are_valid(dv)
@@ -142,7 +142,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         // && inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv)
     }
 
-    predicate invs_group_14(dv: DVState)       
+    predicate invs_group_14(dv: Block_DVState)       
     {   
         && inv_seq_of_proposer_duties_is_ordered(dv)
         && inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db(dv)
@@ -151,7 +151,7 @@ module Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
         && inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv)
     }
 
-    predicate invs_group_15(dv: DVState)       
+    predicate invs_group_15(dv: Block_DVState)       
     {   
         && inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv)
         && inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty(dv)

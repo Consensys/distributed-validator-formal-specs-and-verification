@@ -28,21 +28,21 @@ module Invs_DV_Next_1
     import opened Set_Seq_Helper
     import opened Signing_Methods
 
-    lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: DVState, event: DVBlockEvent, dv': DVState)       
+    lemma lem_inv_all_honest_nodes_is_a_quorum_dv_next(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_all_honest_nodes_is_a_quorum(dv)
     ensures inv_all_honest_nodes_is_a_quorum(dv')
     { }    
 
-    lemma lem_inv_nodes_in_consensus_instances_are_in_dv_dv_next(dv: DVState, event: DVBlockEvent, dv': DVState)       
+    lemma lem_inv_nodes_in_consensus_instances_are_in_dv_dv_next(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_nodes_in_consensus_instances_are_in_dv(dv)
     ensures inv_nodes_in_consensus_instances_are_in_dv(dv')
     { }    
 
-    lemma lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv: DVState, event: DVBlockEvent, dv': DVState)       
+    lemma lem_inv_only_dv_construct_complete_signing_functions_dv_next(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
     requires inv_only_dv_construct_complete_signing_functions(dv)
@@ -50,9 +50,9 @@ module Invs_DV_Next_1
     { }    
 
     lemma lem_inv_current_proposer_duty_is_a_rcvd_duty_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -99,9 +99,9 @@ module Invs_DV_Next_1
     }     
 
     lemma lem_inv_latest_served_duty_is_a_rcvd_duty_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -148,9 +148,9 @@ module Invs_DV_Next_1
     } 
 
     lemma lem_inv_none_latest_proposer_duty_implies_none_current_proposer_duty_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -197,9 +197,9 @@ module Invs_DV_Next_1
     } 
 
     lemma lem_inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -246,9 +246,9 @@ module Invs_DV_Next_1
     } 
 
     lemma lem_inv_available_current_proposer_duty_is_latest_proposer_duty_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -295,9 +295,9 @@ module Invs_DV_Next_1
     } 
 
     lemma lem_inv_seq_of_proposer_duties_is_ordered_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
@@ -308,9 +308,9 @@ module Invs_DV_Next_1
     }
 
     lemma lem_inv_no_duplicated_proposer_duties_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
@@ -319,9 +319,9 @@ module Invs_DV_Next_1
     { }
 
     lemma lem_inv_unchanged_dv_seq_of_proposer_duties_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')      
@@ -331,9 +331,9 @@ module Invs_DV_Next_1
     
 
     lemma lem_inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
@@ -445,9 +445,9 @@ module Invs_DV_Next_1
     }     
 
     lemma lem_inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -495,12 +495,12 @@ module Invs_DV_Next_1
     } 
 
     lemma lem_inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered_f_serve_proposer_duty(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
         nodeOutputs: BlockOutputs,
-        dv': DVState
+        dv': Block_DVState
     )  
     requires inv_all_honest_nodes_is_a_quorum(dv)    
     requires NextEventPreCond(dv, event)
@@ -570,9 +570,9 @@ module Invs_DV_Next_1
     }
 
     lemma lem_inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -628,9 +628,9 @@ module Invs_DV_Next_1
     }
 
     lemma lem_inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -678,9 +678,9 @@ module Invs_DV_Next_1
     } 
     
     lemma lem_inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  

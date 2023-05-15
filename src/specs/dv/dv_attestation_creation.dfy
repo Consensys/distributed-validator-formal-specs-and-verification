@@ -32,36 +32,48 @@ module Att_DV
         index_next_attestation_duty_to_be_served: nat
     )
 
-    predicate Init(
+    predicate DVCs_are_initialized_with_empty_BNs(
         s: Att_DVState,
         initial_attestation_slashing_db: set<SlashingDBAttestation>
     )
     {
-        && s.honest_nodes_states.Keys !! s.adversary.nodes !! {s.dv_pubkey}
-        && s.all_nodes == s.honest_nodes_states.Keys + s.adversary.nodes
-        && s.honest_nodes_states.Keys != {}
-        && |s.adversary.nodes| <= f(|s.all_nodes|)
-        && construct_signed_attestation_signature_assumptions_helper(
-                s.construct_signed_attestation_signature,
-                s.dv_pubkey,
-                s.all_nodes
-            )
-        && s.all_attestations_created == {}
         && ( forall n | n in s.honest_nodes_states.Keys ::
                 Att_DVC_Spec.Init(s.honest_nodes_states[n], s.dv_pubkey, s.all_nodes, s.construct_signed_attestation_signature, initial_attestation_slashing_db, n)
-            )      
-        &&  NetworkSpec.Init(s.att_network, s.all_nodes)
+            )   
+        && ( forall n | n in s.honest_nodes_states.Keys ::
+                |s.honest_nodes_states[n].bn.submitted_data| == 0    
+            )   
+    }
+
+    predicate consensus_instances_are_initialized_with_no_decision_values(
+        s: Att_DVState
+    )
+    {
         &&  ( forall ci | ci in  s.consensus_on_attestation_data.Values ::
                 ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
             )
         && ( forall i: Slot :: i in s.consensus_on_attestation_data 
                             ==> !s.consensus_on_attestation_data[i].decided_value.isPresent()
-            )        
+            )       
+    }
+
+    predicate Init(
+        s: Att_DVState,
+        initial_attestation_slashing_db: set<SlashingDBAttestation>
+    )
+    {
+        && byz_assumptions(s.dv_pubkey, s.all_nodes, s.honest_nodes_states.Keys, s.adversary.nodes)
+        && construct_signed_attestation_signature_assumptions(
+                s.construct_signed_attestation_signature,
+                s.dv_pubkey,
+                s.all_nodes
+            )
+        && s.all_attestations_created == {}
+        && DVCs_are_initialized_with_empty_BNs(s, initial_attestation_slashing_db)
+        &&  NetworkSpec.Init(s.att_network, s.all_nodes)
+        && consensus_instances_are_initialized_with_no_decision_values(s)
         && inv_the_sequence_of_att_duties_is_in_order_of_slots(s.sequence_attestation_duties_to_be_served)
         && s.index_next_attestation_duty_to_be_served == 0   
-        && ( forall n | n in s.honest_nodes_states.Keys ::
-                |s.honest_nodes_states[n].bn.submitted_data| == 0    
-            )
     }
 
     predicate NextPreCond(
@@ -129,19 +141,19 @@ module Att_DV
     requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
     {
         var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
-        forall a | 
+        forall a |  
             && a in block.body.attestations 
             && Att_DVC_Spec_NonInstr.isMyAttestation(
-            a,
-            new_p.bn,
-            block,
-            valIndex
-            )
+                    a,
+                    new_p.bn,
+                    block,
+                    valIndex
+                )
         ::
-        exists a' ::
-            && a' in dv.all_attestations_created
-            && a'.data == a.data 
-            && is_valid_attestation(a', dv.dv_pubkey)    
+            exists a' ::
+                && a' in dv.all_attestations_created
+                && a'.data == a.data 
+                && is_valid_attestation(a', dv.dv_pubkey)    
     }  
 
     predicate blockIsValidAfterAdd(
@@ -414,6 +426,19 @@ module Att_DV_Assumptions
     import opened BN_Axioms
     import opened RS_Axioms        
 
+    predicate byz_assumptions(
+        dv_pubkey: BLSPubkey,
+        all_nodes: set<BLSPubkey>,
+        honest_nodes: set<BLSPubkey>,
+        byz_nodes: set<BLSPubkey>
+    )
+    {
+        && honest_nodes !! byz_nodes !! {dv_pubkey}
+        && all_nodes == honest_nodes + byz_nodes
+        && honest_nodes != {}
+        && |byz_nodes| <= f(|all_nodes|)
+    }
+
     predicate all_att_shares_have_the_same_data(
         att_shares: set<AttestationShare>,
         data: AttestationData 
@@ -497,7 +522,7 @@ module Att_DV_Assumptions
             )
     }    
 
-    predicate construct_signed_attestation_signature_assumptions_helper(
+    predicate construct_signed_attestation_signature_assumptions(
         construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>

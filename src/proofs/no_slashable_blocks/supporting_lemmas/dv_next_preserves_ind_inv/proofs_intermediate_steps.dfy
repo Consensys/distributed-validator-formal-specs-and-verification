@@ -32,13 +32,13 @@ module Proofs_Intermediate_Steps
     import opened DV_Block_Proposer_Assumptions
     
     
-    lemma lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv: DVState)
+    lemma lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv: Block_DVState)
     requires inv_nodes_in_consensus_instances_are_in_dv(dv)
     ensures inv_the_same_node_status_in_dv_and_ci(dv)
     { }
         
     lemma lem_inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_ind_inv(
-        dv: DVState
+        dv: Block_DVState
     )         
     requires inv_current_proposer_duty_is_a_rcvd_duty(dv)    
     requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
@@ -71,7 +71,7 @@ module Proofs_Intermediate_Steps
     } 
       
     lemma lem_inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_ind_inv(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_seq_of_proposer_duties_is_ordered(dv)
     requires inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty(dv)
@@ -110,7 +110,7 @@ module Proofs_Intermediate_Steps
     }
 
     lemma lem_inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_ind_inv(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv)
     ensures inv_active_consensus_instances_implied_the_delivery_of_proposer_duties(dv)    
@@ -135,7 +135,7 @@ module Proofs_Intermediate_Steps
     } 
 
     lemma lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_ind_inv(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv)
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal(dv)    
@@ -172,17 +172,17 @@ module Proofs_Intermediate_Steps
     }   
 
     lemma lem_inv_available_current_proposer_duty_is_latest_proposer_duty(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)    
     ensures inv_available_current_proposer_duty_is_latest_proposer_duty(dv)    
     {}
 
-    lemma lem_construct_complete_signed_block_assumptions_helper(
-        dv: DVState
+    lemma lem_construct_complete_signed_block_assumptions(
+        dv: Block_DVState
     )    
     requires inv_only_dv_construct_complete_signing_functions(dv)    
-    ensures construct_complete_signed_block_assumptions_helper(
+    ensures construct_complete_signed_block_assumptions(
                 dv.construct_complete_signed_block,
                 dv.dv_pubkey,
                 dv.all_nodes
@@ -190,27 +190,27 @@ module Proofs_Intermediate_Steps
     {}
 
     lemma lem_inv_active_proposer_consensus_instances_keys_is_subset_of_slashing_db_hist(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)    
     ensures  inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)
     {}   
 
     lemma lem_inv_rcvd_block_shares_are_from_sent_messages_inv_rcvd_block_shares_are_in_all_sent_messages(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_rcvd_block_shares_are_from_sent_messages(dv)    
     ensures  inv_rcvd_block_shares_are_in_all_sent_messages(dv)
     {}
 
     lemma lem_inv_block_shares_to_broadcast_are_sent_messages_inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(
-        dv: DVState
+        dv: Block_DVState
     )
     requires inv_block_shares_to_broadcast_are_sent_messages(dv)
     ensures inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
     {}  
 
-    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_proposer_consensus_instances_predicate_is_in_slashing_db_hist(dv: DVState)    
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_proposer_consensus_instances_predicate_is_in_slashing_db_hist(dv: Block_DVState)    
     requires inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv)
     ensures inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(dv)
     {}  
@@ -219,7 +219,7 @@ module Proofs_Intermediate_Steps
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // lemma lem_inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty_ind_inv(
-    //     dv: DVState
+    //     dv: Block_DVState
     // )         
     // requires inv_all_honest_nodes_is_a_quorum(dv)      
     // requires inv_latest_served_duty_is_a_rcvd_duty(dv)    

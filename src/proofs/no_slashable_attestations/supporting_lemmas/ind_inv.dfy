@@ -73,7 +73,7 @@ module Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
     {                
         &&  inv_every_db_in_slashing_db_hist_is_a_subset_of_att_slashing_db(dv)  
         &&  inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist(dv)
-        &&  inv_construct_signed_attestation_signature_assumptions_helper(dv)        
+        &&  inv_construct_signed_attestation_signature_assumptions(dv)        
     }
 
     predicate invs_group_7(dv: Att_DVState)       

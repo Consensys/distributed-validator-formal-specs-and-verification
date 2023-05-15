@@ -1756,7 +1756,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { } 
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_start_consensus_if_can_construct_randao_share(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState, 
         process': DVCState)
     requires f_start_consensus_if_can_construct_randao_share.requires(process)
@@ -1766,7 +1766,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { }  
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_listen_for_randao_shares(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState, 
         randao_share: RandaoShare,
         process': DVCState)
@@ -1797,7 +1797,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     }    
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_check_for_next_duty(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState,
         proposer_duty: ProposerDuty,
         process': DVCState
@@ -1809,7 +1809,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { }
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_broadcast_randao_share(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState,
         proposer_duty: ProposerDuty, 
         process': DVCState
@@ -1846,7 +1846,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     }
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_serve_proposer_duty(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState,
         proposer_duty: ProposerDuty,
         process': DVCState
@@ -1868,7 +1868,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     } 
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_block_consensus_decided(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState,
         id: Slot,
         block: BeaconBlock, 
@@ -1881,7 +1881,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { } 
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_listen_for_block_signature_shares(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState,
         block_share: SignedBeaconBlock,
         process': DVCState
@@ -1894,7 +1894,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { }
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_listen_for_new_imported_blocks(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState,
         block: BeaconBlock,
         process': DVCState
@@ -1906,7 +1906,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { }  
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_resend_randao_share(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState, 
         process': DVCState)
     requires f_resend_randao_share.requires(process)
@@ -1916,7 +1916,7 @@ lemma lem_updated_all_rcvd_duties_f_check_for_next_duty(
     { }  
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_body_f_resend_block_share(
-        dv: DVState,
+        dv: Block_DVState,
         process: DVCState, 
         process': DVCState)
     requires f_resend_block_share.requires(process)

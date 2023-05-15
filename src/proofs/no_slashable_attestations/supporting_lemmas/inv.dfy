@@ -23,18 +23,6 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
     import opened RS_Axioms
     import opened Consensus_Engine_Instr
 
-    predicate construct_signed_attestation_signature_assumptions(
-        s: Att_DVState
-    )
-    {
-        construct_signed_attestation_signature_assumptions_helper(
-            s.construct_signed_attestation_signature,
-            s.dv_pubkey,
-            s.all_nodes
-        ) 
-    }
-
-
     predicate is_an_honest_node(s: Att_DVState, n: BLSPubkey)
     {
         n in s.honest_nodes_states.Keys
@@ -651,7 +639,11 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
 
     predicate inv_only_dv_construct_signed_attestation_signature(dv: Att_DVState)
     {
-        && construct_signed_attestation_signature_assumptions(dv)                
+        && construct_signed_attestation_signature_assumptions(
+                dv.construct_signed_attestation_signature,
+                dv.dv_pubkey,
+                dv.all_nodes
+            )                
         && forall n | n in dv.honest_nodes_states.Keys :: 
                 && var nodes := dv.honest_nodes_states[n];
                 && nodes.construct_signed_attestation_signature == dv.construct_signed_attestation_signature
@@ -1091,9 +1083,9 @@ module Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
             && inv_active_att_consensus_instances_are_tracked_in_slashing_db_hist_body(dvc)
     } 
 
-    predicate inv_construct_signed_attestation_signature_assumptions_helper(dv: Att_DVState)
+    predicate inv_construct_signed_attestation_signature_assumptions(dv: Att_DVState)
     {
-        construct_signed_attestation_signature_assumptions_helper(
+        construct_signed_attestation_signature_assumptions(
             dv.construct_signed_attestation_signature,
             dv.dv_pubkey,
             dv.all_nodes)

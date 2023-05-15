@@ -1987,7 +1987,7 @@ module Fnc_Invs_2
         k: (AttestationData, seq<bool>),
         rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>
     )
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
                 construct_signed_attestation_signature,
                 dv_pubkey,
                 all_nodes
@@ -2080,7 +2080,7 @@ module Fnc_Invs_2
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
                 process.construct_signed_attestation_signature,
                 process.dv_pubkey,
                 process.peers
@@ -2588,7 +2588,7 @@ module Fnc_Invs_2
     )
     requires f_listen_for_attestation_shares.requires(process, attestation_share)
     requires process' == f_listen_for_attestation_shares(process, attestation_share).state
-    requires construct_signed_attestation_signature_assumptions_helper(
+    requires construct_signed_attestation_signature_assumptions(
                 process.construct_signed_attestation_signature,
                 process.dv_pubkey,
                 process.peers

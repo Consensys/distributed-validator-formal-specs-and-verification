@@ -55,9 +55,9 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_all_in_transit_messages_were_sent_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')
@@ -119,10 +119,10 @@ module Invs_DV_Next_2
 
     // TODO: Split this lemma into smaller pieces
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_HonestNodeTakingStep(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
         cid: Slot,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
@@ -224,9 +224,9 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_decided_values_of_consensus_instances_are_decided_by_a_quorum_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
@@ -273,14 +273,14 @@ module Invs_DV_Next_2
         }
     }
 
-    lemma lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv: DVState)
+    lemma lem_inv_all_in_transit_messages_were_sent_inv_in_transit_messages_are_in_allMessagesSent(dv: Block_DVState)
     requires inv_all_in_transit_messages_were_sent(dv)
     ensures inv_in_transit_messages_are_in_allMessagesSent(dv)
     {        
     }
 
     lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k_helper(
-        s: DVState,
+        s: Block_DVState,
         cid: Slot
     )
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
@@ -321,7 +321,7 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k2(
-        s: DVState
+        s: Block_DVState
     )
     requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(s)
     requires inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(s)
@@ -339,9 +339,9 @@ module Invs_DV_Next_2
     
 
     lemma lem_inv_rcvd_block_shares_are_in_all_sent_messages_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')
@@ -396,11 +396,11 @@ module Invs_DV_Next_2
         process: DVCState,
         block_share: SignedBeaconBlock,
         s': DVCState,
-        dv: DVState
+        dv: Block_DVState
     )
     requires f_listen_for_block_signature_shares.requires(process, block_share)
     requires s' == f_listen_for_block_signature_shares(process, block_share).state
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
                 process.construct_complete_signed_block,
                 process.dv_pubkey,
                 dv.all_nodes
@@ -476,9 +476,9 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_when_no_new_blocks_are_added(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
@@ -496,16 +496,16 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next_ReceiveSignedBeaconBlock(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires event.HonestNodeTakingStep?
     requires event.event.ReceiveSignedBeaconBlock?
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
                 s.construct_complete_signed_block,
                 s.dv_pubkey,
                 s.all_nodes
@@ -561,15 +561,15 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next_AdversaryTakingStep(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires event.AdversaryTakingStep?
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)             
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
         s.construct_complete_signed_block,
         s.dv_pubkey,
         s.all_nodes
@@ -637,14 +637,14 @@ module Invs_DV_Next_2
     }
 
     lemma lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(s)
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
         s.construct_complete_signed_block,
         s.dv_pubkey,
         s.all_nodes

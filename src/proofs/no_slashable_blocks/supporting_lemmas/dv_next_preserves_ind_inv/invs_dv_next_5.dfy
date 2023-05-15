@@ -43,9 +43,9 @@ module Invs_DV_Next_5
     import opened DV_Block_Proposer_Assumptions
 
     lemma lem_inv_block_slashing_db_is_monotonic_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     ) 
     requires NextEvent.requires(dv, event, dv')    
     requires NextEvent(dv, event, dv')  
@@ -91,9 +91,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEvent.requires(dv, event, dv')  
     requires NextEvent(dv, event, dv')  
@@ -107,9 +107,9 @@ module Invs_DV_Next_5
     }   
 
     lemma lem_NonServeProposerDuty_unchanged_vars(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')      
@@ -120,9 +120,9 @@ module Invs_DV_Next_5
     { }  
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_helper_honest(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -242,9 +242,9 @@ module Invs_DV_Next_5
     }   
 
     lemma lem_inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -268,9 +268,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_AdversaryTakingStep(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -307,9 +307,9 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next_HonestNodeTakingStep(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -401,9 +401,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -477,9 +477,9 @@ module Invs_DV_Next_5
     }  
          
     lemma lem_inv_unchanged_rs_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -529,9 +529,9 @@ module Invs_DV_Next_5
     }
     
     lemma lem_inv_all_created_signed_beacon_blocks_are_valid_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -595,9 +595,9 @@ module Invs_DV_Next_5
     }  
     
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_AdversaryTakingStep(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -646,9 +646,9 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next_HonestNodeTakingStep(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -749,9 +749,9 @@ module Invs_DV_Next_5
     }  
 
     lemma lem_inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -828,7 +828,7 @@ module Invs_DV_Next_5
         }  
     }   
     
-    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_implies_46_a(dv: DVState)
+    lemma lem_inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_implies_46_a(dv: Block_DVState)
     requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
     ensures inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(dv)
     {
@@ -850,9 +850,9 @@ module Invs_DV_Next_5
     }  
 
     lemma lem_inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -899,7 +899,7 @@ module Invs_DV_Next_5
     { }      
 
     function f_inv_all_validity_predicates_are_stored_in_slashing_db_hist_body_helper_helper_function(
-        s_w_honest_node_states_updated: DVState,
+        s_w_honest_node_states_updated: Block_DVState,
         cid: Slot
     ) : map<BLSPubkey, BeaconBlock -> bool>
     {
@@ -944,9 +944,9 @@ module Invs_DV_Next_5
 
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_AdversaryTakingStep(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,        
-        s': DVState,
+        s': Block_DVState,
         hn: BLSPubkey
     )
     requires NextEventPreCond(s, event)
@@ -994,7 +994,7 @@ module Invs_DV_Next_5
     }  
 
     predicate pred_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_lopp_support(
-                    s: DVState,
+                    s: Block_DVState,
                     hn: BLSPubkey,
                     cid: Slot, 
                     vp : BeaconBlock -> bool
@@ -1007,9 +1007,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep_loop_helper(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,        
-        s': DVState,
+        s': Block_DVState,
         hn: BLSPubkey,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
@@ -1160,9 +1160,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_HonestNodeTakingStep(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,        
-        s': DVState,
+        s': Block_DVState,
         hn: BLSPubkey,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
@@ -1261,9 +1261,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState,
+        s': Block_DVState,
         hn: BLSPubkey
     )
     requires NextEventPreCond(s, event)
@@ -1304,9 +1304,9 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_all_validity_predicates_are_stored_in_slashing_db_hist_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -1328,9 +1328,9 @@ module Invs_DV_Next_5
     }  
 
     lemma lem_inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -1384,10 +1384,10 @@ module Invs_DV_Next_5
     }   
     
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_f_add_block_to_bn_with_event(
-        dv: DVState,
+        dv: Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
-        dv': DVState
+        dv': Block_DVState
     )    
     requires add_block_to_bn_with_event.requires(dv, node, nodeEvent)
     requires dv' == add_block_to_bn_with_event(dv, node, nodeEvent)
@@ -1423,11 +1423,11 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_ConsensusInstanceStep(
-        dv: DVState,
+        dv: Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires && DV_Block_Proposer_Spec.ConsensusInstanceStep.requires(dv, node, nodeEvent, nodeOutputs, dv')
              && DV_Block_Proposer_Spec.ConsensusInstanceStep(dv, node, nodeEvent, nodeOutputs, dv')
@@ -1473,11 +1473,11 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_NextHonestAfterAddingBlockToBn(
-        dv: DVState,
+        dv: Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires && DV_Block_Proposer_Spec.NextHonestAfterAddingBlockToBn.requires(dv, node, nodeEvent, nodeOutputs, dv')
              && DV_Block_Proposer_Spec.NextHonestAfterAddingBlockToBn(dv, node, nodeEvent, nodeOutputs, dv')
@@ -1490,11 +1490,11 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_NextHonestNode(
-        dv: DVState,
+        dv: Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires && DV_Block_Proposer_Spec.NextHonestNode.requires(dv, node, nodeEvent, nodeOutputs, dv')
              && DV_Block_Proposer_Spec.NextHonestNode(dv, node, nodeEvent, nodeOutputs, dv')
@@ -1522,9 +1522,9 @@ module Invs_DV_Next_5
     }   
 
     lemma lem_inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -1564,7 +1564,7 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(
-        dv: DVState
+        dv: Block_DVState
     )
     requires inv_all_honest_nodes_is_a_quorum(dv)
     ensures inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(dv)
@@ -1595,14 +1595,14 @@ module Invs_DV_Next_5
     }
 
     lemma lem_AdversaryTakingStep_block_share_from_honest_node_were_sent_before(
-        dv: DVState,        
+        dv: Block_DVState,        
         event: DVBlockEvent,
         node: BLSPubkey,
         new_randao_share_sent: set<MessaageWithRecipient<RandaoShare>>, 
         new_block_share_sent: set<MessaageWithRecipient<SignedBeaconBlock>>,
         randaoShareReceivedByTheNode: set<RandaoShare> , 
         blockShareReceivedByTheNode: set<SignedBeaconBlock>,        
-        dv': DVState,
+        dv': Block_DVState,
         pubkey: BLSPubkey,
         old_block_share: SignedBeaconBlock
     )
@@ -1652,9 +1652,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next_AdversaryTakingStep(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -1749,7 +1749,7 @@ module Invs_DV_Next_5
     }    
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_from_dv_to_dvc(
-        dv: DVState,
+        dv: Block_DVState,
         hn: BLSPubkey
     )
     requires is_an_honest_node(dv, hn)
@@ -1800,9 +1800,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty_helper(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
@@ -1851,9 +1851,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ServeProposerDuty(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
@@ -1951,9 +1951,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_BlockConsensusDecided(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
@@ -2140,9 +2140,9 @@ module Invs_DV_Next_5
     }   
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_HonestNodeTakingStep_helper(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -2218,9 +2218,9 @@ module Invs_DV_Next_5
     }
 
     // lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
-    //     dv: DVState,
+    //     dv: Block_DVState,
     //     event: DVBlockEvent,
-    //     dv': DVState,
+    //     dv': Block_DVState,
     //     node: BLSPubkey, 
     //     nodeEvent: Types.BlockEvent, 
     //     nodeOutputs: BlockOutputs,
@@ -2285,9 +2285,9 @@ module Invs_DV_Next_5
     // }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ImportedNewBlock(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -2358,9 +2358,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveSignedBeaconBlock(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
@@ -2428,9 +2428,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendRandaoRevealSignatureShare(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -2495,9 +2495,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ResendBlockShare(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -2562,9 +2562,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_ReceiveRandaoShare(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs,
@@ -2642,9 +2642,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_NoEvent(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey, 
         nodeEvent: Types.BlockEvent, 
         nodeOutputs: BlockOutputs
@@ -2709,9 +2709,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -2833,7 +2833,7 @@ module Invs_DV_Next_5
     }    
 
     lemma lem_inv_block_of_all_created_blocks_is_set_of_decided_values_dv_next(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
     requires inv_blocks_of_in_transit_block_shares_are_decided_values(dv)
@@ -2857,22 +2857,22 @@ module Invs_DV_Next_5
         }
     }  
 
-    lemma lem_inv_all_blocks_created_is_monotonic_dv_next(dv: DVState, event: DVBlockEvent, dv': DVState)    
+    lemma lem_inv_all_blocks_created_is_monotonic_dv_next(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')     
     ensures dv.all_blocks_created <= dv'.all_blocks_created
     { }
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock_helper(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')     
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
                     dv.construct_complete_signed_block,
                     dv.dv_pubkey,
                     dv.all_nodes
@@ -2901,9 +2901,9 @@ module Invs_DV_Next_5
     }
 
     // lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_checking_processes(
-    //     dv: DVState,
+    //     dv: Block_DVState,
     //     event: DVBlockEvent,
-    //     dv': DVState,
+    //     dv': Block_DVState,
     //     node: BLSPubkey,
     //     nodeEvent: Types.BlockEvent,
     //     nodeOutputs: BlockOutputs,
@@ -2928,9 +2928,9 @@ module Invs_DV_Next_5
     // }
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_checking_processes(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
         nodeOutputs: BlockOutputs
@@ -2958,9 +2958,9 @@ module Invs_DV_Next_5
     
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_ImportedNewBlock(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
         nodeOutputs: BlockOutputs
@@ -2972,7 +2972,7 @@ module Invs_DV_Next_5
     requires nodeEvent.ImportedNewBlock?
     requires inv_consensus_instance_isConditionForSafetyTrue(dv)
     requires inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv)
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
                     dv.construct_complete_signed_block,
                     dv.dv_pubkey,
                     dv.all_nodes
@@ -3067,9 +3067,9 @@ module Invs_DV_Next_5
     }     
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_HonestNodeTakingStep_helper(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState,
+        s': Block_DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
         nodeOutputs: BlockOutputs
@@ -3084,7 +3084,7 @@ module Invs_DV_Next_5
     requires lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(s)  
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
                     s.construct_complete_signed_block,
                     s.dv_pubkey,
                     s.all_nodes
@@ -3186,9 +3186,9 @@ module Invs_DV_Next_5
     }     
 
     lemma lem_inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -3199,7 +3199,7 @@ module Invs_DV_Next_5
     requires lem_inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_new_precond(s)  
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(s)
     requires inv_all_created_signed_beacon_blocks_are_valid(s)
-    requires construct_complete_signed_block_assumptions_helper(
+    requires construct_complete_signed_block_assumptions(
                     s.construct_complete_signed_block,
                     s.dv_pubkey,
                     s.all_nodes
@@ -3280,9 +3280,9 @@ module Invs_DV_Next_5
    
 
     lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_HonestNodeTakingStep_helper(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')     
@@ -3355,9 +3355,9 @@ module Invs_DV_Next_5
     }     
 
     lemma lem_inv_slots_in_future_decided_beacon_blocks_are_correct_dv_next(
-        s: DVState,
+        s: Block_DVState,
         event: DVBlockEvent,
-        s': DVState
+        s': Block_DVState
     )
     requires NextEventPreCond(s, event)
     requires NextEvent(s, event, s')  
@@ -3394,9 +3394,9 @@ module Invs_DV_Next_5
     }      
 
     lemma lem_inv_block_shares_to_broadcast_are_sent_messages_HonestNodeTakingStep(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState,
+        dv': Block_DVState,
         node: BLSPubkey,
         nodeEvent: Types.BlockEvent,
         nodeOutputs: BlockOutputs
@@ -3472,9 +3472,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_block_shares_to_broadcast_are_sent_messages_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )       
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -3511,9 +3511,9 @@ module Invs_DV_Next_5
     }
 
     lemma lem_inv_stored_SlashingDBBlocks_have_available_signing_root_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -3560,7 +3560,7 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot_dv_next(
-        dv: DVState
+        dv: Block_DVState
     )    
     requires inv_block_of_all_created_blocks_is_set_of_decided_values(dv)
     ensures inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot(dv)
@@ -3600,9 +3600,9 @@ module Invs_DV_Next_5
     }
         
     lemma lem_inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -3654,9 +3654,9 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_none_latest_proposer_duty_implies_emply_block_slashing_db_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -3707,9 +3707,9 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
@@ -3756,9 +3756,9 @@ module Invs_DV_Next_5
     } 
 
     lemma lem_inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_dv_next(
-        dv: DVState,
+        dv: Block_DVState,
         event: DVBlockEvent,
-        dv': DVState
+        dv': Block_DVState
     )    
     requires NextEventPreCond(dv, event)
     requires NextEvent(dv, event, dv')  
