@@ -2,18 +2,12 @@ include "../../common/commons.dfy"
 
 // This module currently specifies an asynchronous network.
 // Currently, there are three separated networks for attestation shares, randao shares, and block shares.
-module NetworkSpec
+module Network_Spec
 {
     import opened Types
     import opened Common_Functions
 
-    datatype Network<M> = Network(
-        messagesInTransit: multiset<MessaageWithRecipient>,
-        allMessagesSent: set<M>
-    )
-
-
-    predicate Init<M>(
+    predicate init<M>(
         e: Network<M>,
         all_nodes: set<BLSPubkey>
     )
@@ -22,7 +16,7 @@ module NetworkSpec
         && e.allMessagesSent == {}
     }
 
-    predicate Next<M>(
+    predicate next<M>(
         e: Network<M>,
         e': Network<M>,
         n: BLSPubkey,
@@ -30,10 +24,10 @@ module NetworkSpec
         messagesReceived: set<M>
     )
     {
-        && var messagesReceivedWithRecipient := multiset(addReceipientToMessages(messagesReceived, n));
+        && var messagesReceivedWithRecipient := multiset(f_get_quorum_card(messagesReceived, n));
         && |messagesReceived| <= 1
         && messagesReceivedWithRecipient <= e.messagesInTransit
         && e'.messagesInTransit == e.messagesInTransit - messagesReceivedWithRecipient + multiset(messagesToBeSent)
-        && e'.allMessagesSent == e.allMessagesSent + getMessagesFromMessagesWithRecipient(messagesToBeSent)
+        && e'.allMessagesSent == e.allMessagesSent + f_get_messages_from_messages_with_recipients(messagesToBeSent)
     }
 }

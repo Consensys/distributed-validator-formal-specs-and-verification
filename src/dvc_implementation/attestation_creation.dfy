@@ -198,7 +198,7 @@ abstract module Att_DVC_Implementation
                 var attestation_signature_share := rs.sign_attestation(decided_attestation_data, fork_version, attestation_signing_root);
                 var attestation_with_signature_share := 
                         AttestationShare(
-                            aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                            aggregation_bits := f_get_aggregation_bits(local_current_attestation_duty.validator_index),
                             data := decided_attestation_data, 
                             signature :=attestation_signature_share
                         ); 
@@ -211,7 +211,7 @@ abstract module Att_DVC_Implementation
             return Success;         
         }
 
-        function method get_aggregation_bits(
+        function method f_get_aggregation_bits(
             index: nat
         ): seq<bool>
         {
@@ -239,13 +239,13 @@ abstract module Att_DVC_Implementation
                 // maximum already-decided slot or changing the clean-up code in listen_for_new_imported_blocks to clean
                 // up only slot lower thant the slot of the current/latest duty 
                 var k := (attestation_share.data, attestation_share.aggregation_bits);
-                var attestation_shares_db_at_slot := getOrDefault(rcvd_attestation_shares, attestation_share.data.slot, map[]);
+                var attestation_shares_db_at_slot := get_or_default(rcvd_attestation_shares, attestation_share.data.slot, map[]);
                 rcvd_attestation_shares := 
                     rcvd_attestation_shares[
                         attestation_share.data.slot := 
                             attestation_shares_db_at_slot[
                                         k := 
-                                            getOrDefault(attestation_shares_db_at_slot, k, {}) + 
+                                            get_or_default(attestation_shares_db_at_slot, k, {}) + 
                                             {attestation_share}
                                         ]
                             ];
@@ -415,7 +415,7 @@ abstract module Att_DVC_Implementation
             var attestations := slashing_db.get_records(dv_pubkey);
             Repr := Repr + slashing_db.Repr;
 
-            return ci_decision_is_valid_attestation_data(attestations, data, this.attestation_duty);             
+            return ci_decision_att_signature_is_signed_with_pubkey_data(attestations, data, this.attestation_duty);             
         }
     }      
 }

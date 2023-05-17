@@ -22,10 +22,10 @@ module Core_Proofs
     import opened Common_Functions
     import opened Set_Seq_Helper
     import opened Signing_Methods
-    import opened ConsensusSpec
-    import opened Consensus_Engine_Instr
-    import opened NetworkSpec
-    import opened Att_DVC_Spec
+    import opened Consensus
+    import opened Consensus_Engine
+    import opened Network_Spec
+    import opened Att_DVC
     import opened Att_DV
     import opened Att_DV_Assumptions
     import opened Att_Inv_With_Empty_Initial_Attestation_Slashing_DB
@@ -59,30 +59,30 @@ module Core_Proofs
 
     }
 
-    lemma lem_no_slashable_submitted_attestations_with_different_slots(dv: Att_DVState, a: Attestation, a': Attestation)
-    requires inv_all_honest_nodes_is_a_quorum(dv)
+    lemma lem_no_slashable_submitted_attestations_with_different_slots(dv: AttDVState, a: Attestation, a': Attestation)
+    requires inv_all_honest_nodes_is_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
+    requires inv_exists_honest_node_that_sent_att_share_for_every_submitted_att(dv)
     requires inv_data_of_att_shares_are_decided_values(dv)
-    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)    
-    requires inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_quorum(dv)    
+    requires inv_every_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires && a in dv.all_attestations_created
-             && is_valid_attestation(a, dv.dv_pubkey)
+             && att_signature_is_signed_with_pubkey(a, dv.dv_pubkey)
     requires && a' in dv.all_attestations_created
-             && is_valid_attestation(a', dv.dv_pubkey)
+             && att_signature_is_signed_with_pubkey(a', dv.dv_pubkey)
     requires a.data.slot < a'.data.slot 
-    requires inv_every_decided_data_has_an_honest_witness(dv)
+    requires inv_every_decided_data_has_honest_witness(dv)
     requires inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
-    requires inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
-    requires inv_data_of_all_created_attestations_is_a_set_of_decided_values(dv)
+    requires inv_every_sent_validity_predicate_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
+    requires inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
     requires inv_unique_rcvd_att_duty_per_slot(dv)
-    requires inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)
-    requires inv_an_attestation_is_created_based_on_shares_of_a_quorum(dv)
-    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)
+    requires inv_active_consensus_instances_imply_delivery_of_att_duties(dv)
+    requires inv_attestation_is_created_based_on_shares_from_quorum_of_dvc_signer_pubkeys(dv)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_quorum(dv)
     requires inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
+    requires inv_exist_db_in_slashing_db_hist_and_att_duty_for_every_validity_predicate(dv)
     requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
@@ -104,18 +104,18 @@ module Core_Proofs
                 && var constructed_sig := dv.construct_signed_attestation_signature(att_shares);
                 && constructed_sig.isPresent()
                 && constructed_sig.safe_get() == a.signature
-                && all_att_shares_have_the_same_data(att_shares, a.data)
+                && all_att_shares_have_same_data(att_shares, a.data)
                 && signers <= dv.all_nodes
-                && inv_an_attestation_is_created_based_on_shares_of_a_quorum_body_signers(dv, att_shares, signers)
+                && inv_attestation_is_created_based_on_shares_from_quorum_of_dvc_signers(dv, att_shares, signers)
                 && |signers| >= quorum(|dv.all_nodes|)
                 && signers <= dv.all_nodes
                 ;
         assert  && signers <= dv.all_nodes
-                && inv_an_attestation_is_created_based_on_shares_of_a_quorum_body_signers(dv, att_shares, signers)
+                && inv_attestation_is_created_based_on_shares_from_quorum_of_dvc_signers(dv, att_shares, signers)
                 && |signers| >= quorum(|dv.all_nodes|)           
                 ;
 
-        var h_nodes': set<BLSPubkey> :| is_a_valid_decided_value_according_to_set_of_nodes(consa', h_nodes');
+        var h_nodes': set<BLSPubkey> :| decided_value_is_based_on_validity_predicates_from_quorum(consa', h_nodes');
         assert dv.adversary.nodes == consa'.all_nodes - consa'.honest_nodes_status.Keys;
         assert h_nodes' * dv.adversary.nodes == {};
         calc {
@@ -138,7 +138,7 @@ module Core_Proofs
         );
         assert signers * voters' * hnodes != {};
 
-        lemmDoubleIntersections(signers, voters', hnodes);
+        lem_non_empty_double_intersections(signers, voters', hnodes);
         assert exists hn: BLSPubkey :: 
                 && hn in signers
                 && hn in voters'
@@ -150,25 +150,25 @@ module Core_Proofs
                 && m in voters'
                 && m in hnodes
                 ;
-        assert  is_an_honest_node(dv, m);
-        assert  inv_an_attestation_is_created_based_on_shares_of_a_quorum_body_signers_helper(
+        assert  is_honest_node(dv, m);
+        assert  inv_attestation_is_created_based_on_shares_from_quorum_of_dvc_signers_helper(
                     att_shares,
                     dv.honest_nodes_states[m]
                 );
         assert dv.honest_nodes_states[m].rs.pubkey == m;
         assert  exists att_share: AttestationShare ::
                     && att_share in att_shares
-                    && pred_is_the_owner_of_att_share(m, att_share)
+                    && pred_is_owner_of_att_share(m, att_share)
                     ;
         
         var att_share: AttestationShare :| 
             && att_share in att_shares
-            && pred_is_the_owner_of_att_share(m, att_share)
+            && pred_is_owner_of_att_share(m, att_share)
             ;
         assert att_share.data == dva;
 
         var dvc := dv.honest_nodes_states[m];
-        assert inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate_body(dvc);
+        assert inv_exist_db_in_slashing_db_hist_and_att_duty_for_every_validity_predicate_body(dvc);
 
         var vp': AttestationData -> bool :|
                 && vp' in consa'.honest_nodes_validity_functions[m] 
@@ -187,9 +187,9 @@ module Core_Proofs
         var db': set<SlashingDBAttestation>, duty': AttestationDuty :| 
                 && duty'.slot == slot'
                 && db' in dvc.attestation_consensus_engine_state.slashing_db_hist[slot'][vp']
-                && vp' == (ad: AttestationData) => ci_decision_is_valid_attestation_data(db', ad, duty')
+                && vp' == (ad: AttestationData) => ci_decision_att_signature_is_signed_with_pubkey_data(db', ad, duty')
                 ;
-        assert ci_decision_is_valid_attestation_data(db', data', duty');
+        assert ci_decision_att_signature_is_signed_with_pubkey_data(db', data', duty');
         assert !is_slashable_attestation_data(db', data');
         assert inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots_body(
                         dv,
@@ -207,17 +207,17 @@ module Core_Proofs
                 ;
     } 
 
-    lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: Att_DVState, a: Attestation, a': Attestation)
-    requires inv_all_honest_nodes_is_a_quorum(dv)
+    lemma lem_no_slashable_submitted_attestations_with_same_slots(dv: AttDVState, a: Attestation, a': Attestation)
+    requires inv_all_honest_nodes_is_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
+    requires inv_exists_honest_node_that_sent_att_share_for_every_submitted_att(dv)
     requires inv_data_of_att_shares_are_decided_values(dv)
-    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)    
-    requires inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_quorum(dv)    
+    requires inv_every_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires && a in dv.all_attestations_created
-             && is_valid_attestation(a, dv.dv_pubkey)
+             && att_signature_is_signed_with_pubkey(a, dv.dv_pubkey)
     requires && a' in dv.all_attestations_created
-             && is_valid_attestation(a', dv.dv_pubkey)
+             && att_signature_is_signed_with_pubkey(a', dv.dv_pubkey)
     requires a.data.slot == a'.data.slot 
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
             && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
@@ -248,29 +248,29 @@ module Core_Proofs
         assert !is_slashable_attestation_data_eth_spec(a'.data, a.data);        
     }      
 
-    lemma lem_no_slashable_submitted_attestations(dv: Att_DVState, a: Attestation, a': Attestation)    
-    requires inv_all_honest_nodes_is_a_quorum(dv)
+    lemma lem_no_slashable_submitted_attestations(dv: AttDVState, a: Attestation, a': Attestation)    
+    requires inv_all_honest_nodes_is_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exists_an_honest_node_that_sent_an_att_share_for_every_submitted_att(dv)
+    requires inv_exists_honest_node_that_sent_att_share_for_every_submitted_att(dv)
     requires inv_data_of_att_shares_are_decided_values(dv)
-    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)    
-    requires inv_every_sent_validity_predicate_is_based_on_a_rcvd_att_duty_and_a_slashing_db(dv)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_quorum(dv)    
+    requires inv_every_sent_validity_predicate_is_based_on_rcvd_att_duty_and_slashing_db(dv)
     requires && a in dv.all_attestations_created
-             && is_valid_attestation(a, dv.dv_pubkey)
+             && att_signature_is_signed_with_pubkey(a, dv.dv_pubkey)
     requires && a' in dv.all_attestations_created
-             && is_valid_attestation(a', dv.dv_pubkey)
-    requires inv_every_decided_data_has_an_honest_witness(dv)
+             && att_signature_is_signed_with_pubkey(a', dv.dv_pubkey)
+    requires inv_every_decided_data_has_honest_witness(dv)
     requires inv_sent_validity_predicates_are_only_for_slots_stored_in_slashing_db_hist(dv)
     requires inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv)
-    requires inv_every_sent_validity_predicate_is_based_on_an_existing_slashing_db_and_a_rcvd_att_duty(dv)
+    requires inv_every_sent_validity_predicate_is_based_on_existing_slashing_db_and_rcvd_att_duty(dv)
     requires inv_unique_rcvd_att_duty_per_slot(dv)
-    requires inv_active_consensus_instances_imply_the_delivery_of_att_duties(dv)
-    requires inv_data_of_all_created_attestations_is_a_set_of_decided_values(dv)
-    requires inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv)
+    requires inv_active_consensus_instances_imply_delivery_of_att_duties(dv)
+    requires inv_data_of_all_created_attestations_is_set_of_decided_values(dv)
+    requires inv_decided_values_of_consensus_instances_are_decided_by_quorum(dv)
     requires inv_unchanged_paras_of_consensus_instances(dv)
-    requires inv_exist_a_db_in_slashing_db_hist_and_an_att_duty_for_every_validity_predicate(dv)
+    requires inv_exist_db_in_slashing_db_hist_and_att_duty_for_every_validity_predicate(dv)
     requires inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv)
-    requires inv_an_attestation_is_created_based_on_shares_of_a_quorum(dv)
+    requires inv_attestation_is_created_based_on_shares_from_quorum_of_dvc_signer_pubkeys(dv)
     requires inv_db_of_vp_contains_all_data_of_sent_att_shares_with_lower_slots(dv)
     requires inv_unchanged_dvc_rs_pubkey(dv)
     ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)

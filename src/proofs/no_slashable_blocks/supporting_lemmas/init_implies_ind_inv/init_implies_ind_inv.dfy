@@ -14,25 +14,25 @@ module Ind_Inv_DV_Init
     import opened Types
     
     import opened Common_Functions
-    import opened ConsensusSpec
-    import opened NetworkSpec
-    import opened DVC_Block_Proposer_Spec_Instr
-    import opened Consensus_Engine_Instr
-    import opened DV_Block_Proposer_Spec 
+    import opened Consensus
+    import opened Network_Spec
+    import opened Block_DVC
+    import opened Consensus_Engine
+    import opened Block_DV 
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Block_Ind_Inv_With_Empty_Initial_Block_Slashing_DB
     
-    lemma lem_ind_inv_dv_init(dv: Block_DVState)       
-    requires DV_Block_Proposer_Spec.Init(dv, {})    
+    lemma lem_ind_inv_dv_init(dv: BlockDVState)       
+    requires Block_DV.init(dv, {})    
     ensures ind_inv(dv)
-    ensures NextPreCond(dv)
+    ensures next_preconditions(dv)
     {
-        assert  DV_Block_Proposer_Spec.Init(dv, {})  
+        assert  Block_DV.init(dv, {})  
                 ==>                 
                 && invs_group_1(dv)
                 && invs_group_2(dv)
         ;
-        assert  DV_Block_Proposer_Spec.Init(dv, {})  
+        assert  Block_DV.init(dv, {})  
                 ==>                 
                 && invs_group_3(dv)                         
                 && invs_group_4(dv)
@@ -40,7 +40,7 @@ module Ind_Inv_DV_Init
                 && invs_group_6(dv)                     
         ;
 
-        assert  DV_Block_Proposer_Spec.Init(dv, {})    
+        assert  Block_DV.init(dv, {})    
                 ==>
                 && invs_group_7(dv)
                 && invs_group_8(dv)           

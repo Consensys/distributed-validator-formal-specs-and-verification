@@ -7,28 +7,26 @@ include "../../bn_axioms.dfy"
 include "../../rs_axioms.dfy"
 
 
-
-
 module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 {
     import opened Types 
     import opened Common_Functions
     import opened Signing_Methods
-    import opened ConsensusSpec
-    import opened NetworkSpec
-    import opened DVC_Block_Proposer_Spec_Instr
-    import opened Consensus_Engine_Instr
-    import opened DV_Block_Proposer_Spec    
+    import opened Consensus
+    import opened Network_Spec
+    import opened Block_DVC
+    import opened Consensus_Engine
+    import opened Block_DV    
     import opened BN_Axioms
     import opened RS_Axioms
     import opened DV_Block_Proposer_Assumptions
 
-    predicate is_an_honest_node(s: Block_DVState, n: BLSPubkey)
+    predicate is_honest_node(s: BlockDVState, n: BLSPubkey)
     {
         && n in s.honest_nodes_states.Keys
     }
 
-    predicate inv_all_honest_nodes_is_a_quorum(dv: Block_DVState)
+    predicate inv_all_honest_nodes_is_quorum(dv: BlockDVState)
     {        
         && var all_nodes := dv.all_nodes;
         && var honest_nodes := dv.honest_nodes_states.Keys;
@@ -40,7 +38,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && honest_nodes * dishonest_nodes == {}
     }
 
-    predicate inv_nodes_in_consensus_instances_are_in_dv(dv: Block_DVState)
+    predicate inv_nodes_in_consensus_instances_are_in_dv(dv: BlockDVState)
     {
         forall ci | ci in dv.consensus_instances_on_beacon_block.Values
             :: && ci.all_nodes == dv.all_nodes
@@ -50,7 +48,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                && |ci.all_nodes - ci.honest_nodes_status.Keys| <= f(|ci.all_nodes|)
     }
 
-    predicate inv_the_same_node_status_in_dv_and_ci(dv: Block_DVState)
+    predicate inv_same_node_status_between_dv_and_ci(dv: BlockDVState)
     {
         forall s: Slot ::
             && var ci := dv.consensus_instances_on_beacon_block[s];            
@@ -58,23 +56,23 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && dv.honest_nodes_states.Keys == ci.honest_nodes_status.Keys
     }
 
-    predicate inv_current_proposer_duty_is_a_rcvd_duty_body(dvc: DVCState)
+    predicate inv_current_proposer_duty_is_rcvd_duty_body(dvc: BlockDVCState)
     {
         dvc.current_proposer_duty.isPresent()
         ==> 
         dvc.current_proposer_duty.safe_get() in dvc.all_rcvd_duties
     }
 
-    predicate inv_current_proposer_duty_is_a_rcvd_duty(dv: Block_DVState)
+    predicate inv_current_proposer_duty_is_rcvd_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_current_proposer_duty_is_a_rcvd_duty_body(dvc)
+            && inv_current_proposer_duty_is_rcvd_duty_body(dvc)
     }
 
-    predicate inv_only_dv_construct_complete_signed_block(dv: Block_DVState)
+    predicate inv_only_dv_construct_complete_signed_block(dv: BlockDVState)
     {
-        && construct_complete_signed_block_assumptions(
+        && assump_construction_of_complete_signed_block(
                 dv.construct_complete_signed_block,
                 dv.dv_pubkey,
                 dv.all_nodes
@@ -86,9 +84,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && nodes.peers == dv.all_nodes
     }
 
-    predicate inv_only_dv_construct_complete_signed_randao_reveal(dv: Block_DVState)
+    predicate inv_only_dv_construct_complete_signed_randao_reveal(dv: BlockDVState)
     {
-        && construct_complete_signed_randao_reveal_assumptions(
+        && assump_construction_of_complete_signed_randao_reveal(
                 dv.construct_complete_signed_randao_reveal,
                 dv.dv_pubkey,
                 dv.all_nodes
@@ -100,41 +98,41 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && nodes.peers == dv.all_nodes
     }
 
-    predicate inv_only_dv_construct_complete_signing_functions(dv: Block_DVState)
+    predicate inv_only_dv_construct_complete_signing_functions(dv: BlockDVState)
     {
         && inv_only_dv_construct_complete_signed_randao_reveal(dv)
         && inv_only_dv_construct_complete_signed_block(dv)                
     }
 
-    predicate inv_latest_served_duty_is_a_rcvd_duty_body(dvc: DVCState)
+    predicate inv_latest_served_duty_is_rcvd_duty_body(dvc: BlockDVCState)
     {
         dvc.latest_proposer_duty.isPresent()
         ==> 
         dvc.latest_proposer_duty.safe_get() in dvc.all_rcvd_duties
     }
 
-    predicate inv_latest_served_duty_is_a_rcvd_duty(dv: Block_DVState)
+    predicate inv_latest_served_duty_is_rcvd_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_latest_served_duty_is_a_rcvd_duty_body(dvc)
+            && inv_latest_served_duty_is_rcvd_duty_body(dvc)
     }
 
-    predicate inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(dvc: DVCState)
+    predicate inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(dvc: BlockDVCState)
     {
         !dvc.latest_proposer_duty.isPresent()
         ==> 
         !dvc.current_proposer_duty.isPresent()
     }
 
-    predicate inv_none_latest_proposer_duty_implies_none_current_proposer_duty(dv: Block_DVState)
+    predicate inv_none_latest_proposer_duty_implies_none_current_proposer_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
             && inv_none_latest_proposer_duty_implies_none_current_proposer_duty_body(dvc)
     }
 
-    predicate inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(dvc: DVCState)
+    predicate inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(dvc: BlockDVCState)
     {
         !dvc.latest_proposer_duty.isPresent()
         ==> 
@@ -147,14 +145,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_current_proposer_duty_is_either_none_or_latest_proposer_duty(dv: Block_DVState)
+    predicate inv_current_proposer_duty_is_either_none_or_latest_proposer_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
             && inv_current_proposer_duty_is_either_none_or_latest_proposer_duty_body(dvc)
     }
 
-    predicate inv_available_current_proposer_duty_is_latest_proposer_duty_body(dvc: DVCState)
+    predicate inv_available_current_proposer_duty_is_latest_proposer_duty_body(dvc: BlockDVCState)
     {
         dvc.current_proposer_duty.isPresent()
         ==> 
@@ -164,48 +162,48 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_available_current_proposer_duty_is_latest_proposer_duty(dv: Block_DVState)
+    predicate inv_available_current_proposer_duty_is_latest_proposer_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::            
             && var dvc := dv.honest_nodes_states[hn];
             && inv_available_current_proposer_duty_is_latest_proposer_duty_body(dvc)
     }
 
-    predicate inv_seq_of_proposer_duties_is_ordered(dv: Block_DVState)
+    predicate inv_seq_of_proposer_duties_is_ordered(dv: BlockDVState)
     {
-        assumption_on_sequence_of_proposer_duties(dv.sequence_proposer_duties_to_be_served)
+        assump_seq_of_proposer_duties(dv.sequence_of_proposer_duties_to_be_served)
     }
 
-    predicate inv_no_duplicated_proposer_duties(dv: Block_DVState)
+    predicate inv_no_duplicated_proposer_duties_in_dv_seq(dv: BlockDVState)
     {        
         forall k1: Slot, k2: Slot ::
                 && 0 <= k1
                 && k1 < k2
-                && dv.sequence_proposer_duties_to_be_served[k1].node 
+                && dv.sequence_of_proposer_duties_to_be_served[k1].node 
                         in dv.honest_nodes_states.Keys
-                && dv.sequence_proposer_duties_to_be_served[k1].node 
-                        == dv.sequence_proposer_duties_to_be_served[k2].node 
+                && dv.sequence_of_proposer_duties_to_be_served[k1].node 
+                        == dv.sequence_of_proposer_duties_to_be_served[k2].node 
                 ==> 
-                && var duty1 := dv.sequence_proposer_duties_to_be_served[k1].proposer_duty;
-                && var duty2 := dv.sequence_proposer_duties_to_be_served[k2].proposer_duty;
+                && var duty1 := dv.sequence_of_proposer_duties_to_be_served[k1].proposer_duty;
+                && var duty2 := dv.sequence_of_proposer_duties_to_be_served[k2].proposer_duty;
                 && duty1.slot < duty2.slot
     }
 
-    predicate inv_unchanged_dv_seq_of_proposer_duties(dv: Block_DVState, dv': Block_DVState)
+    predicate inv_unchanged_dv_seq_of_proposer_duties(dv: BlockDVState, dv': BlockDVState)
     {
-        dv.sequence_proposer_duties_to_be_served
+        dv.sequence_of_proposer_duties_to_be_served
         == 
-        dv'.sequence_proposer_duties_to_be_served
+        dv'.sequence_of_proposer_duties_to_be_served
     }
 
-    predicate inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(dvc: DVCState)
+    predicate inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none_body(dvc: BlockDVCState)
     {
         !dvc.latest_proposer_duty.isPresent()
         ==> 
         dvc.block_consensus_engine_state.active_consensus_instances.Keys == {}
     }
 
-    predicate inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none(dv: Block_DVState)
+    predicate inv_dvc_has_no_active_consensus_instances_if_latest_proposer_duty_is_none(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
@@ -214,9 +212,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
 
     predicate inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties_body(  
-        dvc: DVCState,
+        dvc: BlockDVCState,
         hn: BLSPubkey,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
         index_next_proposer_duty_to_be_served: nat
     )
     {
@@ -225,20 +223,20 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         (   && var proposer_duty := dvc.current_proposer_duty.safe_get();
             && exists i: Slot :: 
                     && i < index_next_proposer_duty_to_be_served
-                    && var an := sequence_proposer_duties_to_be_served[i];
+                    && var an := sequence_of_proposer_duties_to_be_served[i];
                     && an.proposer_duty == proposer_duty
                     && an.node == hn
         )
     } 
 
-    predicate inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(dv: Block_DVState)
+    predicate inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
             && inv_available_current_proposer_duty_is_from_dv_seq_of_proposer_duties_body(
                     dvc,
                     hn,
-                    dv.sequence_proposer_duties_to_be_served,
+                    dv.sequence_of_proposer_duties_to_be_served,
                     dv.index_next_proposer_duty_to_be_served
                 )
     }  
@@ -246,21 +244,21 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     predicate pred_proposer_duty_is_from_dv_seq_of_proposer_duties_body(  
         proposer_duty: ProposerDuty,
         hn: BLSPubkey,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
         index_next_proposer_duty_to_be_served: nat
     )
     {
         exists i: Slot :: 
             && i < index_next_proposer_duty_to_be_served
-            && var an := sequence_proposer_duties_to_be_served[i];
+            && var an := sequence_of_proposer_duties_to_be_served[i];
             && an.proposer_duty == proposer_duty
             && an.node == hn
     }     
 
     predicate inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_helper(  
         n: BLSPubkey,
-        n_state: DVCState,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
+        n_state: BlockDVCState,
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
         index_next_proposer_duty_to_be_served: nat
     )
     {
@@ -268,12 +266,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         ==>
         exists i: Slot :: 
             && i < index_next_proposer_duty_to_be_served
-            && var an := sequence_proposer_duties_to_be_served[i];
+            && var an := sequence_of_proposer_duties_to_be_served[i];
             && an.proposer_duty == n_state.latest_proposer_duty.safe_get()
             && an.node == n
     }  
 
-    predicate inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv: Block_DVState)    
+    predicate inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv: BlockDVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -287,39 +285,39 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }               
 
     predicate inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties_body(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         n: BLSPubkey,
-        n_state: DVCState,
+        n_state: BlockDVCState,
         index_next_proposer_duty_to_be_served: nat
     )
     {
         n_state.latest_proposer_duty.isPresent() ==>
             exists i: Slot :: 
                 && i < index_next_proposer_duty_to_be_served
-                && var an := dv.sequence_proposer_duties_to_be_served[i];
+                && var an := dv.sequence_of_proposer_duties_to_be_served[i];
                 && an.proposer_duty == n_state.latest_proposer_duty.safe_get()
                 && an.node == n
     }  
 
-    predicate inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered_body(dvc: DVCState, duty: ProposerDuty)
+    predicate inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered_body(dvc: BlockDVCState, duty: ProposerDuty)
     {
         duty in dvc.all_rcvd_duties
     }
 
-    predicate inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered(dv: Block_DVState)
+    predicate inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered(dv: BlockDVState)
     {
         forall k: nat ::
             && 0 <= k < dv.index_next_proposer_duty_to_be_served
-            && dv.sequence_proposer_duties_to_be_served[k].node in dv.honest_nodes_states.Keys
+            && dv.sequence_of_proposer_duties_to_be_served[k].node in dv.honest_nodes_states.Keys
             ==> 
-            && var duty_and_node: ProposerDutyAndNode := dv.sequence_proposer_duties_to_be_served[k];
+            && var duty_and_node: ProposerDutyAndNode := dv.sequence_of_proposer_duties_to_be_served[k];
             && var duty := duty_and_node.proposer_duty;
             && var hn := duty_and_node.node;
             && var dvc := dv.honest_nodes_states[hn];
             && inv_every_proposer_duty_before_dv_index_next_proposer_duty_to_be_served_was_delivered_body(dvc, duty)
     }   
 
-    predicate inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(dvc: DVCState)
+    predicate inv_dvc_only_joins_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(dvc: BlockDVCState)
     {
         forall k: Slot | k in dvc.block_consensus_engine_state.active_consensus_instances.Keys ::
             exists rcvd_duty: ProposerDuty :: 
@@ -327,14 +325,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && rcvd_duty.slot == k
     }
 
-    predicate inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties(dv: Block_DVState)
+    predicate inv_dvc_only_joins_consensus_instances_for_which_it_has_received_corresponding_proposer_duties(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_dvc_joins_only_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(dvc)
+            && inv_dvc_only_joins_consensus_instances_for_which_it_has_received_corresponding_proposer_duties_body(dvc)
     }
 
-    predicate inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(dvc: DVCState)
+    predicate inv_consensus_instance_indexed_k_is_for_rcvd_duty_at_slot_k_body(dvc: BlockDVCState)
     {
         forall k: Slot | k in dvc.block_consensus_engine_state.active_consensus_instances.Keys 
             ::
@@ -342,25 +340,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && dvc.block_consensus_engine_state.active_consensus_instances[k].proposer_duty.slot == k
     }
 
-    predicate inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k(dv: Block_DVState)
+    predicate inv_consensus_instance_indexed_k_is_for_rcvd_duty_at_slot_k(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_the_consensus_instance_indexed_k_is_for_the_rcvd_duty_for_slot_k_body(dvc)
-    }
-             
-    predicate inv_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(
-        s': Block_DVState,
-        index_next_proposer_duty_to_be_served: nat,
-        proposer_duty: ProposerDuty,
-        node: BLSPubkey
-    )
-    {
-        && index_next_proposer_duty_to_be_served > 0
-        && var an := s'.sequence_proposer_duties_to_be_served[index_next_proposer_duty_to_be_served - 1];
-        && proposer_duty == an.proposer_duty
-        && node == an.node    
-    }   
+            && inv_consensus_instance_indexed_k_is_for_rcvd_duty_at_slot_k_body(dvc)
+    } 
 
     predicate inv_all_in_transit_messages_were_sent_body<M>(e: Network<M>)
     {
@@ -368,14 +353,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 m.message in e.allMessagesSent       
     } 
      
-    predicate inv_all_in_transit_messages_were_sent(dv: Block_DVState)
+    predicate inv_all_in_transit_messages_were_sent(dv: BlockDVState)
     {
          forall m | m in dv.block_share_network.messagesInTransit::
                 m.message in dv.block_share_network.allMessagesSent       
     } 
     
     predicate inv_in_transit_messages_are_in_allMessagesSent(
-        dv: Block_DVState
+        dv: BlockDVState
     )
     {
         forall m | m in dv.block_share_network.messagesInTransit
@@ -384,8 +369,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_rcvd_block_shares_are_in_all_sent_messages_body(
-        dv: Block_DVState,
-        dvc: DVCState
+        dv: BlockDVState,
+        dvc: BlockDVCState
     )
     {
         var rcvd_block_shares := dvc.rcvd_block_shares;
@@ -398,17 +383,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_rcvd_block_shares_are_in_all_sent_messages(
-        dv: Block_DVState
+        dv: BlockDVState
     )
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
             && inv_rcvd_block_shares_are_in_all_sent_messages_body(dv, dvc)
         
     }
 
     predicate inv_exists_honest_dvc_that_sent_block_share_for_submitted_block_body(
-        dv: Block_DVState,
+        dv: BlockDVState,
         hn: BLSPubkey, 
         block_share: SignedBeaconBlock,
         complete_signed_block: SignedBeaconBlock
@@ -421,7 +406,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && verify_bls_signature(block_signing_root, block_share.signature, hn)
     }
 
-    predicate inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv: Block_DVState)
+    predicate inv_exists_honest_dvc_that_sent_block_share_for_submitted_block(dv: BlockDVState)
     {
         forall block: SignedBeaconBlock |
             block in dv.all_blocks_created            
@@ -451,7 +436,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             )
     }
 
-    predicate inv_existing_block_slashing_db_for_sent_vp(
+    predicate inv_exists_block_slashing_db_for_sent_vp(
         cid: Slot,
         proposer_duty: ProposerDuty,
         randao_reveal: BLSSignature,
@@ -470,13 +455,13 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }  
 
     predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(
-        dvc: DVCState,
+        dvc: BlockDVCState,
         cid: Slot
     )
     requires cid in dvc.block_consensus_engine_state.active_consensus_instances
     {
         var bci := dvc.block_consensus_engine_state.active_consensus_instances[cid];
-        inv_existing_block_slashing_db_for_sent_vp(
+        inv_exists_block_slashing_db_for_sent_vp(
             cid, 
             bci.proposer_duty, 
             bci.randao_reveal,
@@ -485,7 +470,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }     
 
     predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc(
-        dvc: DVCState
+        dvc: BlockDVCState
     )
     {
         forall cid | 
@@ -494,12 +479,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_body(dvc, cid)        
     }    
 
-
-
-        
-
     predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(
-        dv: Block_DVState,
+        dv: BlockDVState,
         n: BLSPubkey,
         cid: Slot
     )
@@ -508,7 +489,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     {
         && var dvc := dv.honest_nodes_states[n];
         && var bci := dvc.block_consensus_engine_state.active_consensus_instances[cid];
-        && inv_existing_block_slashing_db_for_sent_vp(
+        && inv_exists_block_slashing_db_for_sent_vp(
                 cid, 
                 bci.proposer_duty, 
                 bci.randao_reveal,
@@ -517,7 +498,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dv(
-        dv: Block_DVState
+        dv: BlockDVState
     )
     {
         forall n, cid | 
@@ -527,7 +508,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal_for_dvc_single_dvc(dv, n, cid)
     }
 
-    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv: Block_DVState)
+    predicate inv_sent_validity_predicate_is_based_on_rcvd_proposer_duty_and_slashing_db_and_randao_reveal(dv: BlockDVState)
     {
         forall hn, s: Slot, vp |
             && hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
@@ -543,17 +524,16 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 )
     }   
 
-
-    predicate inv_decided_values_of_consensus_instances_are_decided_by_a_quorum(dv: Block_DVState)
+    predicate inv_decided_values_of_consensus_instances_are_decided_by_quorum(dv: BlockDVState)
     {
         forall cid |
             && cid in dv.consensus_instances_on_beacon_block.Keys
             && dv.consensus_instances_on_beacon_block[cid].decided_value.isPresent()
             ::
-            is_a_valid_decided_value(dv.consensus_instances_on_beacon_block[cid])
+            decided_value_is_valid(dv.consensus_instances_on_beacon_block[cid])
     }  
 
-    predicate inv_a_decided_value_of_a_consensus_instance_for_slot_k_is_for_slot_k(dv: Block_DVState)
+    predicate inv_decided_value_of_consensus_instance_for_slot_k_is_for_slot_k(dv: BlockDVState)
     {
         forall cid |
             && cid in dv.consensus_instances_on_beacon_block.Keys
@@ -562,7 +542,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             dv.consensus_instances_on_beacon_block[cid].decided_value.safe_get().slot == cid
     }   
 
-    predicate inv_blocks_of_in_transit_block_shares_are_decided_values(dv: Block_DVState)
+    predicate inv_blocks_of_in_transit_block_shares_are_decided_values(dv: BlockDVState)
     {
         forall hn, block_share |
                 && hn in dv.honest_nodes_states.Keys 
@@ -573,14 +553,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 inv_blocks_of_in_transit_block_shares_are_decided_values_body(dv, block_share)
     }  
 
-    predicate inv_blocks_of_in_transit_block_shares_are_decided_values_body(dv: Block_DVState, block_share: SignedBeaconBlock)
+    predicate inv_blocks_of_in_transit_block_shares_are_decided_values_body(dv: BlockDVState, block_share: SignedBeaconBlock)
     {
         && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.isPresent()
         && dv.consensus_instances_on_beacon_block[block_share.block.slot].decided_value.safe_get() == block_share.block
     }  
 
-    predicate inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages_body(
-        dv: Block_DVState,
+    predicate inv_block_shares_to_broadcast_is_subset_of_all_sent_messages_body(
+        dv: BlockDVState,
         n: BLSPubkey
     )
     requires n in dv.honest_nodes_states.Keys 
@@ -588,17 +568,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         dv.honest_nodes_states[n].block_shares_to_broadcast.Values <= dv.block_share_network.allMessagesSent
     }
 
-    predicate inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(
-        dv: Block_DVState
+    predicate inv_block_shares_to_broadcast_is_subset_of_all_sent_messages(
+        dv: BlockDVState
     )
     {
         forall n |
             n in dv.honest_nodes_states.Keys 
             ::
-        inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages_body(dv, n)
+        inv_block_shares_to_broadcast_is_subset_of_all_sent_messages_body(dv, n)
     }  
 
-    predicate inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state: DVCState)    
+    predicate inv_slashing_db_hist_keeps_track_of_all_rcvd_proposer_duties_body(hn_state: BlockDVCState)    
     {
         forall k: Slot | k in hn_state.block_consensus_engine_state.slashing_db_hist.Keys ::
             exists duty: ProposerDuty :: 
@@ -606,13 +586,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                     && duty.slot == k
     }
 
-    predicate inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv: Block_DVState)
+    predicate inv_slashing_db_hist_keeps_track_of_all_rcvd_proposer_duties(dv: BlockDVState)
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var hn_state := dv.honest_nodes_states[hn];            
-            && inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state)       
+            && inv_slashing_db_hist_keeps_track_of_all_rcvd_proposer_duties_body(hn_state)       
     }
-
 
     predicate inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body_ces(ces: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>)
     {
@@ -628,7 +607,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 )
     }
 
-    predicate inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(hn_state: DVCState)
+    predicate inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(hn_state: BlockDVCState)
     {
         forall s: Slot, vp: BeaconBlock -> bool |
                 ( && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
@@ -642,14 +621,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 )
     }
 
-    predicate inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv: Block_DVState)
+    predicate inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv: BlockDVState)
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
             && inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate_body(dvc)
     }
 
-    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_body(hn_state: DVCState)
+    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_body(hn_state: BlockDVCState)
     {
         forall k: Slot |
             k in hn_state.block_consensus_engine_state.active_consensus_instances.Keys ::
@@ -659,35 +638,35 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && vp in hn_state.block_consensus_engine_state.slashing_db_hist[k].Keys             
     }
 
-    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv: Block_DVState)
+    predicate inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv: BlockDVState)
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
             && inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_body(dvc)
     }    
 
-    predicate inv_slashing_db_hist_is_monotonic_body(dvc: DVCState, dvc': DVCState)
+    predicate inv_slashing_db_hist_is_monotonic_body(dvc: BlockDVCState, dvc': BlockDVCState)
     {        
         dvc.block_consensus_engine_state.slashing_db_hist.Keys
         <= 
         dvc'.block_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_slashing_db_hist_is_monotonic(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)    
+    predicate inv_slashing_db_hist_is_monotonic(dv: BlockDVState, event: DVBlockEvent, dv': BlockDVState)    
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
             && inv_slashing_db_hist_is_monotonic_body(dvc, dvc')
     }
 
-    predicate inv_all_blocks_created_is_monotonic(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)    
+    predicate inv_set_of_all_blocks_created_is_monotonic(dv: BlockDVState, event: DVBlockEvent, dv': BlockDVState)    
     {
         dv.all_blocks_created <= dv'.all_blocks_created
     }
 
-    predicate inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db_body_ces(ces: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>, block_slashing_db: set<SlashingDBBlock>)
+    predicate inv_every_db_in_slashing_db_hist_is_subset_of_block_slashing_db_body_ces(ces: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>, block_slashing_db: set<SlashingDBBlock>)
     {
         forall s: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> |
                 ( && s in ces.slashing_db_hist.Keys
@@ -698,7 +677,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 db <= block_slashing_db
     }
 
-    predicate inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db_body(hn_state: DVCState)
+    predicate inv_every_db_in_slashing_db_hist_is_subset_of_block_slashing_db_body(hn_state: BlockDVCState)
     {
         forall s: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> |
                 ( && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
@@ -709,24 +688,23 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 db <= hn_state.block_slashing_db
     }
 
-    predicate inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db(dv: Block_DVState)
+    predicate inv_every_db_in_slashing_db_hist_is_subset_of_block_slashing_db(dv: BlockDVState)
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_every_db_in_slashing_db_hist_is_a_subset_of_block_slashing_db_body(dvc)
+            && inv_every_db_in_slashing_db_hist_is_subset_of_block_slashing_db_body(dvc)
     }
 
-
     predicate inv_block_shares_to_broadcast_are_sent_messages_body(
-        dv: Block_DVState,
-        dvc: DVCState
+        dv: BlockDVState,
+        dvc: BlockDVCState
     )    
     {
         dvc.block_shares_to_broadcast.Values <= dv.block_share_network.allMessagesSent
     }
 
     predicate inv_block_shares_to_broadcast_are_sent_messages(
-        dv: Block_DVState
+        dv: BlockDVState
     )
     {
         forall n | n in dv.honest_nodes_states.Keys ::
@@ -735,8 +713,8 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_rcvd_block_shares_are_from_sent_messages_body(
-        dv: Block_DVState,
-        dvc: DVCState
+        dv: BlockDVState,
+        dvc: BlockDVCState
     )
     {
         var rcvd_block_shares := dvc.rcvd_block_shares;
@@ -749,7 +727,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }    
 
     predicate inv_rcvd_block_shares_are_from_sent_messages(
-        dv: Block_DVState    
+        dv: BlockDVState    
     )
     {
         forall n | n in dv.honest_nodes_states.Keys ::
@@ -757,15 +735,15 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && inv_rcvd_block_shares_are_from_sent_messages_body(dv, dvc)
     } 
 
-    predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc: DVCState, next_duty: ProposerDuty)
+    predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc: BlockDVCState, next_duty: ProposerDuty)
     {
        forall rcvd_duty: ProposerDuty | rcvd_duty in dvc.all_rcvd_duties ::
             rcvd_duty.slot <= next_duty.slot        
     }
 
-    predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv: Block_DVState)
+    predicate inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv: BlockDVState)
     {
-        && var dv_duty_queue := dv.sequence_proposer_duties_to_be_served;
+        && var dv_duty_queue := dv.sequence_of_proposer_duties_to_be_served;
         && var dv_index := dv.index_next_proposer_duty_to_be_served;
         && var next_duty_and_node := dv_duty_queue[dv_index];
         && forall hn: BLSPubkey | 
@@ -777,7 +755,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_body(dvc, next_duty)
     }
 
-    predicate inv_slots_of_active_consensus_instances_are_lower_than_the_slot_of_latest_proposer_duty_body(dvc: DVCState)
+    predicate inv_slots_of_active_consensus_instances_are_lower_than_slot_of_latest_proposer_duty_body(dvc: BlockDVCState)
     {
         dvc.latest_proposer_duty.isPresent()
         ==> 
@@ -787,7 +765,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(dvc: DVCState)
+    predicate inv_slots_of_active_consensus_instances_are_not_higher_than_slot_of_latest_proposer_duty_body(dvc: BlockDVCState)
     {
         dvc.latest_proposer_duty.isPresent()
         ==> 
@@ -797,17 +775,17 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty(dv: Block_DVState)
+    predicate inv_slots_of_active_consensus_instances_are_not_higher_than_slot_of_latest_proposer_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
-            && inv_slots_of_active_consensus_instances_are_not_higher_than_the_slot_of_latest_proposer_duty_body(dvc)
+            && inv_slots_of_active_consensus_instances_are_not_higher_than_slot_of_latest_proposer_duty_body(dvc)
     }
 
-    predicate inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
+    predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
         n: BLSPubkey,
-        n_state: DVCState,
+        n_state: BlockDVCState,
         index_next_proposer_duty_to_be_served: nat
     )
     {
@@ -815,26 +793,26 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             ::
             exists i: Slot :: 
                 && i < index_next_proposer_duty_to_be_served
-                && var pn := sequence_proposer_duties_to_be_served[i];
+                && var pn := sequence_of_proposer_duties_to_be_served[i];
                 && pn.proposer_duty.slot == slot 
                 && pn.node == n
     }          
 
-    predicate inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist(dv: Block_DVState)    
+    predicate inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist(dv: BlockDVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
             ::
-            inv_exists_a_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(
-                dv.sequence_proposer_duties_to_be_served, 
+            inv_exists_proposer_duty_in_dv_seq_of_proposer_duties_for_every_slot_in_slashing_db_hist_body(
+                dv.sequence_of_proposer_duties_to_be_served, 
                 hn,
                 dv.honest_nodes_states[hn],
                 dv.index_next_proposer_duty_to_be_served
             )                    
     }       
 
-    function get_upperlimit_active_instances(
-        n_state: DVCState
+    function f_get_upperlimit_active_instances(
+        n_state: BlockDVCState
     ): nat 
     {
         if n_state.latest_proposer_duty.isPresent() then
@@ -843,28 +821,28 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             0
     }                
            
-    predicate inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body(
-        dvc: DVCState       
+    predicate inv_slots_of_consensus_instances_are_up_to_slot_of_latest_proposer_duty_body(
+        dvc: BlockDVCState       
     )
     {
         forall slot: Slot | slot in dvc.block_consensus_engine_state.slashing_db_hist.Keys
             ::
-            slot < get_upperlimit_active_instances(dvc)
+            slot < f_get_upperlimit_active_instances(dvc)
     }     
 
-    predicate inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty(
-        dv: Block_DVState        
+    predicate inv_slots_of_consensus_instances_are_up_to_slot_of_latest_proposer_duty(
+        dv: BlockDVState        
     )
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
-                inv_slots_of_consensus_instances_are_up_to_the_slot_of_latest_proposer_duty_body(dv.honest_nodes_states[hn])        
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+                inv_slots_of_consensus_instances_are_up_to_slot_of_latest_proposer_duty_body(dv.honest_nodes_states[hn])        
     }     
 
     // TODO: Investigate
     predicate inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums_body(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         n: BLSPubkey,
-        n_state: DVCState
+        n_state: BlockDVCState
     )
     {
         forall slot |
@@ -874,7 +852,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && n_state.future_consensus_instances_on_blocks_already_decided[slot] == dv.consensus_instances_on_beacon_block[slot].decided_value.safe_get()
     }  
 
-    predicate inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(dv: Block_DVState)    
+    predicate inv_future_decided_blocks_known_by_dvc_are_decisions_of_quorums(dv: BlockDVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -887,7 +865,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }       
 
     predicate inv_slots_in_future_decided_beacon_blocks_are_correct_body(
-        n_state: DVCState
+        n_state: BlockDVCState
     )
     {
         forall slot |
@@ -896,7 +874,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             n_state.future_consensus_instances_on_blocks_already_decided[slot].slot == slot
     }  
 
-    predicate inv_slots_in_future_decided_beacon_blocks_are_correct(dv: Block_DVState)    
+    predicate inv_slots_in_future_decided_beacon_blocks_are_correct(dv: BlockDVState)    
     {
         forall hn |
             && hn in dv.honest_nodes_states.Keys          
@@ -906,54 +884,54 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             )                    
     }              
 
-    predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body(
-        dvc: DVCState,
+    predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties_body(
+        dvc: BlockDVCState,
         hn: BLSPubkey,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
         index_next_proposer_duty_to_be_served: nat
     )
     {
        forall proposer_duty |
             proposer_duty in dvc.all_rcvd_duties
             ::
-            inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body_helper(                
+            inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties_body_helper(                
                 proposer_duty, 
                 hn, 
-                sequence_proposer_duties_to_be_served,
+                sequence_of_proposer_duties_to_be_served,
                 index_next_proposer_duty_to_be_served)
     }
 
-    predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body_helper(        
+    predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties_body_helper(        
         proposer_duty: ProposerDuty,
         hn: BLSPubkey, 
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,    
         index_next_proposer_duty_to_be_served: nat
     )
     {
             exists i ::
                 && 0 <= i
                 && i < index_next_proposer_duty_to_be_served 
-                && var duty_and_node := sequence_proposer_duties_to_be_served[i];
+                && var duty_and_node := sequence_of_proposer_duties_to_be_served[i];
                 && duty_and_node.node == hn
                 && duty_and_node.proposer_duty == proposer_duty
     }
 
-    predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty(dv: Block_DVState)
+    predicate inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties(dv: BlockDVState)
     {
         forall hn: BLSPubkey | 
-            is_an_honest_node(dv, hn) 
+            is_honest_node(dv, hn) 
             ::
             && var hn_state := dv.honest_nodes_states[hn];
-            && inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body(                    
+            && inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties_body(                    
                     hn_state, 
                     hn, 
-                    dv.sequence_proposer_duties_to_be_served,
+                    dv.sequence_of_proposer_duties_to_be_served,
                     dv.index_next_proposer_duty_to_be_served)
     }  
 
-    predicate inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(dv: Block_DVState)
+    predicate inv_sent_validity_predicate_only_for_slots_stored_in_slashing_db_hist(dv: BlockDVState)
     {
-        forall hn: BLSPubkey, s: Slot | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey, s: Slot | is_honest_node(dv, hn) ::
             && var hn_state := dv.honest_nodes_states[hn];
             && ( hn in dv.consensus_instances_on_beacon_block[s].honest_nodes_validity_functions.Keys
                  ==> 
@@ -961,9 +939,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_all_validity_predicates_are_stored_in_slashing_db_hist_body(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         hn: BLSPubkey,
-        hn_state: DVCState,
+        hn_state: BlockDVCState,
         s: Slot,
         vp: BeaconBlock -> bool
     )
@@ -977,7 +955,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_all_validity_predicates_are_stored_in_slashing_db_hist_helper(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         hn: BLSPubkey
     )
     requires hn in dv.honest_nodes_states.Keys
@@ -997,7 +975,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 )
     }       
     
-    predicate inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv: Block_DVState)
+    predicate inv_all_validity_predicates_are_stored_in_slashing_db_hist(dv: BlockDVState)
     {
         forall hn: BLSPubkey |
             hn in dv.honest_nodes_states.Keys
@@ -1009,7 +987,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }              
 
     predicate inv_unique_rcvd_proposer_duty_per_slot_body_premises(
-        dvc: DVCState,
+        dvc: BlockDVCState,
         d1: ProposerDuty, 
         d2: ProposerDuty 
     )
@@ -1021,7 +999,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_unique_rcvd_proposer_duty_per_slot_body_helper(
-        dvc: DVCState,
+        dvc: BlockDVCState,
         d1: ProposerDuty, 
         d2: ProposerDuty 
     )
@@ -1034,7 +1012,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         d1 == d2
     }
 
-    predicate inv_unique_rcvd_proposer_duty_per_slot_body(dvc: DVCState)
+    predicate inv_unique_rcvd_proposer_duty_per_slot_body(dvc: BlockDVCState)
     {
         forall d1: ProposerDuty, d2: ProposerDuty ::
             ( && d1 in dvc.all_rcvd_duties
@@ -1045,18 +1023,16 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             d1 == d2
     }
 
-    predicate inv_unique_rcvd_proposer_duty_per_slot(dv: Block_DVState)
+    predicate inv_unique_rcvd_proposer_duty_per_slot(dv: BlockDVState)
     {
         forall hn: BLSPubkey | 
-            is_an_honest_node(dv, hn) 
+            is_honest_node(dv, hn) 
             ::
             inv_unique_rcvd_proposer_duty_per_slot_body(dv.honest_nodes_states[hn])
     }
 
-
-
     predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_body(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         hn: BLSPubkey, 
         s: Slot, 
         db: set<SlashingDBBlock>, 
@@ -1064,7 +1040,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         vp: BeaconBlock -> bool,
         randao_reveal: BLSSignature
     )
-    requires && is_an_honest_node(dv, hn)
+    requires && is_honest_node(dv, hn)
              && var hn_state := dv.honest_nodes_states[hn];
              && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
              && vp in hn_state.block_consensus_engine_state.slashing_db_hist[s].Keys
@@ -1075,10 +1051,10 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && vp == (bb: BeaconBlock) => ci_decision_is_valid_beacon_block(db, bb, duty, randao_reveal)
     }
 
-    predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal(dv: Block_DVState)
+    predicate inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal(dv: BlockDVState)
     {
         forall hn: BLSPubkey, s: Slot, vp: BeaconBlock -> bool | 
-            && is_an_honest_node(dv, hn)
+            && is_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
             && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
             && vp in hn_state.block_consensus_engine_state.slashing_db_hist[s].Keys
@@ -1088,30 +1064,30 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_body(dv, hn, s, db, duty, vp, randao_reveal)
     }
     
-    predicate inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body<D(!new, 0)>(ci: ConsensusInstance) 
+    predicate inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block_body<D(!new, 0)>(ci: ConsensusInstance) 
     {
         ci.decided_value.isPresent()
         ==> 
-        is_a_valid_decided_value(ci)
+        decided_value_is_valid(ci)
     }
     
-    predicate inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block(dv: Block_DVState)
+    predicate inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block(dv: BlockDVState)
     {
         forall s: Slot ::
             && var ci := dv.consensus_instances_on_beacon_block[s];
-            && inv_exists_an_honest_dvc_as_a_witness_for_every_decided_beacon_block_body(ci)            
+            && inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block_body(ci)            
     }
 
-    predicate inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(dvc: DVCState, next_duty: ProposerDuty)
+    predicate inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(dvc: BlockDVCState, next_duty: ProposerDuty)
     {
         dvc.latest_proposer_duty.isPresent()
         ==> 
         dvc.latest_proposer_duty.safe_get().slot < next_duty.slot        
     }
 
-    predicate inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv: Block_DVState)
+    predicate inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv: BlockDVState)
     {
-        && var dv_duty_queue := dv.sequence_proposer_duties_to_be_served;
+        && var dv_duty_queue := dv.sequence_of_proposer_duties_to_be_served;
         && var dv_index := dv.index_next_proposer_duty_to_be_served;
         && var next_duty_and_node := dv_duty_queue[dv_index];
         && forall hn: BLSPubkey | 
@@ -1123,7 +1099,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_body(dvc, next_duty)
     }
 
-    predicate inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(hn_state: DVCState, s: Slot)
+    predicate inv_active_consensus_instances_imply_delivery_of_proposer_duties_body(hn_state: BlockDVCState, s: Slot)
     requires s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
     {
         exists duty: ProposerDuty :: 
@@ -1131,25 +1107,25 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                     && duty.slot == s
     }
 
-    predicate inv_active_consensus_instances_implied_the_delivery_of_proposer_duties(dv: Block_DVState)
+    predicate inv_active_consensus_instances_imply_delivery_of_proposer_duties(dv: BlockDVState)
     {
         forall hn: BLSPubkey, s: Slot ::
-            ( && is_an_honest_node(dv, hn) 
+            ( && is_honest_node(dv, hn) 
               && var hn_state := dv.honest_nodes_states[hn];
               && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
             )
             ==>
-            inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)                
+            inv_active_consensus_instances_imply_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)                
     }
 
-    predicate inv_block_slashing_db_is_monotonic_body(dvc: DVCState, dvc': DVCState)
+    predicate inv_block_slashing_db_is_monotonic_body(dvc: BlockDVCState, dvc': BlockDVCState)
     {
         dvc.block_slashing_db <= dvc'.block_slashing_db
     }
 
-    predicate inv_block_slashing_db_is_monotonic(dv: Block_DVState, event: DVBlockEvent, dv': Block_DVState)    
+    predicate inv_block_slashing_db_is_monotonic(dv: BlockDVState, event: DVBlockEvent, dv': BlockDVState)    
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
             && hn in dv'.honest_nodes_states.Keys
             && var dvc := dv.honest_nodes_states[hn];
             && var dvc' := dv'.honest_nodes_states[hn];
@@ -1157,12 +1133,12 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     
-    predicate inv_unchanged_rs_body(dvc: DVCState, dvc': DVCState)
+    predicate inv_unchanged_rs_body(dvc: BlockDVCState, dvc': BlockDVCState)
     {
         dvc.rs.pubkey == dvc'.rs.pubkey
     }
 
-    predicate inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(dv: Block_DVState)    
+    predicate inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(dv: BlockDVState)    
     {
         forall hn, cid |
             && hn in dv.honest_nodes_states.Keys        
@@ -1173,7 +1149,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
 
     predicate inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist_body
     (
-        n_state: DVCState,
+        n_state: BlockDVCState,
         cid: Slot
     )
     {
@@ -1185,14 +1161,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }  
    
-    predicate inv_active_consensus_instances_are_tracked_in_slashing_db_hist_body(dvc: DVCState)
+    predicate inv_active_consensus_instances_are_tracked_in_slashing_db_hist_body(dvc: BlockDVCState)
     {
         dvc.block_consensus_engine_state.active_consensus_instances.Keys 
         <= 
         dvc.block_consensus_engine_state.slashing_db_hist.Keys
     } 
 
-    predicate inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv: Block_DVState)
+    predicate inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv: BlockDVState)
     {
         forall hn | hn in dv.honest_nodes_states.Keys ::
             && var dvc := dv.honest_nodes_states[hn];
@@ -1200,9 +1176,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     } 
     
     predicate inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         hn: BLSPubkey,
-        hn_state: DVCState,
+        hn_state: BlockDVCState,
         s: Slot
     )
     {
@@ -1211,7 +1187,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
     }
 
-    predicate inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv: Block_DVState)
+    predicate inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist(dv: BlockDVState)
     {
         forall hn: BLSPubkey, s: Slot |
             hn in dv.honest_nodes_states.Keys
@@ -1219,41 +1195,40 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             inv_slots_for_sent_validity_predicates_are_stored_in_slashing_db_hist_body(dv, hn, dv.honest_nodes_states[hn], s)        
     } 
 
-
-    predicate inv_consensus_instance_isConditionForSafetyTrue(dv: Block_DVState)
+    predicate inv_consensus_instance_condition_for_safety_is_true(dv: BlockDVState)
     {
         forall slot: Slot | slot in dv.consensus_instances_on_beacon_block.Keys  ::
-                    isConditionForSafetyTrue(dv.consensus_instances_on_beacon_block[slot])                    
+                    condition_for_safety_is_true(dv.consensus_instances_on_beacon_block[slot])                    
     }
 
     predicate pred_last_proposer_duty_is_delivering_to_given_honest_node(
         proposer_duty: ProposerDuty,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
         n: BLSPubkey,
         index_next_proposer_duty_to_be_served: nat
     )
     {
         && 0 < index_next_proposer_duty_to_be_served 
         && var i := index_next_proposer_duty_to_be_served - 1;
-        && var pn := sequence_proposer_duties_to_be_served[i];
+        && var pn := sequence_of_proposer_duties_to_be_served[i];
         && pn.proposer_duty == proposer_duty
         && pn.node == n
     }
 
-    predicate inv_none_latest_proposer_duty_and_empty_set_of_rcvd_proposer_duties_body(dvc: DVCState)
+    predicate inv_none_latest_proposer_duty_and_empty_set_of_rcvd_proposer_duties_body(dvc: BlockDVCState)
     {
         !dvc.latest_proposer_duty.isPresent()
         <==> 
         dvc.all_rcvd_duties == {}
     }
 
-    predicate inv_none_latest_proposer_duty_and_empty_set_of_rcvd_proposer_duties(dv: Block_DVState)
+    predicate inv_none_latest_proposer_duty_and_empty_set_of_rcvd_proposer_duties(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             inv_none_latest_proposer_duty_and_empty_set_of_rcvd_proposer_duties_body(dv.honest_nodes_states[hn])
     }
 
-    predicate inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc: DVCState)
+    predicate inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc: BlockDVCState)
     {
         dvc.latest_proposer_duty.isPresent()
         ==>
@@ -1262,14 +1237,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty(dv: Block_DVState)
+    predicate inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty(dv: BlockDVState)
     {
         forall hn: BLSPubkey | hn in dv.honest_nodes_states.Keys ::
             &&  var dvc := dv.honest_nodes_states[hn];
             &&  inv_no_rcvd_proposer_duty_is_higher_than_latest_proposer_duty_body(dvc)
     }
 
-    predicate inv_block_of_all_created_blocks_is_set_of_decided_values(dv: Block_DVState)
+    predicate inv_block_of_all_created_blocks_is_set_of_decided_values(dv: BlockDVState)
     {
         forall complete_block | complete_block in dv.all_blocks_created ::
                 && var consa := dv.consensus_instances_on_beacon_block[complete_block.block.slot];
@@ -1277,7 +1252,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && complete_block.block == consa.decided_value.safe_get() 
     }
 
-    predicate inv_all_created_signed_beacon_blocks_are_valid(dv: Block_DVState)
+    predicate inv_all_created_signed_beacon_blocks_are_valid(dv: BlockDVState)
     {
         forall b | b in dv.all_blocks_created ::
                 is_valid_signed_beacon_block(b, dv.dv_pubkey)
@@ -1291,7 +1266,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             is_valid_signed_beacon_block(submitted_block, dv_pubkey)
     }
 
-    predicate pred_is_the_owner_of_a_block_share(
+    predicate pred_is_owner_of_block_share(
         rs_pubkey: BLSPubkey,
         block_share: SignedBeaconBlock
     )
@@ -1302,7 +1277,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_body(
-        dvc: DVCState, 
+        dvc: BlockDVCState, 
         block_share: SignedBeaconBlock
     )
     {
@@ -1310,22 +1285,21 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
         && slashing_db_block in dvc.block_slashing_db  
         && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;    
-        && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+        && pred_is_owner_of_block_share(rs_pubkey, block_share)
     }   
 
-                         
     predicate inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db(
         outputs: BlockOutputs,
-        dvc: DVCState)
+        dvc: BlockDVCState)
     {
         forall block_share: SignedBeaconBlock | 
-            block_share in getMessagesFromMessagesWithRecipient(outputs.sent_block_shares) 
+            block_share in f_get_messages_from_messages_with_recipients(outputs.sent_block_shares) 
             ::
             inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_body(dvc, block_share)
     } 
 
     predicate inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db_body(
-        dvc: DVCState
+        dvc: BlockDVCState
     )
     {
         forall slot: Slot | 
@@ -1336,20 +1310,20 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && var slashing_db_block := construct_SlashingDBBlock_from_beacon_block(beacon_block);
             && slashing_db_block in dvc.block_slashing_db  
             && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;    
-            && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+            && pred_is_owner_of_block_share(rs_pubkey, block_share)
     }   
 
     predicate inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db(
-        dv: Block_DVState)
+        dv: BlockDVState)
     {
         forall hn: BLSPubkey | 
-            is_an_honest_node(dv, hn)
+            is_honest_node(dv, hn)
             ::
             inv_block_shares_to_broadcast_are_tracked_in_block_slashing_db_body(dv.honest_nodes_states[hn])
     } 
 
     predicate inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(
-        dvc: DVCState,
+        dvc: BlockDVCState,
         block_share: SignedBeaconBlock
     )
     {
@@ -1359,33 +1333,33 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks(
-        dv: Block_DVState
+        dv: BlockDVState
     )
     {
         forall hn: BLSPubkey, block_share: SignedBeaconBlock | 
-            && is_an_honest_node(dv, hn)
+            && is_honest_node(dv, hn)
             && block_share in dv.block_share_network.allMessagesSent 
-            && var dvc: DVCState := dv.honest_nodes_states[hn];
+            && var dvc: BlockDVCState := dv.honest_nodes_states[hn];
             && var rs_pubkey: BLSPubkey := dvc.rs.pubkey;
-            && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+            && pred_is_owner_of_block_share(rs_pubkey, block_share)
             ::
-            && var dvc: DVCState := dv.honest_nodes_states[hn];
+            && var dvc: BlockDVCState := dv.honest_nodes_states[hn];
             && inv_sent_block_shares_have_corresponding_stored_slashing_db_blocks_body(dvc, block_share)            
     }
 
-    predicate inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers_helper(
+    predicate inv_complete_signed_block_is_created_based_on_shares_from_quorum_of_dvc_signers_helper(
         block_shares: set<SignedBeaconBlock>,
-        dvc: DVCState
+        dvc: BlockDVCState
     )
     {
         exists block_share: SignedBeaconBlock ::
             && block_share in block_shares
             && var rs_pubkey := dvc.rs.pubkey;
-            && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+            && pred_is_owner_of_block_share(rs_pubkey, block_share)
     }
 
-    predicate inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers(
-        dv: Block_DVState,
+    predicate inv_complete_signed_block_is_created_based_on_shares_from_quorum_of_dvc_signers(
+        dv: BlockDVState,
         block_shares: set<SignedBeaconBlock>,
         dvc_signer_pubkeys: set<BLSPubkey>
     )
@@ -1393,14 +1367,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         forall key: BLSPubkey | key in dvc_signer_pubkeys ::
             key in dv.honest_nodes_states.Keys
             ==>
-            inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers_helper(
+            inv_complete_signed_block_is_created_based_on_shares_from_quorum_of_dvc_signers_helper(
                     block_shares,
                     dv.honest_nodes_states[key]
                 )        
     }
 
-    predicate inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_helper(
-        dv: Block_DVState, 
+    predicate inv_complete_signed_block_is_created_based_on_shares_from_quorum_body_helper(
+        dv: BlockDVState, 
         complete_block: SignedBeaconBlock,
         block_shares: set<SignedBeaconBlock>,
         dvc_signer_pubkeys: set<BLSPubkey>
@@ -1409,14 +1383,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && block_shares <= dv.block_share_network.allMessagesSent
         && dv.construct_complete_signed_block(block_shares).isPresent()
         && complete_block == dv.construct_complete_signed_block(block_shares).safe_get()
-        && signed_beacon_blocks_for_the_same_beacon_block(block_shares, complete_block.block)
+        && signed_beacon_blocks_for_same_beacon_block(block_shares, complete_block.block)
         && dvc_signer_pubkeys <= dv.all_nodes
-        && inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers(dv, block_shares, dvc_signer_pubkeys)
+        && inv_complete_signed_block_is_created_based_on_shares_from_quorum_of_dvc_signers(dv, block_shares, dvc_signer_pubkeys)
         && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
     }
 
-    predicate inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(
-        dv: Block_DVState, 
+    predicate inv_complete_signed_block_is_created_based_on_shares_from_quorum_body(
+        dv: BlockDVState, 
         complete_block: SignedBeaconBlock        
     )
     {
@@ -1424,42 +1398,42 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && block_shares <= dv.block_share_network.allMessagesSent
                 && dv.construct_complete_signed_block(block_shares).isPresent()
                 && complete_block == dv.construct_complete_signed_block(block_shares).safe_get()
-                && signed_beacon_blocks_for_the_same_beacon_block(block_shares, complete_block.block)
+                && signed_beacon_blocks_for_same_beacon_block(block_shares, complete_block.block)
                 && dvc_signer_pubkeys <= dv.all_nodes
-                && inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body_signers(dv, block_shares, dvc_signer_pubkeys)
+                && inv_complete_signed_block_is_created_based_on_shares_from_quorum_of_dvc_signers(dv, block_shares, dvc_signer_pubkeys)
                 && |dvc_signer_pubkeys| >= quorum(|dv.all_nodes|)
     }
 
-    predicate inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum(dv: Block_DVState)
+    predicate inv_complete_signed_block_is_created_based_on_shares_from_quorum(dv: BlockDVState)
     {
         forall complete_block: SignedBeaconBlock | complete_block in dv.all_blocks_created ::
-                inv_a_complete_signed_block_is_created_based_on_shares_from_a_quorum_body(dv, complete_block)
+                inv_complete_signed_block_is_created_based_on_shares_from_quorum_body(dv, complete_block)
     }
 
-    predicate inv_a_complete_block_is_created_based_on_shares_from_a_quorum_of_rs_signers_body(
+    predicate inv_complete_block_is_created_based_on_shares_from_quorum_of_rs_signers_body(
         block_shares: set<SignedBeaconBlock>,
         rs_signer_pubkey: BLSPubkey
     )
     {
         exists block_share: SignedBeaconBlock ::
             && block_share in block_shares
-            && pred_is_the_owner_of_a_block_share(rs_signer_pubkey, block_share)
+            && pred_is_owner_of_block_share(rs_signer_pubkey, block_share)
     }
 
-    predicate inv_a_complete_block_is_created_based_on_shares_from_a_quorum_of_rs_signers(
+    predicate inv_complete_block_is_created_based_on_shares_from_quorum_of_rs_signers(
         block_shares: set<SignedBeaconBlock>,
         rs_signer_pubkeys: set<BLSPubkey>
     )
     {
         forall key: BLSPubkey | key in rs_signer_pubkeys ::
-                inv_a_complete_block_is_created_based_on_shares_from_a_quorum_of_rs_signers_body(
+                inv_complete_block_is_created_based_on_shares_from_quorum_of_rs_signers_body(
                     block_shares,
                     key
                 )        
     }
 
-    predicate inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_body(
-        dvc: DVCState, 
+    predicate inv_outputs_blocks_submited_are_created_based_on_shares_from_quorum_of_rs_signers_body(
+        dvc: BlockDVCState, 
         complete_block: SignedBeaconBlock
     )
     {
@@ -1469,22 +1443,22 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 && block_shares <= dvc.rcvd_block_shares[complete_block.block.slot][k]
                 && dvc.construct_complete_signed_block(block_shares).isPresent()
                 && complete_block == dvc.construct_complete_signed_block(block_shares).safe_get()
-                && signed_beacon_blocks_for_the_same_beacon_block(block_shares, complete_block.block)
-                && inv_a_complete_block_is_created_based_on_shares_from_a_quorum_of_rs_signers(block_shares, rs_signer_pubkeys)
+                && signed_beacon_blocks_for_same_beacon_block(block_shares, complete_block.block)
+                && inv_complete_block_is_created_based_on_shares_from_quorum_of_rs_signers(block_shares, rs_signer_pubkeys)
                 && |rs_signer_pubkeys| >= quorum(|dvc.peers|)
                 && rs_signer_pubkeys <= dvc.peers
     }   
 
-    predicate inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum(
+    predicate inv_outputs_blocks_submited_are_created_based_on_shares_from_quorum_of_rs_signers(
         outputs: BlockOutputs,
-        dvc: DVCState)
+        dvc: BlockDVCState)
     {
         forall submitted_block | submitted_block in outputs.submitted_data ::
-            inv_outputs_blocks_submited_are_created_based_on_shares_from_a_quorum_body(dvc, submitted_block)
+            inv_outputs_blocks_submited_are_created_based_on_shares_from_quorum_of_rs_signers_body(dvc, submitted_block)
     } 
 
     predicate inv_blocks_of_submitted_signed_blocks_are_decided_values_body(
-        dv: Block_DVState,
+        dv: BlockDVState,
         complete_block: SignedBeaconBlock
     )
     {
@@ -1496,7 +1470,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_blocks_of_submitted_signed_blocks_are_decided_values(
-        dv: Block_DVState
+        dv: BlockDVState
     )
     {
         forall complete_block: SignedBeaconBlock | 
@@ -1509,20 +1483,20 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_body(
-        dv: Block_DVState,
+        dv: BlockDVState,
         hn: BLSPubkey,
         slot: Slot, 
         vp: BeaconBlock -> bool, 
         db: set<SlashingDBBlock>
     )
     {
-        && is_an_honest_node(dv, hn) 
+        && is_honest_node(dv, hn) 
         && var dvc := dv.honest_nodes_states[hn];
         && var rs_pubkey := dvc.rs.pubkey;
         && ( forall block_share: SignedBeaconBlock | 
                 && block_share in dv.block_share_network.allMessagesSent
-                && is_an_honest_node(dv, hn)
-                && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+                && is_honest_node(dv, hn)
+                && pred_is_owner_of_block_share(rs_pubkey, block_share)
                 && block_share.block.slot < slot
                 ::
                 && var beacon_block := block_share.block;
@@ -1532,11 +1506,11 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     }
 
     predicate inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(
-        dv: Block_DVState,
+        dv: BlockDVState,
         hn: BLSPubkey
     )
     {
-        && is_an_honest_node(dv, hn) 
+        && is_honest_node(dv, hn) 
         && var dvc := dv.honest_nodes_states[hn];
         && forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
                 && slot in dvc.block_consensus_engine_state.slashing_db_hist
@@ -1551,14 +1525,14 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                     db)
     }
 
-    predicate inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv: Block_DVState)
+    predicate inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots(dv: BlockDVState)
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) 
+        forall hn: BLSPubkey | is_honest_node(dv, hn) 
             ::
             inv_db_of_vp_contains_all_beacon_block_of_sent_block_shares_with_lower_slots_helper(dv, hn)
     }
 
-    predicate inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body_conclusion(
+    predicate inv_db_of_vp_from_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body_conclusion(
         allMessagesSent: set<SignedBeaconBlock>,
         rs_pubkey: BLSPubkey,
         slot: Slot, 
@@ -1572,7 +1546,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         && slashing_db_block in db
     }
 
-    predicate inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(
+    predicate inv_db_of_vp_from_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(
         allMessagesSent: set<SignedBeaconBlock>,
         rs_pubkey: BLSPubkey,
         slot: Slot, 
@@ -1582,10 +1556,10 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
     {
         forall block_share: SignedBeaconBlock | 
             && block_share in allMessagesSent
-            && pred_is_the_owner_of_a_block_share(rs_pubkey, block_share)
+            && pred_is_owner_of_block_share(rs_pubkey, block_share)
             && block_share.block.slot < slot
             ::
-            inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body_conclusion(
+            inv_db_of_vp_from_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body_conclusion(
                 allMessagesSent,
                 rs_pubkey,
                 slot,
@@ -1595,9 +1569,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             )
     }
 
-    predicate inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(
+    predicate inv_db_of_vp_from_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc(
         allMessagesSent: set<SignedBeaconBlock>,
-        dvc: DVCState        
+        dvc: BlockDVCState        
     )
     {
         forall slot: Slot, vp: BeaconBlock -> bool, db: set<SlashingDBBlock> | 
@@ -1605,7 +1579,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && vp in dvc.block_consensus_engine_state.slashing_db_hist[slot].Keys
             && db in dvc.block_consensus_engine_state.slashing_db_hist[slot][vp]
             :: 
-            inv_db_of_vp_from_a_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(
+            inv_db_of_vp_from_sent_block_share_contains_all_beacon_blocks_of_sent_block_shares_with_lower_slots_dvc_body(
                 allMessagesSent,
                 dvc.rs.pubkey,
                 slot,
@@ -1614,33 +1588,33 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             )
     }
 
-    predicate inv_unchanged_dvc_rs_pubkey(dv: Block_DVState)
+    predicate inv_unchanged_dvc_rs_pubkey(dv: BlockDVState)
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) ::
-            && var dvc: DVCState := dv.honest_nodes_states[hn];
+        forall hn: BLSPubkey | is_honest_node(dv, hn) ::
+            && var dvc: BlockDVCState := dv.honest_nodes_states[hn];
             && dvc.rs.pubkey == hn
     }
 
     predicate inv_honest_nodes_are_not_owners_of_block_shares_from_adversary_body(
-        dv: Block_DVState, 
+        dv: BlockDVState, 
         block_share: SignedBeaconBlock
     )
     {
-        forall hn: BLSPubkey | is_an_honest_node(dv, hn) :: 
-            !pred_is_the_owner_of_a_block_share(hn, block_share)
+        forall hn: BLSPubkey | is_honest_node(dv, hn) :: 
+            !pred_is_owner_of_block_share(hn, block_share)
     }
 
-    predicate inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(dv: Block_DVState)
+    predicate inv_honest_nodes_are_not_owners_of_block_shares_from_adversary(dv: BlockDVState)
     {
         forall byz_node: BLSPubkey, block_share: SignedBeaconBlock | 
             && byz_node in dv.adversary.nodes 
             && block_share in dv.block_share_network.allMessagesSent
-            && pred_is_the_owner_of_a_block_share(byz_node, block_share)
+            && pred_is_owner_of_block_share(byz_node, block_share)
             ::
             inv_honest_nodes_are_not_owners_of_block_shares_from_adversary_body(dv, block_share)
     }
 
-    predicate inv_stored_SlashingDBBlocks_have_available_signing_root_body(dvc: DVCState)
+    predicate inv_stored_SlashingDBBlocks_have_available_signing_root_body(dvc: BlockDVCState)
     {
         forall slashing_db_block: SlashingDBBlock | 
                 slashing_db_block in dvc.block_slashing_db
@@ -1648,13 +1622,13 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
                 slashing_db_block.signing_root.isPresent()
     }
 
-    predicate inv_stored_SlashingDBBlocks_have_available_signing_root(dv: Block_DVState)
+    predicate inv_stored_SlashingDBBlocks_have_available_signing_root(dv: BlockDVState)
     {
-        forall hn | is_an_honest_node(dv, hn) ::
+        forall hn | is_honest_node(dv, hn) ::
             inv_stored_SlashingDBBlocks_have_available_signing_root_body(dv.honest_nodes_states[hn])
     }
 
-    predicate inv_at_most_one_submitted_signed_beacon_block_with_an_available_signing_root_for_every_slot(dv: Block_DVState)
+    predicate inv_at_most_one_submitted_signed_beacon_block_with_available_signing_root_for_every_slot(dv: BlockDVState)
     {
         forall sbb1, sbb2: SignedBeaconBlock |
             && sbb1 in dv.all_blocks_created
@@ -1670,7 +1644,7 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
             && sdbb1.signing_root.safe_get() == sdbb2.signing_root.safe_get()
     }
 
-    predicate inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body(dvc: DVCState)
+    predicate inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(dvc: BlockDVCState)
     {   
         dvc.latest_proposer_duty.isPresent()
         ==>
@@ -1681,39 +1655,39 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty(dv: Block_DVState)
+    predicate inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty(dv: BlockDVState)
     {
-        forall hn | is_an_honest_node(dv, hn) ::
-            inv_slots_in_slashing_db_is_not_higher_than_the_slot_of_latest_proposer_duty_body(dv.honest_nodes_states[hn])
+        forall hn | is_honest_node(dv, hn) ::
+            inv_slots_in_slashing_db_is_not_higher_than_slot_of_latest_proposer_duty_body(dv.honest_nodes_states[hn])
     }
 
-    predicate inv_none_latest_proposer_duty_implies_emply_block_slashing_db_body(dvc: DVCState)
+    predicate inv_none_latest_proposer_duty_implies_emply_block_slashing_db_body(dvc: BlockDVCState)
     {
         !dvc.latest_proposer_duty.isPresent()
         ==>
         dvc.block_slashing_db == {}
     }
 
-    predicate inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv: Block_DVState)
+    predicate inv_none_latest_proposer_duty_implies_emply_block_slashing_db(dv: BlockDVState)
     {
-        forall hn | is_an_honest_node(dv, hn) ::
+        forall hn | is_honest_node(dv, hn) ::
             inv_none_latest_proposer_duty_implies_emply_block_slashing_db_body(dv.honest_nodes_states[hn])
     }
 
-    predicate inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(dvc: DVCState)
+    predicate inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(dvc: BlockDVCState)
     {
         !dvc.latest_slashing_db_block.isPresent()
         ==>
         dvc.block_slashing_db == {}
     }
 
-    predicate inv_none_latest_slashing_db_block_implies_emply_block_slashing_db(dv: Block_DVState)
+    predicate inv_none_latest_slashing_db_block_implies_emply_block_slashing_db(dv: BlockDVState)
     {
-        forall hn | is_an_honest_node(dv, hn) ::
+        forall hn | is_honest_node(dv, hn) ::
             inv_none_latest_slashing_db_block_implies_emply_block_slashing_db_body(dv.honest_nodes_states[hn])
     }
 
-    predicate inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body(dvc: DVCState)
+    predicate inv_slots_in_slashing_db_are_not_higher_than_slot_of_latest_slashing_db_block_body(dvc: BlockDVCState)
     {   
         dvc.latest_slashing_db_block.isPresent()
         ==>
@@ -1724,9 +1698,9 @@ module Block_Inv_With_Empty_Initial_Block_Slashing_DB
         )
     }
 
-    predicate inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block(dv: Block_DVState)
+    predicate inv_slots_in_slashing_db_are_not_higher_than_slot_of_latest_slashing_db_block(dv: BlockDVState)
     {
-        forall hn | is_an_honest_node(dv, hn) ::
-            inv_slots_in_slashing_db_are_not_higher_than_the_slot_of_latest_slashing_db_block_body(dv.honest_nodes_states[hn])
+        forall hn | is_honest_node(dv, hn) ::
+            inv_slots_in_slashing_db_are_not_higher_than_slot_of_latest_slashing_db_block_body(dv.honest_nodes_states[hn])
     }
 }

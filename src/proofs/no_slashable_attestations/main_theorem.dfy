@@ -17,24 +17,24 @@ module No_Slashable_Attestations_Main_Theorem
     import opened Ind_Inv_Implies_Safety
 
 
-    predicate isValidTrace(
-        trace: iseq<Att_DVState>
+    predicate is_valid_trace(
+        trace: iseq<AttDVState>
     )  
     {
-        && Att_DV.Init(trace[0], {})
+        && Att_DV.init(trace[0], {})
         && (
             forall i: Slot ::
-                Att_DV.NextPreCond(trace[i]) ==> Att_DV.Next(trace[i], trace[i+1])
+                Att_DV.next_preconditions(trace[i]) ==> Att_DV.next(trace[i], trace[i+1])
         )
     }  
 
     lemma lem_non_slashable_attestations_rec(
-        trace: iseq<Att_DVState>,
+        trace: iseq<AttDVState>,
         i: Slot
     )
-    requires isValidTrace(trace)
+    requires is_valid_trace(trace)
     ensures forall j | 0 <= j <= i ::
-        && NextPreCond(trace[j])  
+        && next_preconditions(trace[j])  
         && ind_inv(trace[j])
     {
         if i == 0 
@@ -44,14 +44,14 @@ module No_Slashable_Attestations_Main_Theorem
         else 
         {
             lem_non_slashable_attestations_rec(trace, i-1);
-            lem_ind_inv_dv_ind_inv_NextPreCond(trace[i-1], trace[i]);
+            lem_ind_inv_dv_ind_inv_next_preconditions(trace[i-1], trace[i]);
         }
     }
 
     lemma lem_non_slashable_attestations(
-        trace: iseq<Att_DVState>
+        trace: iseq<AttDVState>
     )
-    requires isValidTrace(trace)
+    requires is_valid_trace(trace)
     ensures forall i:nat :: non_slashable_attestations(trace[i])
     {
         forall i:nat

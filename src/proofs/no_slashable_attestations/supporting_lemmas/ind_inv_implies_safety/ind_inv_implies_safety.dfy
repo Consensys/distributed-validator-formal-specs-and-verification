@@ -24,10 +24,10 @@ module Ind_Inv_Implies_Safety
     import opened Common_Functions
     import opened Set_Seq_Helper
     import opened Signing_Methods
-    import opened ConsensusSpec
-    import opened Consensus_Engine_Instr
-    import opened NetworkSpec
-    import opened Att_DVC_Spec
+    import opened Consensus
+    import opened Consensus_Engine
+    import opened Network_Spec
+    import opened Att_DVC
     import opened Att_DV
     import opened Att_DV_Assumptions
     import opened Att_Ind_Inv_With_Empty_Init_Att_Slashing_DB
@@ -38,21 +38,21 @@ module Ind_Inv_Implies_Safety
     import opened Proofs_Intermediate_Steps 
 
     predicate non_slashable_attestations(
-        dv: Att_DVState
+        dv: AttDVState
     )
     {
         forall a: Attestation, a': Attestation
                 | 
                 && a in dv.all_attestations_created
-                && is_valid_attestation(a, dv.dv_pubkey)
+                && att_signature_is_signed_with_pubkey(a, dv.dv_pubkey)
                 && a' in dv.all_attestations_created
-                && is_valid_attestation(a', dv.dv_pubkey)     
+                && att_signature_is_signed_with_pubkey(a', dv.dv_pubkey)     
                 ::
                 && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data)
     }
 
-    lemma lem_ind_inv_no_slashable_submitted_attestations(dv: Att_DVState)
+    lemma lem_ind_inv_no_slashable_submitted_attestations(dv: AttDVState)
     requires ind_inv(dv)    
     ensures non_slashable_attestations(dv)
     {   
@@ -61,9 +61,9 @@ module Ind_Inv_Implies_Safety
         forall a: Attestation, a': Attestation
                     | 
                     && a in dv.all_attestations_created
-                    && is_valid_attestation(a, dv.dv_pubkey)
+                    && att_signature_is_signed_with_pubkey(a, dv.dv_pubkey)
                     && a' in dv.all_attestations_created
-                    && is_valid_attestation(a', dv.dv_pubkey)     
+                    && att_signature_is_signed_with_pubkey(a', dv.dv_pubkey)     
         ensures && !is_slashable_attestation_data_eth_spec(a.data, a'.data)
                 && !is_slashable_attestation_data_eth_spec(a'.data, a.data);
         {

@@ -20,11 +20,11 @@ module Proofs_Intermediate_Steps
     import opened Common_Functions
     import opened Set_Seq_Helper
     import opened Signing_Methods
-    import opened ConsensusSpec
-    import opened NetworkSpec
-    import opened DV_Block_Proposer_Spec
-    import opened DVC_Block_Proposer_Spec_Instr
-    import opened Consensus_Engine_Instr
+    import opened Consensus
+    import opened Network_Spec
+    import opened Block_DV
+    import opened Block_DVC
+    import opened Consensus_Engine
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened Common_Proofs_For_Block_Proposer
     import opened BN_Axioms
@@ -32,21 +32,21 @@ module Proofs_Intermediate_Steps
     import opened DV_Block_Proposer_Assumptions
     
     
-    lemma lem_inv_the_same_node_status_in_dv_and_ci_ind_inv(dv: Block_DVState)
+    lemma lem_inv_same_node_status_between_dv_and_ci_ind_inv(dv: BlockDVState)
     requires inv_nodes_in_consensus_instances_are_in_dv(dv)
-    ensures inv_the_same_node_status_in_dv_and_ci(dv)
+    ensures inv_same_node_status_between_dv_and_ci(dv)
     { }
         
     lemma lem_inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty_ind_inv(
-        dv: Block_DVState
+        dv: BlockDVState
     )         
-    requires inv_current_proposer_duty_is_a_rcvd_duty(dv)    
+    requires inv_current_proposer_duty_is_rcvd_duty(dv)    
     requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
     requires inv_available_latest_proposer_duty_is_from_dv_seq_of_proposer_duties(dv) 
     requires inv_seq_of_proposer_duties_is_ordered(dv)  
     ensures inv_proposer_duty_in_next_delivery_is_higher_than_latest_served_proposer_duty(dv)
     {   
-        var queue := dv.sequence_proposer_duties_to_be_served;
+        var queue := dv.sequence_of_proposer_duties_to_be_served;
         var index := dv.index_next_proposer_duty_to_be_served;        
         var next_duty := queue[index].proposer_duty;
         var hn := queue[index].node;
@@ -71,13 +71,13 @@ module Proofs_Intermediate_Steps
     } 
       
     lemma lem_inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties_ind_inv(
-        dv: Block_DVState
+        dv: BlockDVState
     )    
     requires inv_seq_of_proposer_duties_is_ordered(dv)
-    requires inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty(dv)
+    requires inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties(dv)
     ensures inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)    
     {   
-        var queue := dv.sequence_proposer_duties_to_be_served;
+        var queue := dv.sequence_of_proposer_duties_to_be_served;
         var index := dv.index_next_proposer_duty_to_be_served;        
         var next_duty := queue[index].proposer_duty;
         var hn := queue[index].node;
@@ -89,18 +89,18 @@ module Proofs_Intermediate_Steps
             forall rcvd_duty: ProposerDuty | rcvd_duty in dvc.all_rcvd_duties
             ensures rcvd_duty.slot <= next_duty.slot
             {
-                assert  inv_rcvd_proposer_duty_is_from_dv_seq_for_rcvd_proposer_duty_body(
+                assert  inv_rcvd_proposer_duty_is_from_dv_seq_for_proposer_duties_body(
                             dvc, 
                             hn, 
-                            dv.sequence_proposer_duties_to_be_served,
+                            dv.sequence_of_proposer_duties_to_be_served,
                             dv.index_next_proposer_duty_to_be_served
                         );
 
                 var k: nat :| && 0 <= k < dv.index_next_proposer_duty_to_be_served
-                              && dv.sequence_proposer_duties_to_be_served[k].node == hn
-                              && dv.sequence_proposer_duties_to_be_served[k].proposer_duty == rcvd_duty;
+                              && dv.sequence_of_proposer_duties_to_be_served[k].node == hn
+                              && dv.sequence_of_proposer_duties_to_be_served[k].proposer_duty == rcvd_duty;
 
-                assert dv.sequence_proposer_duties_to_be_served[k].proposer_duty.slot <= next_duty.slot;
+                assert dv.sequence_of_proposer_duties_to_be_served[k].proposer_duty.slot <= next_duty.slot;
 
                 assert rcvd_duty.slot <= next_duty.slot;
             }
@@ -109,25 +109,25 @@ module Proofs_Intermediate_Steps
         }        
     }
 
-    lemma lem_inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_ind_inv(
-        dv: Block_DVState
+    lemma lem_inv_active_consensus_instances_imply_delivery_of_proposer_duties_ind_inv(
+        dv: BlockDVState
     )    
-    requires inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties(dv)
-    ensures inv_active_consensus_instances_implied_the_delivery_of_proposer_duties(dv)    
+    requires inv_slashing_db_hist_keeps_track_of_all_rcvd_proposer_duties(dv)
+    ensures inv_active_consensus_instances_imply_delivery_of_proposer_duties(dv)    
     {  
         forall hn: BLSPubkey, s: Slot 
-        ensures ( ( && is_an_honest_node(dv, hn) 
+        ensures ( ( && is_honest_node(dv, hn) 
                     && s in dv.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys
                   )
-                  ==> inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)
+                  ==> inv_active_consensus_instances_imply_delivery_of_proposer_duties_body(dv.honest_nodes_states[hn], s)
                 )
         {
-            if && is_an_honest_node(dv, hn) 
+            if && is_honest_node(dv, hn) 
                && s in dv.honest_nodes_states[hn].block_consensus_engine_state.slashing_db_hist.Keys
             {
                 var hn_state := dv.honest_nodes_states[hn];
-                assert inv_slashing_db_hist_keeps_track_of_only_rcvd_proposer_duties_body(hn_state);
-                assert inv_active_consensus_instances_implied_the_delivery_of_proposer_duties_body(hn_state, s);
+                assert inv_slashing_db_hist_keeps_track_of_all_rcvd_proposer_duties_body(hn_state);
+                assert inv_active_consensus_instances_imply_delivery_of_proposer_duties_body(hn_state, s);
             }
             else
             {}
@@ -135,13 +135,13 @@ module Proofs_Intermediate_Steps
     } 
 
     lemma lem_inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal_ind_inv(
-        dv: Block_DVState
+        dv: BlockDVState
     )    
     requires inv_exists_db_in_slashing_db_hist_and_proposer_duty_and_randao_reveal_for_every_validity_predicate(dv)
     ensures inv_sent_vp_is_based_on_existing_slashing_db_and_rcvd_proposer_duty_and_randao_reveal(dv)    
     { 
         forall hn: BLSPubkey, s: Slot, vp: BeaconBlock -> bool | 
-            && is_an_honest_node(dv, hn)
+            && is_honest_node(dv, hn)
             && var hn_state := dv.honest_nodes_states[hn];
             && s in hn_state.block_consensus_engine_state.slashing_db_hist.Keys
             && vp in hn_state.block_consensus_engine_state.slashing_db_hist[s]            
@@ -172,17 +172,17 @@ module Proofs_Intermediate_Steps
     }   
 
     lemma lem_inv_available_current_proposer_duty_is_latest_proposer_duty(
-        dv: Block_DVState
+        dv: BlockDVState
     )    
     requires inv_available_current_proposer_duty_is_latest_proposer_duty(dv)    
     ensures inv_available_current_proposer_duty_is_latest_proposer_duty(dv)    
     {}
 
-    lemma lem_construct_complete_signed_block_assumptions(
-        dv: Block_DVState
+    lemma lem_assump_construction_of_complete_signed_block(
+        dv: BlockDVState
     )    
     requires inv_only_dv_construct_complete_signing_functions(dv)    
-    ensures construct_complete_signed_block_assumptions(
+    ensures assump_construction_of_complete_signed_block(
                 dv.construct_complete_signed_block,
                 dv.dv_pubkey,
                 dv.all_nodes
@@ -190,27 +190,27 @@ module Proofs_Intermediate_Steps
     {}
 
     lemma lem_inv_active_proposer_consensus_instances_keys_is_subset_of_slashing_db_hist(
-        dv: Block_DVState
+        dv: BlockDVState
     )    
     requires inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)    
     ensures  inv_active_consensus_instances_are_tracked_in_slashing_db_hist(dv)
     {}   
 
     lemma lem_inv_rcvd_block_shares_are_from_sent_messages_inv_rcvd_block_shares_are_in_all_sent_messages(
-        dv: Block_DVState
+        dv: BlockDVState
     )    
     requires inv_rcvd_block_shares_are_from_sent_messages(dv)    
     ensures  inv_rcvd_block_shares_are_in_all_sent_messages(dv)
     {}
 
-    lemma lem_inv_block_shares_to_broadcast_are_sent_messages_inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(
-        dv: Block_DVState
+    lemma lem_inv_block_shares_to_broadcast_are_sent_messages_inv_block_shares_to_broadcast_is_subset_of_all_sent_messages(
+        dv: BlockDVState
     )
     requires inv_block_shares_to_broadcast_are_sent_messages(dv)
-    ensures inv_block_shares_to_broadcast_is_a_subset_of_all_sent_messages(dv)
+    ensures inv_block_shares_to_broadcast_is_subset_of_all_sent_messages(dv)
     {}  
 
-    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_proposer_consensus_instances_predicate_is_in_slashing_db_hist(dv: Block_DVState)    
+    lemma lem_inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k_inv_active_proposer_consensus_instances_predicate_is_in_slashing_db_hist(dv: BlockDVState)    
     requires inv_current_validity_predicate_for_slot_k_is_stored_in_slashing_db_hist_k(dv)
     ensures inv_constraints_on_active_consensus_instances_are_ensured_with_slashing_db_hist(dv)
     {}  
@@ -219,14 +219,14 @@ module Proofs_Intermediate_Steps
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // lemma lem_inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty_ind_inv(
-    //     dv: Block_DVState
+    //     dv: BlockDVState
     // )         
-    // requires inv_all_honest_nodes_is_a_quorum(dv)      
-    // requires inv_latest_served_duty_is_a_rcvd_duty(dv)    
+    // requires inv_all_honest_nodes_is_quorum(dv)      
+    // requires inv_latest_served_duty_is_rcvd_duty(dv)    
     // requires inv_proposer_duty_in_next_delivery_is_not_lower_than_rcvd_proposer_duties(dv)
     // ensures inv_proposer_duty_in_next_delivery_is_not_lower_than_latest_served_proposer_duty(dv)
     // {   
-    //     var queue := dv.sequence_proposer_duties_to_be_served;
+    //     var queue := dv.sequence_of_proposer_duties_to_be_served;
     //     var index := dv.index_next_proposer_duty_to_be_served;        
     //     var next_duty := queue[index].proposer_duty;
     //     var hn := queue[index].node;

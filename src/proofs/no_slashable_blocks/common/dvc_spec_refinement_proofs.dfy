@@ -3,30 +3,30 @@ include "../../../proofs/no_slashable_blocks/common/dvc_block_proposer_instrumen
 include "../../../specs/dvc/dvc_block_proposer.dfy"
 include "../../../common/commons.dfy"
 
-module Spec_Spec_NonInstr_Refinement
+module Spec_Spec_Non_Instr_Refinement
 {
     import opened Types 
     import opened Common_Functions
         
     import opened BN_Axioms
     import opened RS_Axioms
-    import DVC_Block_Proposer_Spec_NonInstr
-    import DVC_Block_Proposer_Spec_Instr
-    import Consensus_Engine_NonInstr
-    import Consensus_Engine_Instr
+    import Non_Instr_Block_DVC
+    import Block_DVC
+    import Non_Instr_Consensus_Engine
+    import Consensus_Engine
 
 
     predicate consensusEngineStateRel(
-        cei: Consensus_Engine_Instr.ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
-        ceni: Consensus_Engine_NonInstr.ConsensusEngineState<BlockConsensusValidityCheckState>
+        cei: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
+        ceni: NonInstrConsensusEngineState<BlockConsensusValidityCheckState>
     )
     {
         cei.active_consensus_instances == ceni.active_consensus_instances
     }
 
     predicate DVCStateRel(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState
     )
     {
         && dvci.current_proposer_duty == dvcni.current_proposer_duty
@@ -47,17 +47,17 @@ module Spec_Spec_NonInstr_Refinement
     }
 
     predicate DVCStateAndOuputsRel(
-        dvcandoi: DVC_Block_Proposer_Spec_Instr.DVCStateAndOuputs,
-        dvcandoni: DVC_Block_Proposer_Spec_NonInstr.DVCStateAndOuputs        
+        dvcandoi: DVCStateAndOuputs<BlockDVCState, BlockOutputs>,
+        dvcandoni: DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>        
     )
     {
         && DVCStateRel(dvcandoi.state, dvcandoni.state)
         && dvcandoi.outputs == dvcandoni.outputs
     }
 
-    lemma refine_init(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_init(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,                    
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
@@ -65,7 +65,7 @@ module Spec_Spec_NonInstr_Refinement
         initial_block_slashing_db: set<SlashingDBBlock>,
         rs_pubkey: BLSPubkey
     )
-    requires DVC_Block_Proposer_Spec_Instr.Init.requires(
+    requires Block_DVC.init.requires(
                 dvci, 
                 dv_pubkey,
                 peers,
@@ -74,7 +74,7 @@ module Spec_Spec_NonInstr_Refinement
                 initial_block_slashing_db,
                 rs_pubkey
             )
-    requires DVC_Block_Proposer_Spec_Instr.Init(
+    requires Block_DVC.init(
                 dvci, 
                 dv_pubkey,
                 peers,
@@ -83,7 +83,7 @@ module Spec_Spec_NonInstr_Refinement
                 initial_block_slashing_db,
                 rs_pubkey
             )
-    requires DVC_Block_Proposer_Spec_NonInstr.Init.requires(
+    requires Non_Instr_Block_DVC.init.requires(
                 dvcni, 
                 dv_pubkey,
                 peers,
@@ -92,7 +92,7 @@ module Spec_Spec_NonInstr_Refinement
                 initial_block_slashing_db,
                 rs_pubkey
             )
-    requires DVC_Block_Proposer_Spec_NonInstr.Init(
+    requires Non_Instr_Block_DVC.init(
                 dvcni, 
                 dv_pubkey,
                 peers,
@@ -102,57 +102,57 @@ module Spec_Spec_NonInstr_Refinement
                 rs_pubkey
             )
     ensures && var  dvcoi := 
-                    DVC_Block_Proposer_Spec_Instr.DVCStateAndOuputs(
+                    DVCStateAndOuputs(
                         dvci,
-                        getEmptyBlockOuputs()
+                        f_get_empty_block_ouputs()
                     );
             && var  dvconi := 
-                    DVC_Block_Proposer_Spec_NonInstr.DVCStateAndOuputs(
+                    DVCStateAndOuputs(
                         dvcni,
-                        getEmptyBlockOuputs()
+                        f_get_empty_block_ouputs()
                     );
             && DVCStateAndOuputsRel(dvcoi, dvconi);    
     { }
 
-    lemma refine_f_serve_proposer_duty(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_serve_proposer_duty(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         proposer_duty: ProposerDuty
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_serve_proposer_duty.requires(dvci, proposer_duty)
+    requires Block_DVC.f_serve_proposer_duty.requires(dvci, proposer_duty)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_serve_proposer_duty.requires(dvcni, proposer_duty)
+    ensures Non_Instr_Block_DVC.f_serve_proposer_duty.requires(dvcni, proposer_duty)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_serve_proposer_duty(dvci, proposer_duty), 
-        DVC_Block_Proposer_Spec_NonInstr.f_serve_proposer_duty(dvcni, proposer_duty)
+        Block_DVC.f_serve_proposer_duty(dvci, proposer_duty), 
+        Non_Instr_Block_DVC.f_serve_proposer_duty(dvcni, proposer_duty)
     );    
     { }
 
-    lemma refine_f_broadcast_randao_share(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_broadcast_randao_share(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         proposer_duty: ProposerDuty
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_broadcast_randao_share.requires(dvci, proposer_duty)
+    requires Block_DVC.f_broadcast_randao_share.requires(dvci, proposer_duty)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_broadcast_randao_share.requires(dvcni, proposer_duty)
+    ensures Non_Instr_Block_DVC.f_broadcast_randao_share.requires(dvcni, proposer_duty)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_broadcast_randao_share(dvci, proposer_duty), 
-        DVC_Block_Proposer_Spec_NonInstr.f_broadcast_randao_share(dvcni, proposer_duty)
+        Block_DVC.f_broadcast_randao_share(dvci, proposer_duty), 
+        Non_Instr_Block_DVC.f_broadcast_randao_share(dvcni, proposer_duty)
     );    
     { }
 
-    lemma refine_f_check_for_next_duty(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_check_for_next_duty(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         proposer_duty: ProposerDuty
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_check_for_next_duty.requires(dvci, proposer_duty)
+    requires Block_DVC.f_check_for_next_duty.requires(dvci, proposer_duty)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_check_for_next_duty.requires(dvcni, proposer_duty)
+    ensures Non_Instr_Block_DVC.f_check_for_next_duty.requires(dvcni, proposer_duty)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_check_for_next_duty(dvci, proposer_duty), 
-        DVC_Block_Proposer_Spec_NonInstr.f_check_for_next_duty(dvcni, proposer_duty)
+        Block_DVC.f_check_for_next_duty(dvci, proposer_duty), 
+        Non_Instr_Block_DVC.f_check_for_next_duty(dvcni, proposer_duty)
     )    
     {
         var slot := proposer_duty.slot;
@@ -162,132 +162,132 @@ module Spec_Spec_NonInstr_Refinement
         { }
     }
 
-    lemma refine_f_listen_for_randao_shares(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_listen_for_randao_shares(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         randao_share: RandaoShare
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_listen_for_randao_shares.requires(dvci, randao_share)
+    requires Block_DVC.f_listen_for_randao_shares.requires(dvci, randao_share)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_listen_for_randao_shares.requires(dvcni, randao_share)
+    ensures Non_Instr_Block_DVC.f_listen_for_randao_shares.requires(dvcni, randao_share)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_listen_for_randao_shares(dvci, randao_share), 
-        DVC_Block_Proposer_Spec_NonInstr.f_listen_for_randao_shares(dvcni, randao_share)
+        Block_DVC.f_listen_for_randao_shares(dvci, randao_share), 
+        Non_Instr_Block_DVC.f_listen_for_randao_shares(dvcni, randao_share)
     );    
     { }
 
-    lemma refine_f_start_consensus_if_can_construct_randao_share(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState
+    lemma lem_refine_f_start_consensus_if_can_construct_randao_share(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_start_consensus_if_can_construct_randao_share.requires(dvci)
+    requires Block_DVC.f_start_consensus_if_can_construct_randao_share.requires(dvci)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_start_consensus_if_can_construct_randao_share.requires(dvcni)
+    ensures Non_Instr_Block_DVC.f_start_consensus_if_can_construct_randao_share.requires(dvcni)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_start_consensus_if_can_construct_randao_share(dvci), 
-        DVC_Block_Proposer_Spec_NonInstr.f_start_consensus_if_can_construct_randao_share(dvcni)
+        Block_DVC.f_start_consensus_if_can_construct_randao_share(dvci), 
+        Non_Instr_Block_DVC.f_start_consensus_if_can_construct_randao_share(dvcni)
     );    
     { }
 
-    lemma refine_f_block_consensus_decided(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_block_consensus_decided(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         id: Slot,
         block: BeaconBlock
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_block_consensus_decided.requires(dvci, id, block)
+    requires Block_DVC.f_block_consensus_decided.requires(dvci, id, block)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_block_consensus_decided.requires(dvcni, id, block)
+    ensures Non_Instr_Block_DVC.f_block_consensus_decided.requires(dvcni, id, block)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_block_consensus_decided(dvci, id, block), 
-        DVC_Block_Proposer_Spec_NonInstr.f_block_consensus_decided(dvcni, id, block)
+        Block_DVC.f_block_consensus_decided(dvci, id, block), 
+        Non_Instr_Block_DVC.f_block_consensus_decided(dvcni, id, block)
     );       
     { }
 
-    lemma refine_f_listen_for_block_signature_shares(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_listen_for_block_signature_shares(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         block_share: SignedBeaconBlock
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_listen_for_block_signature_shares.requires(dvci, block_share)
+    requires Block_DVC.f_listen_for_block_signature_shares.requires(dvci, block_share)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_listen_for_block_signature_shares.requires(dvcni, block_share)
+    ensures Non_Instr_Block_DVC.f_listen_for_block_signature_shares.requires(dvcni, block_share)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_listen_for_block_signature_shares(dvci, block_share), 
-        DVC_Block_Proposer_Spec_NonInstr.f_listen_for_block_signature_shares(dvcni, block_share)
+        Block_DVC.f_listen_for_block_signature_shares(dvci, block_share), 
+        Non_Instr_Block_DVC.f_listen_for_block_signature_shares(dvcni, block_share)
     );    
     { }     
 
     
 
-    lemma refine_f_listen_for_new_imported_blocks(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_listen_for_new_imported_blocks(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         block: BeaconBlock
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_listen_for_new_imported_blocks.requires(dvci, block)
+    requires Block_DVC.f_listen_for_new_imported_blocks.requires(dvci, block)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_listen_for_new_imported_blocks.requires(dvcni, block)
+    ensures Non_Instr_Block_DVC.f_listen_for_new_imported_blocks.requires(dvcni, block)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_listen_for_new_imported_blocks(dvci, block), 
-        DVC_Block_Proposer_Spec_NonInstr.f_listen_for_new_imported_blocks(dvcni, block)
+        Block_DVC.f_listen_for_new_imported_blocks(dvci, block), 
+        Non_Instr_Block_DVC.f_listen_for_new_imported_blocks(dvcni, block)
     );     
     { }
 
-    lemma refine_f_resend_randao_share(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState
+    lemma lem_refine_f_resend_randao_shares(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_resend_randao_share.requires(dvci)
+    requires Block_DVC.f_resend_randao_shares.requires(dvci)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_resend_randao_share.requires(dvcni)
+    ensures Non_Instr_Block_DVC.f_resend_randao_shares.requires(dvcni)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_resend_randao_share(dvci), 
-        DVC_Block_Proposer_Spec_NonInstr.f_resend_randao_share(dvcni)
+        Block_DVC.f_resend_randao_shares(dvci), 
+        Non_Instr_Block_DVC.f_resend_randao_shares(dvcni)
     ); 
     { }
 
-    lemma refine_f_resend_block_share(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState
+    lemma lem_refine_f_resend_block_shares(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_resend_block_share.requires(dvci)
+    requires Block_DVC.f_resend_block_shares.requires(dvci)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_resend_block_share.requires(dvcni)
+    ensures Non_Instr_Block_DVC.f_resend_block_shares.requires(dvcni)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_resend_block_share(dvci), 
-        DVC_Block_Proposer_Spec_NonInstr.f_resend_block_share(dvcni)
+        Block_DVC.f_resend_block_shares(dvci), 
+        Non_Instr_Block_DVC.f_resend_block_shares(dvcni)
     ); 
     { }
 
-    lemma refine_f_process_event(
-        dvci: DVC_Block_Proposer_Spec_Instr.DVCState,
-        dvcni: DVC_Block_Proposer_Spec_NonInstr.DVCState,
+    lemma lem_refine_f_process_event(
+        dvci: BlockDVCState,
+        dvcni: NonInstrBlockDVCState,
         event: BlockEvent
     )
-    requires DVC_Block_Proposer_Spec_Instr.f_process_event.requires(dvci, event)
+    requires Block_DVC.f_process_event.requires(dvci, event)
     requires DVCStateRel(dvci, dvcni)
-    ensures DVC_Block_Proposer_Spec_NonInstr.f_process_event.requires(dvcni, event)
+    ensures Non_Instr_Block_DVC.f_process_event.requires(dvcni, event)
     ensures DVCStateAndOuputsRel(
-        DVC_Block_Proposer_Spec_Instr.f_process_event(dvci, event), 
-        DVC_Block_Proposer_Spec_NonInstr.f_process_event(dvcni, event)
+        Block_DVC.f_process_event(dvci, event), 
+        Non_Instr_Block_DVC.f_process_event(dvcni, event)
     ); 
     {
         match event 
             case ServeProposerDuty(proposer_duty) => 
-                refine_f_serve_proposer_duty(dvci, dvcni, proposer_duty);
+                lem_refine_f_serve_proposer_duty(dvci, dvcni, proposer_duty);
             case BlockConsensusDecided(id, block) => 
-                refine_f_block_consensus_decided(dvci, dvcni, id,  block);
+                lem_refine_f_block_consensus_decided(dvci, dvcni, id,  block);
             case ReceiveRandaoShare(randao_share) => 
-                refine_f_listen_for_randao_shares(dvci, dvcni, randao_share);
+                lem_refine_f_listen_for_randao_shares(dvci, dvcni, randao_share);
             case ReceiveSignedBeaconBlock(block_share) => 
-                refine_f_listen_for_block_signature_shares(dvci, dvcni, block_share);
+                lem_refine_f_listen_for_block_signature_shares(dvci, dvcni, block_share);
             case ImportedNewBlock(block) => 
-                refine_f_listen_for_new_imported_blocks(dvci, dvcni, block);
+                lem_refine_f_listen_for_new_imported_blocks(dvci, dvcni, block);
             case ResendRandaoRevealSignatureShare => 
-                refine_f_resend_randao_share(dvci, dvcni);
+                lem_refine_f_resend_randao_shares(dvci, dvcni);
             case ResendBlockShare => 
-                refine_f_resend_block_share(dvci, dvcni);
+                lem_refine_f_resend_block_shares(dvci, dvcni);
             case NoEvent => 
     }    
 }

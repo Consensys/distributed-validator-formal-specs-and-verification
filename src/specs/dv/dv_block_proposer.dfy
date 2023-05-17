@@ -7,36 +7,21 @@ include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
 
 
-module DV_Block_Proposer_Spec 
+module Block_DV 
 {
     import opened Types
     import opened Common_Functions
     import opened Signing_Methods
-    import opened NetworkSpec
-    import opened ConsensusSpec
-    import opened Consensus_Engine_Instr
-    import opened DVC_Block_Proposer_Spec_Instr
+    import opened Network_Spec
+    import opened Consensus
+    import opened Consensus_Engine
+    import opened Block_DVC
     import opened BN_Axioms
     import opened RS_Axioms
     import opened DV_Block_Proposer_Assumptions
     
-    datatype Block_DVState = Block_DVState(
-        all_nodes: set<BLSPubkey>,
-        honest_nodes_states: map<BLSPubkey, DVCState>,
-        adversary: Adversary,
-        dv_pubkey: BLSPubkey,
-        consensus_instances_on_beacon_block: imaptotal<Slot, ConsensusInstance<BeaconBlock>>,
-        randao_share_network: NetworkSpec.Network<RandaoShare>,
-        block_share_network: NetworkSpec.Network<SignedBeaconBlock>,
-        all_blocks_created: set<SignedBeaconBlock>,
-        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
-        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
-        sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
-        index_next_proposer_duty_to_be_served: nat
-    )
-
-    predicate DVCs_are_initialized_with_empty_BNs(
-        s: Block_DVState,
+    predicate dvcs_are_initialized_with_empty_beacon_nodes(
+        s: BlockDVState,
         initial_block_slashing_db: set<SlashingDBBlock>
     )
     {
@@ -44,7 +29,7 @@ module DV_Block_Proposer_Spec
                 ::
                 && s.honest_nodes_states[pubkey].bn.submitted_data == []
                 && s.honest_nodes_states[pubkey].bn.state_roots_of_imported_blocks == {}
-                && DVC_Block_Proposer_Spec_Instr.Init(
+                && Block_DVC.init(
                         s.honest_nodes_states[pubkey], 
                         s.dv_pubkey, 
                         s.all_nodes, 
@@ -56,53 +41,52 @@ module DV_Block_Proposer_Spec
     }
 
     predicate consensus_instances_are_initialized_with_no_decision_values(
-        s: Block_DVState
+        s: BlockDVState
     )
     {
         &&  ( forall ci | ci in  s.consensus_instances_on_beacon_block.Values ::
-                ConsensusSpec.Init(ci, s.all_nodes, s.honest_nodes_states.Keys)
+                Consensus.init(ci, s.all_nodes, s.honest_nodes_states.Keys)
             )
         && ( forall i: Slot :: i in s.consensus_instances_on_beacon_block 
                             ==> !s.consensus_instances_on_beacon_block[i].decided_value.isPresent()
             )       
     }
 
-    predicate Init(
-        s: Block_DVState,
+    predicate init(
+        s: BlockDVState,
         initial_block_slashing_db: set<SlashingDBBlock>
     )
     {
-        && byz_assumptions(s.dv_pubkey, s.all_nodes, s.honest_nodes_states.Keys, s.adversary.nodes)
-        && construct_complete_signed_randao_reveal_assumptions(
+        && assump_set_of_byz_nodes(s.dv_pubkey, s.all_nodes, s.honest_nodes_states.Keys, s.adversary.nodes)
+        && assump_construction_of_complete_signed_randao_reveal(
                 s.construct_complete_signed_randao_reveal,
                 s.dv_pubkey,
                 s.all_nodes
             )
-        && construct_complete_signed_block_assumptions(
+        && assump_construction_of_complete_signed_block(
                 s.construct_complete_signed_block,
                 s.dv_pubkey,
                 s.all_nodes
             )
         && s.all_blocks_created == {}
-        && DVCs_are_initialized_with_empty_BNs(s, initial_block_slashing_db)
-        && NetworkSpec.Init(s.block_share_network, s.all_nodes)
+        && dvcs_are_initialized_with_empty_beacon_nodes(s, initial_block_slashing_db)
+        && Network_Spec.init(s.block_share_network, s.all_nodes)
         && consensus_instances_are_initialized_with_no_decision_values(s)      
-        && assumption_on_sequence_of_proposer_duties(s.sequence_proposer_duties_to_be_served)
+        && assump_seq_of_proposer_duties(s.sequence_of_proposer_duties_to_be_served)
         && s.index_next_proposer_duty_to_be_served == 0   
-        
     }
 
-    predicate is_verified_attestation_with_pubkey(
+    predicate att_signature_is_signed_with_pubkey(
         a: Attestation,
         pubkey: BLSPubkey
     )
     {
-        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
+        && var fork_version := af_bn_get_fork_version(compute_start_slot_at_epoch(a.data.target.epoch));
         && var attestation_signing_root := compute_attestation_signing_root(a.data, fork_version);      
         && verify_bls_signature(attestation_signing_root, a.signature, pubkey)  
     }    
 
-    predicate is_verified_block_with_pubkey(
+    predicate block_signature_is_signed_with_pubkey(
         signed_block: SignedBeaconBlock,
         pubkey: BLSPubkey
     )
@@ -111,27 +95,27 @@ module DV_Block_Proposer_Spec
         && verify_bls_signature(block_signing_root, signed_block.signature, pubkey)  
     }    
 
-    predicate valid_attestations_in_beacon_block(
-        dv: Block_DVState,
-        new_p: DVCState,
+    predicate all_attestations_in_beacon_block_are_valid(
+        dv: BlockDVState,
+        new_p: BlockDVCState,
         block: BeaconBlock
     )
     requires block.body.state_root in new_p.bn.state_roots_of_imported_blocks
     {
-        var valIndex := bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
+        var valIndex := af_bn_get_validator_index(new_p.bn, block.body.state_root, new_p.dv_pubkey);
         forall a |  && a in block.body.attestations 
-                    && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(
+                    && Non_Instr_Block_DVC.has_correct_validator_index(
                         a,
                         new_p.bn,
                         block,
                         valIndex
                     )
         ::
-        ( exists a' :: is_verified_attestation_with_pubkey(a', dv.dv_pubkey) )
+        ( exists a' :: att_signature_is_signed_with_pubkey(a', dv.dv_pubkey) )
     }  
 
-    predicate is_block_of_submitted_signed_beacon_block(
-        dv: Block_DVState,
+    predicate exists_submitted_signed_beacon_block_for_given_block(
+        dv: BlockDVState,
         block: BeaconBlock
     )
     {
@@ -141,48 +125,48 @@ module DV_Block_Proposer_Spec
     }
     
 
-    predicate blockIsValidAfterAdd(
-        dv: Block_DVState,
-        process: DVCState,
+    predicate check_rcvd_block_before_adding(
+        dv: BlockDVState,
+        process: BlockDVCState,
         block: BeaconBlock
     )
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
     {
-        var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+        var valIndex := af_bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
         && (forall a1, a2 | 
                 && a1 in block.body.attestations
-                && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                && Non_Instr_Block_DVC.has_correct_validator_index(a1, process.bn, block, valIndex)
                 && a2 in block.body.attestations
-                && DVC_Block_Proposer_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                && Non_Instr_Block_DVC.has_correct_validator_index(a2, process.bn, block, valIndex)                        
             ::
                 a1.data.slot == a2.data.slot ==> a1 == a2  
         )      
-        && valid_attestations_in_beacon_block(dv, process, block)
-        && is_block_of_submitted_signed_beacon_block(dv, block)
+        && all_attestations_in_beacon_block_are_valid(dv, process, block)
+        && exists_submitted_signed_beacon_block_for_given_block(dv, block)
     } 
 
-    predicate validNodeEvent(
-        s: Block_DVState,
+    predicate preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(
+        s: BlockDVState,
         node: BLSPubkey,
-        nodeEvent: Types.BlockEvent
+        nodeEvent: BlockEvent
     )
     requires node in s.honest_nodes_states.Keys
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
     {
             && (nodeEvent.ServeProposerDuty? ==>
-                    var proposer_duty_to_be_served := s.sequence_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];
+                    var proposer_duty_to_be_served := s.sequence_of_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];
                     && node == proposer_duty_to_be_served.node 
                     && nodeEvent.proposer_duty == proposer_duty_to_be_served.proposer_duty
             )
             && (nodeEvent.ImportedNewBlock? ==>
-                    blockIsValidAfterAdd(s, s.honest_nodes_states[node], nodeEvent.block)
+                    check_rcvd_block_before_adding(s, s.honest_nodes_states[node], nodeEvent.block)
             )
     }
 
     function f_add_block_to_bn(
-        s: DVCState,
+        s: BlockDVCState,
         block: BeaconBlock
-    ): DVCState
+    ): BlockDVCState
     { 
         s.(
             bn := s.bn.(
@@ -191,11 +175,11 @@ module DV_Block_Proposer_Spec
         )
     }
 
-    function add_block_to_bn_with_event(
-        s: Block_DVState,
+    function f_add_block_to_bn_with_event(
+        s: BlockDVState,
         node: BLSPubkey,
-        nodeEvent: Types.BlockEvent
-    ): Block_DVState
+        nodeEvent: BlockEvent
+    ): BlockDVState
     requires node in s.honest_nodes_states.Keys
     {
         if nodeEvent.ImportedNewBlock? then 
@@ -207,8 +191,8 @@ module DV_Block_Proposer_Spec
                   
     }    
 
-    predicate validEvent(
-        s: Block_DVState,
+    predicate preconditions_for_HonestNodeTakingStep(
+        s: BlockDVState,
         event: DVBlockEvent
     )
     {
@@ -216,17 +200,17 @@ module DV_Block_Proposer_Spec
             (
             var nodeEvent := event.event;
             && event.node in s.honest_nodes_states.Keys
-            && validNodeEvent(
-                add_block_to_bn_with_event(s, event.node, event.event),
+            && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(
+                f_add_block_to_bn_with_event(s, event.node, event.event),
                 event.node,
                 event.event
             )
         )  
     }  
 
-    predicate NextHonestNodePrecond(
-        dvc: DVCState,
-        event: Types.BlockEvent
+    predicate next_honest_node_event_preconditions(
+        dvc: BlockDVCState,
+        event: BlockEvent
     )
     {
             match event 
@@ -248,16 +232,16 @@ module DV_Block_Proposer_Spec
                 true                 
     }
 
-    predicate NextEventPreCond(
-        dv: Block_DVState,
+    predicate next_event_preconditions(
+        dv: BlockDVState,
         event: DVBlockEvent
     )
     {
-        && validEvent(dv, event)         
+        && preconditions_for_HonestNodeTakingStep(dv, event)         
         && (event.HonestNodeTakingStep? 
             ==> 
-            NextHonestNodePrecond(
-                add_block_to_bn_with_event(
+            next_honest_node_event_preconditions(
+                f_add_block_to_bn_with_event(
                     dv, 
                     event.node, 
                     event.event).honest_nodes_states[event.node], 
@@ -265,54 +249,52 @@ module DV_Block_Proposer_Spec
             ))      
     }
 
-    predicate NextPreCond(
-        s: Block_DVState
+    predicate next_preconditions(
+        s: BlockDVState
     )
     {
-        forall e |  validEvent(s, e) :: NextEventPreCond(s, e)
+        forall e |  preconditions_for_HonestNodeTakingStep(s, e) :: next_event_preconditions(s, e)
     }
 
-    predicate Next(
-        s: Block_DVState,
-        s': Block_DVState 
+    predicate next(
+        s: BlockDVState,
+        s': BlockDVState 
     )
-    requires NextPreCond(s)
+    requires next_preconditions(s)
     {
         exists e :: 
-            && validEvent(s, e)
-            && NextEvent(s, e, s')
+            && preconditions_for_HonestNodeTakingStep(s, e)
+            && next_event(s, e, s')
     }
 
-    predicate NextEvent(
-        s: Block_DVState,
+    predicate next_event(
+        s: BlockDVState,
         event: DVBlockEvent,
-        s': Block_DVState
+        s': BlockDVState
     )
-    requires validEvent(s, event)
-    requires NextEventPreCond(s, event)  
+    requires preconditions_for_HonestNodeTakingStep(s, event)
+    requires next_event_preconditions(s, event)  
     {
         && unchanged_fixed_paras(s, s')
         && (
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
-                        NextHonestNode(s, node, nodeEvent, nodeOutputs, s')
+                        next_honest_node(s, node, nodeEvent, nodeOutputs, s')
                 case AdversaryTakingStep(node, new_randao_share_sent, new_block_share_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode) => 
-                        NextAdversary(s, node, new_randao_share_sent, new_block_share_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode, s')                        
+                        next_adversary(s, node, new_randao_share_sent, new_block_share_sent, randaoShareReceivedByTheNode, blockShareReceivedByTheNode, s')                        
            )
     }
 
-    predicate unchanged_fixed_paras(dv: Block_DVState, dv': Block_DVState)
+    predicate unchanged_fixed_paras(dv: BlockDVState, dv': BlockDVState)
     {
         && dv.all_nodes == dv'.all_nodes
         && dv.adversary == dv'.adversary
         && dv.honest_nodes_states.Keys == dv'.honest_nodes_states.Keys        
         && dv.dv_pubkey == dv'.dv_pubkey
-        && dv.construct_complete_signed_block
-                == dv'.construct_complete_signed_block
-        && dv.construct_complete_signed_randao_reveal
-                == dv'.construct_complete_signed_randao_reveal
-        && dv.sequence_proposer_duties_to_be_served
-                == dv'.sequence_proposer_duties_to_be_served
+        && dv.construct_complete_signed_block == dv'.construct_complete_signed_block
+        && dv.construct_complete_signed_randao_reveal == dv'.construct_complete_signed_randao_reveal
+        && dv.sequence_of_proposer_duties_to_be_served
+                == dv'.sequence_of_proposer_duties_to_be_served
         && ( forall n | n in dv'.honest_nodes_states.Keys :: 
                 && var nodes' := dv'.honest_nodes_states[n];
                 && nodes'.construct_complete_signed_block == dv'.construct_complete_signed_block
@@ -322,29 +304,29 @@ module DV_Block_Proposer_Spec
            )
     }
 
-    predicate NextHonestNode(
-        s: Block_DVState,
+    predicate next_honest_node(
+        s: BlockDVState,
         node: BLSPubkey,
-        nodeEvent: Types.BlockEvent,
+        nodeEvent: BlockEvent,
         nodeOutputs: BlockOutputs,
-        s': Block_DVState        
+        s': BlockDVState        
     ) 
     requires unchanged_fixed_paras(s, s')
     requires && node in s.honest_nodes_states.Keys     
-             && validNodeEvent( add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
-             && NextHonestNodePrecond(add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
+             && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock( f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
+             && next_honest_node_event_preconditions(f_add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
     {
         && node in s.honest_nodes_states.Keys
-        && var s_w_honest_node_states_updated := add_block_to_bn_with_event(s, node, nodeEvent);
-        && NextHonestAfterAddingBlockToBn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
+        && var s_w_honest_node_states_updated := f_add_block_to_bn_with_event(s, node, nodeEvent);
+        && next_honest_node_after_adding_block_to_bn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
     }
 
-    predicate ConsensusInstanceStep(
-        s: Block_DVState,
+    predicate consensus_instance_step(
+        s: BlockDVState,
         node: BLSPubkey,
-        nodeEvent: Types.BlockEvent,
+        nodeEvent: BlockEvent,
         nodeOutputs: BlockOutputs,
-        s': Block_DVState
+        s': BlockDVState
     )
     {
         forall cid | cid in s.consensus_instances_on_beacon_block.Keys ::
@@ -361,7 +343,7 @@ module DV_Block_Proposer_Spec
                         ::
                             s.honest_nodes_states[n].block_consensus_engine_state.active_consensus_instances[cid].validityPredicate
                     ;
-            &&  ConsensusSpec.Next(
+            &&  Consensus.next(
                     s.consensus_instances_on_beacon_block[cid],
                     validityPredicates,
                     s'.consensus_instances_on_beacon_block[cid],
@@ -369,66 +351,88 @@ module DV_Block_Proposer_Spec
                 )
     }
 
-    predicate NextHonestAfterAddingBlockToBn(
-        s: Block_DVState,
+    predicate next_proposer_duty_and_node(
+        s: BlockDVState,
         node: BLSPubkey,
-        nodeEvent: Types.BlockEvent,
+        nodeEvent: BlockEvent,
+        s': BlockDVState
+    )
+    {
+        if nodeEvent.ServeProposerDuty? then
+            && var proposer_duty_to_be_served := s.sequence_of_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];
+            && node == proposer_duty_to_be_served.node 
+            && nodeEvent.proposer_duty == proposer_duty_to_be_served.proposer_duty
+            && s'.index_next_proposer_duty_to_be_served == s.index_next_proposer_duty_to_be_served + 1
+        else 
+            s'.index_next_proposer_duty_to_be_served == s.index_next_proposer_duty_to_be_served
+    }
+
+    predicate update_node_state(
+        s: BlockDVState,
+        node: BLSPubkey,
+        new_node_state: BlockDVCState,
+        s': BlockDVState
+    )
+    {
+        s'.honest_nodes_states == s.honest_nodes_states[
+                                        node := new_node_state
+                                    ]
+    }
+
+    predicate update_network(
+        s: BlockDVState,
+        node: BLSPubkey,
+        nodeEvent: BlockEvent,
         nodeOutputs: BlockOutputs,
-        s': Block_DVState
+        s': BlockDVState
+    )
+    {
+        && var  randaoShareReceivedByTheNode :=
+                match nodeEvent
+                    case ReceiveRandaoShare(randao_share) => {randao_share}
+                    case _ => {}
+                ;
+        && var  blockShareReceivedByTheNode :=
+                match nodeEvent
+                    case ReceiveSignedBeaconBlock(block_share) => {block_share}
+                    case _ => {}
+                ;
+        && Network_Spec.next(s.randao_share_network, s'.randao_share_network, node, nodeOutputs.sent_randao_shares, randaoShareReceivedByTheNode)
+        && Network_Spec.next(s.block_share_network, s'.block_share_network, node, nodeOutputs.sent_block_shares, blockShareReceivedByTheNode)
+    }
+
+    predicate next_honest_node_after_adding_block_to_bn(
+        s: BlockDVState,
+        node: BLSPubkey,
+        nodeEvent: BlockEvent,
+        nodeOutputs: BlockOutputs,
+        s': BlockDVState
     )
     requires unchanged_fixed_paras(s, s')
     requires node in s.honest_nodes_states.Keys 
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
-    requires && validNodeEvent(s, node, nodeEvent)
-             && NextHonestNodePrecond(s.honest_nodes_states[node], nodeEvent)      
+    requires && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(s, node, nodeEvent)
+             && next_honest_node_event_preconditions(s.honest_nodes_states[node], nodeEvent)      
     {
-        && var new_node_state := s'.honest_nodes_states[node];
-        && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_data
-        && (
-            if nodeEvent.ServeProposerDuty? then
-                var proposer_duty_to_be_served := s.sequence_proposer_duties_to_be_served[s.index_next_proposer_duty_to_be_served];
-                && node == proposer_duty_to_be_served.node 
-                && nodeEvent.proposer_duty == proposer_duty_to_be_served.proposer_duty
-                && s'.index_next_proposer_duty_to_be_served == s.index_next_proposer_duty_to_be_served + 1
-            else 
-                s'.index_next_proposer_duty_to_be_served == s.index_next_proposer_duty_to_be_served
-        )
-        && DVC_Block_Proposer_Spec_Instr.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
-        && s'.honest_nodes_states == s.honest_nodes_states[
-            node := new_node_state
-        ]
-        && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
-        && var randaoShareReceivedByTheNode :=
-            match nodeEvent
-                case ReceiveRandaoShare(randao_share) => {randao_share}
-                case _ => {}
-            ;
-        && var blockShareReceivedByTheNode :=
-            match nodeEvent
-                case ReceiveSignedBeaconBlock(block_share) => {block_share}
-                case _ => {}
-            ;
-        && NetworkSpec.Next(s.randao_share_network, s'.randao_share_network, node, nodeOutputs.sent_randao_shares, randaoShareReceivedByTheNode)
-        && NetworkSpec.Next(s.block_share_network, s'.block_share_network, node, nodeOutputs.sent_block_shares, blockShareReceivedByTheNode)
-        && ConsensusInstanceStep(s, node, nodeEvent, nodeOutputs, s')      
-        && s'.adversary == s.adversary
-        && s'.dv_pubkey == s.dv_pubkey      
-        && s'.construct_complete_signed_randao_reveal == s.construct_complete_signed_randao_reveal
-        && s'.construct_complete_signed_block == s.construct_complete_signed_block
         && node in s.honest_nodes_states.Keys 
         && var new_node_state := s'.honest_nodes_states[node];
-        && DVC_Block_Proposer_Spec_Instr.Next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)        
-        && s'.honest_nodes_states == s.honest_nodes_states[node := new_node_state]
+        && s'.all_blocks_created == s.all_blocks_created + nodeOutputs.submitted_data
+        && next_proposer_duty_and_node(s, node, nodeEvent, s')
+        && Block_DVC.next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
+        && update_node_state(s, node, new_node_state, s')
+        && s'.honest_nodes_states.Keys == s.honest_nodes_states.Keys
+        && update_network(s, node, nodeEvent, nodeOutputs, s')
+        && consensus_instance_step(s, node, nodeEvent, nodeOutputs, s')      
     }
 
-    predicate NextAdversary(
-        s: Block_DVState,
+    predicate next_adversary(
+        s: BlockDVState,
         node: BLSPubkey,
         new_sent_randao_shares: set<MessaageWithRecipient<RandaoShare>>,
         new_sent_block_shares: set<MessaageWithRecipient<SignedBeaconBlock>>,
         randaoShareReceivedByTheNode: set<RandaoShare>,
         blockShareReceivedByTheNode: set<SignedBeaconBlock>,
-        s': Block_DVState
+        s': BlockDVState
     )
     {
         && node in (s.all_nodes - s.honest_nodes_states.Keys)
@@ -439,12 +443,12 @@ module DV_Block_Proposer_Spec
         )
         && (
             forall new_sent_block_share, signer | new_sent_block_share in new_sent_block_shares ::
-                var fork_version := bn_get_fork_version(new_sent_block_share.message.block.slot);
+                var fork_version := af_bn_get_fork_version(new_sent_block_share.message.block.slot);
                 var block_signing_root := compute_block_signing_root(new_sent_block_share.message.block);
                 verify_bls_signature(block_signing_root, new_sent_block_share.message.signature, signer) ==> signer in s.adversary.nodes
         )
-        && NetworkSpec.Next(s.randao_share_network, s'.randao_share_network, node, new_sent_randao_shares, randaoShareReceivedByTheNode)
-        && NetworkSpec.Next(s.block_share_network, s'.block_share_network, node, new_sent_block_shares, blockShareReceivedByTheNode)        
+        && Network_Spec.next(s.randao_share_network, s'.randao_share_network, node, new_sent_randao_shares, randaoShareReceivedByTheNode)
+        && Network_Spec.next(s.block_share_network, s'.block_share_network, node, new_sent_block_shares, blockShareReceivedByTheNode)        
         && s.all_blocks_created <= s'.all_blocks_created
         && var new_blocks_created := s'.all_blocks_created - s.all_blocks_created;
         && (forall new_signed_block_created | new_signed_block_created in new_blocks_created ::
@@ -452,7 +456,7 @@ module DV_Block_Proposer_Spec
                         && block_shares <= s'.block_share_network.allMessagesSent
                         && s.construct_complete_signed_block(block_shares).isPresent()
                         && new_signed_block_created == s.construct_complete_signed_block(block_shares).safe_get()
-                        && signed_beacon_blocks_for_the_same_beacon_block(block_shares, new_signed_block_created.block)
+                        && signed_beacon_blocks_for_same_beacon_block(block_shares, new_signed_block_created.block)
         )
         &&  s' == 
             s.( randao_share_network := s'.randao_share_network,
@@ -476,14 +480,14 @@ module DV_Block_Proposer_Assumptions
     import opened Types
     import opened Common_Functions
     import opened Signing_Methods
-    import opened NetworkSpec
-    import opened ConsensusSpec
-    import opened Consensus_Engine_Instr
-    import opened DVC_Block_Proposer_Spec_Instr
+    import opened Network_Spec
+    import opened Consensus
+    import opened Consensus_Engine
+    import opened Block_DVC
     import opened BN_Axioms
     import opened RS_Axioms
 
-    predicate byz_assumptions(
+    predicate assump_set_of_byz_nodes(
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>,
         honest_nodes: set<BLSPubkey>,
@@ -503,7 +507,7 @@ module DV_Block_Proposer_Assumptions
         && share.signing_root == compute_randao_reveal_signing_root(share.slot)
     }
 
-    predicate randao_shares_for_the_same_proposer_duty(
+    predicate randao_shares_for_same_proposer_duty(
         randao_shares: set<RandaoShare>,
         duty: ProposerDuty
     )
@@ -532,7 +536,7 @@ module DV_Block_Proposer_Assumptions
            
     }    
 
-    predicate construct_complete_signed_randao_reveal_assumptions_forward(
+    predicate assump_construction_of_complete_signed_randao_reveal_forward(
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
@@ -542,7 +546,7 @@ module DV_Block_Proposer_Assumptions
                 signing_root: Root, 
                 randao_shares: set<RandaoShare> 
             |
-            && randao_shares_for_the_same_proposer_duty(randao_shares, proposer_duty)
+            && randao_shares_for_same_proposer_duty(randao_shares, proposer_duty)
             && randao_share_signer_threshold(all_nodes, randao_shares, signing_root) 
             ::
             && var  randao_reveal_signature_shares :=
@@ -556,7 +560,7 @@ module DV_Block_Proposer_Assumptions
                 )
     }
 
-    predicate construct_complete_signed_randao_reveal_assumptions_reverse_helper(
+    predicate assump_construction_of_complete_signed_randao_reveal_reverse_helper(
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>,
@@ -568,7 +572,7 @@ module DV_Block_Proposer_Assumptions
                 ;
              && construct_complete_signed_randao_reveal(randao_reveal_signature_shares).isPresent()
     {
-        && randao_shares_for_the_same_proposer_duty(randao_shares, proposer_duty)
+        && randao_shares_for_same_proposer_duty(randao_shares, proposer_duty)
         && var signing_root := compute_randao_reveal_signing_root(proposer_duty.slot);
         && randao_share_signer_threshold(all_nodes, randao_shares, signing_root)         
         && var  randao_reveal_signature_shares :=
@@ -581,7 +585,7 @@ module DV_Block_Proposer_Assumptions
             )                   
     }
 
-    predicate construct_complete_signed_randao_reveal_assumptions_reverse(
+    predicate assump_construction_of_complete_signed_randao_reveal_reverse(
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
@@ -595,7 +599,7 @@ module DV_Block_Proposer_Assumptions
             ::
             exists proposer_duty: ProposerDuty
                 ::      
-                construct_complete_signed_randao_reveal_assumptions_reverse_helper(
+                assump_construction_of_complete_signed_randao_reveal_reverse_helper(
                     construct_complete_signed_randao_reveal,
                     dv_pubkey,
                     all_nodes,
@@ -604,18 +608,18 @@ module DV_Block_Proposer_Assumptions
                 )
     }    
 
-    predicate construct_complete_signed_randao_reveal_assumptions(
+    predicate assump_construction_of_complete_signed_randao_reveal(
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
     )
     {
-        &&  construct_complete_signed_randao_reveal_assumptions_forward(
+        &&  assump_construction_of_complete_signed_randao_reveal_forward(
                 construct_complete_signed_randao_reveal,
                 dv_pubkey,
                 all_nodes
             )        
-        &&  construct_complete_signed_randao_reveal_assumptions_reverse(
+        &&  assump_construction_of_complete_signed_randao_reveal_reverse(
                 construct_complete_signed_randao_reveal,
                 dv_pubkey,
                 all_nodes
@@ -623,7 +627,7 @@ module DV_Block_Proposer_Assumptions
             )
     }
 
-    predicate signed_beacon_blocks_for_the_same_beacon_block(
+    predicate signed_beacon_blocks_for_same_beacon_block(
         signed_beacon_blocks: set<SignedBeaconBlock>,
         beacon_block: BeaconBlock
     )
@@ -649,7 +653,7 @@ module DV_Block_Proposer_Assumptions
         && signers <= all_nodes
     }    
 
-    predicate construct_complete_signed_block_assumptions_forward(
+    predicate assump_construction_of_complete_signed_block_forward(
         construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
@@ -659,7 +663,7 @@ module DV_Block_Proposer_Assumptions
                 signing_root: Root, 
                 signed_beacon_blocks: set<SignedBeaconBlock> 
             |
-            && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, beacon_block)
+            && signed_beacon_blocks_for_same_beacon_block(signed_beacon_blocks, beacon_block)
             && signed_beacon_block_signer_threshold(all_nodes, signed_beacon_blocks, signing_root) 
             ::
             && construct_complete_signed_block(signed_beacon_blocks).isPresent()
@@ -672,7 +676,7 @@ module DV_Block_Proposer_Assumptions
                 )
     }
 
-    predicate construct_complete_signed_block_assumptions_reverse_helper(
+    predicate assump_construction_of_complete_signed_block_reverse_helper(
         construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>,
@@ -682,7 +686,7 @@ module DV_Block_Proposer_Assumptions
     requires && construct_complete_signed_block(signed_beacon_blocks).isPresent()
              && construct_complete_signed_block(signed_beacon_blocks).safe_get() == complete_block
     {
-        && signed_beacon_blocks_for_the_same_beacon_block(signed_beacon_blocks, complete_block.block)
+        && signed_beacon_blocks_for_same_beacon_block(signed_beacon_blocks, complete_block.block)
         && var signing_root := compute_block_signing_root(complete_block.block);
         && signed_beacon_block_signer_threshold(all_nodes, signed_beacon_blocks, signing_root)         
         && verify_bls_signature(
@@ -692,7 +696,7 @@ module DV_Block_Proposer_Assumptions
                 )        
     }
 
-    predicate construct_complete_signed_block_assumptions_reverse(
+    predicate assump_construction_of_complete_signed_block_reverse(
         construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
@@ -702,7 +706,7 @@ module DV_Block_Proposer_Assumptions
             &&  construct_complete_signed_block(signed_beacon_blocks).isPresent()
             ::
             &&  var complete_block: SignedBeaconBlock := construct_complete_signed_block(signed_beacon_blocks).safe_get();
-            &&  construct_complete_signed_block_assumptions_reverse_helper(
+            &&  assump_construction_of_complete_signed_block_reverse_helper(
                     construct_complete_signed_block,
                     dv_pubkey,
                     all_nodes,
@@ -711,18 +715,18 @@ module DV_Block_Proposer_Assumptions
                 )
     }    
 
-    predicate construct_complete_signed_block_assumptions(
+    predicate assump_construction_of_complete_signed_block(
         construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
         dv_pubkey: BLSPubkey,
         all_nodes: set<BLSPubkey>
     )
     {
-        &&  construct_complete_signed_block_assumptions_forward(
+        &&  assump_construction_of_complete_signed_block_forward(
                 construct_complete_signed_block,
                 dv_pubkey,
                 all_nodes
             )        
-        &&  construct_complete_signed_block_assumptions_reverse(
+        &&  assump_construction_of_complete_signed_block_reverse(
                 construct_complete_signed_block,
                 dv_pubkey,
                 all_nodes
@@ -730,13 +734,13 @@ module DV_Block_Proposer_Assumptions
             )
     }
 
-    predicate assumption_on_sequence_of_proposer_duties(sequence_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>)
+    predicate assump_seq_of_proposer_duties(sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>)
     {
         && (forall i, j | 
                     && 0 <= i < j
-                    && sequence_proposer_duties_to_be_served[i].node == sequence_proposer_duties_to_be_served[j].node 
+                    && sequence_of_proposer_duties_to_be_served[i].node == sequence_of_proposer_duties_to_be_served[j].node 
                 ::
-                    sequence_proposer_duties_to_be_served[i].proposer_duty.slot < sequence_proposer_duties_to_be_served[j].proposer_duty.slot
+                    sequence_of_proposer_duties_to_be_served[i].proposer_duty.slot < sequence_of_proposer_duties_to_be_served[j].proposer_duty.slot
         )        
     } 
 }

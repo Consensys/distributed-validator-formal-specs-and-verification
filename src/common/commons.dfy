@@ -253,13 +253,155 @@ module Types
                 event: BlockEvent, 
                 nodeOutputs: BlockOutputs
             )
+
+    datatype InCommand<!D> = 
+        | Start(node: BLSPubkey)
+        | Stop(node: BLSPubkey)
+
+    datatype OutCommand<D> = 
+        | Decided(node: BLSPubkey, value: D)
+
+    datatype HonestNodeStatus = NOT_DECIDED | DECIDED
+
+    datatype ConsensusInstance<!D(!new, 0)> = ConsensusInstance(
+        all_nodes: set<BLSPubkey>,
+        decided_value: Optional<D>,
+        honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
+        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>
+    )   
+
+    datatype NonInstrConsensusEngineState<T(!new)> = NonInstrConsensusEngineState(
+        active_consensus_instances: map<Slot, T>
+    ) 
+
+    datatype ConsensusEngineState<T1(!new), !T2(!new, ==), T3(!new, ==)> = ConsensusEngineState(
+        active_consensus_instances: map<Slot, T1>,
+        ghost slashing_db_hist: map<Slot, map<T2 -> bool, set<set<T3>>>>
+    )
+
+    datatype Network<M> = Network(
+        messagesInTransit: multiset<MessaageWithRecipient>,
+        allMessagesSent: set<M>
+    )
+
+    datatype BNState<T(!new, ==)> = BNState(
+        state_roots_of_imported_blocks: set<Root>,
+        submitted_data: seq<T>    
+    )  
+
+    datatype AttDVCState = AttDVCState(
+        current_attestation_duty: Optional<AttestationDuty>,
+        latest_attestation_duty: Optional<AttestationDuty>,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>,
+        attestation_shares_to_broadcast: map<Slot, AttestationShare>,
+        attestation_consensus_engine_state: ConsensusEngineState<AttestationConsensusValidityCheckState, AttestationData, SlashingDBAttestation>,
+        peers: set<BLSPubkey>,
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        // TODO: Note difference with spec.py
+        dv_pubkey: BLSPubkey,
+        future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
+        bn: BNState<Attestation>,
+        rs: RSState,
+        
+        ghost all_rcvd_duties: set<AttestationDuty>
+    )
+
+    datatype NonInstrAttDVCState = NonInstrAttDVCState(
+        current_attestation_duty: Optional<AttestationDuty>,
+        latest_attestation_duty: Optional<AttestationDuty>,
+        attestation_slashing_db: set<SlashingDBAttestation>,
+        rcvd_attestation_shares: map<Slot,map<(AttestationData, seq<bool>), set<AttestationShare>>>,
+        attestation_shares_to_broadcast: map<Slot, AttestationShare>,
+        attestation_consensus_engine_state: NonInstrConsensusEngineState<AttestationConsensusValidityCheckState>,
+        peers: set<BLSPubkey>,
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        // TODO: Note difference with spec.py
+        dv_pubkey: BLSPubkey,
+        future_att_consensus_instances_already_decided:  map<Slot, AttestationData>,
+        bn: BNState<Attestation>,
+        rs: RSState
+    )
+
+    datatype AttDVState = AttDVState(
+        all_nodes: set<BLSPubkey>,
+        honest_nodes_states: map<BLSPubkey, AttDVCState>,
+        adversary: Adversary,
+        dv_pubkey: BLSPubkey,
+        consensus_on_attestation_data: imaptotal<Slot, ConsensusInstance<AttestationData>>,
+        att_network: Network<AttestationShare>,
+        all_attestations_created: set<Attestation>,
+        construct_signed_attestation_signature: (set<AttestationShare>) -> Optional<BLSSignature>,
+        sequence_of_attestation_duties_to_be_served: iseq<AttestationDutyAndNode>,
+        index_next_attestation_duty_to_be_served: nat
+    )
+
+    datatype DVCStateAndOuputs<T1(!new, ==), T2(!new, ==)> = DVCStateAndOuputs(
+        state: T1,
+        outputs: T2
+    )
+
+    datatype NonInstrBlockDVCState = NonInstrBlockDVCState(
+        current_proposer_duty: Optional<ProposerDuty>,
+        latest_proposer_duty: Optional<ProposerDuty>,
+        block_slashing_db: set<SlashingDBBlock>,             
+        rcvd_randao_shares: map<Slot, set<RandaoShare>>,
+        rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        block_shares_to_broadcast: map<Slot, SignedBeaconBlock>, 
+        randao_shares_to_broadcast: map<Slot, RandaoShare>,
+        peers: set<BLSPubkey>,        
+        // TODO: Note difference with spec.py
+        dv_pubkey: BLSPubkey,
+        future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>,
+        bn: BNState<SignedBeaconBlock>,
+        rs: RSState,
+        block_consensus_engine_state: NonInstrConsensusEngineState<BlockConsensusValidityCheckState>
+    )
+
+    datatype BlockDVCState = BlockDVCState(
+        current_proposer_duty: Optional<ProposerDuty>,
+        latest_proposer_duty: Optional<ProposerDuty>,
+        block_slashing_db: set<SlashingDBBlock>,
+        rcvd_randao_shares: map<Slot, set<RandaoShare>>,
+        rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        block_shares_to_broadcast: map<Slot, SignedBeaconBlock>, 
+        randao_shares_to_broadcast: map<Slot, RandaoShare>,
+        peers: set<BLSPubkey>,        
+        dv_pubkey: BLSPubkey,
+        future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>,
+        bn: BNState<SignedBeaconBlock>,
+        rs: RSState,
+        block_consensus_engine_state: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
+        
+        ghost all_rcvd_duties: set<ProposerDuty>,
+        ghost latest_slashing_db_block: Optional<SlashingDBBlock>
+    )
+
+    datatype BlockDVState = BlockDVState(
+        all_nodes: set<BLSPubkey>,
+        honest_nodes_states: map<BLSPubkey, BlockDVCState>,
+        adversary: Adversary,
+        dv_pubkey: BLSPubkey,
+        consensus_instances_on_beacon_block: imaptotal<Slot, ConsensusInstance<BeaconBlock>>,
+        randao_share_network: Network<RandaoShare>,
+        block_share_network: Network<SignedBeaconBlock>,
+        all_blocks_created: set<SignedBeaconBlock>,
+        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
+        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
+        sequence_of_proposer_duties_to_be_served: iseq<ProposerDutyAndNode>,
+        index_next_proposer_duty_to_be_served: nat
+    )
 }
 
 module Common_Functions{
     import opened Types
     import opened Set_Seq_Helper
 
-    function method getOrDefault<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
+    function method get_or_default<T1,T2>(M:map<T1,T2>, key:T1, default:T2): T2
     {
         if key in M.Keys then
             M[key]
@@ -267,12 +409,12 @@ module Common_Functions{
             default
     }      
 
-    function getMessagesFromMessagesWithRecipient<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
+    function f_get_messages_from_messages_with_recipients<M>(mswr: set<MessaageWithRecipient<M>>): set<M>
     {
         set mwr | mwr in mswr :: mwr.message
     }
 
-    function addReceipientToMessages<M>(sm: set<M>, r: BLSPubkey): set<MessaageWithRecipient<M>>
+    function f_get_quorum_card<M>(sm: set<M>, r: BLSPubkey): set<MessaageWithRecipient<M>>
     {
         set m | m in sm :: MessaageWithRecipient(
             message :=  m,
@@ -280,7 +422,7 @@ module Common_Functions{
         )
     }
 
-    function addRecepientsToMessage<M>(m: M, receipients: set<BLSPubkey>): (S: set<MessaageWithRecipient<M>>)
+    function f_add_multiple_recepients_to_message<M>(m: M, receipients: set<BLSPubkey>): (S: set<MessaageWithRecipient<M>>)
     {
         set r | r in receipients :: MessaageWithRecipient(message := m, receipient := r)
     }
@@ -301,18 +443,18 @@ module Common_Functions{
             0
     }
 
-    function multicast<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    function f_multicast<M>(m: M, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
     {
-        addRecepientsToMessage(m, receipients)
+        f_add_multiple_recepients_to_message(m, receipients)
     }
 
-    function multicast_multiple<M>(ms: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
+    function f_multicast_multiple<M>(ms: set<M>, receipients: set<BLSPubkey>): set<MessaageWithRecipient<M>>
     {
-        var setWithRecipient := set m | m in ms :: addRecepientsToMessage(m, receipients);
-        setUnion(setWithRecipient)
+        var setWithRecipient := set m | m in ms :: f_add_multiple_recepients_to_message(m, receipients);
+        f_set_union(setWithRecipient)
     }    
 
-    function getEmptyBlockOuputs(): BlockOutputs
+    function f_get_empty_block_ouputs(): BlockOutputs
     {
         BlockOutputs(
             {},
@@ -321,7 +463,7 @@ module Common_Functions{
         )
     }  
 
-    function getEmptyAttestationOuputs(): AttestationOutputs
+    function f_get_empty_AttestationOuputs(): AttestationOutputs
     {
         AttestationOutputs(
             {},
@@ -331,22 +473,22 @@ module Common_Functions{
 }
 
 module Set_Seq_Helper{
-    function setUnion<T>(sets:set<set<T>>):set<T>
+    function f_set_union<T>(sets: set<set<T>>): set<T>
     {
         set s, e | s in sets && e in s :: e
     } 
 
-    function seqToSet<T>(s: seq<T>): (r: set<T>)
+    function f_seq_to_set<T>(s: seq<T>): (r: set<T>)
     {
         set e | e in s
     }
 
-    predicate uniqueSeq<T(==)>(s: seq<T>)
+    predicate unique_seq<T(==)>(s: seq<T>)
     {
         forall i, j | 0 <= i < |s| && 0 <= j < |s| :: s[i] == s[j] ==> i == j
     }
 
-    lemma minOfSetOfSlotExists(s: set<int>)
+    lemma lem_min_of_non_empty_set_of_slot_exists(s: set<int>)
     requires s != {}
     ensures exists min :: 
                         && min in s 
@@ -363,7 +505,7 @@ module Set_Seq_Helper{
             assert |s| > 1;
             assert s == sMinusE + {e};
             assert |sMinusE| > 0;
-            minOfSetOfSlotExists(sMinusE);
+            lem_min_of_non_empty_set_of_slot_exists(sMinusE);
             var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' >= mMinusE;
         }    
     }
@@ -374,7 +516,7 @@ module Set_Seq_Helper{
     ensures min in s 
     ensures forall e | e in s :: min <= e 
     {
-        existsMinOfNonemptySetOfInt(s);
+        lem_min_of_non_empty_set_of_int_exists(s);
         var e :| e in s && forall e' | e' in s :: e' >= e;
         e
     }
@@ -384,57 +526,50 @@ module Set_Seq_Helper{
     ensures max in s 
     ensures forall e | e in s :: max >= e 
     {
-        existsMaxOfNonemptySetOfInt(s);
+        lem_max_of_non_empty_set_of_int_exists(s);
         var e :| e in s && forall e' | e' in s :: e' <= e;
         e
     }   
-
-    function seq_last<T>(s: seq<T>): T 
-    requires |s| > 0 
-    {
-        s[|s|-1]
-    }
 
     function method {:opaque} get_min(s: set<int>): (min: int)    
     requires s != {}
     ensures min in s
     ensures forall e | e in s :: min <= e
     {        
-        minOfSetOfSlotExists(s);
+        lem_min_of_non_empty_set_of_slot_exists(s);
         var e: int :| e in s && forall e' | e' in s :: e' >= e;
         e        
     }
 
     
 
-    lemma ThingsIKnowAboutSubset<T>(x:set<T>, y:set<T>)
-        requires x<y;
-        ensures |x|<|y|;
+    lemma lem_things_I_know_about_subset<T>(x: set<T>, y: set<T>)
+    requires x<y;
+    ensures |x|<|y|;
     {
         if (x!={}) {
             var e :| e in x;
-            ThingsIKnowAboutSubset(x-{e}, y-{e});
+            lem_things_I_know_about_subset(x-{e}, y-{e});
         }
     }
 
-    lemma SubsetCardinality<T>(x:set<T>, y:set<T>)
-        ensures x<y ==> |x|<|y|;
-        ensures x<=y ==> |x|<=|y|;
+    lemma lem_card_of_subset_is_not_greater_than_card_of_set<T>(x: set<T>, y: set<T>)
+    ensures x<y ==> |x|<|y|;
+    ensures x<=y ==> |x|<=|y|;
     {
         if (x<y) {
-            ThingsIKnowAboutSubset(x, y);
+            lem_things_I_know_about_subset(x, y);
         }
         if (x==y) { // OBSERVE the other case
         }
     }
 
-    lemma ItIsASingletonSet<T>(foo:set<T>, x:T)
-        requires foo=={x};
-        ensures |foo|==1;
-    {
-    }
+    lemma lem_card_of_singleton_set_is_one<T>(foo: set<T>, x: T)
+    requires foo=={x}
+    ensures |foo|==1
+    { }
 
-    lemma ThingsIKnowAboutASingletonSet<T>(foo:set<T>, x:T, y:T)
+    lemma lem_members_of_singleton_set_are_the_same<T>(foo: set<T>, x: T, y: T)
         requires |foo|==1;
         requires x in foo;
         requires y in foo;
@@ -442,37 +577,37 @@ module Set_Seq_Helper{
     {
         if (x!=y) {
             assert {x} < foo;
-            ThingsIKnowAboutSubset({x}, foo);
+            lem_things_I_know_about_subset({x}, foo);
             assert |{x}| < |foo|;
             assert |foo|>1;
             assert false;
         }
     }
 
-    predicate Injective<X(!new), Y(!new)>(f:X-->Y)
+    predicate injective<X(!new), Y(!new)>(f: X-->Y)
     reads f.reads;
     requires forall x :: f.requires(x);
     {
-    forall x1, x2 :: f(x1) == f(x2) ==> x1 == x2
+        forall x1, x2 :: f(x1) == f(x2) ==> x1 == x2
     }
 
-    predicate InjectiveOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+    predicate injective_over<X, Y>(xs: set<X>, ys: set<Y>, f: X-->Y)
     reads f.reads;
     requires forall x :: x in xs ==> f.requires(x);
     {
-    forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
+        forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
     }
 
-    predicate InjectiveOverSeq<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
+    predicate injective_over_seq<X, Y>(xs: seq<X>, ys: set<Y>, f: X->Y)
     reads f.reads;
     requires forall x :: x in xs ==> f.requires(x);
     {
-    forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
+        forall x1, x2 :: x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys && f(x1) == f(x2) ==> x1 == x2
     }
 
-    lemma lem_MapSetCardinality<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+    lemma lem_set_cardinality_and_bijective<X, Y>(xs: set<X>, ys: set<Y>, f: X-->Y)
     requires forall x :: f.requires(x);
-    requires Injective(f);
+    requires injective(f);
     requires forall x :: x in xs <==> f(x) in ys;
     requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
     ensures  |xs| == |ys|;
@@ -482,13 +617,13 @@ module Set_Seq_Helper{
         var x :| x in xs;
         var xs' := xs - {x};
         var ys' := ys - {f(x)};
-        lem_MapSetCardinality(xs', ys', f);
+        lem_set_cardinality_and_bijective(xs', ys', f);
     }
     }
 
-    lemma lem_MapSetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X-->Y)
+    lemma lem_set_cardinality_and_bijective_over<X, Y>(xs: set<X>, ys: set<Y>, f:X-->Y)
     requires forall x :: x in xs ==> f.requires(x);
-    requires InjectiveOver(xs, ys, f);
+    requires injective_over(xs, ys, f);
     requires forall x :: x in xs ==> f(x) in ys;
     requires forall y :: y in ys ==> exists x :: x in xs && y == f(x);
     ensures  |xs| == |ys|;
@@ -498,13 +633,13 @@ module Set_Seq_Helper{
         var x :| x in xs;
         var xs' := xs - {x};
         var ys' := ys - {f(x)};
-        lem_MapSetCardinalityOver(xs', ys', f);
+        lem_set_cardinality_and_bijective_over(xs', ys', f);
     }
     }
 
-    lemma lem_MapSubsetCardinalityOver<X, Y>(xs:set<X>, ys:set<Y>, f:X->Y)
+    lemma lem_set_cardinality_and_injective_over<X, Y>(xs: set<X>, ys: set<Y>, f:X->Y)
     requires forall x :: x in xs ==> f.requires(x);
-    requires InjectiveOver(xs, ys, f);
+    requires injective_over(xs, ys, f);
     requires forall x :: x in xs ==> f(x) in ys;
     ensures  |xs| <= |ys|;
     {
@@ -513,129 +648,115 @@ module Set_Seq_Helper{
         var x :| x in xs;
         var xs' := xs - {x};
         var ys' := ys - {f(x)};
-        lem_MapSubsetCardinalityOver(xs', ys', f);
+        lem_set_cardinality_and_injective_over(xs', ys', f);
     }
     }
 
-    lemma lem_MapSubsetCardinalityOverNoInjective<T,T2>(s:set<T>, s2: set<T2>, f:T --> T2)
+    lemma lem_set_cardinality_and_injective_over_non_empty_set<T,T2>(s: set<T>, s2: set<T2>, f:T --> T2)
     requires forall m | m in s :: f.requires(m)
     requires s2 == set m | m in s :: f(m)
     requires |s| > 0 
     ensures |s2| > 0
     {
-    var e :| e in s;
+        var e :| e in s;
 
-    assert f(e) in s2;
+        assert f(e) in s2;
     }
 
-    lemma lem_MapSubseqCardinalityOver<X, Y>(xs:seq<X>, ys:set<Y>, f:X->Y)
+    lemma lem_map_subseq_cardinality_over<X, Y>(xs: seq<X>, ys: set<Y>, f:X->Y)
     requires forall x :: x in xs ==> f.requires(x);
     requires forall i, j :: 0 <= i < |xs| && 0 <= j < |xs| && i != j ==> xs[i] != xs[j];
-    requires InjectiveOverSeq(xs, ys, f);
+    requires injective_over_seq(xs, ys, f);
     requires forall x :: x in xs ==> f(x) in ys;
     ensures  |xs| <= |ys|;
     {
-    if (xs != [])
-    {
-        var x := xs[0];
-        var xs' := xs[1..];
-        var ys' := ys - {f(x)};
-        forall x' | x' in xs'
-            ensures f(x') in ys';
+        if (xs != [])
         {
-            assert x' in xs;
-            assert f(x') in ys;
-            if f(x') == f(x)
+            var x := xs[0];
+            var xs' := xs[1..];
+            var ys' := ys - {f(x)};
+            forall x' | x' in xs'
+                ensures f(x') in ys';
             {
-                assert x in xs && x' in xs && f(x) in ys && f(x') in ys && f(x') == f(x);
-                assert x' == x;
+                assert x' in xs;
+                assert f(x') in ys;
+                if f(x') == f(x)
+                {
+                    assert x in xs && x' in xs && f(x) in ys && f(x') in ys && f(x') == f(x);
+                    assert x' == x;
+                }
             }
+            forall x1, x2 | x1 in xs' && x2 in xs' && f(x1) in ys' && f(x2) in ys' && f(x1) == f(x2)
+                ensures x1 == x2;
+            {
+                assert x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys';
+            }
+            lem_map_subseq_cardinality_over(xs', ys', f);
         }
-        forall x1, x2 | x1 in xs' && x2 in xs' && f(x1) in ys' && f(x2) in ys' && f(x1) == f(x2)
-            ensures x1 == x2;
-        {
-            assert x1 in xs && x2 in xs && f(x1) in ys && f(x2) in ys';
-        }
-        lem_MapSubseqCardinalityOver(xs', ys', f);
-    }
     }
 
-    function MapSetToSet<X(!new), Y>(xs:set<X>, f:X->Y):set<Y>
+    function f_map_set_to_set<X(!new), Y>(xs: set<X>, f:X->Y): set<Y>
     reads f.reads;
     requires forall x :: f.requires(x);
-    requires Injective(f);
-    ensures  forall x :: x in xs <==> f(x) in MapSetToSet(xs, f);
-    ensures  |xs| == |MapSetToSet(xs, f)|;
+    requires injective(f);
+    ensures  forall x :: x in xs <==> f(x) in f_map_set_to_set(xs, f);
+    ensures  |xs| == |f_map_set_to_set(xs, f)|;
     {
-    var ys := set x | x in xs :: f(x); 
-    lem_MapSetCardinality(xs, ys, f);
-    ys
+        var ys := set x | x in xs :: f(x); 
+        lem_set_cardinality_and_bijective(xs, ys, f);
+        ys
     }
 
-    function MapSetToSetOver<X, Y>(xs:set<X>, f:X->Y):set<Y>
+    function f_map_set_to_set_over<X, Y>(xs: set<X>, f:X->Y): set<Y>
     reads f.reads;
     requires forall x :: x in xs ==> f.requires(x);
-    requires InjectiveOver(xs, set x | x in xs :: f(x), f);
-    ensures  forall x :: x in xs ==> f(x) in MapSetToSetOver(xs, f);
-    ensures  |xs| == |MapSetToSetOver(xs, f)|;
+    requires injective_over(xs, set x | x in xs :: f(x), f);
+    ensures  forall x :: x in xs ==> f(x) in f_map_set_to_set_over(xs, f);
+    ensures  |xs| == |f_map_set_to_set_over(xs, f)|;
     {
-    var ys := set x | x in xs :: f(x); 
-    lem_MapSetCardinalityOver(xs, ys, f);
-    ys
+        var ys := set x | x in xs :: f(x); 
+        lem_set_cardinality_and_bijective_over(xs, ys, f);
+        ys
     }
 
-    function MapSeqToSet<X(!new), Y>(xs:seq<X>, f:X->Y):set<Y>
+    function f_map_seq_to_set<X(!new), Y>(xs: seq<X>, f:X->Y): set<Y>
     reads f.reads;
     requires forall x :: f.requires(x);
-    requires Injective(f);
-    ensures  forall x :: x in xs <==> f(x) in MapSeqToSet(xs, f);
+    requires injective(f);
+    ensures  forall x :: x in xs <==> f(x) in f_map_seq_to_set(xs, f);
     {
-    set x | x in xs :: f(x)
+        set x | x in xs :: f(x)
     }
 
-    lemma lem_SubsetCardinality<X>(xs:set<X>, ys:set<X>, f:X->bool)
+    lemma lem_lem_card_of_subset_is_not_greater_than_card_of_set<X>(xs: set<X>, ys: set<X>, f:X->bool)
     requires forall x :: x in xs ==> f.requires(x);
     requires forall x :: x in ys ==> x in xs && f(x);
     ensures  |ys| <= |xs|;
     {
-    if (ys != {})
-    {
-        var y :| y in ys;
-        var xs' := xs - {y};
-        var ys' := ys - {y};
-        lem_SubsetCardinality(xs', ys', f);
-    }
+        if (ys != {})
+        {
+            var y :| y in ys;
+            var xs' := xs - {y};
+            var ys' := ys - {y};
+            lem_lem_card_of_subset_is_not_greater_than_card_of_set(xs', ys', f);
+        }
     }
 
-    function MakeSubset<X(!new)>(xs:set<X>, f:X->bool):set<X>
+    function f_make_subset<X(!new)>(xs: set<X>, f:X->bool): set<X>
     reads f.reads;
     requires forall x :: x in xs ==> f.requires(x);
-    ensures  forall x :: x in MakeSubset(xs, f) <==> x in xs && f(x);
-    ensures  |MakeSubset(xs, f)| <= |xs|;
+    ensures  forall x :: x in f_make_subset(xs, f) <==> x in xs && f(x);
+    ensures  |f_make_subset(xs, f)| <= |xs|;
     {
-    var ys := set x | x in xs && f(x);
-    lem_SubsetCardinality(xs, ys, f);
-    ys
+        var ys := set x | x in xs && f(x);
+        lem_lem_card_of_subset_is_not_greater_than_card_of_set(xs, ys, f);
+        ys
     }
 
-    /* examples:
-    function{:opaque} setAdd1(xs:set<int>):set<int>
-    ensures forall x :: x in xs <==> x + 1 in setAdd1(xs);
-    ensures |xs| == |setAdd1(xs)|;
-    {
-    MapSetToSet(xs, x => x + 1)
-    }
-    function{:opaque} setPos(xs:set<int>):set<int>
-    ensures forall x :: x in setPos(xs) <==> x in xs && x > 0;
-    {
-    MakeSubset(xs, x => x > 0)
-    }
-    */
-
-    lemma lem_UnionCardinality<X>(xs:set<X>, ys:set<X>, us:set<X>)
-        requires us==xs+ys;
-        ensures |us| >= |xs|;
-        decreases ys;
+    lemma lem_union_cardinality<X>(xs: set<X>, ys: set<X>, us: set<X>)
+    requires us==xs+ys;
+    ensures |us| >= |xs|;
+    decreases ys;
     {
         if (ys=={}) {
         } else {
@@ -644,44 +765,44 @@ module Set_Seq_Helper{
                 var xr := xs - {y};
                 var yr := ys - {y};
                 var ur := us - {y};
-                lem_UnionCardinality(xr, yr, ur);
+                lem_union_cardinality(xr, yr, ur);
             } else {
                 var ur := us - {y};
                 var yr := ys - {y};
-                lem_UnionCardinality(xs, yr, ur);
+                lem_union_cardinality(xs, yr, ur);
             }
         }
     }
 
-    function SetOfNumbersInRightExclusiveRange(a:int, b:int):set<int>
+    function f_set_of_mumbers_in_right_exclusive_range(a:int, b:int): set<int>
         requires a <= b;
-        ensures forall opn :: a <= opn < b ==> opn in SetOfNumbersInRightExclusiveRange(a, b);
-        ensures forall opn :: opn in SetOfNumbersInRightExclusiveRange(a, b) ==> a <= opn < b;
-        ensures |SetOfNumbersInRightExclusiveRange(a, b)| == b-a;
+        ensures forall opn :: a <= opn < b ==> opn in f_set_of_mumbers_in_right_exclusive_range(a, b);
+        ensures forall opn :: opn in f_set_of_mumbers_in_right_exclusive_range(a, b) ==> a <= opn < b;
+        ensures |f_set_of_mumbers_in_right_exclusive_range(a, b)| == b-a;
         decreases b-a;
     {
-        if a == b then {} else {a} + SetOfNumbersInRightExclusiveRange(a+1, b)
+        if a == b then {} else {a} + f_set_of_mumbers_in_right_exclusive_range(a+1, b)
     }
 
-    lemma lem_CardinalityOfBoundedSet(s:set<int>, a:int, b:int)
+    lemma lem_cardinality_of_bounded_set(s: set<int>, a:int, b:int)
         requires forall opn :: opn in s ==> a <= opn < b;
         requires a <= b;
         ensures  |s| <= b-a;
     {
-        var range := SetOfNumbersInRightExclusiveRange(a, b);
+        var range := f_set_of_mumbers_in_right_exclusive_range(a, b);
         forall i | i in s
             ensures i in range;
         {
         }
         assert s <= range;
-        SubsetCardinality(s, range);
+        lem_card_of_subset_is_not_greater_than_card_of_set(s, range);
     }
 
 
-    function intsetmax(s:set<int>):int
-        requires |s| > 0;
-        ensures  var m := intsetmax(s);
-                m in s && forall i :: i in s ==> m >= i;
+    function f_get_max_in_non_empty_set_of_int(s: set<int>):int
+    requires |s| > 0;
+    ensures  var m := f_get_max_in_non_empty_set_of_int(s);
+            m in s && forall i :: i in s ==> m >= i;
     {
         var x :| x in s;
         if |s| == 1 then
@@ -689,71 +810,71 @@ module Set_Seq_Helper{
             x
         else
             var sy := s - {x};
-            var y := intsetmax(sy);
+            var y := f_get_max_in_non_empty_set_of_int(sy);
             assert forall i :: i in s ==> i in sy || i == x;
             if x > y then x else y
     }
 
-    lemma lemmDoubleIntersections<T(==)>(S1:set<T>, S2:set<T>, S3:set<T>)
+    lemma lem_non_empty_double_intersections<T(==)>(S1: set<T>, S2: set<T>, S3: set<T>)
     requires S1 * S2 * S3 != {}
     ensures exists m: T :: m in S1 && m in S2 && m in S3
     {
 
     }
 
-    lemma lemmaEmptyIntersectionImpliesDisjointness<T>(
+    lemma lem_empty_intersection_implies_disjointness<T>(
       s1: set<T>,
       s2: set<T>
     )
     requires s1 * s2 == {}
     ensures s1 !! s2 
     {
-      if s1 == {} && s2 == {}
-      {
-        assert s1 !! s2 ;
-      }
-      else if s1 == {} 
-      {
-        assert s1 !! s2 ;
-      }  
-      else if s2 == {} 
-      {
-        assert s1 !! s2 ;
-      }           
-      else if !(s1 !! s2)
-      {
-        var e :| e in s1 && e in s2;
-        assert e in (s1 * s2);
-        assert (s1 * s2) != {};
-        assert false;
-      }
+        if s1 == {} && s2 == {}
+        {
+            assert s1 !! s2 ;
+        }
+        else if s1 == {} 
+        {
+            assert s1 !! s2 ;
+        }  
+        else if s2 == {} 
+        {
+            assert s1 !! s2 ;
+        }           
+        else if !(s1 !! s2)
+        {
+            var e :| e in s1 && e in s2;
+            assert e in (s1 * s2);
+            assert (s1 * s2) != {};
+            assert false;
+        }
     }
 
-    lemma lemmaInUnion<T(==)>(S: set<T>, S1: set<T>, S2: set<T>, m: T)
+    lemma lem_in_union<T(==)>(S: set<T>, S1: set<T>, S2: set<T>, m: T)
     requires S == S1 + S2
     requires m in S
     ensures m in S1 || m in S2
     {}
 
-    lemma lemmaInUnionOneElement<T(==)>(S: set<T>, S1: set<T>, m1: T, m2: T)
+    lemma lem_in_union_one_element<T(==)>(S: set<T>, S1: set<T>, m1: T, m2: T)
     requires S == S1 + {m1}
     requires m2 in S
     ensures m2 in S1 || m2 == m1
     {}    
 
-    lemma lemmaMapKeysHasOneEntryInItems<K, V>(m: map<K, V>, k: K)  
+    lemma lem_map_keys_has_one_entry_in_items<K, V>(m: map<K, V>, k: K)  
     requires k in m.Keys
     ensures exists i :: i in m.Items && i.0 == k 
     {
         assert (k, m[k]) in m.Items;
     }       
 
-    lemma lemmaFromMemberToSingletonSet<T>(e: T, S: set<T>)
+    lemma lem_from_member_to_singleton_set_card<T>(e: T, S: set<T>)
     requires e in S
     ensures {e} <= S
     {}
 
-    lemma lemmaUnionOfSubsets<T>(S1: set<T>, S2: set<T>, S: set<T>)
+    lemma lemma_card_union_of_subsets<T>(S1: set<T>, S2: set<T>, S: set<T>)
     requires S1 <= S && S2 <= S
     ensures S1 + S2 <= S
     {}
@@ -780,12 +901,12 @@ module Set_Seq_Helper{
     ensures  S == S2
     {}
 
-    lemma lemmaSingletonSetToMembership<T>(e: T, S: set<T>)
+    lemma lem_singleton_set_and_membership<T>(e: T, S: set<T>)
     requires {e} == S
     ensures e in S
     {}
 
-    lemma existsMinOfNonemptySetOfInt(s: set<int>)
+    lemma lem_min_of_non_empty_set_of_int_exists(s: set<int>)
     requires s != {}
     ensures exists min :: 
                         && min in s 
@@ -802,12 +923,12 @@ module Set_Seq_Helper{
             assert |s| > 1;
             assert s == sMinusE + {e};
             assert |sMinusE| > 0;
-            existsMinOfNonemptySetOfInt(sMinusE);
+            lem_min_of_non_empty_set_of_int_exists(sMinusE);
             var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' >= mMinusE;
         }    
     }  
 
-    lemma existsMaxOfNonemptySetOfInt(s: set<int>)
+    lemma lem_max_of_non_empty_set_of_int_exists(s: set<int>)
     requires s != {}
     ensures exists max :: 
                         && max in s 
@@ -824,7 +945,7 @@ module Set_Seq_Helper{
             assert |s| > 1;
             assert s == sMinusE + {e};
             assert |sMinusE| > 0;
-            existsMaxOfNonemptySetOfInt(sMinusE);
+            lem_max_of_non_empty_set_of_int_exists(sMinusE);
             var mMinusE :| mMinusE in sMinusE && forall e' | e' in sMinusE :: e' <= mMinusE;
         }    
     }       
@@ -965,7 +1086,7 @@ module Signing_Methods{
         }
     } 
 
-    predicate method ci_decision_is_valid_attestation_data(
+    predicate method ci_decision_att_signature_is_signed_with_pubkey_data(
         slashing_db: set<SlashingDBAttestation>,
         attestation_data: AttestationData, 
         attestation_duty: AttestationDuty

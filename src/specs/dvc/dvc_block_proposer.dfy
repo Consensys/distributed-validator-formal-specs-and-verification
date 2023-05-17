@@ -3,41 +3,18 @@ include "../../proofs/bn_axioms.dfy"
 include "../../proofs/rs_axioms.dfy"
 include "../dvc/consensus_engine.dfy"
 
-module DVC_Block_Proposer_Spec_NonInstr {
+module Non_Instr_Block_DVC {
     import opened Types 
     import opened Common_Functions
     import opened Set_Seq_Helper
     import opened Signing_Methods
-    import opened Consensus_Engine_NonInstr
+    import opened Non_Instr_Consensus_Engine
     import opened BN_Axioms    
     import opened RS_Axioms
 
-    datatype DVCState = DVCState(
-        current_proposer_duty: Optional<ProposerDuty>,
-        latest_proposer_duty: Optional<ProposerDuty>,
-        block_slashing_db: set<SlashingDBBlock>,             
-        rcvd_randao_shares: map<Slot, set<RandaoShare>>,
-        rcvd_block_shares: map<Slot, map<BeaconBlock, set<SignedBeaconBlock>>>,
-        construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
-        construct_complete_signed_block: (set<SignedBeaconBlock>) -> Optional<SignedBeaconBlock>,
-        block_shares_to_broadcast: map<Slot, SignedBeaconBlock>, 
-        randao_shares_to_broadcast: map<Slot, RandaoShare>,
-        peers: set<BLSPubkey>,        
-        // TODO: Note difference with spec.py
-        dv_pubkey: BLSPubkey,
-        future_consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>,
-        bn: BNState<SignedBeaconBlock>,
-        rs: RSState,
-        block_consensus_engine_state: ConsensusEngineState<BlockConsensusValidityCheckState>
-    )
-
-    datatype DVCStateAndOuputs = DVCStateAndOuputs(
-        state: DVCState,
-        outputs: BlockOutputs
-    )
-
-    predicate Init(
-        s: DVCState,         
+    
+    predicate init(
+        s: NonInstrBlockDVCState,         
         dv_pubkey: BLSPubkey,
         peers: set<BLSPubkey>,                    
         construct_complete_signed_randao_reveal: (set<BLSSignature>) -> Optional<BLSSignature>,
@@ -48,8 +25,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     requires && s.bn.state_roots_of_imported_blocks == {}
              && s.bn.submitted_data == []
     {
-        s == DVCState(
-            // proposer_duty_queue := [],
+        s == NonInstrBlockDVCState(
             future_consensus_instances_on_blocks_already_decided := map[],
             block_shares_to_broadcast := map[],
             randao_shares_to_broadcast := map[],
@@ -64,14 +40,14 @@ module DVC_Block_Proposer_Spec_NonInstr {
             peers := peers,                        
             construct_complete_signed_block := construct_complete_signed_block,
             construct_complete_signed_randao_reveal := construct_complete_signed_randao_reveal,
-            block_consensus_engine_state := getInitialBlockConensusEngineState()
+            block_consensus_engine_state := f_initialize_block_conensus_engine_state()
         )
     }
 
-    predicate Next(
-        s: DVCState,
+    predicate next(
+        s: NonInstrBlockDVCState,
         event: BlockEvent,
-        s': DVCState,
+        s': NonInstrBlockDVCState,
         outputs: BlockOutputs
     )
     {
@@ -85,9 +61,9 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_process_event(
-        s: DVCState,
+        s: NonInstrBlockDVCState,
         event: BlockEvent        
-    ): DVCStateAndOuputs
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     requires match event         
                 case ServeProposerDuty(proposer_duty) => 
                     && f_serve_proposer_duty.requires(s, proposer_duty)
@@ -100,9 +76,9 @@ module DVC_Block_Proposer_Spec_NonInstr {
                 case ImportedNewBlock(block) => 
                     && f_listen_for_new_imported_blocks.requires(s, block)
                 case ResendRandaoRevealSignatureShare => 
-                    && f_resend_randao_share.requires(s)
+                    && f_resend_randao_shares.requires(s)
                 case ResendBlockShare => 
-                    && f_resend_block_share.requires(s) 
+                    && f_resend_block_shares.requires(s) 
                 case NoEvent => 
                     true
     {
@@ -118,11 +94,11 @@ module DVC_Block_Proposer_Spec_NonInstr {
             case ImportedNewBlock(block) => 
                 f_listen_for_new_imported_blocks(s, block)
             case ResendRandaoRevealSignatureShare => 
-                f_resend_randao_share(s)
+                f_resend_randao_shares(s)
             case ResendBlockShare => 
-                f_resend_block_share(s) 
+                f_resend_block_shares(s) 
             case NoEvent => 
-                DVCStateAndOuputs(state := s, outputs := getEmptyBlockOuputs() )
+                DVCStateAndOuputs(state := s, outputs := f_get_empty_block_ouputs() )
     }
 
     function merge_two_outputs(
@@ -130,7 +106,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         outputs2: BlockOutputs
     ): BlockOutputs
     {
-        getEmptyBlockOuputs().(
+        f_get_empty_block_ouputs().(
             sent_block_shares := outputs1.sent_block_shares + outputs2.sent_block_shares,
             sent_randao_shares := outputs1.sent_randao_shares + outputs2.sent_randao_shares,
             submitted_data := outputs1.submitted_data + outputs2.submitted_data
@@ -138,9 +114,9 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_wrap_DVCState_with_Outputs(
-        dvc: DVCState,
+        dvc: NonInstrBlockDVCState,
         outputs: BlockOutputs
-    ): (ret: DVCStateAndOuputs)
+    ): (ret: DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>)
     ensures ret.state == dvc
     {
         DVCStateAndOuputs(
@@ -150,9 +126,9 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_serve_proposer_duty(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         proposer_duty: ProposerDuty
-    ): DVCStateAndOuputs 
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs> 
     {   
         var process_after_receiving_duty := 
             process.(
@@ -170,16 +146,16 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_broadcast_randao_share(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         proposer_duty: ProposerDuty
-    ): DVCStateAndOuputs 
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs> 
     requires process.latest_proposer_duty.isPresent()
     {
         var slot := proposer_duty.slot;
-        var fork_version := bn_get_fork_version(slot);    
+        var fork_version := af_bn_get_fork_version(slot);    
         var epoch := compute_epoch_at_slot(slot);
         var randao_reveal_signing_root := compute_randao_reveal_signing_root(slot);
-        var randao_reveal_signature_share := rs_sign_randao_reveal(epoch, fork_version, randao_reveal_signing_root, process.rs);
+        var randao_reveal_signature_share := af_rs_sign_randao_reveal(epoch, fork_version, randao_reveal_signing_root, process.rs);
         var randao_share := 
             RandaoShare(
                 proposer_duty := proposer_duty,
@@ -188,8 +164,8 @@ module DVC_Block_Proposer_Spec_NonInstr {
                 signature := randao_reveal_signature_share
             );
         var broadcasted_output := 
-            getEmptyBlockOuputs().(
-                sent_randao_shares := multicast(randao_share, process.peers)                                            
+            f_get_empty_block_ouputs().(
+                sent_randao_shares := f_multicast(randao_share, process.peers)                                            
             );
         
         var process_after_checking_for_next_duty := 
@@ -209,9 +185,9 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_check_for_next_duty(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         proposer_duty: ProposerDuty
-    ): DVCStateAndOuputs 
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     requires process.latest_proposer_duty.isPresent()
     {            
         var slot := proposer_duty.slot;
@@ -226,7 +202,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                     current_proposer_duty := None,                    
                     future_consensus_instances_on_blocks_already_decided := process.future_consensus_instances_on_blocks_already_decided - {slot},
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := f_update_block_consensus_engine_state(
                             process.block_consensus_engine_state,
                             new_block_slashing_db
                     )     
@@ -234,7 +210,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
 
             DVCStateAndOuputs(
                 state := new_process,
-                outputs := getEmptyBlockOuputs()
+                outputs := f_get_empty_block_ouputs()
             )    
         else 
             f_start_consensus_if_can_construct_randao_share(
@@ -243,8 +219,8 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_start_consensus_if_can_construct_randao_share(
-        process: DVCState
-    ): DVCStateAndOuputs
+        process: NonInstrBlockDVCState
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     {        
         if && process.current_proposer_duty.isPresent()
            && process.current_proposer_duty.safe_get().slot in process.rcvd_randao_shares
@@ -266,7 +242,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                                                 constructed_randao_reveal.safe_get()));        
                 DVCStateAndOuputs(
                     state :=  process.(
-                        block_consensus_engine_state := startBlockConsensusInstance(
+                        block_consensus_engine_state := f_start_block_consensus_instance(
                             process.block_consensus_engine_state,
                             proposer_duty.slot,
                             proposer_duty,
@@ -274,17 +250,17 @@ module DVC_Block_Proposer_Spec_NonInstr {
                             constructed_randao_reveal.safe_get()
                         )
                     ),
-                    outputs := getEmptyBlockOuputs()
+                    outputs := f_get_empty_block_ouputs()
                 )                        
             else 
                 DVCStateAndOuputs(
                     state := process,
-                    outputs := getEmptyBlockOuputs()
+                    outputs := f_get_empty_block_ouputs()
                 )
         else
             DVCStateAndOuputs(
                 state := process,
-                outputs := getEmptyBlockOuputs()
+                outputs := f_get_empty_block_ouputs()
             )
     }
     
@@ -301,10 +277,10 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_block_consensus_decided(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         id: Slot,
         block: BeaconBlock
-    ): DVCStateAndOuputs
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     {
         if && process.current_proposer_duty.isPresent()
            && process.current_proposer_duty.safe_get().slot == block.slot
@@ -312,35 +288,35 @@ module DVC_Block_Proposer_Spec_NonInstr {
         then
             var new_block_slashing_db := f_update_block_slashing_db(process.block_slashing_db, block);
             var block_signing_root := compute_block_signing_root(block);
-            var fork_version := bn_get_fork_version(block.slot);
-            var block_signature := rs_sign_block(block, fork_version, block_signing_root, process.rs);
+            var fork_version := af_bn_get_fork_version(block.slot);
+            var block_signature := af_rs_sign_block(block, fork_version, block_signing_root, process.rs);
             var block_share := SignedBeaconBlock(block, block_signature);
             var slot := block.slot;
             var process_after_updating_block_shares_to_broadcast := process.(                
                     block_shares_to_broadcast := process.block_shares_to_broadcast[slot := block_share],
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := f_update_block_consensus_engine_state(
                         process.block_consensus_engine_state,
                         new_block_slashing_db
                     )
                 );
-            var multicastOutputs := getEmptyBlockOuputs().(
-                                        sent_block_shares := multicast(block_share, process.peers)
+            var f_multicastOutputs := f_get_empty_block_ouputs().(
+                                        sent_block_shares := f_multicast(block_share, process.peers)
                                     );
 
             DVCStateAndOuputs(
                 state := process_after_updating_block_shares_to_broadcast,
-                outputs := merge_two_outputs(multicastOutputs, getEmptyBlockOuputs())
+                outputs := merge_two_outputs(f_multicastOutputs, f_get_empty_block_ouputs())
             )
         else
             DVCStateAndOuputs(
                 state := process,
-                outputs := getEmptyBlockOuputs()
+                outputs := f_get_empty_block_ouputs()
             )
     }
 
     predicate is_slot_for_current_or_future_instances(
-        process: DVCState,        
+        process: NonInstrBlockDVCState,        
         received_slot: Slot
     )    
     {
@@ -359,15 +335,15 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_listen_for_block_signature_shares(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         block_share: SignedBeaconBlock
-    ): DVCStateAndOuputs
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     {
         var slot := block_share.block.slot;
 
         if is_slot_for_current_or_future_instances(process, slot) then
             var data := block_share.block;
-            var rcvd_block_shares_db_at_slot := getOrDefault(process.rcvd_block_shares, slot, map[]);
+            var rcvd_block_shares_db_at_slot := get_or_default(process.rcvd_block_shares, slot, map[]);
             var process_with_new_block_share :=
                 process.(
                     rcvd_block_shares := 
@@ -375,7 +351,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
                             slot := 
                                 rcvd_block_shares_db_at_slot[
                                     data := 
-                                        getOrDefault(rcvd_block_shares_db_at_slot, data, {}) + 
+                                        get_or_default(rcvd_block_shares_db_at_slot, data, {}) + 
                                         {block_share}
                                     ]
                         ]
@@ -384,26 +360,26 @@ module DVC_Block_Proposer_Spec_NonInstr {
                     var complete_signed_block := process.construct_complete_signed_block(process_with_new_block_share.rcvd_block_shares[slot][data]).safe_get();                      
                     DVCStateAndOuputs(
                         state := process_with_new_block_share,
-                        outputs := getEmptyBlockOuputs().(
+                        outputs := f_get_empty_block_ouputs().(
                                 submitted_data := {complete_signed_block}
                             )
                     )
             else 
                 DVCStateAndOuputs(
                     state := process,
-                    outputs := getEmptyBlockOuputs()
+                    outputs := f_get_empty_block_ouputs()
                 )            
         else
             DVCStateAndOuputs(
                 state := process,
-                outputs := getEmptyBlockOuputs()
+                outputs := f_get_empty_block_ouputs()
             )     
     }
 
     function f_listen_for_randao_shares(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         randao_share: RandaoShare
-    ): DVCStateAndOuputs         
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     {
         var slot := randao_share.slot;
         var active_consensus_instances := process.block_consensus_engine_state.active_consensus_instances.Keys;
@@ -412,7 +388,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         then
             var process_with_new_randao_share := 
                     process.(
-                        rcvd_randao_shares := process.rcvd_randao_shares[slot := getOrDefault(process.rcvd_randao_shares, slot, {}) + 
+                        rcvd_randao_shares := process.rcvd_randao_shares[slot := get_or_default(process.rcvd_randao_shares, slot, {}) + 
                                                                                         {randao_share} ]
                     );     
             f_start_consensus_if_can_construct_randao_share(
@@ -421,11 +397,11 @@ module DVC_Block_Proposer_Spec_NonInstr {
         else
             DVCStateAndOuputs(
                 state := process,
-                outputs := getEmptyBlockOuputs()
+                outputs := f_get_empty_block_ouputs()
             )
     }
 
-    predicate isMyAttestation(
+    predicate has_correct_validator_index(
         a: Attestation,
         bn: BNState<SignedBeaconBlock>,
         block: BeaconBlock,
@@ -433,7 +409,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     )
     requires block.body.state_root in bn.state_roots_of_imported_blocks
     {
-            && var committee := bn_get_epoch_committees<SignedBeaconBlock>(bn, block.body.state_root, a.data.index);
+            && var committee := af_bn_get_epoch_committees<SignedBeaconBlock>(bn, block.body.state_root, a.data.index);
             && valIndex.Some?
             && valIndex.v in committee
             && var i:nat :| i < |committee| && committee[i] == valIndex.v;
@@ -442,7 +418,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_listen_for_new_imported_blocks_helper(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         consensus_instances_on_blocks_already_decided: map<Slot, BeaconBlock>
     ): map<Slot, BeaconBlock>
     {
@@ -458,16 +434,16 @@ module DVC_Block_Proposer_Spec_NonInstr {
     }
 
     function f_listen_for_new_imported_blocks(
-        process: DVCState,
+        process: NonInstrBlockDVCState,
         block: BeaconBlock
-    ): DVCStateAndOuputs
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+    requires    var valIndex := af_bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && isMyAttestation(a1, process.bn, block, valIndex)
+                        && has_correct_validator_index(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && has_correct_validator_index(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2
     {    
@@ -482,7 +458,7 @@ module DVC_Block_Proposer_Spec_NonInstr {
         var process_after_stopping_consensus_instance :=
                 process.(
                     future_consensus_instances_on_blocks_already_decided := future_consensus_instances_on_blocks_already_decided,
-                    block_consensus_engine_state := stopBlockConsensusInstances(
+                    block_consensus_engine_state := f_stop_block_consensus_instances(
                                     process.block_consensus_engine_state,
                                     consensus_instances_on_blocks_already_decided.Keys
                     ),
@@ -499,42 +475,42 @@ module DVC_Block_Proposer_Spec_NonInstr {
                     process_after_stopping_consensus_instance.(
                     current_proposer_duty := None,
                     block_slashing_db := new_block_slashing_db,
-                    block_consensus_engine_state := updateBlockConsensusInstanceValidityCheck(
+                    block_consensus_engine_state := f_update_block_consensus_engine_state(
                         process_after_stopping_consensus_instance.block_consensus_engine_state,
                         new_block_slashing_db
                     )                
             );
-            f_wrap_DVCState_with_Outputs(process_after_updating_validity_check, getEmptyBlockOuputs())
+            f_wrap_DVCState_with_Outputs(process_after_updating_validity_check, f_get_empty_block_ouputs())
         else
-            f_wrap_DVCState_with_Outputs(process, getEmptyBlockOuputs())
+            f_wrap_DVCState_with_Outputs(process, f_get_empty_block_ouputs())
     }
 
-    function f_resend_block_share(
-        process: DVCState
-    ): DVCStateAndOuputs
+    function f_resend_block_shares(
+        process: NonInstrBlockDVCState
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     {
         DVCStateAndOuputs(
             state := process,
-            outputs := getEmptyBlockOuputs().(
+            outputs := f_get_empty_block_ouputs().(
                 sent_block_shares :=
                     if process.block_shares_to_broadcast.Keys != {} then
-                        multicast_multiple(process.block_shares_to_broadcast.Values, process.peers)                        
+                        f_multicast_multiple(process.block_shares_to_broadcast.Values, process.peers)                        
                     else
                         {}
                     )
         )
     }    
 
-    function f_resend_randao_share(
-        process: DVCState
-    ): DVCStateAndOuputs
+    function f_resend_randao_shares(
+        process: NonInstrBlockDVCState
+    ): DVCStateAndOuputs<NonInstrBlockDVCState, BlockOutputs>
     {
         DVCStateAndOuputs(
             state := process,
-            outputs := getEmptyBlockOuputs().(
+            outputs := f_get_empty_block_ouputs().(
                 sent_randao_shares :=
                     if process.randao_shares_to_broadcast.Keys != {} then
-                        multicast_multiple(process.randao_shares_to_broadcast.Values, process.peers)                        
+                        f_multicast_multiple(process.randao_shares_to_broadcast.Values, process.peers)                        
                     else
                         {}
                     )

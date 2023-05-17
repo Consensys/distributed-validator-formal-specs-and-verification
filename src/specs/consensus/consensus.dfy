@@ -1,29 +1,12 @@
 include "../../common/commons.dfy"
 
 // Note: Only safety properties are expressed at the moment.
-module ConsensusSpec
+module Consensus
 {
     import opened Types 
     import opened Common_Functions
 
-    datatype InCommand<!D> = 
-    | Start(node: BLSPubkey)
-    | Stop(node: BLSPubkey)
-
-    datatype OutCommand<D> = 
-    | Decided(node: BLSPubkey, value: D)
-
-    datatype HonestNodeStatus = NOT_DECIDED | DECIDED
-
-    datatype ConsensusInstance<!D(!new, 0)> = ConsensusInstance(
-        all_nodes: set<BLSPubkey>,
-        decided_value: Optional<D>,
-        honest_nodes_status: map<BLSPubkey, HonestNodeStatus>,
-        ghost honest_nodes_validity_functions: map<BLSPubkey, set<D -> bool>>
-    )    
-
-
-    predicate isConditionForSafetyTrue<D(!new, 0)>(
+    predicate condition_for_safety_is_true<D(!new, 0)>(
         s: ConsensusInstance
     )
     {
@@ -31,7 +14,7 @@ module ConsensusSpec
         |byz| <= f(|s.all_nodes|)
     }
 
-    predicate Init<D(!new, 0)>(
+    predicate init<D(!new, 0)>(
         s: ConsensusInstance, 
         all_nodes: set<BLSPubkey>, 
         honest_nodes: set<BLSPubkey>)
@@ -43,24 +26,24 @@ module ConsensusSpec
         && (forall t | t in s.honest_nodes_status.Values :: t == NOT_DECIDED)
     }
 
-    predicate Next<D(!new, 0)>(
+    predicate next<D(!new, 0)>(
         s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,        
         s': ConsensusInstance,
         output: Optional<OutCommand>
     )
     {
-        && NextConsensusDecides(s, honest_nodes_validity_predicates, s')
-        && NextNodeStep(s', honest_nodes_validity_predicates, output)
+        && next_consensus_decides(s, honest_nodes_validity_predicates, s')
+        && next_node_step(s', honest_nodes_validity_predicates, output)
     }
 
-    predicate NextNodeStep<D(!new, 0)>(
+    predicate next_node_step<D(!new, 0)>(
         s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,
         output: Optional<OutCommand>
     )
     {
-        ( && isConditionForSafetyTrue(s)
+        ( && condition_for_safety_is_true(s)
           && output.isPresent() )
         ==> 
         (
@@ -73,7 +56,7 @@ module ConsensusSpec
         )
     }
 
-    predicate is_a_valid_decided_value_according_to_set_of_nodes<D(!new, 0)>(
+    predicate decided_value_is_based_on_validity_predicates_from_quorum<D(!new, 0)>(
         s: ConsensusInstance,
         h_nodes: set<BLSPubkey>
     )
@@ -88,14 +71,14 @@ module ConsensusSpec
         )          
     }
 
-    predicate is_a_valid_decided_value<D(!new, 0)>(
+    predicate decided_value_is_valid<D(!new, 0)>(
         s: ConsensusInstance
     )
     {
-       exists h_nodes :: is_a_valid_decided_value_according_to_set_of_nodes(s, h_nodes)            
+       exists h_nodes :: decided_value_is_based_on_validity_predicates_from_quorum(s, h_nodes)            
     }
 
-    function add_set_of_validity_predicates<D(!new, 0)>(
+    function f_add_set_of_validity_predicates<D(!new, 0)>(
         existing_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>
     ): (new_honest_nodes_validity_predicates: map<BLSPubkey, set<D -> bool>>)
@@ -103,25 +86,25 @@ module ConsensusSpec
         map k | k in existing_honest_nodes_validity_predicates.Keys + honest_nodes_validity_predicates.Keys
             ::
             if k in honest_nodes_validity_predicates.Keys then
-                getOrDefault(existing_honest_nodes_validity_predicates, k, {}) + {honest_nodes_validity_predicates[k]}
+                get_or_default(existing_honest_nodes_validity_predicates, k, {}) + {honest_nodes_validity_predicates[k]}
             else 
                 existing_honest_nodes_validity_predicates[k]
     }
 
-    predicate NextConsensusDecides<D(!new, 0)>(
+    predicate next_consensus_decides<D(!new, 0)>(
         s: ConsensusInstance,
         honest_nodes_validity_predicates: map<BLSPubkey, D -> bool>,    
         s': ConsensusInstance
     )
     {
         && honest_nodes_validity_predicates.Keys <= s.honest_nodes_status.Keys
-        && s'.honest_nodes_validity_functions == add_set_of_validity_predicates(s.honest_nodes_validity_functions, honest_nodes_validity_predicates)
+        && s'.honest_nodes_validity_functions == f_add_set_of_validity_predicates(s.honest_nodes_validity_functions, honest_nodes_validity_predicates)
         && (
             || (
-                && (isConditionForSafetyTrue(s) ==>
+                && (condition_for_safety_is_true(s) ==>
                                                     && s'.decided_value.isPresent()
                                                     && (s.decided_value.isPresent() ==> s'.decided_value == s.decided_value)
-                                                    && is_a_valid_decided_value(s')
+                                                    && decided_value_is_valid(s')
                 )
                 && s'.honest_nodes_status.Keys == s.honest_nodes_status.Keys
                 && (forall n | n in s.honest_nodes_status.Keys ::

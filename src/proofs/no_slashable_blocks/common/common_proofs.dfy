@@ -14,37 +14,37 @@ module Common_Proofs_For_Block_Proposer
     import opened Common_Functions
     import opened Set_Seq_Helper
     import opened Signing_Methods
-    import opened ConsensusSpec
-    import opened NetworkSpec
-    import opened DVC_Block_Proposer_Spec_Instr
-    import opened Consensus_Engine_Instr
-    import opened DV_Block_Proposer_Spec
+    import opened Consensus
+    import opened Network_Spec
+    import opened Block_DVC
+    import opened Consensus_Engine
+    import opened Block_DV
     import opened Block_Inv_With_Empty_Initial_Block_Slashing_DB
     import opened BN_Axioms
     import opened RS_Axioms
 
-    lemma lem_updateBlockConsensusInstanceValidityCheck(
+    lemma lem_f_update_block_consensus_engine_state(
         s: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>,
         new_block_slashing_db: set<SlashingDBBlock>,        
         r: ConsensusEngineState<BlockConsensusValidityCheckState, BeaconBlock, SlashingDBBlock>
     )
-    requires r == updateBlockConsensusInstanceValidityCheck(s, new_block_slashing_db)        
+    requires r == f_update_block_consensus_engine_state(s, new_block_slashing_db)        
     ensures r.slashing_db_hist.Keys
                 == s.slashing_db_hist.Keys + s.active_consensus_instances.Keys
     {
-        var new_active_consensus_instances := updateBlockConsensusInstanceValidityCheckHelper(
+        var new_active_consensus_instances := f_update_block_consensus_instance_validity_check_states(
                     s.active_consensus_instances,
                     new_block_slashing_db
                 );
 
-        lem_updateBlockConsensusInstanceValidityCheckHelper(
+        lem_f_update_block_consensus_instance_validity_check_states(
                 s.active_consensus_instances,
                 new_block_slashing_db,
                 new_active_consensus_instances);
 
         assert new_active_consensus_instances.Keys == s.active_consensus_instances.Keys;
 
-        var new_slashing_db_hist := updateBlockSlashingDBHist(
+        var new_slashing_db_hist := f_update_block_slashing_db_hist_with_new_consensus_instances_and_slashing_db_blocks(
                                             s.slashing_db_hist,
                                             new_active_consensus_instances,
                                             new_block_slashing_db
@@ -73,12 +73,12 @@ module Common_Proofs_For_Block_Proposer
         }
     }
 
-    lemma lem_updateBlockConsensusInstanceValidityCheckHelper(
+    lemma lem_f_update_block_consensus_instance_validity_check_states(
         m: map<Slot, BlockConsensusValidityCheckState>,
         new_block_slashing_db: set<SlashingDBBlock>,
         m': map<Slot, BlockConsensusValidityCheckState>
     )    
-    requires m' == updateBlockConsensusInstanceValidityCheckHelper(m, new_block_slashing_db)
+    requires m' == f_update_block_consensus_instance_validity_check_states(m, new_block_slashing_db)
     ensures m.Keys == m'.Keys
     ensures forall slot |
                 && slot in m'.Keys 
@@ -94,7 +94,7 @@ module Common_Proofs_For_Block_Proposer
         forall k | k in  m 
         ensures k in m'
         {
-            lemmaMapKeysHasOneEntryInItems(m, k);
+            lem_map_keys_has_one_entry_in_items(m, k);
             assert k in m';
         }
 

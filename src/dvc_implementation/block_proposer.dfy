@@ -238,7 +238,7 @@ abstract module Block_DVC_Implementation
 
             if is_slot_for_current_or_future_instances(active_consensus_instances, slot)
             {
-                rcvd_randao_shares := rcvd_randao_shares[slot := getOrDefault(rcvd_randao_shares, slot, {}) + {randao_share} ]; 
+                rcvd_randao_shares := rcvd_randao_shares[slot := get_or_default(rcvd_randao_shares, slot, {}) + {randao_share} ]; 
                 :- start_consensus_if_can_construct_randao_share(); 
             }
 
@@ -291,13 +291,13 @@ abstract module Block_DVC_Implementation
             if is_slot_for_current_or_future_instances(active_consensus_instances, slot)
             {
                 var data := block_share.block;
-                var rcvd_block_shares_db_at_slot := getOrDefault(rcvd_block_shares, slot, map[]);
+                var rcvd_block_shares_db_at_slot := get_or_default(rcvd_block_shares, slot, map[]);
                 rcvd_block_shares := 
                     rcvd_block_shares[
                         slot := 
                             rcvd_block_shares_db_at_slot[
                                         data := 
-                                            getOrDefault(rcvd_block_shares_db_at_slot, data, {}) + 
+                                            get_or_default(rcvd_block_shares_db_at_slot, data, {}) + 
                                             {block_share}
                                         ]
                             ];

@@ -4,7 +4,7 @@ module Quorum_Lemmas {
     import opened Common_Functions
     import opened Set_Seq_Helper
 
-    lemma lemmaQuorumIntersection<T(==)>(nodes:set<T>, byz:set<T>, Q1:set<T>, Q2:set<T>)
+    lemma lemmaQuorumIntersection<T(==)>(nodes: set<T>, byz: set<T>, Q1: set<T>, Q2: set<T>)
     requires nodes != {}
     requires Q1 <= nodes
     requires Q2 <= nodes
@@ -28,13 +28,13 @@ module Quorum_Lemmas {
                 |Q1| + |Q2| - |Q1 + Q2|;
                 >= calc {
                         |Q1 + Q2|; 
-                        <= {SubsetCardinality(Q1 + Q2, nodes);}
+                        <= {lem_card_of_subset_is_not_greater_than_card_of_set(Q1 + Q2, nodes);}
                         |nodes|; 
                     }
                 |Q1| + |Q2| - |nodes|;
             }
             |Q1| + |Q2| - |byz| - |(Q1*Q2) + hon|;
-            >= {SubsetCardinality((Q1*Q2) + hon, nodes);}
+            >= {lem_card_of_subset_is_not_greater_than_card_of_set((Q1*Q2) + hon, nodes);}
             |Q1| + |Q2| - |byz| - |nodes|;
             >=
             2 * quorum(|nodes|)- |nodes| - f(|nodes|);
@@ -44,7 +44,7 @@ module Quorum_Lemmas {
 
     }
 
-    lemma lemmaThereExistsAnHonestInQuorum<T(==)>(nodes:set<T>, byz:set<T>, Q1:set<T>)
+    lemma lemmaThereExistsAnHonestInQuorum<T(==)>(nodes: set<T>, byz: set<T>, Q1: set<T>)
     requires nodes != {}
     requires Q1 <= nodes
     requires |Q1| >= quorum(|nodes|)
@@ -60,7 +60,7 @@ module Quorum_Lemmas {
             >= 
             |Q1| + |nodes| - |byz| - |Q1 + hon|;
             >= 
-            {SubsetCardinality(Q1 + hon, nodes);}
+            {lem_card_of_subset_is_not_greater_than_card_of_set(Q1 + hon, nodes);}
             |Q1|  - |byz|;
             >=
             quorum(|nodes|) - f(|nodes|);
@@ -69,7 +69,7 @@ module Quorum_Lemmas {
         }        
     }   
 
-    lemma lemmaThereExistsAnHonestInQuorum2<T(==)>(nodes:set<T>, byz: set<T>, hon:set<T>)
+    lemma lemmaThereExistsAnHonestInQuorum2<T(==)>(nodes: set<T>, byz: set<T>, hon: set<T>)
     requires nodes != {}
     requires hon <= nodes
     requires byz <= nodes
@@ -78,7 +78,7 @@ module Quorum_Lemmas {
     requires hon * byz == {}
     ensures hon != {}
     {
-        lemmaEmptyIntersectionImpliesDisjointness(hon, byz);
+        lem_empty_intersection_implies_disjointness(hon, byz);
         var hon_byz := hon + byz;
 
 
@@ -91,7 +91,7 @@ module Quorum_Lemmas {
 
     
 
-    lemma lemmaQuorumIsGreaterThan2F<T(==)>(nodes:set<T>)
+    lemma lemmaQuorumIsGreaterThan2F<T(==)>(nodes: set<T>)
     requires |nodes| > 0
     ensures quorum(|nodes|) > 2*f(|nodes|)
     { }
@@ -111,7 +111,7 @@ module Quorum_Lemmas {
             >
             |subset| - |S1 + S2|;            
             >=
-            {SubsetCardinality(S1 + S2, subset);}
+            {lem_card_of_subset_is_not_greater_than_card_of_set(S1 + S2, subset);}
             |subset| - |subset|;
             ==
             0;

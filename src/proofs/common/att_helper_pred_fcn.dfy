@@ -12,20 +12,20 @@ module Att_Helper_Pred_Fcn
     import opened Common_Functions
     import opened Set_Seq_Helper
     import opened Signing_Methods
-    import opened ConsensusSpec
-    import opened Consensus_Engine_Instr
-    import opened NetworkSpec
-    import opened Att_DVC_Spec
+    import opened Consensus
+    import opened Consensus_Engine
+    import opened Network_Spec
+    import opened Att_DVC
     import opened Att_DV
     import opened BN_Axioms
     import opened RS_Axioms
-    import Att_DVC_Spec_NonInstr
+    import Non_Instr_Att_DVC
     
 
-    function f_new_process_after_updateAttConsensusInstanceValidityCheck(
-        process: Att_DVCState,
+    function f_new_process_after_f_update_att_consensus_engine_state(
+        process: AttDVCState,
         attestation_duty: AttestationDuty
-    ): Att_DVCState
+    ): AttDVCState
     requires attestation_duty.slot in process.future_att_consensus_instances_already_decided.Keys 
     {
         var new_attestation_slashing_db := 
@@ -38,7 +38,7 @@ module Att_Helper_Pred_Fcn
                 process.(
                     future_att_consensus_instances_already_decided := process.future_att_consensus_instances_already_decided - {attestation_duty.slot},
                     attestation_slashing_db := new_attestation_slashing_db,
-                    attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
+                    attestation_consensus_engine_state := f_update_att_consensus_engine_state(
                         process.attestation_consensus_engine_state,
                         new_attestation_slashing_db
                     )                        
@@ -48,16 +48,16 @@ module Att_Helper_Pred_Fcn
     }
 
     function f_new_process_after_starting_new_att_duty(
-        process: Att_DVCState,
+        process: AttDVCState,
         attestation_duty: AttestationDuty
-    ): Att_DVCState
+    ): AttDVCState
     requires attestation_duty.slot !in process.attestation_consensus_engine_state.active_consensus_instances.Keys
     requires || !process.latest_attestation_duty.isPresent()
              || process.latest_attestation_duty.safe_get().slot < attestation_duty.slot
     {
         process.( current_attestation_duty := Some(attestation_duty),
                   latest_attestation_duty := Some(attestation_duty),
-                  attestation_consensus_engine_state := startAttConsensusInstance(
+                  attestation_consensus_engine_state := f_start_att_consensus_instance(
                     process.attestation_consensus_engine_state,
                     attestation_duty.slot,
                     attestation_duty,
@@ -67,20 +67,20 @@ module Att_Helper_Pred_Fcn
     }
 
     predicate is_correct_att_share(
-        s: Att_DVState,
+        s: AttDVState,
         hn: BLSPubkey,
         att_share: AttestationShare
     )
     {
         && hn in s.honest_nodes_states.Keys 
         && att_share in s.att_network.allMessagesSent
-        && var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
+        && var fork_version := af_bn_get_fork_version(compute_start_slot_at_epoch(att_share.data.target.epoch));
         && var attestation_signing_root := compute_attestation_signing_root(att_share.data, fork_version);
         && verify_bls_signature(attestation_signing_root, att_share.signature, hn)   
     }
     
     predicate is_decided_data_for_current_slot(
-        process: Att_DVCState,
+        process: AttDVCState,
         decided_attestation_data: AttestationData,
         id: Slot
     )
@@ -91,7 +91,7 @@ module Att_Helper_Pred_Fcn
     }
 
     predicate pred_att_duty_was_already_decided(
-        process: Att_DVCState,
+        process: AttDVCState,
         id: Slot
     ) 
     {
@@ -100,7 +100,7 @@ module Att_Helper_Pred_Fcn
     }
 
     predicate pred_decision_of_att_duty_was_known(
-        process: Att_DVCState,
+        process: AttDVCState,
         attestation_duty: AttestationDuty
     ) 
     {
@@ -108,21 +108,21 @@ module Att_Helper_Pred_Fcn
     }
 
     function f_update_process_after_att_duty_decided(
-        process: Att_DVCState,
+        process: AttDVCState,
         id: Slot,
         decided_attestation_data: AttestationData
-    ) : (ret_process: Att_DVCState)
+    ) : (ret_process: AttDVCState)
     requires && process.current_attestation_duty.isPresent()
              && id == process.current_attestation_duty.safe_get().slot
     {
         var local_current_attestation_duty := process.current_attestation_duty.safe_get();
         var attestation_slashing_db := f_update_attestation_slashing_db(process.attestation_slashing_db, decided_attestation_data);
 
-        var fork_version := bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
+        var fork_version := af_bn_get_fork_version(compute_start_slot_at_epoch(decided_attestation_data.target.epoch));
         var attestation_signing_root := compute_attestation_signing_root(decided_attestation_data, fork_version);
-        var attestation_signature_share := rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
+        var attestation_signature_share := af_rs_sign_attestation(decided_attestation_data, fork_version, attestation_signing_root, process.rs);
         var attestation_with_signature_share := AttestationShare(
-                aggregation_bits := get_aggregation_bits(local_current_attestation_duty.validator_index),
+                aggregation_bits := f_get_aggregation_bits(local_current_attestation_duty.validator_index),
                 data := decided_attestation_data, 
                 signature := attestation_signature_share
             ); 
@@ -132,7 +132,7 @@ module Att_Helper_Pred_Fcn
                 current_attestation_duty := None,
                 attestation_shares_to_broadcast := process.attestation_shares_to_broadcast[local_current_attestation_duty.slot := attestation_with_signature_share],
                 attestation_slashing_db := attestation_slashing_db,
-                attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
+                attestation_consensus_engine_state := f_update_att_consensus_engine_state(
                     process.attestation_consensus_engine_state,
                     attestation_slashing_db
                 )
@@ -141,7 +141,7 @@ module Att_Helper_Pred_Fcn
         ret_process
     }
 
-    predicate no_curr_duty(s_mod: Att_DVCState) 
+    predicate no_curr_duty(s_mod: AttDVCState) 
     {
         && !s_mod.current_attestation_duty.isPresent()   
     }
@@ -149,7 +149,7 @@ module Att_Helper_Pred_Fcn
     
     
     predicate pred_listen_for_attestation_shares_checker(
-        process: Att_DVCState,
+        process: AttDVCState,
         attestation_share: AttestationShare
     ) 
     {
@@ -162,9 +162,9 @@ module Att_Helper_Pred_Fcn
     }
 
     function f_add_new_attestation_share(
-        process: Att_DVCState,
+        process: AttDVCState,
         attestation_share: AttestationShare
-    ): Att_DVCState
+    ): AttDVCState
     requires pred_listen_for_attestation_shares_checker(
                 process,
                 attestation_share) 
@@ -172,14 +172,14 @@ module Att_Helper_Pred_Fcn
         var activate_att_consensus_intances := process.attestation_consensus_engine_state.active_consensus_instances.Keys;
 
         var k := (attestation_share.data, attestation_share.aggregation_bits);
-        var attestation_shares_db_at_slot := getOrDefault(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
+        var attestation_shares_db_at_slot := get_or_default(process.rcvd_attestation_shares, attestation_share.data.slot, map[]);
         
         var new_attestation_shares_db := 
                 process.rcvd_attestation_shares[
                     attestation_share.data.slot := 
                         attestation_shares_db_at_slot[
                                     k := 
-                                        getOrDefault(attestation_shares_db_at_slot, k, {}) + 
+                                        get_or_default(attestation_shares_db_at_slot, k, {}) + 
                                         {attestation_share}
                                     ]
                         ];
@@ -192,9 +192,9 @@ module Att_Helper_Pred_Fcn
     }
 
     function f_add_new_submitted_attestation(
-        process: Att_DVCState,
+        process: AttDVCState,
         aggregated_attestation: Attestation
-    ): Att_DVCState
+    ): AttDVCState
 
     {
         process.(
@@ -204,17 +204,17 @@ module Att_Helper_Pred_Fcn
         )
     }
 
-    function f_stopAttConsensusInstances_after_receiving_new_imported_blocks(
-        process: Att_DVCState,
+    function f_f_stop_att_consensus_instances_after_receiving_new_imported_blocks(
+        process: AttDVCState,
         block: BeaconBlock
-    ): Att_DVCState
+    ): AttDVCState
     requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    requires    var valIndex := bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+    requires    var valIndex := af_bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
                 forall a1, a2 | 
                         && a1 in block.body.attestations
-                        && Att_DVC_Spec_NonInstr.isMyAttestation(a1, process.bn, block, valIndex)
+                        && Non_Instr_Att_DVC.has_correct_validator_index(a1, process.bn, block, valIndex)
                         && a2 in block.body.attestations
-                        && Att_DVC_Spec_NonInstr.isMyAttestation(a2, process.bn, block, valIndex)                        
+                        && Non_Instr_Att_DVC.has_correct_validator_index(a2, process.bn, block, valIndex)                        
                     ::
                         a1.data.slot == a2.data.slot ==> a1 == a2  
     {
@@ -228,7 +228,7 @@ module Att_Helper_Pred_Fcn
         var ret_process :=
                 process.(
                     future_att_consensus_instances_already_decided := future_att_consensus_instances_already_decided,
-                    attestation_consensus_engine_state := stopAttConsensusInstances(
+                    attestation_consensus_engine_state := f_stop_att_consensus_instances(
                                     process.attestation_consensus_engine_state,
                                     att_consensus_instances_already_decided.Keys
                     ),
@@ -240,7 +240,7 @@ module Att_Helper_Pred_Fcn
     }
 
     predicate pred_listen_for_new_imported_blocks_checker(
-        process: Att_DVCState,
+        process: AttDVCState,
         att_consensus_instances_already_decided: map<Slot, AttestationData>
     )
     {
@@ -248,10 +248,10 @@ module Att_Helper_Pred_Fcn
         && process.current_attestation_duty.safe_get().slot in att_consensus_instances_already_decided 
     } 
 
-    function f_updateAttConsensusInstanceValidityCheck_in_listen_for_new_imported_blocks(
-        process: Att_DVCState,
+    function f_f_update_att_consensus_engine_state_in_listen_for_new_imported_blocks(
+        process: AttDVCState,
         att_consensus_instances_already_decided: map<Slot, AttestationData>
-    ): Att_DVCState
+    ): AttDVCState
     requires pred_listen_for_new_imported_blocks_checker(process, att_consensus_instances_already_decided)
     {
         var decided_attestation_data := att_consensus_instances_already_decided[process.current_attestation_duty.safe_get().slot];
@@ -259,7 +259,7 @@ module Att_Helper_Pred_Fcn
         var ret_process := process.(
             current_attestation_duty := None,
             attestation_slashing_db := new_attestation_slashing_db,
-            attestation_consensus_engine_state := updateAttConsensusInstanceValidityCheck(
+            attestation_consensus_engine_state := f_update_att_consensus_engine_state(
                 process.attestation_consensus_engine_state,
                 new_attestation_slashing_db
             )                
@@ -267,7 +267,7 @@ module Att_Helper_Pred_Fcn
         ret_process
     }   
 
-    predicate nonempty_latest_att_duty(s: Att_DVCState) 
+    predicate nonempty_latest_att_duty(s: AttDVCState) 
     {
         && s.latest_attestation_duty.isPresent()  
     }

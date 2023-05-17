@@ -44,32 +44,32 @@ module DVC_Externs
         ghost var att_shares_sent: seq<set<MessaageWithRecipient<AttestationShare>>>;
 
         method send_att_share(att_share: AttestationShare, receipients: set<BLSPubkey>)
-        ensures att_shares_sent == old(att_shares_sent)  + [addRecepientsToMessage(att_share, receipients)]
+        ensures att_shares_sent == old(att_shares_sent)  + [f_add_multiple_recepients_to_message(att_share, receipients)]
 
         method send_att_shares(att_shares: set<AttestationShare>, receipients: set<BLSPubkey>)
-        ensures     var setWithRecipient := set att_share | att_share in att_shares :: addRecepientsToMessage(att_share, receipients);
-                    att_shares_sent == old(att_shares_sent)  + [setUnion(setWithRecipient)]
+        ensures     var setWithRecipient := set att_share | att_share in att_shares :: f_add_multiple_recepients_to_message(att_share, receipients);
+                    att_shares_sent == old(att_shares_sent)  + [f_set_union(setWithRecipient)]
         ensures unchanged(`att_shares_sent)
 
         ghost var sent_block_shares: seq<set<MessaageWithRecipient<SignedBeaconBlock>>>;
         ghost var sent_randao_shares: seq<set<MessaageWithRecipient<RandaoShare>>>;
 
         method send_block_share(block_share: SignedBeaconBlock, receipients: set<BLSPubkey>)
-        ensures sent_block_shares == old(sent_block_shares)  + [addRecepientsToMessage(block_share, receipients)]  
+        ensures sent_block_shares == old(sent_block_shares)  + [f_add_multiple_recepients_to_message(block_share, receipients)]  
         ensures unchanged(`sent_randao_shares)
 
         method send_block_shares(block_shares: set<SignedBeaconBlock>, receipients: set<BLSPubkey>)
-        ensures var setWithRecipient := set block_share | block_share in block_shares :: addRecepientsToMessage(block_share, receipients);
-                sent_block_shares == old(sent_block_shares)  + [setUnion(setWithRecipient)]
+        ensures var setWithRecipient := set block_share | block_share in block_shares :: f_add_multiple_recepients_to_message(block_share, receipients);
+                sent_block_shares == old(sent_block_shares)  + [f_set_union(setWithRecipient)]
         ensures unchanged(`sent_randao_shares)        
 
         method send_randao_share(randao_share: RandaoShare, receipients: set<BLSPubkey>)
-        ensures sent_randao_shares == old(sent_randao_shares)  + [addRecepientsToMessage(randao_share, receipients)]
+        ensures sent_randao_shares == old(sent_randao_shares)  + [f_add_multiple_recepients_to_message(randao_share, receipients)]
         ensures unchanged(`sent_block_shares)
 
         method send_randao_shares(randao_shares: set<RandaoShare>, receipients: set<BLSPubkey>)
-        ensures var setWithRecipient := set randao_share | randao_share in randao_shares :: addRecepientsToMessage(randao_share, receipients);
-                sent_randao_shares == old(sent_randao_shares)  + [setUnion(setWithRecipient)]
+        ensures var setWithRecipient := set randao_share | randao_share in randao_shares :: f_add_multiple_recepients_to_message(randao_share, receipients);
+                sent_randao_shares == old(sent_randao_shares)  + [f_set_union(setWithRecipient)]
         ensures unchanged(`sent_block_shares)      
 
     }
@@ -95,7 +95,7 @@ module DVC_Externs
         ensures unchanged(`state_roots_of_imported_blocks)
         ensures unchanged(`data_submitted)        
         ensures state_id in state_roots_of_imported_blocks <==> s.Success?
-        ensures uniqueSeq(sv)  
+        ensures unique_seq(sv)  
 
         // https://ethereum.github.io/beacon-APIs/#/Beacon/getStateValidator
         method get_validator_index(
@@ -118,7 +118,7 @@ module DVC_Externs
         ) returns (s: BLSSignature)
         requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
 
-        // eth_node_interface.py --> rs_sign_block
+        // eth_node_interface.py --> af_rs_sign_block
         method sign_block(
             block: BeaconBlock,
             fork_version: Version, 
@@ -126,7 +126,7 @@ module DVC_Externs
         ) returns (s: BLSSignature)
         requires signing_root == compute_block_signing_root(block)
 
-        // eth_node_interface.py --> rs_sign_randao_reveal
+        // eth_node_interface.py --> af_rs_sign_randao_reveal
         // Check the pre-condition that is based on the first slot of an epoch.
         method {:extern} sign_randao_reveal(
             epoch: Epoch,
