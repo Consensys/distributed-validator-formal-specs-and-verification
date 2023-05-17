@@ -17,7 +17,7 @@ module No_Slashable_Attestations_Main_Theorem
     import opened Ind_Inv_Implies_Safety
 
 
-    predicate is_valid_trace(
+    predicate valid_trace(
         trace: iseq<AttDVState>
     )  
     {
@@ -32,7 +32,7 @@ module No_Slashable_Attestations_Main_Theorem
         trace: iseq<AttDVState>,
         i: Slot
     )
-    requires is_valid_trace(trace)
+    requires valid_trace(trace)
     ensures forall j | 0 <= j <= i ::
         && next_preconditions(trace[j])  
         && ind_inv(trace[j])
@@ -51,7 +51,7 @@ module No_Slashable_Attestations_Main_Theorem
     lemma lem_non_slashable_attestations(
         trace: iseq<AttDVState>
     )
-    requires is_valid_trace(trace)
+    requires valid_trace(trace)
     ensures forall i:nat :: non_slashable_attestations(trace[i])
     {
         forall i:nat
