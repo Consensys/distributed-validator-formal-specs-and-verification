@@ -2449,7 +2449,7 @@ module Fnc_Invs_2
             var outputs := f_block_consensus_decided(process, id, decided_beacon_block).outputs;
 
             forall block_share: SignedBeaconBlock | block_share in f_get_messages_from_messages_with_recipients(outputs.sent_block_shares) 
-            assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_body(process', block_share);
+            ensures inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_body(process', block_share);
             {                
                 assert inv_outputs_sent_block_shares_are_tracked_in_block_slashing_db_body(process', block_share);
             }
