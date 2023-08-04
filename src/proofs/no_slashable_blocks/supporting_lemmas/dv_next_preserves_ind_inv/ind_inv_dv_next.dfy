@@ -451,7 +451,7 @@ module Ind_Inv_DV_Next
     ensures Block_DV.next_preconditions(dv')
     {
         var e :|
-            && preconditions_for_HonestNodeTakingStep(dv, e)
+            && valid_HonestNodeTakingStep_event(dv, e)
             && next_event(dv, e, dv');
 
         lem_ind_inv_dv_next_ind_inv(dv, e, dv');
@@ -464,7 +464,7 @@ module Ind_Inv_DV_Next
     requires ind_inv(s)
     ensures  next_preconditions(s)                
     {
-        forall event | preconditions_for_HonestNodeTakingStep(s, event)
+        forall event | valid_HonestNodeTakingStep_event(s, event)
         ensures next_event_preconditions(s, event);
         {
             if event.HonestNodeTakingStep?

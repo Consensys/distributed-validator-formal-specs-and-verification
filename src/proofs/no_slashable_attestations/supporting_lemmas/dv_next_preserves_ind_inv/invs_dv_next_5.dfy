@@ -161,10 +161,10 @@ module Invs_Att_DV_Next_5
     requires next_event_preconditions(s, event)
     requires next_event(s, event, s')  
     requires event.HonestNodeTakingStep?
-    ensures next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
-    ensures next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
-    ensures Att_DVC.next.requires(f_add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
-    ensures Att_DVC.next(f_add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
+    ensures next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
+    ensures next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
+    ensures Att_DVC.next.requires(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
+    ensures Att_DVC.next(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
     {
 
     } 
@@ -1241,8 +1241,8 @@ module Invs_Att_DV_Next_5
         nodeEvent: AttestationEvent, 
         dv': AttDVState
     )    
-    requires f_add_block_to_bn_with_event.requires(dv, node, nodeEvent)
-    requires dv' == f_add_block_to_bn_with_event(dv, node, nodeEvent)
+    requires f_add_block_to_bn_if_ImportedNewBlock_event.requires(dv, node, nodeEvent)
+    requires dv' == f_add_block_to_bn_if_ImportedNewBlock_event(dv, node, nodeEvent)
     requires inv_every_decided_data_has_honest_witness(dv)
     ensures  inv_every_decided_data_has_honest_witness(dv')
     {        
@@ -1278,15 +1278,15 @@ module Invs_Att_DV_Next_5
         lem_inv_every_decided_data_has_honest_witness_Consensus_next_consensus_decides(s, honest_nodes_validity_predicates, s');
     }
 
-    lemma lem_inv_every_decided_data_has_honest_witness_consensus_instance_step(
+    lemma lem_inv_every_decided_data_has_honest_witness_next_consensus_instance(
         dv: AttDVState,
         node: BLSPubkey, 
         nodeEvent: AttestationEvent, 
         nodeOutputs: AttestationOutputs,
         dv': AttDVState
     )    
-    requires && Att_DV.consensus_instance_step.requires(dv, node, nodeEvent, nodeOutputs, dv')
-             && Att_DV.consensus_instance_step(dv, node, nodeEvent, nodeOutputs, dv')
+    requires && Att_DV.next_consensus_instance.requires(dv, node, nodeEvent, nodeOutputs, dv')
+             && Att_DV.next_consensus_instance(dv, node, nodeEvent, nodeOutputs, dv')
     requires inv_every_decided_data_has_honest_witness(dv)
     requires inv_every_consensus_instance_condition_for_safety_is_true(dv)
     ensures  inv_every_decided_data_has_honest_witness(dv')
@@ -1341,8 +1341,8 @@ module Invs_Att_DV_Next_5
     requires inv_every_consensus_instance_condition_for_safety_is_true(dv)
     ensures  inv_every_decided_data_has_honest_witness(dv')
     {        
-        assert consensus_instance_step(dv, node, nodeEvent, nodeOutputs, dv');
-        lem_inv_every_decided_data_has_honest_witness_consensus_instance_step(dv, node, nodeEvent, nodeOutputs, dv');
+        assert next_consensus_instance(dv, node, nodeEvent, nodeOutputs, dv');
+        lem_inv_every_decided_data_has_honest_witness_next_consensus_instance(dv, node, nodeEvent, nodeOutputs, dv');
     } 
 
     lemma lem_inv_every_decided_data_has_honest_witness_next_honest_node(
@@ -1359,7 +1359,7 @@ module Invs_Att_DV_Next_5
     ensures  inv_every_decided_data_has_honest_witness(dv')
     {        
         assert node in dv.honest_nodes_states.Keys;
-        var dv_w_honest_node_states_updated := f_add_block_to_bn_with_event(dv, node, nodeEvent);
+        var dv_w_honest_node_states_updated := f_add_block_to_bn_if_ImportedNewBlock_event(dv, node, nodeEvent);
 
         lem_inv_every_decided_data_has_honest_witness_f_add_block_to_bn_with_event(            
             dv, 

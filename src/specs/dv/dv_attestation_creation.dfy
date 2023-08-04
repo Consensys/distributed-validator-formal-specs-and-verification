@@ -63,11 +63,65 @@ module Att_DV
         && s.index_next_attestation_duty_to_be_served == 0   
     }
 
+    predicate valid_Block(
+        dv: AttDVState,
+        process: AttDVCState,
+        block: BeaconBlock
+    )
+    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
+    {
+        var valIndex := af_bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
+        && ( forall a1, a2 | 
+                && a1 in block.body.attestations
+                && Non_Instr_Att_DVC.has_correct_validator_index(a1, process.bn, block, valIndex)
+                && a2 in block.body.attestations
+                && Non_Instr_Att_DVC.has_correct_validator_index(a2, process.bn, block, valIndex)                        
+                ::
+                a1.data.slot == a2.data.slot ==> a1 == a2  
+            )      
+        && any_of_our_attestations_in_the_block_has_been_previously_sent(dv, process, block)
+    }      
+
+    predicate valid_ServeAttestationDuty_and_ImportedNewBlock_events(
+        s: AttDVState,
+        node: BLSPubkey,
+        nodeEvent: AttestationEvent
+    )
+    requires node in s.honest_nodes_states.Keys
+    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
+    {
+            && ( nodeEvent.ServeAttestationDuty? ==>
+                    && var attestation_duty_to_be_served := s.sequence_of_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
+                    && node == attestation_duty_to_be_served.node 
+                    && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
+                )
+            && ( nodeEvent.ImportedNewBlock? ==>
+                    valid_Block(s, s.honest_nodes_states[node], nodeEvent.block)
+                )
+    }    
+
+    predicate valid_HonestNodeTakingStep_event(
+        s: AttDVState,
+        event: DVAttestationEvent
+    )
+    {
+        event.HonestNodeTakingStep? ==>
+            (
+                &&  var nodeEvent := event.event;
+                &&  event.node in s.honest_nodes_states.Keys
+                &&  valid_ServeAttestationDuty_and_ImportedNewBlock_events(
+                        f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event),
+                        event.node,
+                        event.event
+                    )
+            )  
+    }       
+
     predicate next_preconditions(
         s: AttDVState
     )
     {
-        forall e | preconditions_for_HonestNodeTakingStep(s, e) :: next_event_preconditions(s, e)
+        forall e :: valid_HonestNodeTakingStep_event(s, e) ==> next_event_preconditions(s, e)
     }
  
     predicate next(
@@ -77,11 +131,11 @@ module Att_DV
     requires next_preconditions(s)
     {
         exists e ::
-            && preconditions_for_HonestNodeTakingStep(s, e)
+            && valid_HonestNodeTakingStep_event(s, e)
             && next_event(s, e, s')
     }
 
-    predicate unchanged_fixed_paras(dv: AttDVState, dv': AttDVState)
+    predicate next_unchanged(dv: AttDVState, dv': AttDVState)
     {
         && dv.all_nodes == dv'.all_nodes
         && dv.adversary == dv'.adversary
@@ -110,7 +164,7 @@ module Att_DV
     }    
 
       // TODO: Modify has_correct_validator_index to include the entirety the forall premise 
-    predicate all_attestations_in_rcvd_block_are_valid(
+    predicate any_of_our_attestations_in_the_block_has_been_previously_sent(
         dv: AttDVState,
         new_p: AttDVCState,
         block: BeaconBlock
@@ -132,62 +186,7 @@ module Att_DV
                 && a' in dv.all_attestations_created
                 && a'.data == a.data 
                 && att_signature_is_signed_with_pubkey(a', dv.dv_pubkey)    
-    }  
-
-    predicate check_rcvd_block_before_adding(
-        dv: AttDVState,
-        process: AttDVCState,
-        block: BeaconBlock
-    )
-    requires block.body.state_root in process.bn.state_roots_of_imported_blocks
-    {
-        var valIndex := af_bn_get_validator_index(process.bn, block.body.state_root, process.dv_pubkey);
-        && ( forall a1, a2 | 
-                && a1 in block.body.attestations
-                && Non_Instr_Att_DVC.has_correct_validator_index(a1, process.bn, block, valIndex)
-                && a2 in block.body.attestations
-                && Non_Instr_Att_DVC.has_correct_validator_index(a2, process.bn, block, valIndex)                        
-                ::
-                a1.data.slot == a2.data.slot ==> a1 == a2  
-            )      
-        && all_attestations_in_rcvd_block_are_valid(dv, process, block)
     }        
-
-
-    predicate preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(
-        s: AttDVState,
-        node: BLSPubkey,
-        nodeEvent: AttestationEvent
-    )
-    requires node in s.honest_nodes_states.Keys
-    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
-    {
-            && ( nodeEvent.ServeAttestationDuty? ==>
-                    && var attestation_duty_to_be_served := s.sequence_of_attestation_duties_to_be_served[s.index_next_attestation_duty_to_be_served];
-                    && node == attestation_duty_to_be_served.node 
-                    && nodeEvent.attestation_duty == attestation_duty_to_be_served.attestation_duty
-                )
-            && ( nodeEvent.ImportedNewBlock? ==>
-                    check_rcvd_block_before_adding(s, s.honest_nodes_states[node], nodeEvent.block)
-                )
-    }
-
-    predicate preconditions_for_HonestNodeTakingStep(
-        s: AttDVState,
-        event: DVAttestationEvent
-    )
-    {
-        event.HonestNodeTakingStep? ==>
-            (
-                &&  var nodeEvent := event.event;
-                &&  event.node in s.honest_nodes_states.Keys
-                &&  preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(
-                        f_add_block_to_bn_with_event(s, event.node, event.event),
-                        event.node,
-                        event.event
-                    )
-            )  
-    }    
    
     predicate next_honest_node_event_preconditions(
         s: AttDVCState,
@@ -198,48 +197,30 @@ module Att_DV
             case ServeAttestationDuty(attestation_duty) => 
                 && f_serve_attestation_duty.requires(s, attestation_duty)
             case AttConsensusDecided(id, decided_attestation_data) => 
-                true
+                && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
             case ReceivedAttestationShare(attestation_share) => 
-                true
+                f_listen_for_attestation_shares.requires(s, attestation_share)
             case ImportedNewBlock(block) => 
-                true
+                f_listen_for_new_imported_blocks.requires(s, block)
             case ResendAttestationShares => 
-                true
+                f_resend_attestation_shares.requires(s) 
             case NoEvent => 
-                true        
+                true       
     }
 
-    predicate next_event_preconditions(
-        s: AttDVState,
-        event: DVAttestationEvent
-    )
-    {
-        && preconditions_for_HonestNodeTakingStep(s, event)         
-        && ( event.HonestNodeTakingStep? 
-            ==> 
-            next_honest_node_event_preconditions(f_add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event)
-            )      
-    }
-
-    predicate next_event(
-        s: AttDVState,
-        event: DVAttestationEvent,
-        s': AttDVState
-    )
-    // requires preconditions_for_HonestNodeTakingStep(s, event)
-    requires next_event_preconditions(s, event)  
-    {
-        && unchanged_fixed_paras(s, s')
-        && (
-            match event
-                case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
-                    && next_honest_node(s, node, nodeEvent, nodeOutputs, s')
-                case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
-                    next_adversary(s, node, new_attestation_shares_sent, messagesReceivedByTheNode, s')
+    function f_add_block_to_bn(
+        s: AttDVCState,
+        block: BeaconBlock
+    ): AttDVCState
+    { 
+        s.(
+            bn := s.bn.(
+                state_roots_of_imported_blocks := s.bn.state_roots_of_imported_blocks + {block.body.state_root}
+            )
         )
-    }
+    }    
 
-    function f_add_block_to_bn_with_event(
+    function f_add_block_to_bn_if_ImportedNewBlock_event(
         s: AttDVState,
         node: BLSPubkey,
         nodeEvent: AttestationEvent
@@ -253,17 +234,40 @@ module Att_DV
         else 
             s 
                   
+    }    
+
+    predicate next_honest_node_event_preconditions_after_adding_block(
+        s: AttDVState,
+        node: BLSPubkey,
+        nodeEvent: AttestationEvent        
+    )
+    {
+        && node in s.honest_nodes_states.Keys
+        && next_honest_node_event_preconditions(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
     }
 
-    function f_add_block_to_bn(
-        s: AttDVCState,
-        block: BeaconBlock
-    ): AttDVCState
-    { 
-        s.(
-            bn := s.bn.(
-                state_roots_of_imported_blocks := s.bn.state_roots_of_imported_blocks + {block.body.state_root}
-            )
+    predicate next_event_preconditions(
+        s: AttDVState,
+        event: DVAttestationEvent
+    )
+    {    
+        ( event.HonestNodeTakingStep? ==> next_honest_node_event_preconditions_after_adding_block(s, event.node, event.event))      
+    }
+
+    predicate next_event(
+        s: AttDVState,
+        event: DVAttestationEvent,
+        s': AttDVState
+    )
+    requires next_event_preconditions(s, event)  
+    {
+        && next_unchanged(s, s')
+        && (
+            match event
+                case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
+                    next_honest_node(s, node, nodeEvent, nodeOutputs, s')
+                case AdversaryTakingStep(node, new_attestation_shares_sent, messagesReceivedByTheNode) => 
+                    next_adversary(s, node, new_attestation_shares_sent, messagesReceivedByTheNode, s')
         )
     }
 
@@ -274,17 +278,15 @@ module Att_DV
         nodeOutputs:  AttestationOutputs,
         s': AttDVState        
     ) 
-    requires unchanged_fixed_paras(s, s')
-    requires && node in s.honest_nodes_states.Keys     
-             && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock( f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
-             && next_honest_node_event_preconditions(f_add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
+    requires next_unchanged(s, s')
+    requires next_honest_node_event_preconditions_after_adding_block(s, node, nodeEvent)   
     {
         && node in s.honest_nodes_states.Keys        
-        && var s_w_honest_node_states_updated := f_add_block_to_bn_with_event(s, node, nodeEvent);
+        && var s_w_honest_node_states_updated := f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent);
         && next_honest_node_after_adding_block_to_bn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )                
     }
 
-    predicate consensus_instance_step(
+    predicate next_consensus_instance(
         s: AttDVState,
         node: BLSPubkey,
         nodeEvent: AttestationEvent,
@@ -314,7 +316,7 @@ module Att_DV
                 )
     }
 
-    predicate next_attestation_duty_and_node(
+    predicate next_attestation_duty(
         s: AttDVState,
         node: BLSPubkey,
         nodeEvent: AttestationEvent,
@@ -330,19 +332,24 @@ module Att_DV
             s'.index_next_attestation_duty_to_be_served == s.index_next_attestation_duty_to_be_served
     }
 
-    predicate update_node_state(
+    predicate next_nodes_states(
         s: AttDVState,
         node: BLSPubkey,
-        new_node_state: AttDVCState,
+        nodeEvent: AttestationEvent,
+        nodeOutputs:  AttestationOutputs,
         s': AttDVState
     )
+    requires next_unchanged(s, s')
+    requires node in s.honest_nodes_states
+    requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
+    // requires valid_ServeAttestationDuty_and_ImportedNewBlock_events(s, node, nodeEvent)
+    requires next_honest_node_event_preconditions(s.honest_nodes_states[node], nodeEvent)      
     {
-        s'.honest_nodes_states == s.honest_nodes_states[
-            node := new_node_state
-        ]
+        && Att_DVC.next(s.honest_nodes_states[node], nodeEvent, s'.honest_nodes_states[node], nodeOutputs)
+        && s'.honest_nodes_states == s.honest_nodes_states[node := s'.honest_nodes_states[node]]
     }
 
-    predicate update_network(
+    predicate next_network(
         s: AttDVState,
         node: BLSPubkey,
         nodeEvent: AttestationEvent,
@@ -365,20 +372,19 @@ module Att_DV
         nodeOutputs:  AttestationOutputs,
         s': AttDVState
     )
-    requires unchanged_fixed_paras(s, s')
+    requires next_unchanged(s, s')
     requires node in s.honest_nodes_states.Keys 
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
-    requires    && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(s, node, nodeEvent)
-                && next_honest_node_event_preconditions(s.honest_nodes_states[node], nodeEvent)      
+    // requires valid_ServeAttestationDuty_and_ImportedNewBlock_events(s, node, nodeEvent)
+    requires next_honest_node_event_preconditions(s.honest_nodes_states[node], nodeEvent)      
     {
         &&  var new_node_state := s'.honest_nodes_states[node];
         
         && s'.all_attestations_created == s.all_attestations_created + nodeOutputs.submitted_data
-        && next_attestation_duty_and_node(s, node, nodeEvent, s')
-        && Att_DVC.next(s.honest_nodes_states[node], nodeEvent, new_node_state, nodeOutputs)
-        && update_node_state(s, node, new_node_state, s')
-        && update_network(s, node, nodeEvent, nodeOutputs, s')      
-        && consensus_instance_step(s, node, nodeEvent, nodeOutputs, s')      
+        && next_attestation_duty(s, node, nodeEvent, s')
+        && next_nodes_states(s, node, nodeEvent, nodeOutputs, s')
+        && next_network(s, node, nodeEvent, nodeOutputs, s')      
+        && next_consensus_instance(s, node, nodeEvent, nodeOutputs, s')      
         && s'.adversary == s.adversary
     }    
 

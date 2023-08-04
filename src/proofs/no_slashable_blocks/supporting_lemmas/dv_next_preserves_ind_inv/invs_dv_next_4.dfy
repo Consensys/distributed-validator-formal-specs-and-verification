@@ -515,7 +515,7 @@ module Invs_DV_Next_4
     requires inv_unchanged_dvc_rs_pubkey(dv)
     ensures inv_unchanged_dvc_rs_pubkey(dv')
     {   
-        assert unchanged_fixed_paras(dv, dv');
+        assert next_unchanged(dv, dv');
         assert dv.honest_nodes_states.Keys == dv'.honest_nodes_states.Keys;
 
          match event 
@@ -614,10 +614,10 @@ module Invs_DV_Next_4
     requires next_event_preconditions(s, event)
     requires next_event(s, event, s')  
     requires event.HonestNodeTakingStep?
-    ensures next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
-    ensures next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_with_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
-    ensures Block_DVC.next.requires(f_add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
-    ensures Block_DVC.next(f_add_block_to_bn_with_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
+    ensures next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
+    ensures next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event), event.node, event.event, event.nodeOutputs, s' )  
+    ensures Block_DVC.next.requires(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);    
+    ensures Block_DVC.next(f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event).honest_nodes_states[event.node], event.event, s'.honest_nodes_states[event.node], event.nodeOutputs);
     { } 
 
     lemma inv_inv_slashing_db_hist_is_monotonic_body(
@@ -921,7 +921,7 @@ module Invs_DV_Next_4
         }   
     }
 
-    lemma lem_preconditions_for_ServeAttestationDuty_and_ImportedNewBlock_ServeProposerDuty(
+    lemma lem_valid_ServeAttestationDuty_and_ImportedNewBlock_events_ServeProposerDuty(
         dv: BlockDVState,
         event: DVBlockEvent,
         dv': BlockDVState,
@@ -935,17 +935,17 @@ module Invs_DV_Next_4
     requires event == DVBlockEvent.HonestNodeTakingStep(node, nodeEvent, nodeOutputs)
     requires nodeEvent.ServeProposerDuty?
     ensures node in dv.honest_nodes_states.Keys
-    ensures preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(dv, node, nodeEvent)
+    ensures valid_ServeAttestationDuty_and_ImportedNewBlock_events(dv, node, nodeEvent)
     { 
         assert  next_event_preconditions(dv, event);
         assert  next_honest_node_event_preconditions(
-                    f_add_block_to_bn_with_event(
+                    f_add_block_to_bn_if_ImportedNewBlock_event(
                         dv, 
                         event.node, 
                         event.event).honest_nodes_states[event.node], 
                     event.event
                 );   
-        assert  preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(dv, node, nodeEvent);   
+        assert  valid_ServeAttestationDuty_and_ImportedNewBlock_events(dv, node, nodeEvent);   
     }
 
     lemma lem_inv_unique_rcvd_proposer_duty_per_slot_ServeProposerDuty(
@@ -971,7 +971,7 @@ module Invs_DV_Next_4
     requires inv_unique_rcvd_proposer_duty_per_slot(dv)
     ensures inv_unique_rcvd_proposer_duty_per_slot(dv')
     { 
-        lem_preconditions_for_ServeAttestationDuty_and_ImportedNewBlock_ServeProposerDuty(
+        lem_valid_ServeAttestationDuty_and_ImportedNewBlock_events_ServeProposerDuty(
             dv,
             event,
             dv',
@@ -979,7 +979,7 @@ module Invs_DV_Next_4
             nodeEvent,
             nodeOutputs
         );
-        assert  preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(dv, node, nodeEvent);
+        assert  valid_ServeAttestationDuty_and_ImportedNewBlock_events(dv, node, nodeEvent);
         assert  node in dv.honest_nodes_states.Keys;
 
         var dv_duty_queue := dv.sequence_of_proposer_duties_to_be_served;

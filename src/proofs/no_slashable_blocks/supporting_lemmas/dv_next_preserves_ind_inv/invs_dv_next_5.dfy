@@ -1389,8 +1389,8 @@ module Invs_DV_Next_5
         nodeEvent: BlockEvent, 
         dv': BlockDVState
     )    
-    requires f_add_block_to_bn_with_event.requires(dv, node, nodeEvent)
-    requires dv' == f_add_block_to_bn_with_event(dv, node, nodeEvent)
+    requires f_add_block_to_bn_if_ImportedNewBlock_event.requires(dv, node, nodeEvent)
+    requires dv' == f_add_block_to_bn_if_ImportedNewBlock_event(dv, node, nodeEvent)
     requires inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block(dv)
     ensures  inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block(dv')
     { }   
@@ -1503,7 +1503,7 @@ module Invs_DV_Next_5
     ensures  inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block(dv')
     {        
         assert node in dv.honest_nodes_states.Keys;
-        var dv_w_honest_node_states_updated := f_add_block_to_bn_with_event(dv, node, nodeEvent);
+        var dv_w_honest_node_states_updated := f_add_block_to_bn_if_ImportedNewBlock_event(dv, node, nodeEvent);
 
         lem_inv_exists_honest_dvc_as_witness_for_every_decided_beacon_block_f_f_add_block_to_bn_with_event(            
             dv, 

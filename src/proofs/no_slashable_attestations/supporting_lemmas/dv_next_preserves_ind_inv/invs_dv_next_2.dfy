@@ -66,8 +66,8 @@ module Invs_Att_DV_Next_2
 
         var s_node := s.honest_nodes_states[node];
         var s'_node := s'.honest_nodes_states[node];
-        assert  next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
-        assert  next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+        assert  next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+        assert  next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
 
         match nodeEvent
         {
@@ -101,9 +101,9 @@ module Invs_Att_DV_Next_2
             case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) =>
                 var s_node := s.honest_nodes_states[node];
                 var s'_node := s'.honest_nodes_states[node];
-                assert  next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
-                assert  next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
-                lem_ServeAttestationDuty_constraints2_helper(f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+                assert  next_honest_node_after_adding_block_to_bn.requires(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+                assert  next_honest_node_after_adding_block_to_bn(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
+                lem_ServeAttestationDuty_constraints2_helper(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent), node, nodeEvent, nodeOutputs, s' );
         }        
     }    
 
@@ -727,7 +727,7 @@ module Invs_Att_DV_Next_2
         nodeEvent: AttestationEvent
     ) returns (s_w_honest_node_states_updated: AttDVState)
     requires node in s.honest_nodes_states
-    ensures s_w_honest_node_states_updated == f_add_block_to_bn_with_event(s, node, nodeEvent)
+    ensures s_w_honest_node_states_updated == f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent)
     ensures s_w_honest_node_states_updated == s.(honest_nodes_states := s_w_honest_node_states_updated.honest_nodes_states)
     ensures s_w_honest_node_states_updated.honest_nodes_states == s.honest_nodes_states[node := s_w_honest_node_states_updated.honest_nodes_states[node]]
     ensures s_w_honest_node_states_updated.honest_nodes_states[node] == s.honest_nodes_states[node].(bn := s_w_honest_node_states_updated.honest_nodes_states[node].bn)
@@ -1042,7 +1042,7 @@ module Invs_Att_DV_Next_2
     ) 
     requires node in s.honest_nodes_states.Keys
     requires node' in s.honest_nodes_states.Keys
-    requires s_w_honest_node_states_updated == f_add_block_to_bn_with_event(s, node, nodeEvent)
+    requires s_w_honest_node_states_updated == f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent)
     ensures s_w_honest_node_states_updated.honest_nodes_states[node'].attestation_consensus_engine_state == s.honest_nodes_states[node'].attestation_consensus_engine_state
     {      
     }  
@@ -2019,7 +2019,7 @@ module Invs_Att_DV_Next_2
     requires new_consensus_instances_already_decided == f_listen_for_new_imported_blocks_helper_1(process, block)
     requires inv_exists_honest_node_that_sent_att_share_for_every_submitted_att(dv)
     requires inv_data_of_att_shares_are_decided_values(dv)
-    requires all_attestations_in_rcvd_block_are_valid(dv, process, block)
+    requires any_of_our_attestations_in_the_block_has_been_previously_sent(dv, process, block)
     ensures forall slot | 
                 slot in new_consensus_instances_already_decided
                 :: 

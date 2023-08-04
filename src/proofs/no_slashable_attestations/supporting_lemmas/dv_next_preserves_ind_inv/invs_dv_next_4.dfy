@@ -152,7 +152,7 @@ module Invs_Att_DV_Next_4
     requires inv_future_decisions_known_by_dvc_are_decisions_of_quorums_body(dv, n, process)
     requires inv_exists_honest_node_that_sent_att_share_for_every_submitted_att(dv)
     requires inv_data_of_att_shares_are_decided_values(dv)
-    requires all_attestations_in_rcvd_block_are_valid(dv, process, block)
+    requires any_of_our_attestations_in_the_block_has_been_previously_sent(dv, process, block)
     ensures inv_future_decisions_known_by_dvc_are_decisions_of_quorums_body(dv, n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -229,15 +229,15 @@ module Invs_Att_DV_Next_4
 
     }
 
-    lemma lem_inv_unchanged_decision_consensus_instance_step<D(!new, 0)>(
+    lemma lem_inv_unchanged_decision_next_consensus_instance<D(!new, 0)>(
         s: AttDVState,
         node: BLSPubkey,
         nodeEvent: AttestationEvent,
         nodeOutputs:  AttestationOutputs,
         s': AttDVState
     )
-    requires Att_DV.consensus_instance_step.requires(s, node, nodeEvent, nodeOutputs, s')
-    requires Att_DV.consensus_instance_step(s, node, nodeEvent, nodeOutputs, s')
+    requires Att_DV.next_consensus_instance.requires(s, node, nodeEvent, nodeOutputs, s')
+    requires Att_DV.next_consensus_instance(s, node, nodeEvent, nodeOutputs, s')
     requires forall slot: Slot | slot in s.consensus_on_attestation_data.Keys  ::
                     condition_for_safety_is_true(s.consensus_on_attestation_data[slot])
                     ;
@@ -314,6 +314,7 @@ module Invs_Att_DV_Next_4
         event: DVAttestationEvent,
         s': AttDVState
     )
+    requires valid_HonestNodeTakingStep_event(s, event)
     requires next_event_preconditions(s, event)
     requires next_event(s, event, s')     
     requires lem_inv_exists_honest_node_that_sent_att_share_for_every_submitted_att_new_precond(s)  
@@ -419,6 +420,7 @@ module Invs_Att_DV_Next_4
         event: DVAttestationEvent,
         s': AttDVState
     )
+    requires valid_HonestNodeTakingStep_event(s, event)
     requires next_event_preconditions(s, event)
     requires next_event(s, event, s')  
     requires lem_inv_exists_honest_node_that_sent_att_share_for_every_submitted_att_new_precond(s)
@@ -511,7 +513,7 @@ module Invs_Att_DV_Next_4
     requires inv_slots_in_future_decided_data_are_correct_body(dv', n, process)
     requires inv_exists_honest_node_that_sent_att_share_for_every_submitted_att(dv')
     requires inv_data_of_att_shares_are_decided_values(dv')
-    requires all_attestations_in_rcvd_block_are_valid(dv', process, block)
+    requires any_of_our_attestations_in_the_block_has_been_previously_sent(dv', process, block)
     ensures inv_slots_in_future_decided_data_are_correct_body(dv', n, s');
     {
         var new_consensus_instances_already_decided := f_listen_for_new_imported_blocks_helper_1(process, block);
@@ -583,6 +585,7 @@ module Invs_Att_DV_Next_4
         event: DVAttestationEvent,
         s': AttDVState
     )
+    requires valid_HonestNodeTakingStep_event(s, event)
     requires next_event_preconditions(s, event)
     requires next_event(s, event, s')     
     requires inv_slots_in_future_decided_data_are_correct(s)
@@ -673,6 +676,7 @@ module Invs_Att_DV_Next_4
         event: DVAttestationEvent,
         s': AttDVState
     )
+    requires valid_HonestNodeTakingStep_event(s, event)
     requires next_event_preconditions(s, event)
     requires next_event(s, event, s')  
     requires lem_inv_exists_honest_node_that_sent_att_share_for_every_submitted_att_new_precond(s)

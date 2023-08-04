@@ -374,7 +374,8 @@ module Ind_Inv_Att_DV_Next
         lem_inv_data_of_att_shares_are_decided_values_dv_next(dv, e, dv');
     }
     
-    lemma lem_ind_inv_dv_next_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    lemma lem_ind_inv_dv_next_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState) 
+    requires valid_HonestNodeTakingStep_event(dv, e)      
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv)
@@ -385,7 +386,8 @@ module Ind_Inv_Att_DV_Next
         lem_inv_future_decisions_known_by_dvc_are_decisions_of_quorums(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_inv_slots_in_future_decided_data_are_correct(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    lemma lem_ind_inv_dv_next_inv_slots_in_future_decided_data_are_correct(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)  
+    requires valid_HonestNodeTakingStep_event(dv, e)     
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv)
@@ -395,7 +397,8 @@ module Ind_Inv_Att_DV_Next
         lem_inv_slots_in_future_decided_data_are_correct(dv, e, dv');
     }
 
-    lemma lem_ind_inv_dv_next_invs_group_11(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    lemma lem_ind_inv_dv_next_invs_group_11(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)     
+    requires valid_HonestNodeTakingStep_event(dv, e)  
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv)
@@ -479,6 +482,7 @@ module Ind_Inv_Att_DV_Next
     }
 
     lemma lem_ind_inv_dv_next_ind_inv_helper_3(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    requires valid_HonestNodeTakingStep_event(dv, e)
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv)
@@ -521,7 +525,8 @@ module Ind_Inv_Att_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_2(dv, e, dv');    
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv_helper_b(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    lemma lem_ind_inv_dv_next_ind_inv_helper_b(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)    
+    requires valid_HonestNodeTakingStep_event(dv, e)   
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv) 
@@ -537,6 +542,7 @@ module Ind_Inv_Att_DV_Next
     }
 
     lemma lem_ind_inv_dv_next_ind_inv_helper(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    requires valid_HonestNodeTakingStep_event(dv, e)
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv) 
@@ -559,7 +565,8 @@ module Ind_Inv_Att_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper_b(dv, e, dv');                
     }
 
-    lemma lem_ind_inv_dv_next_ind_inv(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState)       
+    lemma lem_ind_inv_dv_next_ind_inv(dv: AttDVState, e: DVAttestationEvent, dv': AttDVState) 
+    requires valid_HonestNodeTakingStep_event(dv, e)      
     requires Att_DV.next_event_preconditions(dv, e)
     requires Att_DV.next_event(dv, e, dv')  
     requires ind_inv(dv)    
@@ -568,7 +575,7 @@ module Ind_Inv_Att_DV_Next
         lem_ind_inv_dv_next_ind_inv_helper(dv, e, dv');                                  
     }
 
-    lemma lem_ind_inv_dv_ind_inv_next_preconditions(dv: AttDVState, dv': AttDVState)       
+    lemma lem_ind_inv_dv_ind_inv_next_preconditions(dv: AttDVState, dv': AttDVState)      
     requires Att_DV.next_preconditions(dv)
     requires Att_DV.next(dv, dv')  
     requires ind_inv(dv)    
@@ -576,7 +583,7 @@ module Ind_Inv_Att_DV_Next
     ensures Att_DV.next_preconditions(dv')
     {
         var e :|
-            && preconditions_for_HonestNodeTakingStep(dv, e)
+            && valid_HonestNodeTakingStep_event(dv, e)
             && next_event(dv, e, dv');
 
         lem_ind_inv_dv_next_ind_inv(dv, e, dv');
@@ -589,7 +596,7 @@ module Ind_Inv_Att_DV_Next
     requires ind_inv(s)
     ensures  next_preconditions(s)                
     {
-        forall event | preconditions_for_HonestNodeTakingStep(s, event)
+        forall event | valid_HonestNodeTakingStep_event(s, event)
         ensures next_event_preconditions(s, event);
         {
             if event.HonestNodeTakingStep?

@@ -25,22 +25,19 @@ module Ind_Inv_Att_DV_Init
     ensures ind_inv(dv)
     ensures next_preconditions(dv)
     {
-        assert  Att_DV.init(dv, {})  
-                ==>                 
-                && invs_group_1(dv)
+        assert  && invs_group_1(dv)
                 && invs_group_2(dv)
         ;
-        assert  Att_DV.init(dv, {})  
-                ==>                 
-                && invs_group_3(dv)                         
+        assert  && invs_group_3(dv)                         
                 && invs_group_4(dv)
                 && invs_group_5(dv)   
                 && invs_group_6(dv)                     
         ;
 
-        assert  Att_DV.init(dv, {})    
-                ==>
-                && invs_group_7(dv)
+        assert forall s: Slot ::
+        Consensus.init(dv.consensus_on_attestation_data[s], dv.all_nodes, dv.honest_nodes_states.Keys);
+
+        assert  && invs_group_7(dv)
                 && invs_group_8(dv)           
                 && invs_group_9(dv)
                 && invs_group_10(dv)

@@ -125,7 +125,7 @@ module Block_DV
     }
     
 
-    predicate check_rcvd_block_before_adding(
+    predicate valid_Block(
         dv: BlockDVState,
         process: BlockDVCState,
         block: BeaconBlock
@@ -145,7 +145,7 @@ module Block_DV
         && exists_submitted_signed_beacon_block_for_given_block(dv, block)
     } 
 
-    predicate preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(
+    predicate valid_ServeAttestationDuty_and_ImportedNewBlock_events(
         s: BlockDVState,
         node: BLSPubkey,
         nodeEvent: BlockEvent
@@ -159,7 +159,7 @@ module Block_DV
                     && nodeEvent.proposer_duty == proposer_duty_to_be_served.proposer_duty
             )
             && (nodeEvent.ImportedNewBlock? ==>
-                    check_rcvd_block_before_adding(s, s.honest_nodes_states[node], nodeEvent.block)
+                    valid_Block(s, s.honest_nodes_states[node], nodeEvent.block)
             )
     }
 
@@ -175,7 +175,7 @@ module Block_DV
         )
     }
 
-    function f_add_block_to_bn_with_event(
+    function f_add_block_to_bn_if_ImportedNewBlock_event(
         s: BlockDVState,
         node: BLSPubkey,
         nodeEvent: BlockEvent
@@ -191,7 +191,7 @@ module Block_DV
                   
     }    
 
-    predicate preconditions_for_HonestNodeTakingStep(
+    predicate valid_HonestNodeTakingStep_event(
         s: BlockDVState,
         event: DVBlockEvent
     )
@@ -200,8 +200,8 @@ module Block_DV
             (
             var nodeEvent := event.event;
             && event.node in s.honest_nodes_states.Keys
-            && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(
-                f_add_block_to_bn_with_event(s, event.node, event.event),
+            && valid_ServeAttestationDuty_and_ImportedNewBlock_events(
+                f_add_block_to_bn_if_ImportedNewBlock_event(s, event.node, event.event),
                 event.node,
                 event.event
             )
@@ -237,11 +237,11 @@ module Block_DV
         event: DVBlockEvent
     )
     {
-        && preconditions_for_HonestNodeTakingStep(dv, event)         
+        && valid_HonestNodeTakingStep_event(dv, event)         
         && (event.HonestNodeTakingStep? 
             ==> 
             next_honest_node_event_preconditions(
-                f_add_block_to_bn_with_event(
+                f_add_block_to_bn_if_ImportedNewBlock_event(
                     dv, 
                     event.node, 
                     event.event).honest_nodes_states[event.node], 
@@ -253,7 +253,7 @@ module Block_DV
         s: BlockDVState
     )
     {
-        forall e |  preconditions_for_HonestNodeTakingStep(s, e) :: next_event_preconditions(s, e)
+        forall e |  valid_HonestNodeTakingStep_event(s, e) :: next_event_preconditions(s, e)
     }
 
     predicate next(
@@ -263,7 +263,7 @@ module Block_DV
     requires next_preconditions(s)
     {
         exists e :: 
-            && preconditions_for_HonestNodeTakingStep(s, e)
+            && valid_HonestNodeTakingStep_event(s, e)
             && next_event(s, e, s')
     }
 
@@ -272,10 +272,10 @@ module Block_DV
         event: DVBlockEvent,
         s': BlockDVState
     )
-    requires preconditions_for_HonestNodeTakingStep(s, event)
+    requires valid_HonestNodeTakingStep_event(s, event)
     requires next_event_preconditions(s, event)  
     {
-        && unchanged_fixed_paras(s, s')
+        && next_unchanged(s, s')
         && (
             match event
                 case HonestNodeTakingStep(node, nodeEvent, nodeOutputs) => 
@@ -285,7 +285,7 @@ module Block_DV
            )
     }
 
-    predicate unchanged_fixed_paras(dv: BlockDVState, dv': BlockDVState)
+    predicate next_unchanged(dv: BlockDVState, dv': BlockDVState)
     {
         && dv.all_nodes == dv'.all_nodes
         && dv.adversary == dv'.adversary
@@ -311,13 +311,13 @@ module Block_DV
         nodeOutputs: BlockOutputs,
         s': BlockDVState        
     ) 
-    requires unchanged_fixed_paras(s, s')
+    requires next_unchanged(s, s')
     requires && node in s.honest_nodes_states.Keys     
-             && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock( f_add_block_to_bn_with_event(s, node, nodeEvent), node, nodeEvent)    
-             && next_honest_node_event_preconditions(f_add_block_to_bn_with_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
+             && valid_ServeAttestationDuty_and_ImportedNewBlock_events( f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent), node, nodeEvent)    
+             && next_honest_node_event_preconditions(f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent).honest_nodes_states[node], nodeEvent)        
     {
         && node in s.honest_nodes_states.Keys
-        && var s_w_honest_node_states_updated := f_add_block_to_bn_with_event(s, node, nodeEvent);
+        && var s_w_honest_node_states_updated := f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent);
         && next_honest_node_after_adding_block_to_bn(s_w_honest_node_states_updated, node, nodeEvent, nodeOutputs, s' )
     }
 
@@ -408,10 +408,10 @@ module Block_DV
         nodeOutputs: BlockOutputs,
         s': BlockDVState
     )
-    requires unchanged_fixed_paras(s, s')
+    requires next_unchanged(s, s')
     requires node in s.honest_nodes_states.Keys 
     requires nodeEvent.ImportedNewBlock? ==> nodeEvent.block.body.state_root in s.honest_nodes_states[node].bn.state_roots_of_imported_blocks
-    requires && preconditions_for_ServeAttestationDuty_and_ImportedNewBlock(s, node, nodeEvent)
+    requires && valid_ServeAttestationDuty_and_ImportedNewBlock_events(s, node, nodeEvent)
              && next_honest_node_event_preconditions(s.honest_nodes_states[node], nodeEvent)      
     {
         && node in s.honest_nodes_states.Keys 

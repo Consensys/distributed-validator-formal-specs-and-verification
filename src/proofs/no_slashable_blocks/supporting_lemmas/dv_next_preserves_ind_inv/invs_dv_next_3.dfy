@@ -45,7 +45,7 @@ module Invs_DV_Next_3
         nodeEvent: BlockEvent
     ) returns (s_w_honest_node_states_updated: BlockDVState)
     requires node in s.honest_nodes_states.Keys
-    ensures s_w_honest_node_states_updated == f_add_block_to_bn_with_event(s, node, nodeEvent)
+    ensures s_w_honest_node_states_updated == f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent)
     ensures s_w_honest_node_states_updated == s.(honest_nodes_states := s_w_honest_node_states_updated.honest_nodes_states)
     ensures s_w_honest_node_states_updated.honest_nodes_states == s.honest_nodes_states[node := s_w_honest_node_states_updated.honest_nodes_states[node]]
     ensures s_w_honest_node_states_updated.honest_nodes_states[node] == s.honest_nodes_states[node].(bn := s_w_honest_node_states_updated.honest_nodes_states[node].bn)
@@ -70,7 +70,7 @@ module Invs_DV_Next_3
     )
     requires node in s.honest_nodes_states.Keys
     requires node' in s.honest_nodes_states.Keys
-    requires s_w_honest_node_states_updated == f_add_block_to_bn_with_event(s, node, nodeEvent)
+    requires s_w_honest_node_states_updated == f_add_block_to_bn_if_ImportedNewBlock_event(s, node, nodeEvent)
     ensures s_w_honest_node_states_updated.honest_nodes_states[node'].block_consensus_engine_state == s.honest_nodes_states[node'].block_consensus_engine_state
     {
     }

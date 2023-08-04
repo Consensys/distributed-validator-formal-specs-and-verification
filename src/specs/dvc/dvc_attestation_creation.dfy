@@ -384,6 +384,7 @@ module Non_Instr_Att_DVC {
                         && a2 in block.body.attestations
                         && has_correct_validator_index(a2, process.bn, block, valIndex)                        
                     ::
+                        // TODO: FIX THIS - some fields of a1 do not need to be the same
                         a1.data.slot == a2.data.slot ==> a1 == a2    
     {
         // Important: The following code allows a process to import decisions of past attestation duties.

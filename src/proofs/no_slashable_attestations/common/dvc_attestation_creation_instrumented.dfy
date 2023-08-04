@@ -47,6 +47,20 @@ module Att_DVC {
         s': AttDVCState,
         outputs: AttestationOutputs
     )
+    requires 
+            match event 
+            case ServeAttestationDuty(attestation_duty) => 
+                && f_serve_attestation_duty.requires(s, attestation_duty)
+            case AttConsensusDecided(id, decided_attestation_data) => 
+                && f_att_consensus_decided.requires(s, id,  decided_attestation_data)
+            case ReceivedAttestationShare(attestation_share) => 
+                f_listen_for_attestation_shares.requires(s, attestation_share)
+            case ImportedNewBlock(block) => 
+                f_listen_for_new_imported_blocks.requires(s, block)
+            case ResendAttestationShares => 
+                f_resend_attestation_shares.requires(s) 
+            case NoEvent => 
+                true    
     requires f_process_event.requires(s, event)
     {
         var newNodeStateAndOutputs := DVCStateAndOuputs(
