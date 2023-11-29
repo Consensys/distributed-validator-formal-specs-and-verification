@@ -72,7 +72,7 @@ module No_Slashable_Attestations_Main_Theorem
 
     lemma adversarSpecCounterEx(s: AttDVState,s':AttDVState, e:DVAttestationEvent,a:Attestation,trace:iseq<AttDVState>)
     requires valid_trace(trace)
-    requires exists i :: i in trace && trace[i] == s && trace[i+1] == s'
+    requires exists i :: i in trace.Keys && trace[i] == s && trace[i+1] == s'
     requires Att_DV.next_preconditions(s)
     requires Att_DV.next(s,s')
     requires Att_DV.next_event_preconditions(s, e)  
@@ -92,6 +92,11 @@ module No_Slashable_Attestations_Main_Theorem
             && var a' := Attestation(a.aggregation_bits,adata',af_rs_sign_attestation(adata', fork_version,
                             attestation_signing_root, rs));
             && (&& a' in s'.all_attestations_created)
+
+//    requires forall i: Slot :: ind_inv(trace[i])
+
+//   ensures forall i:nat :: non_slashable_attestations(trace[i])
+
     ensures && var sa := a.data.slot+1;
             && var adata' :=
                     AttestationData(sa,a.data.index,a.data.beacon_block_root,a.data.source,a.data.target);
@@ -110,8 +115,17 @@ module No_Slashable_Attestations_Main_Theorem
                 && is_slashable_attestation_data_eth_spec(a.data,a'.data)
                 && !non_slashable_attestations(s'));
     {
-        // rs_attestation_sign_and_verification_propetries<AttestationData>();
+        alem_rs_attestation_sign_and_verification_propeties();
+
+/*
+        forall i:nat
+        ensures ind_inv(trace[i])
+        ensures non_slashable_attestations(trace[i])
+        {
+            lem_non_slashable_attestations_rec(trace, i);
+            lem_ind_inv_no_slashable_submitted_attestations(trace[i]);
+        }
+
+*/
     }
-
-
 }
