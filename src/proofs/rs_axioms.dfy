@@ -5,6 +5,8 @@ module RS_Axioms
     import opened Types 
     import opened Signing_Methods
 
+    // NOTE: Unnecessary rs
+    // Missing use of rs' pubkey
     function {:axiom} af_rs_sign_attestation(
         attestation_data: AttestationData, 
         fork_version: Version, 
@@ -13,7 +15,9 @@ module RS_Axioms
     ): BLSSignature
     requires signing_root == compute_attestation_signing_root(attestation_data, fork_version)
 
+    
     lemma {:axiom} alem_rs_attestation_sign_and_verification_propeties()
+    // NOTE: No connection between the rs.pubkey as input of rs_sign_attestation and rs.pubkey
     ensures forall attestation_data, fork_version, signing_root, rs |
                     af_rs_sign_attestation.requires(attestation_data, fork_version, signing_root, rs) ::
                     verify_bls_signature(
@@ -21,6 +25,7 @@ module RS_Axioms
                         af_rs_sign_attestation(attestation_data, fork_version, signing_root, rs),
                         rs.pubkey
                     )
+
     ensures forall signing_root, signature, pubkey ::
         verify_bls_signature(signing_root, signature, pubkey) <==>
             exists attestation_data, fork_version ::
@@ -28,6 +33,9 @@ module RS_Axioms
             && af_rs_sign_attestation.requires(attestation_data, fork_version, signing_root, rs)
             && signature == af_rs_sign_attestation(attestation_data, fork_version, signing_root, rs)
 
+    // NOTE: It seems pk1 and pk2 should have replaced by rs1 and rs2, respectively.
+    // The conclusion should have had rs1.pk == rs2.pk
+    // Not sure why we do not have ad1 == ad2 and fv1 == fv2
     ensures forall ad1, fv1, sr1, pk1, ad2, fv2, sr2, pk2 ::
             && af_rs_sign_attestation.requires(ad1, fv1, sr1, pk1)
             && af_rs_sign_attestation.requires(ad2, fv2, sr2, pk2)
